@@ -1,22 +1,13 @@
 haj-travel-system/
-├── 📂 public/
-│   ├── index.html          # Main 33-field form
-│   ├── admin.html          # Admin panel with 33-field edit
-│   └── style.css          # CSS styles
-├── 📂 server/
-│   ├── server.js          # Main backend
-│   ├── database.js        # Database schema (33 fields)
-│   └── 📂 routes/
-│       ├── travelers.js   # 33-field CRUD API
-│       └── uploads.js     # File upload handler
-├── 📂 sql/
-│   ├── init.sql          # Database initialization
-│   └── seed.sql          # Sample data
-├── package.json          # Dependencies
-├── package-lock.json     # Lock file
-├── .env.example         # Environment template
-├── .gitignore          # Git ignore rules
-├── railway.json        # Railway deployment config
-├── Procfile           # Railway process file
-├── README.md          # Documentation
-└── structure.txt      # This file
+├── 📂 app/                 ✅ PYTHON BACKEND (KEEP)
+├── 📂 public/             ✅ HTML/CSS (KEEP)
+├── 📂 sql/                ✅ SQL FILES (KEEP)
+├── 📂 uploads/            ✅ EMPTY FOLDER (KEEP)
+├── requirements.txt       ✅ WITH CODE (ADDED)
+├── runtime.txt           ✅ WITH CODE (ADDED)
+├── .env.example          ✅ WITH CODE (ADDED)
+├── .gitignore            ✅ WITH CODE (ADDED)
+├── Procfile              ✅ gunicorn app.server:app
+├── railway.json          ✅ {"build":{"builder":"NIXPACKS"}}
+├── README.md             ✅ Documentation
+└── structure.txt         ✅ Your file - KEEP IT!
