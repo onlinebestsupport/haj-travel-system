@@ -1,5 +1,14 @@
 {
   "build": {
-    "builder": "RAILPACK"
+    "builder": "RAILPACK",
+    "buildCommand": null,
+    "detect": {
+      "python": true
+    }
+  },
+  "deploy": {
+    "startCommand": "gunicorn app.server:app",
+    "healthcheckPath": "/api",
+    "restartPolicyType": "ON_FAILURE"
   }
 }
