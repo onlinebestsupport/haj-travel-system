@@ -1,5 +1,10 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "RAILPACK"
+  },
+  "deploy": {
+    "startCommand": "gunicorn app.server:app",
+    "healthcheckPath": "/api",
+    "healthcheckTimeout": 100
   }
 }
