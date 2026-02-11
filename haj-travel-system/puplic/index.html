@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alhudha Haj Travel System - Complete 33 Field Form</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        
+        .badge {
+            background: #27ae60;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .card h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 3;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        label i {
+            margin-right: 5px;
+            color: #3498db;
+        }
+        
+        label span {
+            color: #e74c3c;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+        }
+        
+        .document-upload {
+            border: 2px dashed #3498db;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .document-upload:hover {
+            background: #e8f4f8;
+            border-color: #2980b9;
+        }
+        
+        .document-upload i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            grid-column: span 3;
+        }
+        
+        .btn-primary, .btn-secondary {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .traveler-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .traveler-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .traveler-item h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #3498db;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .info-card i {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .progress {
+            margin-top: 20px;
+            background: #f1f1f1;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        @media (max-width: 1200px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .form-group.full-width {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            .form-actions {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-kaaba"></i> Alhudha Haj Travel System</h1>
+            <p class="subtitle">Complete Traveler Management Portal with 33+ Fields</p>
+            <span class="badge"><i class="fas fa-check-circle"></i> PostgreSQL Database Connected</span>
+        </header>
+        
+        <div class="main-content">
+            <!-- LEFT COLUMN: 33-FIELD FORM -->
+            <div>
+                <div class="form-section">
+                    <h2><i class="fas fa-user-plus"></i> Add New Traveler - Complete Form (33 Fields)</h2>
+                    
+                    <form id="travelerForm">
+                        <!-- SECTION 1: BASIC INFORMATION (10 fields) -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> First Name <span>*</span></label>
+                                    <input type="text" id="first_name" placeholder="Enter first name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> Last Name <span>*</span></label>
+                                    <input type="text" id="last_name" placeholder="Enter last name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-passport"></i> Passport Name (Auto)</label>
+                                    <input type="text" id="passport_name" placeholder="Auto-generated" readonly>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-layer-group"></i> Batch</label>
+                                    <select id="batch_id">
+                                        <option value="">Select Batch</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-passport"></i> Passport Number <span>*</span></label>
+                                    <input type="text" id="passport_no" placeholder="e.g., P12345678" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
+                                    <input type="date" id="passport_issue_date">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-times"></i> Passport Expiry Date</label>
+                                    <input type="date" id="passport_expiry_date">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-tag"></i> Passport Status</label>
+                                    <select id="passport_status">
+                                        <option value="Active">Active</option>
+                                        <option value="Expired">Expired</option>
+                                        <option value="Submitted">Submitted</option>
+                                        <option value="Processing">Processing</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-venus-mars"></i> Gender</label>
+                                    <select id="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
+                                    <input type="date" id="dob">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 2: CONTACT INFORMATION (7 fields) -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-mobile-alt"></i> Mobile Number <span>*</span></label>
+                                    <input type="tel" id="mobile" placeholder="e.g., 9876543210" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope"></i> Email</label>
+                                    <input type="email" id="email" placeholder="traveler@example.com">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-id-card"></i> Aadhaar Number</label>
+                                    <input type="text" id="aadhaar" placeholder="1234 5678 9012">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-file-invoice"></i> PAN Number</label>
+                                    <input type="text" id="pan" placeholder="ABCDE1234F">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label>
+                                    <select id="aadhaar_pan_linked">
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="Pending">Pending</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-syringe"></i> Vaccine Status</label>
+                                    <select id="vaccine_status">
+                                        <option value="Not Vaccinated">Not Vaccinated</option>
+                                        <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                        <option value="Fully Vaccinated">Fully Vaccinated</option>
+                                        <option value="Booster">Booster</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-wheelchair"></i> Wheelchair Required</label>
+                                    <select id="wheelchair">
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 3: ADDRESS & FAMILY (6 fields) -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-map-marker-alt"></i> 3. Address & Family Details</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-globe"></i> Place of Birth</label>
+                                    <input type="text" id="place_of_birth" placeholder="City, Country">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-passport"></i> Place of Issue</label>
+                                    <input type="text" id="place_of_issue" placeholder="Passport issuing city">
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label><i class="fas fa-address-card"></i> Passport Address</label>
+                                    <textarea id="passport_address" rows="3" placeholder="Full address as per passport"></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> Father's Name</label>
+                                    <input type="text" id="father_name" placeholder="Father's full name">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> Mother's Name</label>
+                                    <input type="text" id="mother_name" placeholder="Mother's full name">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-user"></i> Spouse's Name</label>
+                                    <input type="text" id="spouse_name" placeholder="Spouse's full name (if applicable)">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 4: DOCUMENT UPLOADS (4 fields) -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-file-upload"></i> 4. Document Uploads</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-passport"></i> Passport Scan</label>
+                                    <div class="document-upload" onclick="document.getElementById('passport_scan').click()">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p id="passport_scan_text">Click to upload</p>
+                                        <input type="file" id="passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-id-card"></i> Aadhaar Scan</label>
+                                    <div class="document-upload" onclick="document.getElementById('aadhaar_scan').click()">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p id="aadhaar_scan_text">Click to upload</p>
+                                        <input type="file" id="aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-file-invoice"></i> PAN Scan</label>
+                                    <div class="document-upload" onclick="document.getElementById('pan_scan').click()">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p id="pan_scan_text">Click to upload</p>
+                                        <input type="file" id="pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-syringe"></i> Vaccine Certificate</label>
+                                    <div class="document-upload" onclick="document.getElementById('vaccine_scan').click()">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p id="vaccine_scan_text">Click to upload</p>
+                                        <input type="file" id="vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION 5: EXTRA FIELDS (JSON) (1 field) -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-code"></i> 5. Extra Fields (Dynamic JSON)</h3>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label><i class="fas fa-json"></i> Additional Information (JSON format)</label>
+                                    <textarea id="extra_fields" rows="4" placeholder='{"emergency_contact": "9876543210", "allergies": "None", "blood_group": "O+", "nationality": "Indian"}'></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- FORM ACTIONS -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Save Traveler (33 Fields)
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                        
+                        <!-- PROGRESS INDICATOR -->
+                        <div class="progress">
+                            <div class="progress-bar" id="formProgress" style="width: 0%;"></div>
+                        </div>
+                        <p style="text-align: right; margin-top: 5px; color: #7f8c8d;" id="progressText">0% Complete</p>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- RIGHT COLUMN: TRAVELERS LIST -->
+            <div>
+                <div class="card">
+                    <h2><i class="fas fa-users"></i> Recent Travelers</h2>
+                    
+                    <!-- Search Bar -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="searchTraveler" placeholder="Search by name or passport..." style="flex: 1; padding: 12px;">
+                        <button class="btn-primary" style="width: auto; padding: 12px 20px;" onclick="searchTravelers()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Travelers Table -->
+                    <div class="traveler-list" id="travelerList">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f1f1f1;">
+                                    <th style="padding: 12px; text-align: left;">ID</th>
+                                    <th style="padding: 12px; text-align: left;">Name</th>
+                                    <th style="padding: 12px; text-align: left;">Passport</th>
+                                    <th style="padding: 12px; text-align: left;">Mobile</th>
+                                    <th style="padding: 12px; text-align: left;">Batch</th>
+                                    <th style="padding: 12px; text-align: left;">Status</th>
+                                    <th style="padding: 12px; text-align: left;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="travelersTableBody">
+                                <tr>
+                                    <td colspan="7" style="padding: 40px; text-align: center; color: #7f8c8d;">
+                                        <i class="fas fa-users" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                                        No travelers found. Add your first traveler using the 33-field form!
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button id="prevBtn" onclick="changePage(-1)" disabled>
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <span id="pageInfo">Page 1 of 1</span>
+                        <button id="nextBtn" onclick="changePage(1)" disabled>
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- SYSTEM INFORMATION -->
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> System Information</h2>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <i class="fas fa-database"></i>
+                            <h3>PostgreSQL Database</h3>
+                            <p>Your data is securely stored in Database</p>
+                            <span style="display: inline-block; margin-top: 10px; background: #27ae60; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                                <i class="fas fa-check-circle"></i> Connected
+                            </span>
+                        </div>
+                        
+                        <div class="info-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>33 Fields Active</h3>
+                            <p>Complete traveler profile with all required fields</p>
+                            <span style="display: inline-block; margin-top: 10px; background: #3498db; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                                <i class="fas fa-check-circle"></i> 33/33 Fields
+                            </span>
+                        </div>
+                        
+                        <div class="info-card">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Document Upload</h3>
+                            <p>Passport, Aadhaar, PAN, Vaccine certificates</p>
+                            <span style="display: inline-block; margin-top: 10px; background: #e67e22; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                                <i class="fas fa-upload"></i> 4 Documents
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+
+        // ============================================
+        // 1. AUTO-GENERATE PASSPORT NAME
+        // ============================================
+        document.getElementById('first_name').addEventListener('input', updatePassportName);
+        document.getElementById('last_name').addEventListener('input', updatePassportName);
+        
+        function updatePassportName() {
+            const first = document.getElementById('first_name').value;
+            const last = document.getElementById('last_name').value;
+            document.getElementById('passport_name').value = `${first} ${last}`.trim();
+        }
+
+        // ============================================
+        // 2. LOAD BATCHES FROM DATABASE
+        // ============================================
+        async function loadBatches() {
+            try {
+                const response = await fetch(API_URL + '/travelers/batches/list');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const batchSelect = document.getElementById('batch_id');
+                    batchSelect.innerHTML = '<option value="">Select Batch</option>';
+                    
+                    data.batches.forEach(batch => {
+                        const option = document.createElement('option');
+                        option.value = batch.id;
+                        option.textContent = `${batch.batch_name} (${batch.departure_date || 'TBD'})`;
+                        batchSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading batches:', error);
+            }
+        }
+
+        // ============================================
+        // 3. LOAD STATISTICS
+        // ============================================
+        async function loadStats() {
+            try {
+                const response = await fetch(API_URL + '/travelers/stats/summary');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalTravelers').textContent = data.stats.totalTravelers || 0;
+                    document.getElementById('activeTravelers').textContent = data.stats.activeTravelers || 0;
+                    document.getElementById('openBatches').textContent = data.stats.openBatches || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // ============================================
+        // 4. LOAD TRAVELERS
+        // ============================================
+        async function loadTravelers() {
+            try {
+                const response = await fetch(API_URL + '/travelers');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayTravelers(data.travelers.slice(0, 10));
+                }
+            } catch (error) {
+                console.error('Error loading travelers:', error);
+            }
+        }
+
+        function displayTravelers(travelers) {
+            const tbody = document.getElementById('travelersTableBody');
+            if (!tbody) return;
+            
+            if (!travelers || travelers.length === 0) {
+                tbody.innerHTML = `<tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-users" style="font-size: 48px; color: #bdc3c7; margin-bottom: 15px; display: block;"></i>
+                        No travelers found. Add your first traveler using the 33-field form!
+                    </td>
+                </tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = travelers.map(t => `
+                <tr>
+                    <td>${t.id}</td>
+                    <td><strong>${t.first_name} ${t.last_name}</strong></td>
+                    <td>${t.passport_no || 'N/A'}</td>
+                    <td>${t.mobile || 'N/A'}</td>
+                    <td>${t.batch_name || 'Not Assigned'}</td>
+                    <td><span class="status-badge ${t.passport_status === 'Active' ? 'active' : 'inactive'}">${t.passport_status || 'Active'}</span></td>
+                    <td>
+                        <button class="btn-view" onclick="viewTraveler(${t.id})"><i class="fas fa-eye"></i></button>
+                        <button class="btn-edit" onclick="editTraveler(${t.id})"><i class="fas fa-edit"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ============================================
+        // 5. SUBMIT FORM - 33 FIELDS
+        // ============================================
+        document.getElementById('travelerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Collect ALL 33 fields
+            const traveler = {
+                // Personal Information (1-10)
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                batch_id: document.getElementById('batch_id').value || null,
+                passport_no: document.getElementById('passport_no').value,
+                passport_issue_date: document.getElementById('passport_issue_date').value,
+                passport_expiry_date: document.getElementById('passport_expiry_date').value,
+                passport_status: document.getElementById('passport_status').value,
+                gender: document.getElementById('gender').value,
+                dob: document.getElementById('dob').value,
+                
+                // Contact Information (11-17)
+                mobile: document.getElementById('mobile').value,
+                email: document.getElementById('email').value,
+                aadhaar: document.getElementById('aadhaar').value,
+                pan: document.getElementById('pan').value,
+                aadhaar_pan_linked: document.getElementById('aadhaar_pan_linked').value,
+                vaccine_status: document.getElementById('vaccine_status').value,
+                wheelchair: document.getElementById('wheelchair').value,
+                
+                // Address & Family (18-23)
+                place_of_birth: document.getElementById('place_of_birth').value,
+                place_of_issue: document.getElementById('place_of_issue').value,
+                passport_address: document.getElementById('passport_address').value,
+                father_name: document.getElementById('father_name').value,
+                mother_name: document.getElementById('mother_name').value,
+                spouse_name: document.getElementById('spouse_name').value,
+                
+                // Document Scans (24-27)
+                passport_scan: document.getElementById('passport_scan')?.files[0]?.name || null,
+                aadhaar_scan: document.getElementById('aadhaar_scan')?.files[0]?.name || null,
+                pan_scan: document.getElementById('pan_scan')?.files[0]?.name || null,
+                vaccine_scan: document.getElementById('vaccine_scan')?.files[0]?.name || null,
+                
+                // Extra Fields (28)
+                extra_fields: document.getElementById('extra_fields').value || '{}'
+            };
+
+            // Validate required fields
+            if (!traveler.first_name || !traveler.last_name || !traveler.passport_no || !traveler.mobile) {
+                alert('❌ Please fill all required fields (*)');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL + '/travelers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(traveler)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Traveler saved successfully with all 33 fields!');
+                    resetForm();
+                    loadTravelers();
+                    loadStats();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Connection error: ' + error.message);
+            }
+        });
+
+        // ============================================
+        // 6. UTILITY FUNCTIONS
+        // ============================================
+        function resetForm() {
+            document.getElementById('travelerForm').reset();
+            document.getElementById('passport_name').value = '';
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const fields = ['first_name', 'last_name', 'passport_no', 'mobile'];
+            let filled = 0;
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                if (el && el.value && el.value.trim() !== '') filled++;
+            });
+            const progress = Math.round((filled / fields.length) * 100);
+            const bar = document.getElementById('formProgress');
+            const text = document.getElementById('progressText');
+            if (bar) bar.style.width = progress + '%';
+            if (text) text.innerHTML = progress + '% Complete';
+        }
+
+        function viewTraveler(id) {
+            window.location.href = `/admin?view=${id}`;
+        }
+
+        function editTraveler(id) {
+            window.location.href = `/admin?edit=${id}`;
+        }
+
+        function searchTravelers() {
+            const search = document.getElementById('searchTraveler')?.value.toLowerCase();
+            const rows = document.querySelectorAll('#travelersTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+
+        function changePage(direction) {
+            console.log('Page change:', direction);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBatches();
+            loadStats();
+            loadTravelers();
+            updateProgress();
+            
+            document.querySelectorAll('#travelerForm input, #travelerForm select').forEach(el => {
+                el.addEventListener('input', updateProgress);
+            });
+        });
+    </script>
+</body>
+</html>

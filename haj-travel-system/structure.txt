@@ -1,0 +1,22 @@
+haj-travel-system/
+├── 📂 public/
+│   ├── index.html          # Main 33-field form
+│   ├── admin.html          # Admin panel with 33-field edit
+│   └── style.css          # CSS styles
+├── 📂 server/
+│   ├── server.js          # Main backend
+│   ├── database.js        # Database schema (33 fields)
+│   └── 📂 routes/
+│       ├── travelers.js   # 33-field CRUD API
+│       └── uploads.js     # File upload handler
+├── 📂 sql/
+│   ├── init.sql          # Database initialization
+│   └── seed.sql          # Sample data
+├── package.json          # Dependencies
+├── package-lock.json     # Lock file
+├── .env.example         # Environment template
+├── .gitignore          # Git ignore rules
+├── railway.json        # Railway deployment config
+├── Procfile           # Railway process file
+├── README.md          # Documentation
+└── structure.txt      # This file
