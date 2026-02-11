@@ -5,7 +5,6 @@
     "buildCommand": "npm install"
   },
   "deploy": {
-    "numReplicas": 1,
     "startCommand": "node server/server.js",
     "healthcheckPath": "/api",
     "healthcheckTimeout": 100,
