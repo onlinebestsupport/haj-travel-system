@@ -9,7 +9,7 @@ app = create_app()
 def serve_index():
     return send_from_directory('../public', 'index.html')
 
-@app.route('/admin')
+@app.route('/admin')  # ← ADD THIS ROUTE
 def serve_admin():
     return send_from_directory('../public', 'admin.html')
 
