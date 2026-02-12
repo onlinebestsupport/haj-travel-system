@@ -1,12 +1,21 @@
 from app import create_app
 from app.database import init_db
+from flask import send_from_directory
 import os
 
 app = create_app()
 
 @app.route('/')
-def home():
-    return {"message": "Haj Travel System API"}
+def serve_index():
+    return send_from_directory('../public', 'index.html')
+
+@app.route('/admin')
+def serve_admin():
+    return send_from_directory('../public', 'admin.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('../public', path)
 
 @app.route('/api')
 def api():
