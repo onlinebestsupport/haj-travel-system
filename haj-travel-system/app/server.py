@@ -3,27 +3,25 @@ from flask_cors import CORS
 from app.database import init_db
 import os
 
-app = Flask(__name__, 
-            static_folder='../public',
-            template_folder='../public')
+app = Flask(__name__)
 CORS(app)
 
-# Serve index.html at root
+# Get the base directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.path.join(os.path.dirname(BASE_DIR), 'public')
+
 @app.route('/')
 def serve_index():
-    return send_from_directory('../public', 'index.html')
+    return send_from_directory(PUBLIC_DIR, 'index.html')
 
-# Serve admin.html at /admin
 @app.route('/admin')
 def serve_admin():
-    return send_from_directory('../public', 'admin.html')
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
 
-# Serve all static files (CSS, JS, images)
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('../public', path)
+    return send_from_directory(PUBLIC_DIR, path)
 
-# API endpoint
 @app.route('/api')
 def api():
     return {
