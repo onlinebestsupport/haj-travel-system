@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ============ FIXED PATHS FOR RAILWAY ============
-# The public folder is at /app/public in Railway
+# Your public folder path - using 'puplic' as per your GitHub
 PUBLIC_DIR = '/app/puplic'
 
 print(f"📁 Looking for public folder at: {PUBLIC_DIR}")
@@ -18,9 +18,8 @@ if os.path.exists(PUBLIC_DIR):
     print(f"📁 Files in public folder: {os.listdir(PUBLIC_DIR)}")
 else:
     print(f"❌ PUBLIC FOLDER NOT FOUND! Current directory: {os.getcwd()}")
-    print(f"❌ Files in /app: {os.listdir('/app') if os.path.exists('/app') else 'NO /app'}")
 
-# ============ ROUTES ============
+# ============ HTML PAGE ROUTES ============
 
 @app.route('/')
 def serve_index():
@@ -37,6 +36,8 @@ def serve_static(path):
     """Serve all static files (CSS, JS, images)"""
     return send_from_directory(PUBLIC_DIR, path)
 
+# ============ API ROUTES ============
+
 @app.route('/api')
 def api():
     """API status endpoint"""
@@ -52,10 +53,17 @@ def health():
     """Healthcheck endpoint for Railway"""
     return jsonify({"status": "healthy"}), 200
 
+# ============ ERROR HANDLERS ============
+
 @app.errorhandler(404)
 def not_found(e):
     """Handle 404 errors"""
     return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    return jsonify({"error": "Server error"}), 500
 
 # ============ STARTUP ============
 
@@ -69,4 +77,3 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Starting server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
-
