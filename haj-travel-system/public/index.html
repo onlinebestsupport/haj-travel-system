@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Alhudha Haj Travel System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Role-based visibility classes */
+        .super-admin-only, .admin-only, .manager-only, .staff-only, .viewer-only {
+            display: none;
+        }
+        
+        body[data-role="super_admin"] .super-admin-only,
+        body[data-role="admin"] .admin-only,
+        body[data-role="manager"] .manager-only,
+        body[data-role="staff"] .staff-only,
+        body[data-role="viewer"] .viewer-only {
+            display: inline-block;
+        }
+        
+        /* Existing styles plus new ones */
+        .admin-nav {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+        .admin-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .admin-nav a:hover, .admin-nav a.active {
+            background: #3498db;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .dashboard-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .full-width-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: span 3;
+        }
+        .document-upload {
+            border: 2px dashed #3498db;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .document-upload:hover {
+            background: #e8f4f8;
+            border-color: #2980b9;
+        }
+        .document-upload i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            padding: 5px;
+            margin: 0 2px;
+            font-size: 16px;
+        }
+        .btn-icon:hover {
+            color: #2980b9;
+        }
+        
+        /* New styles for verification panel */
+        .verification-panel {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .verification-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #bde0f0;
+        }
+        
+        .verification-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .verification-value {
+            color: #3498db;
+        }
+        
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .role-badge {
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .logout-btn {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGOUT BUTTON -->
+    <button id="logoutButton" class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <div class="container">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h3 style="color: white; margin: 0;"><i class="fas fa-kaaba"></i> Alhudha Haj - Admin</h3>
+                <span style="background: #27ae60; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                    33 Fields System
+                </span>
+                <span id="userRoleBadge" class="role-badge"></span>
+            </div>
+            <div>
+                <a href="/" target="_blank"><i class="fas fa-home"></i> Visitor View</a>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <!-- Welcome Message with User Info -->
+        <div class="dashboard-card" style="margin-bottom: 20px;">
+            <h3>Welcome, <span id="userName">Admin</span>!</h3>
+            <p>Your role: <strong><span id="userRole">Loading...</span></strong></p>
+        </div>
+
+        <!-- Tabs - Role based visibility will be applied via JS -->
+        <div style="display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; flex-wrap: wrap;">
+            <button onclick="showTab('dashboard')" class="btn-primary" id="tabDashboardBtn">Dashboard</button>
+            <button onclick="showTab('batches')" class="btn-secondary" id="tabBatchesBtn">Batches</button>
+            <button onclick="showTab('travelers')" class="btn-secondary" id="tabTravelersBtn">Travelers</button>
+            <button onclick="showTab('payments')" class="btn-secondary" id="tabPaymentsBtn">Payments</button>
+            <button onclick="showTab('reports')" class="btn-secondary viewer-only" id="tabReportsBtn">Reports</button>
+            <button onclick="showTab('users')" class="btn-secondary super-admin-only admin-only" id="tabUsersBtn">User Management</button>
+        </div>
+
+        <!-- ============ DASHBOARD TAB ============ -->
+        <div id="dashboardTab" class="tab-content">
+            <h2><i class="fas fa-tachometer-alt"></i> System Overview</h2>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-line"></i> Statistics</h3>
+                    <div id="adminStats">
+                        <p>Loading statistics...</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-check-circle"></i> System Health</h3>
+                    <div id="systemHealth">
+                        <p><i class="fas fa-database"></i> Database: <span id="dbStatus">Checking...</span></p>
+                        <p><i class="fas fa-passport"></i> Travelers: <span id="totalTravelersSpan">0</span></p>
+                        <p><i class="fas fa-layer-group"></i> Batches: <span id="totalBatchesSpan">0</span></p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-bell"></i> Today</h3>
+                    <div id="todayStats">
+                        <p><i class="fas fa-user-plus"></i> New Registrations: <span id="todayRegistrations">0</span></p>
+                        <p><i class="fas fa-check"></i> Active Travelers: <span id="activeTravelersSpan">0</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions based on role -->
+            <div class="dashboard-card">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button onclick="showTab('batches'); showBatchForm()" class="btn-primary manager-only admin-only super-admin-only">
+                        <i class="fas fa-plus"></i> Create New Batch
+                    </button>
+                    <button onclick="showTab('travelers'); showTravelerForm()" class="btn-primary staff-only manager-only admin-only super-admin-only">
+                        <i class="fas fa-user-plus"></i> Add New Traveler
+                    </button>
+                    <button onclick="showTab('payments'); showPaymentForm()" class="btn-primary staff-only manager-only admin-only super-admin-only">
+                        <i class="fas fa-credit-card"></i> Record Payment
+                    </button>
+                    <button onclick="showTab('reports')" class="btn-primary viewer-only">
+                        <i class="fas fa-chart-bar"></i> View Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ BATCHES TAB ============ -->
+        <div id="batchesTab" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-layer-group"></i> Batch Management</h2>
+            
+            <!-- Create Batch Form - Visible to managers and above -->
+            <div class="full-width-form" id="createBatchForm" style="display: none;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                    <i class="fas fa-plus-circle"></i> Create New Haj/Umrah Package
+                </h3>
+                
+                <form id="batchCreateForm">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Batch/Package Name *</label>
+                            <input type="text" id="batch_name" required placeholder="e.g., Haj Silver 2026">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Seats</label>
+                            <input type="number" id="total_seats" value="150">
+                        </div>
+                        <div class="form-group">
+                            <label>Price (₹)</label>
+                            <input type="number" id="price" step="1000" placeholder="e.g., 350000">
+                        </div>
+                        <div class="form-group">
+                            <label>Departure Date</label>
+                            <input type="date" id="departure_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Return Date</label>
+                            <input type="date" id="return_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="batch_status">
+                                <option value="Open">Open</option>
+                                <option value="Closing Soon">Closing Soon</option>
+                                <option value="Full">Full</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea id="description" rows="3" placeholder="Package details, inclusions, etc."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Create Batch
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="hideBatchForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Batches List -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="showBatchForm()" class="btn-success manager-only admin-only super-admin-only">
+                        <i class="fas fa-plus"></i> New Batch
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; flex: 1; max-width: 300px;">
+                    <input type="text" id="searchBatches" placeholder="Search batches..." style="flex: 1; padding: 12px;">
+                    <button onclick="searchBatches()" class="btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Package Name</th>
+                            <th>Departure</th>
+                            <th>Return</th>
+                            <th>Price</th>
+                            <th>Seats</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchesTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #bdc3c7;"></i>
+                                <p>Loading batches...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ TRAVELERS TAB ============ -->
+        <div id="travelersTab" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-users"></i> Travelers Management</h2>
+            
+            <!-- Add Traveler Form -->
+            <div class="full-width-form" id="addTravelerForm" style="display: none;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                    <i class="fas fa-user-plus"></i> Add New Traveler
+                </h3>
+                
+                <form id="travelerAddForm">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="add_first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="add_last_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Batch/Package *</label>
+                            <select id="add_batch_id" required>
+                                <option value="">Select Batch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Passport Number *</label>
+                            <input type="text" id="add_passport_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number *</label>
+                            <input type="tel" id="add_mobile" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="add_email">
+                        </div>
+                        <div class="form-group">
+                            <label>PIN (4 digits)</label>
+                            <input type="text" id="add_pin" maxlength="4" value="0000">
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" id="add_dob">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="add_gender">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <p><i class="fas fa-info-circle"></i> Additional 33 fields can be added after creation</p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Add Traveler
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="hideAddTravelerForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 33-FIELD EDIT FORM (Existing) -->
+            <div class="full-width-form" id="editTravelerForm" style="display: none;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #3498db;">
+                    <i class="fas fa-user-edit"></i> Edit Traveler - All 33 Fields
+                </h3>
+                
+                <form id="adminTravelerForm">
+                    <!-- Section 1: Personal Information (10 fields) -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">1. Personal Information</h4>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>First Name *</label>
+                                <input type="text" id="edit_first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name *</label>
+                                <input type="text" id="edit_last_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Name (Auto)</label>
+                                <input type="text" id="edit_passport_name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Batch</label>
+                                <select id="edit_batch_id">
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Number *</label>
+                                <input type="text" id="edit_passport_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Issue Date</label>
+                                <input type="date" id="edit_passport_issue_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Expiry Date</label>
+                                <input type="date" id="edit_passport_expiry_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Status</label>
+                                <select id="edit_passport_status">
+                                    <option value="Active">Active</option>
+                                    <option value="Expired">Expired</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Processing">Processing</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="edit_gender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="edit_dob">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Contact Information (7 fields) -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">2. Contact Information</h4>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" id="edit_mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="edit_email">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Number</label>
+                                <input type="text" id="edit_aadhaar">
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Number</label>
+                                <input type="text" id="edit_pan">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar-PAN Linked</label>
+                                <select id="edit_aadhaar_pan_linked">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Status</label>
+                                <select id="edit_vaccine_status">
+                                    <option value="Not Vaccinated">Not Vaccinated</option>
+                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
+                                    <option value="Booster">Booster</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Wheelchair Required</label>
+                                <select id="edit_wheelchair">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 3: Address & Family (6 fields) -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family Details</h4>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Place of Birth</label>
+                                <input type="text" id="edit_place_of_birth">
+                            </div>
+                            <div class="form-group">
+                                <label>Place of Issue</label>
+                                <input type="text" id="edit_place_of_issue">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Passport Address</label>
+                                <textarea id="edit_passport_address" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Father's Name</label>
+                                <input type="text" id="edit_father_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Mother's Name</label>
+                                <input type="text" id="edit_mother_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Spouse's Name</label>
+                                <input type="text" id="edit_spouse_name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 4: Document Uploads (4 fields) -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Document Uploads</h4>
+                        <div class="grid-4">
+                            <div class="form-group">
+                                <label>Passport Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_passport_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_aadhaar_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_pan_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Certificate</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_vaccine_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 5: Extra Fields (JSON) -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">5. Extra Fields (JSON)</h4>
+                        <div class="grid-3">
+                            <div class="form-group full-width">
+                                <label>Additional Information</label>
+                                <textarea id="edit_extra_fields" rows="4" placeholder='{"emergency_contact": "", "allergies": "", "blood_group": ""}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Update Traveler (33 Fields)
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="hideEditForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Travelers List -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="showAddTravelerForm()" class="btn-success staff-only manager-only admin-only super-admin-only">
+                        <i class="fas fa-user-plus"></i> Add Traveler
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; flex: 1; max-width: 400px;">
+                    <input type="text" id="searchTravelers" placeholder="Search by name or passport..." style="flex: 1; padding: 12px;">
+                    <button onclick="searchAllTravelers()" class="btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button onclick="exportTravelers()" class="btn-success viewer-only">
+                    <i class="fas fa-file-export"></i> Export CSV
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Passport</th>
+                            <th>Mobile</th>
+                            <th>Batch</th>
+                            <th>Status</th>
+                            <th>PIN</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allTravelersTable">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #bdc3c7;"></i>
+                                <p>Loading travelers...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ PAYMENTS TAB ============ -->
+        <div id="paymentsTab" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-credit-card"></i> Payment Management</h2>
+            
+            <!-- Add Payment Form with Verification -->
+            <div class="full-width-form" id="addPaymentForm" style="display: none;">
+                <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                    <i class="fas fa-plus-circle"></i> Record New Payment
+                </h3>
+                
+                <!-- Traveler Verification Step -->
+                <div id="paymentVerificationStep">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Traveler ID or Passport *</label>
+                            <input type="text" id="payment_traveler_search" placeholder="Enter Traveler ID or Passport Number">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button onclick="verifyTravelerForPayment()" class="btn-primary">
+                                <i class="fas fa-search"></i> Verify
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Verification Result Panel -->
+                <div id="paymentVerificationResult" style="display: none;" class="verification-panel">
+                    <h4><i class="fas fa-check-circle"></i> Traveler Verified</h4>
+                    <div class="verification-item">
+                        <span class="verification-label">Traveler Name:</span>
+                        <span class="verification-value" id="verifyTravelerName"></span>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-label">Passport:</span>
+                        <span class="verification-value" id="verifyPassport"></span>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-label">Batch/Package:</span>
+                        <span class="verification-value" id="verifyBatchName"></span>
+                    </div>
+                    <div class="verification-item">
+                        <span class="verification-label">Package Price:</span>
+                        <span class="verification-value" id="verifyBatchPrice"></span>
+                    </div>
+                </div>
+                
+                <!-- Payment Form (shown after verification) -->
+                <form id="paymentAddForm" style="display: none; margin-top: 20px;">
+                    <input type="hidden" id="payment_traveler_id">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Installment *</label>
+                            <select id="payment_installment" required>
+                                <option value="Booking Amount">Booking Amount</option>
+                                <option value="1st Installment">1st Installment</option>
+                                <option value="2nd Installment">2nd Installment</option>
+                                <option value="3rd Installment">3rd Installment</option>
+                                <option value="Final Payment">Final Payment</option>
+                                <option value="Full Payment">Full Payment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹) *</label>
+                            <input type="number" id="payment_amount" step="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" id="payment_due_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Date</label>
+                            <input type="date" id="payment_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="payment_status">
+                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Partial">Partial</option>
+                                <option value="Overdue">Overdue</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Record Payment
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="hidePaymentForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Payments List -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="showPaymentForm()" class="btn-success staff-only manager-only admin-only super-admin-only">
+                        <i class="fas fa-plus"></i> New Payment
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; flex: 1; max-width: 300px;">
+                    <input type="text" id="searchPayments" placeholder="Search payments..." style="flex: 1; padding: 12px;">
+                    <button onclick="searchPayments()" class="btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Traveler</th>
+                            <th>Installment</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Payment Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #bdc3c7;"></i>
+                                <p>Loading payments...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============ REPORTS TAB ============ -->
+        <div id="reportsTab" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-chart-bar"></i> Reports</h2>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Travelers by Batch</h3>
+                    <canvas id="batchChart" width="400" height="300"></canvas>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Payment Summary</h3>
+                    <canvas id="paymentChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Generate Report</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <button onclick="generateReport('daily')" class="btn-primary">
+                        <i class="fas fa-calendar-day"></i> Daily Report
+                    </button>
+                    <button onclick="generateReport('batch')" class="btn-primary">
+                        <i class="fas fa-layer-group"></i> Batch Report
+                    </button>
+                    <button onclick="generateReport('full')" class="btn-success">
+                        <i class="fas fa-file-excel"></i> Full Export
+                    </button>
+                </div>
+                <div id="reportOutput" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- ============ USER MANAGEMENT TAB ============ -->
+        <div id="usersTab" class="tab-content" style="display: none;">
+            <h2><i class="fas fa-users-cog"></i> User Management</h2>
+            
+            <!-- Add User Form -->
+            <div class="full-width-form" id="addUserForm" style="display: none;">
+                <h3><i class="fas fa-user-plus"></i> Create New Staff User</h3>
+                <form id="userCreateForm">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Username *</label>
+                            <input type="text" id="user_username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password *</label>
+                            <input type="password" id="user_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="user_email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="user_fullname">
+                        </div>
+                        <div class="form-group">
+                            <label>Role *</label>
+                            <select id="user_role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="staff">Staff</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Create User
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="hideAddUserForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Users List -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <button onclick="showAddUserForm()" class="btn-success super-admin-only admin-only">
+                    <i class="fas fa-user-plus"></i> New User
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Roles</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #bdc3c7;"></i>
+                                <p>Loading users...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+        let currentEditId = null;
+        let currentUserRole = 'viewer';
+        let verifiedTravelerId = null;
+
+        // ============================================
+        // LOGIN CHECK AND USER INFO LOAD
+        // ============================================
+        (function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            
+            if (!isLoggedIn) {
+                window.location.href = '/login';
+            }
+            
+            // Load user role from session
+            currentUserRole = sessionStorage.getItem('userRole') || 'viewer';
+            document.body.setAttribute('data-role', currentUserRole);
+            document.getElementById('userRole').textContent = currentUserRole.replace('_', ' ');
+            document.getElementById('userRoleBadge').textContent = currentUserRole.replace('_', ' ');
+            document.getElementById('userName').textContent = sessionStorage.getItem('userName') || 'Admin';
+        })();
+
+        // ============================================
+        // LOGOUT FUNCTION
+        // ============================================
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                sessionStorage.clear();
+                window.location.href = '/login';
+            } catch (error) {
+                sessionStorage.clear();
+                window.location.href = '/login';
+            }
+        }
+
+        // ============================================
+        // TAB NAVIGATION
+        // ============================================
+        function showTab(tabName) {
+            document.getElementById('dashboardTab').style.display = tabName === 'dashboard' ? 'block' : 'none';
+            document.getElementById('batchesTab').style.display = tabName === 'batches' ? 'block' : 'none';
+            document.getElementById('travelersTab').style.display = tabName === 'travelers' ? 'block' : 'none';
+            document.getElementById('paymentsTab').style.display = tabName === 'payments' ? 'block' : 'none';
+            document.getElementById('reportsTab').style.display = tabName === 'reports' ? 'block' : 'none';
+            document.getElementById('usersTab').style.display = tabName === 'users' ? 'block' : 'none';
+            
+            const btns = ['dashboard', 'batches', 'travelers', 'payments', 'reports', 'users'];
+            btns.forEach(b => {
+                const btn = document.getElementById(`tab${b.charAt(0).toUpperCase() + b.slice(1)}Btn`);
+                if (btn) {
+                    btn.className = b === tabName ? 'btn-primary' : 'btn-secondary';
+                }
+            });
+            
+            // Load tab data
+            if (tabName === 'dashboard') {
+                loadAdminStats();
+            } else if (tabName === 'batches') {
+                loadBatches();
+            } else if (tabName === 'travelers') {
+                loadAllTravelers();
+                loadBatchesForSelect();
+            } else if (tabName === 'payments') {
+                loadPayments();
+            } else if (tabName === 'users') {
+                loadAdminUsers();
+            }
+        }
+
+        // ============================================
+        // DASHBOARD FUNCTIONS
+        // ============================================
+        async function loadAdminStats() {
+            try {
+                const response = await fetch(API_URL + '/travelers/stats/summary');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('adminStats').innerHTML = `
+                        <p><strong>Total Travelers:</strong> ${data.stats.totalTravelers}</p>
+                        <p><strong>Active Travelers:</strong> ${data.stats.activeTravelers}</p>
+                        <p><strong>Open Batches:</strong> ${data.stats.openBatches}</p>
+                        <p><strong>Today's Registrations:</strong> ${data.stats.todayRegistrations}</p>
+                    `;
+                    document.getElementById('totalTravelersSpan').textContent = data.stats.totalTravelers;
+                    document.getElementById('activeTravelersSpan').textContent = data.stats.activeTravelers;
+                    document.getElementById('totalBatchesSpan').textContent = data.stats.openBatches;
+                    document.getElementById('todayRegistrations').textContent = data.stats.todayRegistrations;
+                    document.getElementById('dbStatus').innerHTML = '<span style="color: #27ae60;">Connected</span>';
+                }
+            } catch (error) {
+                document.getElementById('dbStatus').innerHTML = '<span style="color: #e74c3c;">Error</span>';
+            }
+        }
+
+        // ============================================
+        // BATCH MANAGEMENT FUNCTIONS
+        // ============================================
+        async function loadBatches() {
+            try {
+                const response = await fetch('/api/batches');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('batchesTableBody');
+                    if (!data.batches || data.batches.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">No batches found</td></tr>`;
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.batches.map(b => `
+                        <tr>
+                            <td>${b.id}</td>
+                            <td><strong>${b.batch_name}</strong></td>
+                            <td>${b.departure_date || 'TBD'}</td>
+                            <td>${b.return_date || 'TBD'}</td>
+                            <td>₹${b.price ? b.price.toLocaleString() : 'Contact'}</td>
+                            <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
+                            <td><span class="status-badge ${b.status === 'Open' ? 'active' : 'inactive'}">${b.status}</span></td>
+                            <td>
+                                <button class="btn-icon" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" onclick="viewBatchTravelers(${b.id})" title="View Travelers"><i class="fas fa-users"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading batches:', error);
+            }
+        }
+
+        function showBatchForm() {
+            document.getElementById('createBatchForm').style.display = 'block';
+        }
+
+        function hideBatchForm() {
+            document.getElementById('createBatchForm').style.display = 'none';
+            document.getElementById('batchCreateForm').reset();
+        }
+
+        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const batch = {
+                batch_name: document.getElementById('batch_name').value,
+                total_seats: parseInt(document.getElementById('total_seats').value),
+                price: parseFloat(document.getElementById('price').value),
+                departure_date: document.getElementById('departure_date').value,
+                return_date: document.getElementById('return_date').value,
+                status: document.getElementById('batch_status').value,
+                description: document.getElementById('description').value
+            };
+            
+            try {
+                const response = await fetch('/api/batches', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batch)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Batch created successfully!');
+                    hideBatchForm();
+                    loadBatches();
+                    loadAdminStats();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Connection error: ' + error.message);
+            }
+        });
+
+        // ============================================
+        // TRAVELER MANAGEMENT FUNCTIONS
+        // ============================================
+        async function loadAllTravelers() {
+            try {
+                const response = await fetch(API_URL + '/travelers');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('allTravelersTable');
+                    if (!data.travelers || data.travelers.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">No travelers found</td></tr>`;
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.travelers.map(t => `
+                        <tr>
+                            <td>${t.id}</td>
+                            <td><strong>${t.first_name} ${t.last_name}</strong></td>
+                            <td>${t.passport_no || 'N/A'}</td>
+                            <td>${t.mobile || 'N/A'}</td>
+                            <td>${t.batch_name || 'Not Assigned'}</td>
+                            <td><span class="status-badge ${t.passport_status === 'Active' ? 'active' : 'inactive'}">${t.passport_status || 'Active'}</span></td>
+                            <td>${t.pin || '0000'}</td>
+                            <td>
+                                <button class="btn-icon" onclick="adminEditTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" onclick="adminDeleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                <button class="btn-icon" onclick="viewTravelerPayments(${t.id})" title="Payments"><i class="fas fa-credit-card"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading travelers:', error);
+            }
+        }
+
+        async function loadBatchesForSelect() {
+            try {
+                const response = await fetch('/api/batches');
+                const data = await response.json();
+                if (data.success) {
+                    // For add traveler form
+                    const addSelect = document.getElementById('add_batch_id');
+                    if (addSelect) {
+                        addSelect.innerHTML = '<option value="">Select Batch</option>';
+                        data.batches.forEach(batch => {
+                            if (batch.status === 'Open' || batch.status === 'Closing Soon') {
+                                const option = document.createElement('option');
+                                option.value = batch.id;
+                                option.textContent = `${batch.batch_name} (₹${batch.price?.toLocaleString() || 'Contact'})`;
+                                addSelect.appendChild(option);
+                            }
+                        });
+                    }
+                    
+                    // For edit traveler form
+                    const editSelect = document.getElementById('edit_batch_id');
+                    if (editSelect) {
+                        editSelect.innerHTML = '<option value="">Select Batch</option>';
+                        data.batches.forEach(batch => {
+                            const option = document.createElement('option');
+                            option.value = batch.id;
+                            option.textContent = `${batch.batch_name} (${batch.departure_date || 'TBD'})`;
+                            editSelect.appendChild(option);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading batches:', error);
+            }
+        }
+
+        function showAddTravelerForm() {
+            document.getElementById('addTravelerForm').style.display = 'block';
+            loadBatchesForSelect();
+        }
+
+        function hideAddTravelerForm() {
+            document.getElementById('addTravelerForm').style.display = 'none';
+            document.getElementById('travelerAddForm').reset();
+        }
+
+        document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const traveler = {
+                first_name: document.getElementById('add_first_name').value,
+                last_name: document.getElementById('add_last_name').value,
+                batch_id: document.getElementById('add_batch_id').value,
+                passport_no: document.getElementById('add_passport_no').value,
+                mobile: document.getElementById('add_mobile').value,
+                email: document.getElementById('add_email').value,
+                dob: document.getElementById('add_dob').value,
+                gender: document.getElementById('add_gender').value,
+                pin: document.getElementById('add_pin').value || '0000',
+                passport_status: 'Active'
+            };
+            
+            try {
+                const response = await fetch(API_URL + '/travelers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(traveler)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Traveler added successfully!');
+                    hideAddTravelerForm();
+                    loadAllTravelers();
+                    loadAdminStats();
+                    showTab('travelers');
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Connection error: ' + error.message);
+            }
+        });
+
+        // ============================================
+        // PAYMENT FUNCTIONS
+        // ============================================
+        function showPaymentForm() {
+            document.getElementById('addPaymentForm').style.display = 'block';
+            document.getElementById('paymentVerificationStep').style.display = 'block';
+            document.getElementById('paymentVerificationResult').style.display = 'none';
+            document.getElementById('paymentAddForm').style.display = 'none';
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('addPaymentForm').style.display = 'none';
+            document.getElementById('paymentVerificationStep').style.display = 'block';
+            document.getElementById('paymentVerificationResult').style.display = 'none';
+            document.getElementById('paymentAddForm').style.display = 'none';
+            document.getElementById('payment_traveler_search').value = '';
+            verifiedTravelerId = null;
+        }
+
+        async function verifyTravelerForPayment() {
+            const searchValue = document.getElementById('payment_traveler_search').value.trim();
+            if (!searchValue) {
+                alert('Please enter Traveler ID or Passport Number');
+                return;
+            }
+            
+            try {
+                // Try to get traveler by ID first, then by passport
+                let response;
+                if (!isNaN(searchValue)) {
+                    response = await fetch(`${API_URL}/travelers/${searchValue}`);
+                } else {
+                    response = await fetch(`${API_URL}/travelers/passport/${searchValue}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const t = data.traveler;
+                    
+                    // Get batch details for this traveler
+                    const batchResponse = await fetch(`/api/batches`);
+                    const batchData = await batchResponse.json();
+                    const batch = batchData.batches?.find(b => b.id === t.batch_id);
+                    
+                    document.getElementById('verifyTravelerName').textContent = `${t.first_name} ${t.last_name}`;
+                    document.getElementById('verifyPassport').textContent = t.passport_no;
+                    document.getElementById('verifyBatchName').textContent = batch?.batch_name || 'Not Assigned';
+                    document.getElementById('verifyBatchPrice').textContent = batch?.price ? `₹${batch.price.toLocaleString()}` : 'Contact for price';
+                    
+                    document.getElementById('payment_traveler_id').value = t.id;
+                    verifiedTravelerId = t.id;
+                    
+                    document.getElementById('paymentVerificationStep').style.display = 'none';
+                    document.getElementById('paymentVerificationResult').style.display = 'block';
+                    document.getElementById('paymentAddForm').style.display = 'block';
+                } else {
+                    alert('❌ Traveler not found');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadPayments() {
+            // Implementation for loading payments
+        }
+
+        // ============================================
+        // ADMIN USER FUNCTIONS
+        // ============================================
+        async function loadAdminUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('usersTableBody');
+                    if (!data.users || data.users.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px;">No users found</td></tr>`;
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.users.map(u => `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td><strong>${u.username}</strong></td>
+                            <td>${u.full_name || '-'}</td>
+                            <td>${u.email}</td>
+                            <td>${u.roles?.join(', ') || 'No role'}</td>
+                            <td><span class="status-badge ${u.is_active ? 'active' : 'inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}</td>
+                            <td>
+                                <button class="btn-icon" onclick="editAdminUser(${u.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" onclick="toggleUserStatus(${u.id})" title="Toggle Status"><i class="fas fa-power-off"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminStats();
+            showTab('dashboard');
+        });
+    </script>
+</body>
+</html>
