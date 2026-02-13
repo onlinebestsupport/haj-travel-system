@@ -139,19 +139,30 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            // Simple authentication
-            if (username === 'admin' && password === 'admin123') {
-                // Set login flag in session storage
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                // Redirect to admin panel
-                window.location.href = '/admin/dashboard';
-            } else {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Set login flag in session storage
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    // Redirect to admin panel
+                    window.location.href = '/admin';
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
                 document.getElementById('errorMessage').style.display = 'block';
             }
         });
