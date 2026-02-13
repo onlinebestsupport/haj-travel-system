@@ -540,6 +540,88 @@ def get_stats_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ PAYMENTS API ============
+@app.route('/api/payments', methods=['GET'])
+def get_payments():
+    """Get all payments with traveler details"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                p.id,
+                t.first_name || ' ' || t.last_name as traveler_name,
+                p.installment,
+                p.amount,
+                TO_CHAR(p.due_date, 'DD-MM-YYYY') as due_date,
+                TO_CHAR(p.payment_date, 'DD-MM-YYYY') as payment_date,
+                p.status,
+                p.payment_method
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            ORDER BY 
+                CASE 
+                    WHEN p.status = 'Pending' THEN 1 
+                    WHEN p.status = 'Paid' THEN 2 
+                    ELSE 3 
+                END,
+                p.due_date ASC
+        """)
+        
+        payments = []
+        for row in cur.fetchall():
+            payments.append({
+                'id': row[0],
+                'traveler_name': row[1],
+                'installment': row[2],
+                'amount': float(row[3]),
+                'due_date': row[4],
+                'payment_date': row[5],
+                'status': row[6],
+                'payment_method': row[7]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'payments': payments})
+    except Exception as e:
+        print(f"Payments API error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/payments/stats', methods=['GET'])
+def get_payment_stats():
+    """Get payment statistics for dashboard"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Total collected
+        cur.execute("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Paid'")
+        total_collected = cur.fetchone()[0]
+        
+        # Pending amount
+        cur.execute("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Pending'")
+        pending_amount = cur.fetchone()[0]
+        
+        # Payment count by status
+        cur.execute("SELECT status, COUNT(*) FROM payments GROUP BY status")
+        status_counts = {}
+        for row in cur.fetchall():
+            status_counts[row[0]] = row[1]
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_collected': float(total_collected),
+                'pending_amount': float(pending_amount),
+                'status_counts': status_counts
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 # ============ ERROR HANDLERS ============
 
 @app.errorhandler(404)
@@ -669,5 +751,6 @@ def get_payments():
         return jsonify({'success': True, 'payments': payments})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
