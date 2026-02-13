@@ -183,21 +183,34 @@ def get_all_batches():
         
         result = []
         for b in batches:
+            # Convert date objects to strings safely
+            departure_date = b[2].isoformat() if b[2] else None
+            return_date = b[3].isoformat() if b[3] else None
+            
+            # Handle price conversion safely
+            price = None
+            if b[7] is not None:
+                try:
+                    price = float(b[7])
+                except (TypeError, ValueError):
+                    price = None
+            
             result.append({
                 'id': b[0],
                 'batch_name': b[1],
-                'departure_date': b[2],
-                'return_date': b[3],
+                'departure_date': departure_date,
+                'return_date': return_date,
                 'total_seats': b[4],
                 'booked_seats': b[5],
                 'status': b[6],
-                'price': float(b[7]) if b[7] else None,
-                'description': b[8]
+                'price': price,
+                'description': b[8] if len(b) > 8 else None
             })
         cur.close()
         conn.close()
         return jsonify({'success': True, 'batches': result})
     except Exception as e:
+        print(f"Batches API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/batches', methods=['POST'])
@@ -256,11 +269,11 @@ def get_all_travelers():
                 'passport_name': row[3],
                 'batch_id': row[4],
                 'passport_no': row[5],
-                'passport_issue_date': row[6],
-                'passport_expiry_date': row[7],
+                'passport_issue_date': row[6].isoformat() if row[6] else None,
+                'passport_expiry_date': row[7].isoformat() if row[7] else None,
                 'passport_status': row[8],
                 'gender': row[9],
-                'dob': row[10],
+                'dob': row[10].isoformat() if row[10] else None,
                 'mobile': row[11],
                 'email': row[12],
                 'aadhaar': row[13],
@@ -280,8 +293,8 @@ def get_all_travelers():
                 'vaccine_scan': row[27],
                 'extra_fields': row[28],
                 'pin': row[29],
-                'created_at': row[30],
-                'updated_at': row[31],
+                'created_at': row[30].isoformat() if row[30] else None,
+                'updated_at': row[31].isoformat() if row[31] else None,
                 'batch_name': row[32] if len(row) > 32 else None
             })
         
@@ -289,6 +302,7 @@ def get_all_travelers():
         conn.close()
         return jsonify({'success': True, 'travelers': travelers})
     except Exception as e:
+        print(f"Travelers API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/travelers/<int:traveler_id>', methods=['GET'])
