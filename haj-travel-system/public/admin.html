@@ -348,6 +348,32 @@
             margin: 20px 0;
             border-radius: 5px;
         }
+
+        /* Document upload styles */
+        .document-upload {
+            border: 2px dashed #3498db;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .document-upload:hover {
+            background: #e8f4f8;
+            border-color: #2980b9;
+        }
+        
+        .document-upload i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .full-width {
+            grid-column: span 2;
+        }
     </style>
 </head>
 <body>
@@ -532,45 +558,208 @@
                 </button>
             </div>
 
-            <!-- Add Traveler Form -->
+            <!-- ===== COMPLETE 33-FIELD ADD TRAVELER FORM ===== -->
             <div class="form-container" id="addTravelerForm">
-                <h3><i class="fas fa-user-plus"></i> Add New Traveler</h3>
+                <h3><i class="fas fa-user-plus"></i> Add New Traveler - Complete 33 Fields</h3>
                 <form id="travelerAddForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>First Name *</label>
-                            <input type="text" id="first_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name *</label>
-                            <input type="text" id="last_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Batch *</label>
-                            <select id="batch_id" required>
-                                <option value="">Select Batch</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Passport No *</label>
-                            <input type="text" id="passport_no" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Mobile *</label>
-                            <input type="tel" id="mobile" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="email">
-                        </div>
-                        <div class="form-group">
-                            <label>PIN (4 digits)</label>
-                            <input type="text" id="pin" maxlength="4" value="0000">
+                    <!-- Section 1: Personal Information (10 fields) -->
+                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">1. Personal Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name *</label>
+                                <input type="text" id="add_first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name *</label>
+                                <input type="text" id="add_last_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Name (Auto)</label>
+                                <input type="text" id="add_passport_name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Batch *</label>
+                                <select id="add_batch_id" required>
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Number *</label>
+                                <input type="text" id="add_passport_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Issue Date</label>
+                                <input type="date" id="add_passport_issue_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Expiry Date</label>
+                                <input type="date" id="add_passport_expiry_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Status</label>
+                                <select id="add_passport_status">
+                                    <option value="Active">Active</option>
+                                    <option value="Expired">Expired</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Processing">Processing</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="add_gender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="add_dob">
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Section 2: Contact Information (7 fields) -->
+                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">2. Contact Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" id="add_mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="add_email">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Number</label>
+                                <input type="text" id="add_aadhaar">
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Number</label>
+                                <input type="text" id="add_pan">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar-PAN Linked</label>
+                                <select id="add_aadhaar_pan_linked">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Status</label>
+                                <select id="add_vaccine_status">
+                                    <option value="Not Vaccinated">Not Vaccinated</option>
+                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
+                                    <option value="Booster">Booster</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Wheelchair Required</label>
+                                <select id="add_wheelchair">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Address & Family (6 fields) -->
+                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family Details</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Place of Birth</label>
+                                <input type="text" id="add_place_of_birth">
+                            </div>
+                            <div class="form-group">
+                                <label>Place of Issue</label>
+                                <input type="text" id="add_place_of_issue">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Passport Address</label>
+                                <textarea id="add_passport_address" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Father's Name</label>
+                                <input type="text" id="add_father_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Mother's Name</label>
+                                <input type="text" id="add_mother_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Spouse's Name</label>
+                                <input type="text" id="add_spouse_name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Document Uploads (4 fields) -->
+                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Document Uploads</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Passport Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('add_passport_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="add_passport_scan_text">Click to upload</p>
+                                    <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('add_aadhaar_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="add_aadhaar_scan_text">Click to upload</p>
+                                    <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('add_pan_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="add_pan_scan_text">Click to upload</p>
+                                    <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Certificate</label>
+                                <div class="document-upload" onclick="document.getElementById('add_vaccine_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="add_vaccine_scan_text">Click to upload</p>
+                                    <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Extra Fields & PIN -->
+                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">5. Additional Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>PIN (4 digits)</label>
+                                <input type="text" id="add_pin" maxlength="4" value="0000">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Extra Fields (JSON)</label>
+                                <textarea id="add_extra_fields" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-actions">
-                        <button type="submit" class="action-btn btn-success">Add Traveler</button>
-                        <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()">Cancel</button>
+                        <button type="submit" class="action-btn btn-success">
+                            <i class="fas fa-save"></i> Add Traveler (33 Fields)
+                        </button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
                     </div>
                 </form>
             </div>
@@ -769,682 +958,4 @@
                         </div>
                         <div class="form-group">
                             <label>Password *</label>
-                            <input type="password" id="password" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email *</label>
-                            <input type="email" id="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="fullname">
-                        </div>
-                        <div class="form-group">
-                            <label>Role</label>
-                            <select id="role">
-                                <option value="admin">Admin</option>
-                                <option value="manager">Manager</option>
-                                <option value="staff">Staff</option>
-                                <option value="viewer">Viewer</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="action-btn btn-primary">Create User</button>
-                        <button type="button" class="action-btn btn-secondary" onclick="hideAddUserForm()">Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Users List -->
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTable">
-                        <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ============ REPORTS TAB ============ -->
-        <div id="reportsTab" style="display: none;">
-            <div class="dashboard-card">
-                <h3><i class="fas fa-chart-bar"></i> Generate Reports</h3>
-                <div class="action-buttons">
-                    <button class="action-btn btn-primary" onclick="generateReport('daily')">
-                        <i class="fas fa-calendar-day"></i> Daily Report
-                    </button>
-                    <button class="action-btn btn-success" onclick="generateReport('monthly')">
-                        <i class="fas fa-calendar-alt"></i> Monthly Report
-                    </button>
-                    <button class="action-btn btn-warning" onclick="generateReport('batch')">
-                        <i class="fas fa-layer-group"></i> Batch Report
-                    </button>
-                </div>
-                <div id="reportOutput" style="margin-top: 20px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = window.location.origin;
-
-        // ============ INITIALIZATION ============
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadDashboardStats();
-            loadBatches();
-            loadTravelers();
-            loadPayments();
-            loadPaymentStats();
-            loadUsers();
-        });
-
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = '/login';
-            }
-            document.getElementById('userName').textContent = sessionStorage.getItem('userName') || 'Admin';
-            document.getElementById('userRole').textContent = sessionStorage.getItem('userRole') || 'Admin';
-            document.getElementById('roleBadge').textContent = sessionStorage.getItem('userRole') || 'Admin';
-        }
-
-        // ============ TAB NAVIGATION ============
-        function showTab(tabName) {
-            const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports'];
-            tabs.forEach(t => {
-                const el = document.getElementById(t + 'Tab');
-                if (el) el.style.display = t === tabName ? 'block' : 'none';
-                
-                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-                if (btn) {
-                    btn.className = t === tabName ? 'tab-btn active' : 'tab-btn';
-                }
-            });
-            
-            if (tabName === 'dashboard') loadDashboardStats();
-            if (tabName === 'batches') loadBatches();
-            if (tabName === 'travelers') loadTravelers();
-            if (tabName === 'payments') {
-                loadPayments();
-                loadPaymentStats();
-            }
-            if (tabName === 'users') loadUsers();
-        }
-
-        // ============ DASHBOARD STATS ============
-        async function loadDashboardStats() {
-            try {
-                const response = await fetch('/api/travelers/stats/summary');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('totalTravelers').textContent = data.stats.totalTravelers;
-                    document.getElementById('activeBatches').textContent = data.stats.openBatches;
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-            
-            document.getElementById('recentActivity').innerHTML = `
-                <p><i class="fas fa-circle" style="color: #3498db; font-size: 8px;"></i> Dashboard ready</p>
-                <p><i class="fas fa-circle" style="color: #27ae60; font-size: 8px;"></i> System online</p>
-            `;
-        }
-
-        // ============ BATCH FUNCTIONS ============
-        function showCreateBatchForm() {
-            document.getElementById('createBatchForm').style.display = 'block';
-        }
-
-        function hideCreateBatchForm() {
-            document.getElementById('createBatchForm').style.display = 'none';
-            document.getElementById('batchCreateForm').reset();
-        }
-
-        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const batch = {
-                batch_name: document.getElementById('batch_name').value,
-                total_seats: parseInt(document.getElementById('total_seats').value),
-                price: parseFloat(document.getElementById('price').value),
-                departure_date: document.getElementById('departure_date').value,
-                return_date: document.getElementById('return_date').value,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
-            
-            try {
-                const response = await fetch('/api/batches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batch)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Batch created successfully!');
-                    hideCreateBatchForm();
-                    loadBatches();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        });
-
-        async function loadBatches() {
-            try {
-                const response = await fetch('/api/batches');
-                const data = await response.json();
-                
-                let html = '';
-                if (data.success && data.batches.length > 0) {
-                    data.batches.forEach(b => {
-                        html += `<tr>
-                            <td>${b.id}</td>
-                            <td><strong>${b.batch_name}</strong></td>
-                            <td>${b.departure_date || 'TBD'}</td>
-                            <td>${b.return_date || 'TBD'}</td>
-                            <td>₹${b.price?.toLocaleString() || 'Contact'}</td>
-                            <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
-                            <td><span class="status-badge ${b.status === 'Open' ? 'status-active' : 'status-pending'}">${b.status}</span></td>
-                            <td>
-                                <button class="icon-btn" onclick="editBatch(${b.id})"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>`;
-                    });
-                } else {
-                    html = '<tr><td colspan="8" style="text-align: center;">No batches found</td></tr>';
-                }
-                document.getElementById('batchesTable').innerHTML = html;
-                
-                // Update batch dropdown
-                const select = document.getElementById('batch_id');
-                if (select && data.success) {
-                    select.innerHTML = '<option value="">Select Batch</option>';
-                    data.batches.forEach(b => {
-                        select.innerHTML += `<option value="${b.id}">${b.batch_name} (₹${b.price?.toLocaleString() || 'Contact'})</option>`;
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading batches:', error);
-            }
-        }
-
-        // ============ TRAVELER FUNCTIONS ============
-        function showAddTravelerForm() {
-            document.getElementById('addTravelerForm').style.display = 'block';
-            loadBatches(); // Refresh batch dropdown
-        }
-
-        function hideAddTravelerForm() {
-            document.getElementById('addTravelerForm').style.display = 'none';
-            document.getElementById('travelerAddForm').reset();
-        }
-
-        document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const traveler = {
-                first_name: document.getElementById('first_name').value,
-                last_name: document.getElementById('last_name').value,
-                batch_id: document.getElementById('batch_id').value,
-                passport_no: document.getElementById('passport_no').value,
-                mobile: document.getElementById('mobile').value,
-                email: document.getElementById('email').value,
-                pin: document.getElementById('pin').value || '0000'
-            };
-            
-            try {
-                const response = await fetch('/api/travelers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(traveler)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Traveler added successfully!');
-                    hideAddTravelerForm();
-                    loadTravelers();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        });
-
-        async function loadTravelers() {
-            try {
-                const response = await fetch('/api/travelers');
-                const data = await response.json();
-                
-                let html = '';
-                if (data.success && data.travelers.length > 0) {
-                    data.travelers.forEach(t => {
-                        html += `<tr>
-                            <td>${t.id}</td>
-                            <td><strong>${t.first_name} ${t.last_name}</strong></td>
-                            <td>${t.passport_no}</td>
-                            <td>${t.mobile}</td>
-                            <td>${t.batch_name || 'Not Assigned'}</td>
-                            <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
-                            <td>${t.pin || '0000'}</td>
-                            <td>
-                                <button class="icon-btn" onclick="editTraveler(${t.id})"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>`;
-                    });
-                } else {
-                    html = '<tr><td colspan="8" style="text-align: center;">No travelers found</td></tr>';
-                }
-                document.getElementById('travelersTable').innerHTML = html;
-            } catch (error) {
-                console.error('Error loading travelers:', error);
-            }
-        }
-
-        // ============ PAYMENT FUNCTIONS ============
-        function showAddPaymentForm() {
-            document.getElementById('addPaymentForm').style.display = 'block';
-            document.getElementById('paymentVerification').style.display = 'block';
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('payment_search').value = '';
-        }
-
-        function hideAddPaymentForm() {
-            document.getElementById('addPaymentForm').style.display = 'none';
-            document.getElementById('paymentForm').style.display = 'none';
-        }
-
-        async function verifyTraveler() {
-            const search = document.getElementById('payment_search').value.trim();
-            if (!search) {
-                alert('Please enter Traveler ID or Passport Number');
-                return;
-            }
-            
-            try {
-                let response;
-                if (!isNaN(search)) {
-                    response = await fetch(`/api/travelers/${search}`);
-                } else {
-                    response = await fetch(`/api/travelers/passport/${search}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    const t = data.traveler;
-                    
-                    // Get batch details
-                    const batchResponse = await fetch('/api/batches');
-                    const batchData = await batchResponse.json();
-                    const batch = batchData.batches?.find(b => b.id === t.batch_id);
-                    
-                    document.getElementById('payment_traveler_id').value = t.id;
-                    document.getElementById('display_traveler_name').textContent = `${t.first_name} ${t.last_name}`;
-                    document.getElementById('display_batch_name').textContent = batch?.batch_name || 'Not Assigned';
-                    document.getElementById('display_batch_price').textContent = batch?.price?.toLocaleString() || '0';
-                    
-                    document.getElementById('paymentVerification').style.display = 'none';
-                    document.getElementById('paymentForm').style.display = 'block';
-                } else {
-                    alert('Traveler not found');
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const payment = {
-                traveler_id: document.getElementById('payment_traveler_id').value,
-                installment: document.getElementById('installment').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                payment_date: document.getElementById('payment_date').value,
-                payment_method: document.getElementById('payment_method').value,
-                transaction_id: document.getElementById('transaction_id').value,
-                remarks: document.getElementById('remarks').value,
-                status: 'Paid'
-            };
-            
-            try {
-                const response = await fetch('/api/payments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payment)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ Payment recorded successfully!');
-                    hideAddPaymentForm();
-                    loadPayments();
-                    loadPaymentStats();
-                } else {
-                    alert('❌ Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        });
-
-        async function loadPayments() {
-            try {
-                const response = await fetch('/api/payments');
-                const data = await response.json();
-                
-                const tbody = document.getElementById('paymentsTable');
-                
-                if (data.success && data.payments.length > 0) {
-                    tbody.innerHTML = data.payments.map(p => `
-                        <tr>
-                            <td>${p.id}</td>
-                            <td><strong>${p.traveler_name}</strong></td>
-                            <td>${p.installment}</td>
-                            <td>₹${p.amount.toLocaleString()}</td>
-                            <td>${p.due_date || '-'}</td>
-                            <td>${p.payment_date || '-'}</td>
-                            <td>${p.payment_method || '-'}</td>
-                            <td>
-                                <span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">
-                                    ${p.status}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No payment records found</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading payments:', error);
-                document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Error loading payments</td></tr>';
-            }
-        }
-
-        async function loadPaymentStats() {
-            try {
-                const response = await fetch('/api/payments/stats');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('paymentTotalCollected').textContent = `₹${data.stats.total_collected.toLocaleString()}`;
-                    document.getElementById('paymentPendingAmount').textContent = `₹${data.stats.pending_amount.toLocaleString()}`;
-                    document.getElementById('paidCount').textContent = data.stats.status_counts?.Paid || 0;
-                    document.getElementById('pendingCount').textContent = data.stats.status_counts?.Pending || 0;
-                }
-            } catch (error) {
-                console.error('Error loading payment stats:', error);
-            }
-        }
-
-        // ============ USER FUNCTIONS ============
-        function showAddUserForm() {
-            document.getElementById('addUserForm').style.display = 'block';
-        }
-
-        function hideAddUserForm() {
-            document.getElementById('addUserForm').style.display = 'none';
-            document.getElementById('userCreateForm').reset();
-        }
-
-        async function loadUsers() {
-            document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" style="text-align: center;">User management feature coming soon</td></tr>';
-        }
-
-        // ============ UTILITY FUNCTIONS ============
-        function searchBatches() {
-            const search = document.getElementById('searchBatches').value.toLowerCase();
-            const rows = document.querySelectorAll('#batchesTable tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(search) ? '' : 'none';
-            });
-        }
-
-        function searchTravelers() {
-            const search = document.getElementById('searchTravelers').value.toLowerCase();
-            const rows = document.querySelectorAll('#travelersTable tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(search) ? '' : 'none';
-            });
-        }
-
-        function searchPayments() {
-            const search = document.getElementById('searchPayments').value.toLowerCase();
-            const rows = document.querySelectorAll('#paymentsTable tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(search) ? '' : 'none';
-            });
-        }
-
-        function generateReport(type) {
-            document.getElementById('reportOutput').innerHTML = `
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
-                    <h4>${type.charAt(0).toUpperCase() + type.slice(1)} Report</h4>
-                    <p>Report generation feature coming soon.</p>
-                </div>
-            `;
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-            } catch (error) {}
-            sessionStorage.clear();
-            window.location.href = '/login';
-        }
-    </script>
-    // ============ PAYMENT BUTTON FIX ============
-function showAddPaymentForm() {
-    // Switch to Payments tab
-    showTab('payments');
-    
-    // Show the payment form
-    const form = document.getElementById('addPaymentForm');
-    if (form) {
-        form.style.display = 'block';
-    }
-    
-    const verification = document.getElementById('paymentVerification');
-    if (verification) {
-        verification.style.display = 'block';
-    }
-    
-    const paymentForm = document.getElementById('paymentForm');
-    if (paymentForm) {
-        paymentForm.style.display = 'none';
-    }
-    
-    const search = document.getElementById('payment_search');
-    if (search) {
-        search.value = '';
-    }
-}
-
-// Make sure showTab function exists and works
-if (typeof showTab !== 'function') {
-    function showTab(tabName) {
-        // Hide all tabs
-        const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports'];
-        tabs.forEach(t => {
-            const tabEl = document.getElementById(t + 'Tab');
-            if (tabEl) tabEl.style.display = 'none';
-            
-            const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-            if (btn) btn.classList.remove('active');
-        });
-        
-        // Show selected tab
-        const selectedTab = document.getElementById(tabName + 'Tab');
-        if (selectedTab) selectedTab.style.display = 'block';
-        
-        // Activate selected button
-        const selectedBtn = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-        if (selectedBtn) selectedBtn.classList.add('active');
-    }
-}
-
-// Add event listener to Record Payment button when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    const recordBtn = document.querySelector('.action-btn.btn-warning');
-    if (recordBtn) {
-        recordBtn.onclick = function(e) {
-            e.preventDefault();
-            showAddPaymentForm();
-        };
-    }
-});
-    // ============ 33-FIELD TRAVELER FORM FUNCTIONS ============
-// Auto-generate passport name
-document.getElementById('add_first_name')?.addEventListener('input', updatePassportName);
-document.getElementById('add_last_name')?.addEventListener('input', updatePassportName);
-
-function updatePassportName() {
-    const first = document.getElementById('add_first_name')?.value || '';
-    const last = document.getElementById('add_last_name')?.value || '';
-    const passportNameField = document.getElementById('add_passport_name');
-    if (passportNameField) {
-        passportNameField.value = `${first} ${last}`.trim();
-    }
-}
-
-// Make sure the form submission handler is properly set
-if (document.getElementById('travelerAddForm')) {
-    document.getElementById('travelerAddForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Auto-generate passport name
-        const firstName = document.getElementById('add_first_name').value;
-        const lastName = document.getElementById('add_last_name').value;
-        const passportNameField = document.getElementById('add_passport_name');
-        if (passportNameField) {
-            passportNameField.value = `${firstName} ${lastName}`.trim();
-        }
-        
-        const traveler = {
-            // Personal Information
-            first_name: firstName,
-            last_name: lastName,
-            batch_id: document.getElementById('add_batch_id').value,
-            passport_no: document.getElementById('add_passport_no').value,
-            passport_issue_date: document.getElementById('add_passport_issue_date').value,
-            passport_expiry_date: document.getElementById('add_passport_expiry_date').value,
-            passport_status: document.getElementById('add_passport_status').value,
-            gender: document.getElementById('add_gender').value,
-            dob: document.getElementById('add_dob').value,
-            
-            // Contact Information
-            mobile: document.getElementById('add_mobile').value,
-            email: document.getElementById('add_email').value,
-            aadhaar: document.getElementById('add_aadhaar').value,
-            pan: document.getElementById('add_pan').value,
-            aadhaar_pan_linked: document.getElementById('add_aadhaar_pan_linked').value,
-            vaccine_status: document.getElementById('add_vaccine_status').value,
-            wheelchair: document.getElementById('add_wheelchair').value,
-            
-            // Address & Family
-            place_of_birth: document.getElementById('add_place_of_birth').value,
-            place_of_issue: document.getElementById('add_place_of_issue').value,
-            passport_address: document.getElementById('add_passport_address').value,
-            father_name: document.getElementById('add_father_name').value,
-            mother_name: document.getElementById('add_mother_name').value,
-            spouse_name: document.getElementById('add_spouse_name').value,
-            
-            // Document scans
-            passport_scan: document.getElementById('add_passport_scan')?.files[0]?.name || null,
-            aadhaar_scan: document.getElementById('add_aadhaar_scan')?.files[0]?.name || null,
-            pan_scan: document.getElementById('add_pan_scan')?.files[0]?.name || null,
-            vaccine_scan: document.getElementById('add_vaccine_scan')?.files[0]?.name || null,
-            
-            // Extra fields
-            extra_fields: document.getElementById('add_extra_fields').value || '{}',
-            pin: document.getElementById('add_pin').value || '0000'
-        };
-        
-        // Validate required fields
-        if (!traveler.first_name || !traveler.last_name || !traveler.passport_no || !traveler.mobile) {
-            alert('❌ Please fill all required fields (*)');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/travelers', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(traveler)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('✅ Traveler added successfully with all 33 fields!');
-                hideAddTravelerForm();
-                if (typeof loadTravelers === 'function') loadTravelers();
-                if (typeof loadDashboardStats === 'function') loadDashboardStats();
-            } else {
-                alert('❌ Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('❌ Connection error: ' + error.message);
-        }
-    });
-}
-
-// Make sure hideAddTravelerForm function exists
-if (typeof hideAddTravelerForm !== 'function') {
-    window.hideAddTravelerForm = function() {
-        const form = document.getElementById('addTravelerForm');
-        if (form) form.style.display = 'none';
-        
-        // Reset form if it exists
-        const travelerForm = document.getElementById('travelerAddForm');
-        if (travelerForm) travelerForm.reset();
-        
-        // Clear passport name
-        const passportName = document.getElementById('add_passport_name');
-        if (passportName) passportName.value = '';
-    };
-}
-
-// Document upload click handlers
-document.getElementById('add_passport_scan')?.addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'Click to upload';
-    document.getElementById('add_passport_scan_text').textContent = fileName;
-});
-
-document.getElementById('add_aadhaar_scan')?.addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'Click to upload';
-    document.getElementById('add_aadhaar_scan_text').textContent = fileName;
-});
-
-document.getElementById('add_pan_scan')?.addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'Click to upload';
-    document.getElementById('add_pan_scan_text').textContent = fileName;
-});
-
-document.getElementById('add_vaccine_scan')?.addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'Click to upload';
-    document.getElementById('add_vaccine_scan_text').textContent = fileName;
-});
-</body>
-</html>
+                            <input type="password" id="password" required
