@@ -9,7 +9,7 @@ CORS(app)
 
 # ============ FIXED PATHS FOR RAILWAY ============
 # The public folder is at /app/public in Railway
-PUBLIC_DIR = '/app/public'
+PUBLIC_DIR = '/app/puplic'
 
 print(f"📁 Looking for public folder at: {PUBLIC_DIR}")
 print(f"📁 Does public folder exist? {os.path.exists(PUBLIC_DIR)}")
@@ -69,3 +69,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Starting server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
