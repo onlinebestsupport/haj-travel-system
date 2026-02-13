@@ -565,4 +565,69 @@ if __name__ == '__main__':
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
 
+# ============ BATCHES API ============
+@app.route('/api/batches', methods=['GET'])
+def get_batches_api():
+    """Get all batches for frontend"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM batches ORDER BY departure_date")
+        batches = cur.fetchall()
+        
+        result = []
+        for b in batches:
+            result.append({
+                'id': b[0],
+                'batch_name': b[1],
+                'departure_date': b[2],
+                'return_date': b[3],
+                'total_seats': b[4],
+                'booked_seats': b[5],
+                'status': b[6],
+                'price': float(b[7]) if b[7] else None,
+                'description': b[8]
+            })
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'batches': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ STATISTICS FIX ============
+@app.route('/api/travelers/stats/summary', methods=['GET'])
+def get_stats():
+    """Get dashboard statistics"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT COUNT(*) FROM travelers")
+        total = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM travelers WHERE passport_status = 'Active'")
+        active = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM batches WHERE status IN ('Open', 'Closing Soon')")
+        open_batches = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM travelers WHERE DATE(created_at) = CURRENT_DATE")
+        today = cur.fetchone()[0]
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'totalTravelers': total,
+                'activeTravelers': active,
+                'openBatches': open_batches,
+                'todayRegistrations': today
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
