@@ -1314,5 +1314,137 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 });
+    // ============ 33-FIELD TRAVELER FORM FUNCTIONS ============
+// Auto-generate passport name
+document.getElementById('add_first_name')?.addEventListener('input', updatePassportName);
+document.getElementById('add_last_name')?.addEventListener('input', updatePassportName);
+
+function updatePassportName() {
+    const first = document.getElementById('add_first_name')?.value || '';
+    const last = document.getElementById('add_last_name')?.value || '';
+    const passportNameField = document.getElementById('add_passport_name');
+    if (passportNameField) {
+        passportNameField.value = `${first} ${last}`.trim();
+    }
+}
+
+// Make sure the form submission handler is properly set
+if (document.getElementById('travelerAddForm')) {
+    document.getElementById('travelerAddForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Auto-generate passport name
+        const firstName = document.getElementById('add_first_name').value;
+        const lastName = document.getElementById('add_last_name').value;
+        const passportNameField = document.getElementById('add_passport_name');
+        if (passportNameField) {
+            passportNameField.value = `${firstName} ${lastName}`.trim();
+        }
+        
+        const traveler = {
+            // Personal Information
+            first_name: firstName,
+            last_name: lastName,
+            batch_id: document.getElementById('add_batch_id').value,
+            passport_no: document.getElementById('add_passport_no').value,
+            passport_issue_date: document.getElementById('add_passport_issue_date').value,
+            passport_expiry_date: document.getElementById('add_passport_expiry_date').value,
+            passport_status: document.getElementById('add_passport_status').value,
+            gender: document.getElementById('add_gender').value,
+            dob: document.getElementById('add_dob').value,
+            
+            // Contact Information
+            mobile: document.getElementById('add_mobile').value,
+            email: document.getElementById('add_email').value,
+            aadhaar: document.getElementById('add_aadhaar').value,
+            pan: document.getElementById('add_pan').value,
+            aadhaar_pan_linked: document.getElementById('add_aadhaar_pan_linked').value,
+            vaccine_status: document.getElementById('add_vaccine_status').value,
+            wheelchair: document.getElementById('add_wheelchair').value,
+            
+            // Address & Family
+            place_of_birth: document.getElementById('add_place_of_birth').value,
+            place_of_issue: document.getElementById('add_place_of_issue').value,
+            passport_address: document.getElementById('add_passport_address').value,
+            father_name: document.getElementById('add_father_name').value,
+            mother_name: document.getElementById('add_mother_name').value,
+            spouse_name: document.getElementById('add_spouse_name').value,
+            
+            // Document scans
+            passport_scan: document.getElementById('add_passport_scan')?.files[0]?.name || null,
+            aadhaar_scan: document.getElementById('add_aadhaar_scan')?.files[0]?.name || null,
+            pan_scan: document.getElementById('add_pan_scan')?.files[0]?.name || null,
+            vaccine_scan: document.getElementById('add_vaccine_scan')?.files[0]?.name || null,
+            
+            // Extra fields
+            extra_fields: document.getElementById('add_extra_fields').value || '{}',
+            pin: document.getElementById('add_pin').value || '0000'
+        };
+        
+        // Validate required fields
+        if (!traveler.first_name || !traveler.last_name || !traveler.passport_no || !traveler.mobile) {
+            alert('❌ Please fill all required fields (*)');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/travelers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(traveler)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('✅ Traveler added successfully with all 33 fields!');
+                hideAddTravelerForm();
+                if (typeof loadTravelers === 'function') loadTravelers();
+                if (typeof loadDashboardStats === 'function') loadDashboardStats();
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('❌ Connection error: ' + error.message);
+        }
+    });
+}
+
+// Make sure hideAddTravelerForm function exists
+if (typeof hideAddTravelerForm !== 'function') {
+    window.hideAddTravelerForm = function() {
+        const form = document.getElementById('addTravelerForm');
+        if (form) form.style.display = 'none';
+        
+        // Reset form if it exists
+        const travelerForm = document.getElementById('travelerAddForm');
+        if (travelerForm) travelerForm.reset();
+        
+        // Clear passport name
+        const passportName = document.getElementById('add_passport_name');
+        if (passportName) passportName.value = '';
+    };
+}
+
+// Document upload click handlers
+document.getElementById('add_passport_scan')?.addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name || 'Click to upload';
+    document.getElementById('add_passport_scan_text').textContent = fileName;
+});
+
+document.getElementById('add_aadhaar_scan')?.addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name || 'Click to upload';
+    document.getElementById('add_aadhaar_scan_text').textContent = fileName;
+});
+
+document.getElementById('add_pan_scan')?.addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name || 'Click to upload';
+    document.getElementById('add_pan_scan_text').textContent = fileName;
+});
+
+document.getElementById('add_vaccine_scan')?.addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name || 'Click to upload';
+    document.getElementById('add_vaccine_scan_text').textContent = fileName;
+});
 </body>
 </html>
