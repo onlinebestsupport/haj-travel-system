@@ -2,16 +2,25 @@ from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from app.database import init_db
 import os
+import sys
 
 app = Flask(__name__)
 CORS(app)
 
-# Get the absolute path to the public folder
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PUBLIC_DIR = os.path.join(os.path.dirname(BASE_DIR), 'public')
+# ============ FIXED PATHS FOR RAILWAY ============
+# The public folder is at /app/public in Railway
+PUBLIC_DIR = '/app/public'
 
 print(f"📁 Looking for public folder at: {PUBLIC_DIR}")
-print(f"📁 Files in public folder: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'NOT FOUND'}")
+print(f"📁 Does public folder exist? {os.path.exists(PUBLIC_DIR)}")
+
+if os.path.exists(PUBLIC_DIR):
+    print(f"📁 Files in public folder: {os.listdir(PUBLIC_DIR)}")
+else:
+    print(f"❌ PUBLIC FOLDER NOT FOUND! Current directory: {os.getcwd()}")
+    print(f"❌ Files in /app: {os.listdir('/app') if os.path.exists('/app') else 'NO /app'}")
+
+# ============ ROUTES ============
 
 @app.route('/')
 def serve_index():
@@ -48,6 +57,8 @@ def not_found(e):
     """Handle 404 errors"""
     return jsonify({"error": "Not found"}), 404
 
+# ============ STARTUP ============
+
 if __name__ == '__main__':
     try:
         init_db()
@@ -56,4 +67,5 @@ if __name__ == '__main__':
         print(f"❌ Database error: {e}")
     
     port = int(os.environ.get('PORT', 8080))
+    print(f"🚀 Starting server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
