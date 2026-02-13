@@ -349,7 +349,6 @@
             border-radius: 5px;
         }
 
-        /* Document upload styles */
         .document-upload {
             border: 2px dashed #3498db;
             padding: 20px;
@@ -372,7 +371,7 @@
         }
         
         .full-width {
-            grid-column: span 2;
+            grid-column: 1 / -1;
         }
     </style>
 </head>
@@ -509,7 +508,7 @@
                                 <option value="Closed">Closed</option>
                             </select>
                         </div>
-                        <div class="form-group" style="grid-column: 1/-1;">
+                        <div class="form-group full-width">
                             <label>Description</label>
                             <textarea id="description" rows="3" placeholder="Package details..."></textarea>
                         </div>
@@ -558,12 +557,12 @@
                 </button>
             </div>
 
-            <!-- ===== COMPLETE 33-FIELD ADD TRAVELER FORM ===== -->
+            <!-- ADD TRAVELER FORM - 33 FIELDS -->
             <div class="form-container" id="addTravelerForm">
-                <h3><i class="fas fa-user-plus"></i> Add New Traveler - Complete 33 Fields</h3>
+                <h3><i class="fas fa-user-plus"></i> Add New Traveler - 33 Fields</h3>
                 <form id="travelerAddForm">
-                    <!-- Section 1: Personal Information (10 fields) -->
-                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <!-- Personal Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;">1. Personal Information</h4>
                         <div class="form-grid">
                             <div class="form-group">
@@ -621,8 +620,8 @@
                         </div>
                     </div>
 
-                    <!-- Section 2: Contact Information (7 fields) -->
-                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <!-- Contact Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;">2. Contact Information</h4>
                         <div class="form-grid">
                             <div class="form-group">
@@ -668,9 +667,9 @@
                         </div>
                     </div>
 
-                    <!-- Section 3: Address & Family (6 fields) -->
-                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family Details</h4>
+                    <!-- Address & Family -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family</h4>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Place of Birth</label>
@@ -699,9 +698,9 @@
                         </div>
                     </div>
 
-                    <!-- Section 4: Document Uploads (4 fields) -->
-                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Document Uploads</h4>
+                    <!-- Documents -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Documents</h4>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Passport Scan</label>
@@ -738,8 +737,8 @@
                         </div>
                     </div>
 
-                    <!-- Section 5: Extra Fields & PIN -->
-                    <div style="margin-bottom: 25px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                    <!-- Extra Fields -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;">5. Additional Information</h4>
                         <div class="form-grid">
                             <div class="form-group">
@@ -754,12 +753,210 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="action-btn btn-success">
-                            <i class="fas fa-save"></i> Add Traveler (33 Fields)
-                        </button>
-                        <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
+                        <button type="submit" class="action-btn btn-success">Add Traveler (33 Fields)</button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- EDIT TRAVELER FORM - 33 FIELDS -->
+            <div class="form-container" id="editTravelerForm" style="display: none;">
+                <h3><i class="fas fa-user-edit"></i> Edit Traveler - 33 Fields</h3>
+                <form id="adminTravelerForm">
+                    <!-- Personal Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">1. Personal Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name *</label>
+                                <input type="text" id="edit_first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name *</label>
+                                <input type="text" id="edit_last_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Name (Auto)</label>
+                                <input type="text" id="edit_passport_name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Batch</label>
+                                <select id="edit_batch_id">
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Number *</label>
+                                <input type="text" id="edit_passport_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Issue Date</label>
+                                <input type="date" id="edit_passport_issue_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Expiry Date</label>
+                                <input type="date" id="edit_passport_expiry_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Status</label>
+                                <select id="edit_passport_status">
+                                    <option value="Active">Active</option>
+                                    <option value="Expired">Expired</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Processing">Processing</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="edit_gender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="edit_dob">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">2. Contact Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" id="edit_mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="edit_email">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Number</label>
+                                <input type="text" id="edit_aadhaar">
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Number</label>
+                                <input type="text" id="edit_pan">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar-PAN Linked</label>
+                                <select id="edit_aadhaar_pan_linked">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Status</label>
+                                <select id="edit_vaccine_status">
+                                    <option value="Not Vaccinated">Not Vaccinated</option>
+                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
+                                    <option value="Booster">Booster</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Wheelchair Required</label>
+                                <select id="edit_wheelchair">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Address & Family -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Place of Birth</label>
+                                <input type="text" id="edit_place_of_birth">
+                            </div>
+                            <div class="form-group">
+                                <label>Place of Issue</label>
+                                <input type="text" id="edit_place_of_issue">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Passport Address</label>
+                                <textarea id="edit_passport_address" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Father's Name</label>
+                                <input type="text" id="edit_father_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Mother's Name</label>
+                                <input type="text" id="edit_mother_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Spouse's Name</label>
+                                <input type="text" id="edit_spouse_name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Documents</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Passport Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_passport_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_aadhaar_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Scan</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_pan_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Certificate</label>
+                                <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p id="edit_vaccine_scan_text">Click to upload</p>
+                                    <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Extra Fields -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;">5. Additional Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>PIN (4 digits)</label>
+                                <input type="text" id="edit_pin" maxlength="4" value="0000">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Extra Fields (JSON)</label>
+                                <textarea id="edit_extra_fields" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="action-btn btn-primary">Update Traveler (33 Fields)</button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideEditForm()">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -801,8 +998,7 @@
                 </button>
             </div>
 
-            <!-- Payment Stats Cards -->
-            <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stats-grid">
                 <div class="stat-card">
                     <i class="fas fa-rupee-sign"></i>
                     <h3>Total Collected</h3>
@@ -825,11 +1021,9 @@
                 </div>
             </div>
 
-            <!-- Add Payment Form -->
             <div class="form-container" id="addPaymentForm" style="display: none;">
                 <h3><i class="fas fa-credit-card"></i> Record Payment</h3>
                 
-                <!-- Verification Step -->
                 <div id="paymentVerification">
                     <div class="form-grid">
                         <div class="form-group">
@@ -842,12 +1036,9 @@
                     </button>
                 </div>
 
-                <!-- Payment Form -->
                 <form id="paymentForm" style="display: none;">
                     <input type="hidden" id="payment_traveler_id">
-                    <input type="hidden" id="payment_traveler_name">
                     
-                    <!-- Traveler Info Display -->
                     <div class="verification-panel">
                         <p><strong>Traveler:</strong> <span id="display_traveler_name"></span></p>
                         <p><strong>Batch:</strong> <span id="display_batch_name"></span></p>
@@ -885,32 +1076,20 @@
                                 <option value="Cheque">Cheque</option>
                             </select>
                         </div>
-                        <div class="form-group" style="grid-column: 1/-1;">
+                        <div class="form-group full-width">
                             <label>Transaction ID / Reference</label>
                             <input type="text" id="transaction_id" placeholder="Optional">
                         </div>
-                        <div class="form-group" style="grid-column: 1/-1;">
+                        <div class="form-group full-width">
                             <label>Remarks</label>
                             <textarea id="remarks" rows="2" placeholder="Any notes..."></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="action-btn btn-warning">
-                            <i class="fas fa-save"></i> Record Payment
-                        </button>
-                        <button type="button" class="action-btn btn-secondary" onclick="hideAddPaymentForm()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
+                        <button type="submit" class="action-btn btn-warning">Record Payment</button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideAddPaymentForm()">Cancel</button>
                     </div>
                 </form>
-            </div>
-
-            <!-- Payments List -->
-            <div class="search-box">
-                <input type="text" id="searchPayments" placeholder="Search payments...">
-                <button class="action-btn btn-primary" onclick="searchPayments()">
-                    <i class="fas fa-search"></i> Search
-                </button>
             </div>
 
             <div class="table-container">
@@ -928,12 +1107,7 @@
                         </tr>
                     </thead>
                     <tbody id="paymentsTable">
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px;">
-                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #bdc3c7;"></i>
-                                <p>Loading payments...</p>
-                            </td>
-                        </tr>
+                        <tr><td colspan="8" style="text-align: center;">Loading payments...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -947,7 +1121,6 @@
                 </button>
             </div>
 
-            <!-- Add User Form -->
             <div class="form-container" id="addUserForm">
                 <h3><i class="fas fa-user-plus"></i> Create New Staff User</h3>
                 <form id="userCreateForm">
@@ -985,7 +1158,6 @@
                 </form>
             </div>
 
-            <!-- Users List -->
             <div class="table-container">
                 <table>
                     <thead>
@@ -1020,7 +1192,7 @@
                         <i class="fas fa-layer-group"></i> Batch Report
                     </button>
                 </div>
-                <div id="reportOutput" style="margin-top: 20px;"></div>
+                <div id="reportOutput"></div>
             </div>
         </div>
     </div>
@@ -1036,16 +1208,6 @@
             loadTravelers();
             loadPayments();
             loadPaymentStats();
-            loadUsers();
-            
-            // Add event listener to Record Payment button
-            const recordBtn = document.querySelector('.action-btn.btn-warning');
-            if (recordBtn) {
-                recordBtn.onclick = function(e) {
-                    e.preventDefault();
-                    showAddPaymentForm();
-                };
-            }
         });
 
         function checkAuth() {
@@ -1078,7 +1240,6 @@
                 loadPayments();
                 loadPaymentStats();
             }
-            if (tabName === 'users') loadUsers();
         }
 
         // ============ DASHBOARD STATS ============
@@ -1094,11 +1255,6 @@
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
-            
-            document.getElementById('recentActivity').innerHTML = `
-                <p><i class="fas fa-circle" style="color: #3498db; font-size: 8px;"></i> Dashboard ready</p>
-                <p><i class="fas fa-circle" style="color: #27ae60; font-size: 8px;"></i> System online</p>
-            `;
         }
 
         // ============ BATCH FUNCTIONS ============
@@ -1169,12 +1325,21 @@
                 }
                 document.getElementById('batchesTable').innerHTML = html;
                 
-                // Update batch dropdown
-                const select = document.getElementById('add_batch_id');
-                if (select && data.success) {
-                    select.innerHTML = '<option value="">Select Batch</option>';
+                // Update batch dropdowns
+                const addSelect = document.getElementById('add_batch_id');
+                const editSelect = document.getElementById('edit_batch_id');
+                
+                if (addSelect && data.success) {
+                    addSelect.innerHTML = '<option value="">Select Batch</option>';
                     data.batches.forEach(b => {
-                        select.innerHTML += `<option value="${b.id}">${b.batch_name} (₹${b.price?.toLocaleString() || 'Contact'})</option>`;
+                        addSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date || 'TBD'})</option>`;
+                    });
+                }
+                
+                if (editSelect && data.success) {
+                    editSelect.innerHTML = '<option value="">Select Batch</option>';
+                    data.batches.forEach(b => {
+                        editSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date || 'TBD'})</option>`;
                     });
                 }
             } catch (error) {
@@ -1182,49 +1347,33 @@
             }
         }
 
-        // ============ TRAVELER FUNCTIONS ============
+        // ============ ADD TRAVELER FUNCTIONS ============
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
-            loadBatches(); // Refresh batch dropdown
         }
 
         function hideAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'none';
-            const form = document.getElementById('travelerAddForm');
-            if (form) form.reset();
-            const passportName = document.getElementById('add_passport_name');
-            if (passportName) passportName.value = '';
+            document.getElementById('travelerAddForm').reset();
+            document.getElementById('add_passport_name').value = '';
         }
 
-        // Auto-generate passport name
-        document.getElementById('add_first_name')?.addEventListener('input', updatePassportName);
-        document.getElementById('add_last_name')?.addEventListener('input', updatePassportName);
+        // Auto-generate passport name for add form
+        document.getElementById('add_first_name')?.addEventListener('input', updateAddPassportName);
+        document.getElementById('add_last_name')?.addEventListener('input', updateAddPassportName);
 
-        function updatePassportName() {
+        function updateAddPassportName() {
             const first = document.getElementById('add_first_name')?.value || '';
             const last = document.getElementById('add_last_name')?.value || '';
-            const passportNameField = document.getElementById('add_passport_name');
-            if (passportNameField) {
-                passportNameField.value = `${first} ${last}`.trim();
-            }
+            document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
         }
 
-        // Submit 33-field traveler form
         document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Auto-generate passport name
-            const firstName = document.getElementById('add_first_name').value;
-            const lastName = document.getElementById('add_last_name').value;
-            const passportNameField = document.getElementById('add_passport_name');
-            if (passportNameField) {
-                passportNameField.value = `${firstName} ${lastName}`.trim();
-            }
-            
             const traveler = {
-                // Personal Information
-                first_name: firstName,
-                last_name: lastName,
+                first_name: document.getElementById('add_first_name').value,
+                last_name: document.getElementById('add_last_name').value,
                 batch_id: document.getElementById('add_batch_id').value,
                 passport_no: document.getElementById('add_passport_no').value,
                 passport_issue_date: document.getElementById('add_passport_issue_date').value,
@@ -1232,8 +1381,6 @@
                 passport_status: document.getElementById('add_passport_status').value,
                 gender: document.getElementById('add_gender').value,
                 dob: document.getElementById('add_dob').value,
-                
-                // Contact Information
                 mobile: document.getElementById('add_mobile').value,
                 email: document.getElementById('add_email').value,
                 aadhaar: document.getElementById('add_aadhaar').value,
@@ -1241,27 +1388,20 @@
                 aadhaar_pan_linked: document.getElementById('add_aadhaar_pan_linked').value,
                 vaccine_status: document.getElementById('add_vaccine_status').value,
                 wheelchair: document.getElementById('add_wheelchair').value,
-                
-                // Address & Family
                 place_of_birth: document.getElementById('add_place_of_birth').value,
                 place_of_issue: document.getElementById('add_place_of_issue').value,
                 passport_address: document.getElementById('add_passport_address').value,
                 father_name: document.getElementById('add_father_name').value,
                 mother_name: document.getElementById('add_mother_name').value,
                 spouse_name: document.getElementById('add_spouse_name').value,
-                
-                // Document scans
                 passport_scan: document.getElementById('add_passport_scan')?.files[0]?.name || null,
                 aadhaar_scan: document.getElementById('add_aadhaar_scan')?.files[0]?.name || null,
                 pan_scan: document.getElementById('add_pan_scan')?.files[0]?.name || null,
                 vaccine_scan: document.getElementById('add_vaccine_scan')?.files[0]?.name || null,
-                
-                // Extra fields
                 extra_fields: document.getElementById('add_extra_fields').value || '{}',
                 pin: document.getElementById('add_pin').value || '0000'
             };
             
-            // Validate required fields
             if (!traveler.first_name || !traveler.last_name || !traveler.passport_no || !traveler.mobile) {
                 alert('❌ Please fill all required fields (*)');
                 return;
@@ -1289,6 +1429,131 @@
             }
         });
 
+        // ============ EDIT TRAVELER FUNCTIONS ============
+        let currentEditId = null;
+
+        async function adminEditTraveler(id) {
+            currentEditId = id;
+            try {
+                const response = await fetch(`/api/travelers/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const t = data.traveler;
+                    
+                    document.getElementById('edit_first_name').value = t.first_name || '';
+                    document.getElementById('edit_last_name').value = t.last_name || '';
+                    document.getElementById('edit_passport_name').value = t.passport_name || `${t.first_name || ''} ${t.last_name || ''}`.trim();
+                    document.getElementById('edit_batch_id').value = t.batch_id || '';
+                    document.getElementById('edit_passport_no').value = t.passport_no || '';
+                    document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
+                    document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
+                    document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
+                    document.getElementById('edit_gender').value = t.gender || '';
+                    document.getElementById('edit_dob').value = t.dob || '';
+                    document.getElementById('edit_mobile').value = t.mobile || '';
+                    document.getElementById('edit_email').value = t.email || '';
+                    document.getElementById('edit_aadhaar').value = t.aadhaar || '';
+                    document.getElementById('edit_pan').value = t.pan || '';
+                    document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
+                    document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
+                    document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
+                    document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
+                    document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
+                    document.getElementById('edit_passport_address').value = t.passport_address || '';
+                    document.getElementById('edit_father_name').value = t.father_name || '';
+                    document.getElementById('edit_mother_name').value = t.mother_name || '';
+                    document.getElementById('edit_spouse_name').value = t.spouse_name || '';
+                    document.getElementById('edit_passport_scan_text').innerHTML = t.passport_scan || 'Click to upload';
+                    document.getElementById('edit_aadhaar_scan_text').innerHTML = t.aadhaar_scan || 'Click to upload';
+                    document.getElementById('edit_pan_scan_text').innerHTML = t.pan_scan || 'Click to upload';
+                    document.getElementById('edit_vaccine_scan_text').innerHTML = t.vaccine_scan || 'Click to upload';
+                    
+                    try {
+                        const extraFields = typeof t.extra_fields === 'string' ? JSON.parse(t.extra_fields) : t.extra_fields;
+                        document.getElementById('edit_extra_fields').value = extraFields ? JSON.stringify(extraFields, null, 2) : '{}';
+                    } catch (e) {
+                        document.getElementById('edit_extra_fields').value = '{}';
+                    }
+                    
+                    document.getElementById('edit_pin').value = t.pin || '0000';
+                    
+                    document.getElementById('editTravelerForm').style.display = 'block';
+                }
+            } catch (error) {
+                alert('Error loading traveler: ' + error.message);
+            }
+        }
+
+        document.getElementById('adminTravelerForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentEditId) return;
+            
+            const traveler = {
+                first_name: document.getElementById('edit_first_name').value,
+                last_name: document.getElementById('edit_last_name').value,
+                batch_id: document.getElementById('edit_batch_id').value || null,
+                passport_no: document.getElementById('edit_passport_no').value,
+                passport_issue_date: document.getElementById('edit_passport_issue_date').value,
+                passport_expiry_date: document.getElementById('edit_passport_expiry_date').value,
+                passport_status: document.getElementById('edit_passport_status').value,
+                gender: document.getElementById('edit_gender').value,
+                dob: document.getElementById('edit_dob').value,
+                mobile: document.getElementById('edit_mobile').value,
+                email: document.getElementById('edit_email').value,
+                aadhaar: document.getElementById('edit_aadhaar').value,
+                pan: document.getElementById('edit_pan').value,
+                aadhaar_pan_linked: document.getElementById('edit_aadhaar_pan_linked').value,
+                vaccine_status: document.getElementById('edit_vaccine_status').value,
+                wheelchair: document.getElementById('edit_wheelchair').value,
+                place_of_birth: document.getElementById('edit_place_of_birth').value,
+                place_of_issue: document.getElementById('edit_place_of_issue').value,
+                passport_address: document.getElementById('edit_passport_address').value,
+                father_name: document.getElementById('edit_father_name').value,
+                mother_name: document.getElementById('edit_mother_name').value,
+                spouse_name: document.getElementById('edit_spouse_name').value,
+                extra_fields: document.getElementById('edit_extra_fields').value || '{}',
+                pin: document.getElementById('edit_pin').value || '0000'
+            };
+            
+            try {
+                const response = await fetch(`/api/travelers/${currentEditId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(traveler)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Traveler updated successfully with all 33 fields!');
+                    hideEditForm();
+                    loadTravelers();
+                    loadDashboardStats();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Connection error: ' + error.message);
+            }
+        });
+
+        function hideEditForm() {
+            document.getElementById('editTravelerForm').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // Auto-generate passport name for edit form
+        document.getElementById('edit_first_name')?.addEventListener('input', updateEditPassportName);
+        document.getElementById('edit_last_name')?.addEventListener('input', updateEditPassportName);
+
+        function updateEditPassportName() {
+            const first = document.getElementById('edit_first_name')?.value || '';
+            const last = document.getElementById('edit_last_name')?.value || '';
+            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
+        }
+
         async function loadTravelers() {
             try {
                 const response = await fetch('/api/travelers');
@@ -1306,7 +1571,7 @@
                             <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
                             <td>${t.pin || '0000'}</td>
                             <td>
-                                <button class="icon-btn" onclick="editTraveler(${t.id})"><i class="fas fa-edit"></i></button>
+                                <button class="icon-btn" onclick="adminEditTraveler(${t.id})"><i class="fas fa-edit"></i></button>
                             </td>
                         </tr>`;
                     });
@@ -1322,19 +1587,14 @@
         // ============ PAYMENT FUNCTIONS ============
         function showAddPaymentForm() {
             showTab('payments');
-            const form = document.getElementById('addPaymentForm');
-            if (form) form.style.display = 'block';
-            const verification = document.getElementById('paymentVerification');
-            if (verification) verification.style.display = 'block';
-            const paymentForm = document.getElementById('paymentForm');
-            if (paymentForm) paymentForm.style.display = 'none';
-            const search = document.getElementById('payment_search');
-            if (search) search.value = '';
+            document.getElementById('addPaymentForm').style.display = 'block';
+            document.getElementById('paymentVerification').style.display = 'block';
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('payment_search').value = '';
         }
 
         function hideAddPaymentForm() {
             document.getElementById('addPaymentForm').style.display = 'none';
-            document.getElementById('paymentForm').style.display = 'none';
         }
 
         async function verifyTraveler() {
@@ -1357,7 +1617,6 @@
                 if (data.success) {
                     const t = data.traveler;
                     
-                    // Get batch details
                     const batchResponse = await fetch('/api/batches');
                     const batchData = await batchResponse.json();
                     const batch = batchData.batches?.find(b => b.id === t.batch_id);
@@ -1430,19 +1689,14 @@
                             <td>${p.due_date || '-'}</td>
                             <td>${p.payment_date || '-'}</td>
                             <td>${p.payment_method || '-'}</td>
-                            <td>
-                                <span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">
-                                    ${p.status}
-                                </span>
-                            </td>
+                            <td><span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">${p.status}</span></td>
                         </tr>
                     `).join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No payment records found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No payment records found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading payments:', error);
-                document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Error loading payments</td></tr>';
             }
         }
 
@@ -1472,10 +1726,6 @@
             document.getElementById('userCreateForm').reset();
         }
 
-        async function loadUsers() {
-            document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" style="text-align: center;">User management feature coming soon</td></tr>';
-        }
-
         // ============ UTILITY FUNCTIONS ============
         function searchBatches() {
             const search = document.getElementById('searchBatches').value.toLowerCase();
@@ -1489,15 +1739,6 @@
         function searchTravelers() {
             const search = document.getElementById('searchTravelers').value.toLowerCase();
             const rows = document.querySelectorAll('#travelersTable tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(search) ? '' : 'none';
-            });
-        }
-
-        function searchPayments() {
-            const search = document.getElementById('searchPayments').value.toLowerCase();
-            const rows = document.querySelectorAll('#paymentsTable tr');
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(search) ? '' : 'none';
@@ -1521,25 +1762,31 @@
             window.location.href = '/login';
         }
 
-        // Document upload click handlers
+        // Document upload handlers
         document.getElementById('add_passport_scan')?.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'Click to upload';
-            document.getElementById('add_passport_scan_text').textContent = fileName;
+            document.getElementById('add_passport_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
-
         document.getElementById('add_aadhaar_scan')?.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'Click to upload';
-            document.getElementById('add_aadhaar_scan_text').textContent = fileName;
+            document.getElementById('add_aadhaar_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
-
         document.getElementById('add_pan_scan')?.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'Click to upload';
-            document.getElementById('add_pan_scan_text').textContent = fileName;
+            document.getElementById('add_pan_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
-
         document.getElementById('add_vaccine_scan')?.addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'Click to upload';
-            document.getElementById('add_vaccine_scan_text').textContent = fileName;
+            document.getElementById('add_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
+        });
+        
+        document.getElementById('edit_passport_scan')?.addEventListener('change', function(e) {
+            document.getElementById('edit_passport_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
+        });
+        document.getElementById('edit_aadhaar_scan')?.addEventListener('change', function(e) {
+            document.getElementById('edit_aadhaar_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
+        });
+        document.getElementById('edit_pan_scan')?.addEventListener('change', function(e) {
+            document.getElementById('edit_pan_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
+        });
+        document.getElementById('edit_vaccine_scan')?.addEventListener('change', function(e) {
+            document.getElementById('edit_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
     </script>
 </body>
