@@ -122,3 +122,136 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+    # ============ TRAVELER PORTAL ROUTES ============
+
+@app.route('/traveler-login')
+def traveler_login_page():
+    """Serve traveler login page"""
+    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+
+@app.route('/traveler/dashboard')
+def traveler_dashboard():
+    """Serve traveler dashboard"""
+    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+
+@app.route('/api/traveler/login', methods=['POST'])
+def traveler_login():
+    """API endpoint for traveler login using passport + PIN"""
+    data = request.json
+    passport_no = data.get('passport_no')
+    pin = data.get('pin')
+    
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Check if traveler exists and PIN matches
+        # Note: You need to add a 'pin' column to travelers table
+        cur.execute("""
+            SELECT id, first_name, last_name 
+            FROM travelers 
+            WHERE passport_no = %s AND pin = %s
+        """, (passport_no, pin))
+        
+        traveler = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if traveler:
+            return jsonify({
+                'success': True,
+                'traveler_id': traveler[0],
+                'name': f"{traveler[1]} {traveler[2]}"
+            })
+        else:
+            return jsonify({'success': False}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/traveler/<passport_no>')
+def get_traveler_by_passport(passport_no):
+    """Get traveler details by passport number"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT t.*, b.batch_name, b.departure_date, b.return_date, b.status as batch_status
+            FROM travelers t
+            LEFT JOIN batches b ON t.batch_id = b.id
+            WHERE t.passport_no = %s
+        """, (passport_no,))
+        
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if row:
+            traveler = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'passport_no': row[5],
+                'mobile': row[11],
+                'email': row[12],
+                'vaccine_status': row[16],
+                'wheelchair': row[17],
+                'father_name': row[21],
+                'mother_name': row[22],
+                'spouse_name': row[23],
+                'batch_name': row[31],
+                'departure_date': row[32],
+                'return_date': row[33],
+                'batch_status': row[34]
+            }
+            return jsonify({'success': True, 'traveler': traveler})
+        else:
+            return jsonify({'success': False}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ PAYMENT ROUTES ============
+
+@app.route('/api/payments/<int:traveler_id>')
+def get_payments(traveler_id):
+    """Get payment schedule for traveler"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Create payments table if not exists
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS payments (
+                id SERIAL PRIMARY KEY,
+                traveler_id INTEGER REFERENCES travelers(id),
+                installment TEXT NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                due_date DATE,
+                status TEXT DEFAULT 'Pending',
+                payment_date DATE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        cur.execute("""
+            SELECT * FROM payments 
+            WHERE traveler_id = %s 
+            ORDER BY due_date
+        """, (traveler_id,))
+        
+        payments = []
+        for row in cur.fetchall():
+            payments.append({
+                'id': row[0],
+                'installment': row[2],
+                'amount': row[3],
+                'due_date': row[4],
+                'status': row[5],
+                'payment_date': row[6]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'payments': payments})
+    except Exception as e:
+        return jsonify({'success': True, 'payments': []})  # Return empty if table doesn't exist
+
