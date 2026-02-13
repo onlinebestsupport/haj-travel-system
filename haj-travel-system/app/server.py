@@ -10,7 +10,7 @@ CORS(app)
 # Secret key for sessions - CHANGE THIS IN PRODUCTION!
 app.secret_key = 'alhudha-haj-secret-key-2026'
 
-# Public folder path
+# Public folder path - using 'puplic' as per your GitHub
 PUBLIC_DIR = '/app/puplic'
 
 print(f"📁 Public folder: {PUBLIC_DIR}")
