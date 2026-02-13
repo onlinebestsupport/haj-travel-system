@@ -1254,5 +1254,65 @@
             window.location.href = '/login';
         }
     </script>
+    // ============ PAYMENT BUTTON FIX ============
+function showAddPaymentForm() {
+    // Switch to Payments tab
+    showTab('payments');
+    
+    // Show the payment form
+    const form = document.getElementById('addPaymentForm');
+    if (form) {
+        form.style.display = 'block';
+    }
+    
+    const verification = document.getElementById('paymentVerification');
+    if (verification) {
+        verification.style.display = 'block';
+    }
+    
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+        paymentForm.style.display = 'none';
+    }
+    
+    const search = document.getElementById('payment_search');
+    if (search) {
+        search.value = '';
+    }
+}
+
+// Make sure showTab function exists and works
+if (typeof showTab !== 'function') {
+    function showTab(tabName) {
+        // Hide all tabs
+        const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports'];
+        tabs.forEach(t => {
+            const tabEl = document.getElementById(t + 'Tab');
+            if (tabEl) tabEl.style.display = 'none';
+            
+            const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (btn) btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        const selectedTab = document.getElementById(tabName + 'Tab');
+        if (selectedTab) selectedTab.style.display = 'block';
+        
+        // Activate selected button
+        const selectedBtn = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+        if (selectedBtn) selectedBtn.classList.add('active');
+    }
+}
+
+// Add event listener to Record Payment button when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const recordBtn = document.querySelector('.action-btn.btn-warning');
+    if (recordBtn) {
+        recordBtn.onclick = function(e) {
+            e.preventDefault();
+            showAddPaymentForm();
+        };
+    }
+});
 </body>
 </html>
