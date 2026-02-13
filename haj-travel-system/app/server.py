@@ -629,5 +629,45 @@ def get_stats():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ PAYMENTS API ============
+@app.route('/api/payments', methods=['GET'])
+def get_payments():
+    """Get all payments with traveler details"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                p.id,
+                t.first_name || ' ' || t.last_name as traveler_name,
+                p.installment,
+                p.amount,
+                p.due_date,
+                p.payment_date,
+                p.status,
+                p.payment_method
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            ORDER BY p.due_date DESC
+        """)
+        
+        payments = []
+        for row in cur.fetchall():
+            payments.append({
+                'id': row[0],
+                'traveler_name': row[1],
+                'installment': row[2],
+                'amount': float(row[3]),
+                'due_date': row[4],
+                'payment_date': row[5],
+                'status': row[6],
+                'payment_method': row[7]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'payments': payments})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
