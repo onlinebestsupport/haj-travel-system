@@ -10,8 +10,8 @@ CORS(app)
 # Secret key for sessions - CHANGE THIS IN PRODUCTION!
 app.secret_key = 'alhudha-haj-secret-key-2026'
 
-# Public folder path - USING 'puplic' as per your GitHub
-PUBLIC_DIR = '/app/puplic'
+# Public folder path - USING 'public' as per your GitHub
+PUBLIC_DIR = '/app/public'
 
 print(f"📁 Public folder: {PUBLIC_DIR}")
 print(f"📁 Files: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'NOT FOUND'}")
@@ -564,3 +564,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
