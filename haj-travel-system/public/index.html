@@ -426,25 +426,51 @@
             color: #bdc3c7;
         }
 
+        /* Responsive Design for All Devices */
+        @media (max-width: 1200px) {
+            .container { max-width: 960px; }
+        }
+
+        @media (max-width: 992px) {
+            .container { max-width: 720px; }
+            .hero h1 { font-size: 2.5rem; }
+        }
+
         @media (max-width: 768px) {
-            .top-bar .container {
-                flex-direction: column;
-                gap: 10px;
+            .container { max-width: 540px; }
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .top-bar .container { flex-direction: column; gap: 10px; }
+            .nav-container { flex-direction: column; gap: 15px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; }
+            .packages-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 0 15px; }
+            .hero h1 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .package-footer { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        /* iOS specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            input, select, textarea {
+                font-size: 16px !important;
             }
-            
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
+        }
+
+        /* Touch-friendly buttons */
+        button, .btn {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </head>
@@ -619,12 +645,16 @@
                 const packageSelect = document.getElementById('wa_package');
                 
                 if (data.success && data.batches.length > 0) {
-                    container.innerHTML = data.batches.map(batch => `
+                    container.innerHTML = data.batches.map(batch => {
+                        // Format price properly
+                        const priceDisplay = batch.price ? '₹' + Number(batch.price).toLocaleString('en-IN') : 'Contact for price';
+                        
+                        return `
                         <div class="package-card">
                             <div class="package-header">
                                 <h3>${batch.batch_name}</h3>
                                 <div class="package-price">
-                                    ₹${batch.price?.toLocaleString() || 'Contact for price'}
+                                    ${priceDisplay}
                                     <small>per person</small>
                                 </div>
                             </div>
@@ -658,22 +688,28 @@
                                 </button>
                             </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                     
                     // Update select options
-                    packageSelect.innerHTML = '<option value="">Select Package</option>' + 
-                        data.batches.map(b => `<option value="${b.batch_name}">${b.batch_name}</option>`).join('');
+                    if (packageSelect) {
+                        packageSelect.innerHTML = '<option value="">Select Package</option>' + 
+                            data.batches.map(b => `<option value="${b.batch_name}">${b.batch_name}</option>`).join('');
+                    }
                 } else {
                     container.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 50px;"><h3>No packages available yet</h3><p>Please check back later or contact our team</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading packages:', error);
+                document.getElementById('packages-container').innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 50px;"><h3>Error loading packages</h3><p>Please try again later</p></div>';
             }
         }
 
         // Enquire about specific package
         function enquirePackage(packageName) {
-            document.getElementById('wa_package').value = packageName;
+            const packageSelect = document.getElementById('wa_package');
+            if (packageSelect) {
+                packageSelect.value = packageName;
+            }
             document.getElementById('whatsappPopup').classList.add('active');
         }
 
@@ -684,7 +720,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    document.getElementById('totalTravelers').textContent = data.stats.totalTravelers;
+                    document.getElementById('totalTravelers').textContent = data.stats.totalTravelers || 0;
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
@@ -695,15 +731,28 @@
                 const response = await fetch('/api/batches');
                 const data = await response.json();
                 if (data.success) {
-                    document.getElementById('totalPackages').textContent = data.batches.length;
+                    document.getElementById('totalPackages').textContent = data.batches.length || 0;
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.error('Error loading packages count:', error);
+            }
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadPackages();
             loadStats();
+        });
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
     </script>
 </body>
