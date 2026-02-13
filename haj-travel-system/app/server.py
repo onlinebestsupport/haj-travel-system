@@ -1,46 +1,91 @@
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request, redirect, url_for, session
 from flask_cors import CORS
 from app.database import init_db
 import os
-import sys
+from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
 
-# ============ FIXED PATHS FOR RAILWAY ============
-# Your public folder path - using 'puplic' as per your GitHub
+# Secret key for sessions - CHANGE THIS IN PRODUCTION!
+app.secret_key = 'alhudha-haj-secret-key-2026'
+
+# Public folder path
 PUBLIC_DIR = '/app/puplic'
 
-print(f"📁 Looking for public folder at: {PUBLIC_DIR}")
-print(f"📁 Does public folder exist? {os.path.exists(PUBLIC_DIR)}")
+print(f"📁 Public folder: {PUBLIC_DIR}")
+print(f"📁 Files: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'NOT FOUND'}")
 
-if os.path.exists(PUBLIC_DIR):
-    print(f"📁 Files in public folder: {os.listdir(PUBLIC_DIR)}")
-else:
-    print(f"❌ PUBLIC FOLDER NOT FOUND! Current directory: {os.getcwd()}")
+# ============ LOGIN DECORATOR ============
 
-# ============ HTML PAGE ROUTES ============
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ============ LOGIN ROUTES ============
+
+@app.route('/login')
+def login_page():
+    """Serve the login page"""
+    return send_from_directory(PUBLIC_DIR, 'login.html')
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    """API endpoint for login"""
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    # Simple authentication - CHANGE THESE IN PRODUCTION!
+    if username == 'admin' and password == 'admin123':
+        session['admin_logged_in'] = True
+        return jsonify({'success': True, 'message': 'Login successful'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    """API endpoint for logout"""
+    session.clear()
+    return jsonify({'success': True, 'message': 'Logout successful'})
+
+# ============ PROTECTED ADMIN ROUTES ============
+
+@app.route('/admin')
+@login_required
+def serve_admin():
+    """Protected admin panel - requires login"""
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
+
+@app.route('/admin/dashboard')
+@login_required
+def serve_admin_dashboard():
+    """Redirect to main admin page"""
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
+
+# ============ PUBLIC ROUTES ============
 
 @app.route('/')
 def serve_index():
-    """Serve the main 33-field form"""
+    """Public main form - no login required"""
     return send_from_directory(PUBLIC_DIR, 'index.html')
-
-@app.route('/admin')
-def serve_admin():
-    """Serve the admin panel"""
-    return send_from_directory(PUBLIC_DIR, 'admin.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
-    """Serve all static files (CSS, JS, images)"""
+    """Serve static files - skip login for CSS, JS, images"""
+    if path.endswith('.css') or path.endswith('.js') or path.endswith('.png') or path.endswith('.jpg') or path.endswith('.svg'):
+        return send_from_directory(PUBLIC_DIR, path)
     return send_from_directory(PUBLIC_DIR, path)
 
 # ============ API ROUTES ============
 
 @app.route('/api')
 def api():
-    """API status endpoint"""
+    """Public API status"""
     return jsonify({
         "name": "Haj Travel System",
         "status": "active",
@@ -50,7 +95,7 @@ def api():
 
 @app.route('/api/health')
 def health():
-    """Healthcheck endpoint for Railway"""
+    """Public healthcheck"""
     return jsonify({"status": "healthy"}), 200
 
 # ============ ERROR HANDLERS ============
@@ -75,5 +120,5 @@ if __name__ == '__main__':
         print(f"❌ Database error: {e}")
     
     port = int(os.environ.get('PORT', 8080))
-    print(f"🚀 Starting server on port {port}")
+    print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
