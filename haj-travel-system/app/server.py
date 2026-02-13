@@ -169,7 +169,7 @@ def api():
 
 @app.route('/api/health')
 def health():
-    """Public healthcheck"""
+    """Healthcheck endpoint"""
     return jsonify({"status": "healthy"}), 200
 
 # ============ BATCH ROUTES ============
@@ -564,4 +564,5 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
 
