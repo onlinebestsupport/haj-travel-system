@@ -451,6 +451,7 @@ table tbody tr:last-child td { border-bottom: none; }
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
+
 /* ============ RESPONSIVE DESIGN FOR ALL DEVICES ============ */
 
 /* Large Desktop (1200px and above) */
@@ -752,4 +753,96 @@ html {
     button, .btn, .tab-btn {
         border: 1px solid;
     }
+}
+
+/* Role-based badge colors - For admin panel */
+.role-super_admin {
+    background: #8e44ad;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 2px;
+}
+
+.role-admin {
+    background: #3498db;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 2px;
+}
+
+.role-manager {
+    background: #f39c12;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 2px;
+}
+
+.role-staff {
+    background: #27ae60;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 2px;
+}
+
+.role-viewer {
+    background: #7f8c8d;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin: 2px;
+}
+
+/* Document upload styles */
+.document-upload {
+    border: 2px dashed #3498db;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.document-upload:hover {
+    background: #e8f4f8;
+    border-color: #2980b9;
+}
+
+.document-upload i {
+    font-size: 24px;
+    color: #3498db;
+    margin-bottom: 10px;
+}
+
+/* Verification panel */
+.verification-panel {
+    background: #e8f4f8;
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+/* Full width utility */
+.full-width {
+    grid-column: 1 / -1;
 }
