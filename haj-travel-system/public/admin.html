@@ -1211,7 +1211,7 @@
         </div>
     </div>
 
-    <!-- SUPER ADMIN TAB -->
+    <!-- SUPER ADMIN TAB - WITH PAYMENT STATS -->
     <div id="superAdminTab" class="tab-content" style="display: none;">
         <h2><i class="fas fa-user-shield"></i> Super Admin Dashboard</h2>
         
@@ -1412,7 +1412,7 @@
             roleBadge.className = 'role-badge role-' + userRole.replace('_', '');
         }
 
-        // ============ TAB NAVIGATION ============
+        // ============ TAB NAVIGATION - FIXED VERSION ============
         function showTab(tabName) {
             const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports', 'superAdmin'];
             tabs.forEach(t => {
@@ -1433,10 +1433,11 @@
                 loadPaymentStats();
             }
             if (tabName === 'superAdmin') {
-                loadUsers();
-                loadLoginLogs();
-                loadSuperPaymentStats();
-                loadSuperBasicStats();
+                console.log('🔄 Loading super admin data...');
+                loadUsers();               // Load users table
+                loadLoginLogs();            // Load login logs
+                loadSuperPaymentStats();    // Load payment stats
+                loadSuperBasicStats();      // Load traveler/batch stats
             }
         }
 
