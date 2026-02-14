@@ -167,5 +167,40 @@
             }
         });
     </script>
+    <script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Store ALL user info in session
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            sessionStorage.setItem('userName', data.user.name);
+            sessionStorage.setItem('userRole', data.user.roles[0]);  // Store the role
+            sessionStorage.setItem('userPermissions', JSON.stringify(data.user.permissions || []));
+            sessionStorage.setItem('userId', data.user.id);
+            
+            // Redirect to admin panel
+            window.location.href = '/admin';
+        } else {
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        document.getElementById('errorMessage').style.display = 'block';
+    }
+});
+</script>
 </body>
 </html>
