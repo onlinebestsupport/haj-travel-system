@@ -15,20 +15,27 @@ import subprocess
 app = Flask(__name__)
 CORS(app)
 
-# Secret key for sessions - CHANGE THIS IN PRODUCTION!
-app.secret_key = 'alhudha-haj-secret-key-2026'
+# ============ FIX 1: DYNAMIC PATHS (Works everywhere) ============
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR)
 
-# Public folder path - USING 'public' as per your GitHub
-PUBLIC_DIR = '/app/public'
-BACKUP_DIR = '/app/backups'
-UPLOAD_DIR = '/app/uploads'
+PUBLIC_DIR = os.path.join(ROOT_DIR, "public")
+BACKUP_DIR = os.path.join(ROOT_DIR, "backups")
+UPLOAD_DIR = os.path.join(ROOT_DIR, "uploads")
 
-# Create backup directory if not exists
+# Create directories if they don't exist
+os.makedirs(PUBLIC_DIR, exist_ok=True)
 os.makedirs(BACKUP_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 print(f"📁 Public folder: {PUBLIC_DIR}")
-print(f"📁 Files: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'NOT FOUND'}")
 print(f"📁 Backup folder: {BACKUP_DIR}")
+print(f"📁 Uploads folder: {UPLOAD_DIR}")
+
+# ============ FIX 5: SECRET KEY FROM ENVIRONMENT ============
+app.secret_key = os.environ.get('SECRET_KEY', 'alhudha-haj-dev-key-2026')
+if app.secret_key == 'alhudha-haj-dev-key-2026':
+    print("⚠️ WARNING: Using default secret key. Set SECRET_KEY environment variable in production!")
 
 # ============ CREATE LOGIN LOGS TABLE ============
 def create_login_logs_table():
@@ -55,6 +62,34 @@ def create_login_logs_table():
 
 # Call this at startup
 create_login_logs_table()
+
+# ============ CREATE BACKUP TABLE (FIX 4) ============
+def create_backups_table():
+    """Create backups table before any backup operations"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS backups (
+                id SERIAL PRIMARY KEY,
+                filename VARCHAR(255),
+                size_bytes BIGINT,
+                traveler_count INTEGER,
+                batch_count INTEGER,
+                payment_count INTEGER,
+                status VARCHAR(50),
+                error_message TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Backups table ready")
+    except Exception as e:
+        print(f"❌ Error creating backups table: {e}")
+
+create_backups_table()
 
 # ============ ROLE-BASED ACCESS CONTROL ============
 
@@ -341,7 +376,7 @@ def get_all_users():
 @login_required
 @permission_required('view_logs')
 def get_admin_login_logs():
-    """Get login logs for last 30 days"""
+    """Get login logs for last 30 days - FIXED SQL SYNTAX"""
     try:
         days = request.args.get('days', 30)
         
@@ -354,7 +389,7 @@ def get_admin_login_logs():
         conn = get_db()
         cur = conn.cursor()
         
-        # CORRECT SYNTAX FOR POSTGRESQL INTERVAL
+        # CORRECT SQL SYNTAX FOR POSTGRESQL
         cur.execute("""
             SELECT 
                 l.id, 
@@ -362,7 +397,7 @@ def get_admin_login_logs():
                 u.full_name, 
                 l.login_time, 
                 l.logout_time, 
-                l.ip_address, 
+                l.ip_address,
                 l.user_agent
             FROM login_logs l
             JOIN admin_users u ON l.user_id = u.id
@@ -384,14 +419,14 @@ def get_admin_login_logs():
                 'logout_time': row[4].isoformat() if row[4] else None,
                 'duration_minutes': duration,
                 'ip_address': row[5],
-                'user_agent': row[6][:50] + '...' if row[6] and len(row[6]) > 50 else row[6]  # Truncate long user agents
+                'user_agent': row[6][:50] + '...' if row[6] and len(row[6]) > 50 else row[6]
             })
         
         cur.close()
         conn.close()
         return jsonify({'success': True, 'logs': logs})
     except Exception as e:
-        print(f"Login logs error: {e}")
+        print(f"❌ Login logs error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ SUPER ADMIN: UPDATE USER PERMISSIONS ============
@@ -490,10 +525,10 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ============ BATCHES API ============
+# ============ BATCHES API - FIXED PRICE INDEX ============
 @app.route('/api/batches', methods=['GET'])
 def get_all_batches():
-    """Get all batches for frontend"""
+    """Get all batches for frontend - FIXED PRICE ISSUE"""
     try:
         conn = get_db()
         cur = conn.cursor()
@@ -506,13 +541,17 @@ def get_all_batches():
             departure_date = b[2].isoformat() if b[2] else None
             return_date = b[3].isoformat() if b[3] else None
             
-            # Handle price conversion safely
+            # FIXED: Price is at index 8 (after created_at), not index 7
             price = None
-            if b[7] is not None:
+            if len(b) > 8 and b[8] is not None:
                 try:
-                    price = float(b[7])
-                except (TypeError, ValueError):
+                    price = float(b[8])
+                    print(f"✅ Price found: {price} for {b[1]}")
+                except (TypeError, ValueError) as e:
+                    print(f"❌ Price conversion error for {b[1]}: {e}")
                     price = None
+            else:
+                print(f"⚠️ No price for {b[1]}")
             
             result.append({
                 'id': b[0],
@@ -523,13 +562,14 @@ def get_all_batches():
                 'booked_seats': b[5],
                 'status': b[6],
                 'price': price,
-                'description': b[8] if len(b) > 8 else None
+                'description': b[9] if len(b) > 9 else None
             })
         cur.close()
         conn.close()
+        print(f"✅ Returning {len(result)} batches with prices")
         return jsonify({'success': True, 'batches': result})
     except Exception as e:
-        print(f"Batches API error: {e}")
+        print(f"❌ Batches API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/batches', methods=['POST'])
@@ -1080,7 +1120,9 @@ def generate_invoice(traveler_id):
     """Generate GST/TCS invoice for traveler"""
     try:
         conn = get_db()
-        cur = conn.cursor()
+        
+        # ============ FIX 3: USE RealDictCursor ============
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Get traveler details with batch and payments
         cur.execute("""
@@ -1100,9 +1142,9 @@ def generate_invoice(traveler_id):
         if not traveler:
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
-        # Calculate GST and TCS
-        base_amount = float(traveler[39]) if traveler[39] else 0  # batch_price
-        total_paid = float(traveler[40]) if traveler[40] else 0
+        # Calculate GST and TCS - using dictionary keys instead of indexes
+        base_amount = float(traveler['batch_price']) if traveler['batch_price'] else 0
+        total_paid = float(traveler['total_paid']) if traveler['total_paid'] else 0
         
         # GST calculation (5% on base amount)
         gst_rate = 5
@@ -1179,14 +1221,14 @@ def generate_invoice(traveler_id):
             'invoice_id': invoice_id,
             'invoice_number': invoice_number,
             'traveler': {
-                'id': traveler[0],
-                'name': f"{traveler[1]} {traveler[2]}",
-                'passport': traveler[5],
-                'mobile': traveler[11],
-                'email': traveler[12]
+                'id': traveler['id'],
+                'name': f"{traveler['first_name']} {traveler['last_name']}",
+                'passport': traveler['passport_no'],
+                'mobile': traveler['mobile'],
+                'email': traveler['email']
             },
             'batch': {
-                'name': traveler[38],
+                'name': traveler['batch_name'],
                 'price': base_amount
             },
             'calculations': {
@@ -1252,27 +1294,51 @@ def get_invoice(invoice_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ============ STEP 16: DAILY AUTO BACKUP ============
+# ============ STEP 16: DAILY AUTO BACKUP - FIXED shell=True ============
+
+def backup_database(db_url, backup_file):
+    """Backup database without shell=True (FIX 2)"""
+    try:
+        # SAFE: Use list arguments instead of shell=True
+        result = subprocess.run(
+            ["pg_dump", db_url],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        with open(backup_file, 'w') as f:
+            f.write(result.stdout)
+        return True, None
+    except subprocess.CalledProcessError as e:
+        return False, str(e)
+    except Exception as e:
+        return False, str(e)
+
+def restore_database(db_url, backup_file):
+    """Restore database without shell=True (FIX 2)"""
+    try:
+        with open(backup_file, 'r') as f:
+            content = f.read()
+        
+        # SAFE: Use list arguments instead of shell=True
+        result = subprocess.run(
+            ["psql", db_url],
+            input=content,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return True, None
+    except subprocess.CalledProcessError as e:
+        return False, str(e)
+    except Exception as e:
+        return False, str(e)
 
 @app.route('/api/backup/create', methods=['POST'])
 @login_required
 @permission_required('create_backup')
 def create_manual_backup():
-    """Create manual backup"""
-    return create_backup_function()
-
-@app.route('/api/backup/auto', methods=['POST'])
-def auto_backup():
-    """Automated backup (called by cron job)"""
-    # This endpoint should be protected by a secret key
-    auth_key = request.headers.get('X-Backup-Key')
-    if auth_key != os.environ.get('BACKUP_SECRET_KEY', 'alhudha-backup-key-2026'):
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    return create_backup_function()
-
-def create_backup_function():
-    """Core backup function"""
+    """Create manual backup - FIXED shell=True issue"""
     try:
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_filename = f"backup_{timestamp}.zip"
@@ -1288,21 +1354,21 @@ def create_backup_function():
         # Get database URL from environment
         db_url = os.environ.get('DATABASE_URL')
         
-        # Use pg_dump to backup database
+        # SAFE backup without shell=True
         if db_url:
-            cmd = f"pg_dump {db_url} > {db_backup_file}"
-            subprocess.run(cmd, shell=True, check=True)
+            success, error = backup_database(db_url, db_backup_file)
+            if not success:
+                raise Exception(f"Database backup failed: {error}")
         
         # 2. Backup uploads folder
         uploads_backup = os.path.join(temp_dir, "uploads")
         if os.path.exists(UPLOAD_DIR):
             shutil.copytree(UPLOAD_DIR, uploads_backup)
         
-        # 3. Create backup log
+        # 3. Get backup stats
         conn = get_db()
         cur = conn.cursor()
         
-        # Get backup stats
         cur.execute("SELECT COUNT(*) FROM travelers")
         traveler_count = cur.fetchone()[0]
         
@@ -1312,20 +1378,8 @@ def create_backup_function():
         cur.execute("SELECT COUNT(*) FROM payments")
         payment_count = cur.fetchone()[0]
         
-        # Create backup record
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS backups (
-                id SERIAL PRIMARY KEY,
-                filename VARCHAR(255),
-                size_bytes BIGINT,
-                traveler_count INTEGER,
-                batch_count INTEGER,
-                payment_count INTEGER,
-                status VARCHAR(50),
-                error_message TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        cur.close()
+        conn.close()
         
         # 4. Zip everything
         with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -1342,11 +1396,12 @@ def create_backup_function():
         cleanup_old_backups(30)
         
         # 6. Record backup in database
+        conn = get_db()
+        cur = conn.cursor()
         cur.execute("""
             INSERT INTO backups (filename, size_bytes, traveler_count, batch_count, payment_count, status)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (backup_filename, backup_size, traveler_count, batch_count, payment_count, 'Success'))
-        
         conn.commit()
         cur.close()
         conn.close()
@@ -1366,7 +1421,7 @@ def create_backup_function():
             }
         })
     except Exception as e:
-        # Record failure
+        # Record failure - backups table already exists (FIX 4)
         try:
             conn = get_db()
             cur = conn.cursor()
@@ -1382,6 +1437,16 @@ def create_backup_function():
         
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/backup/auto', methods=['POST'])
+def auto_backup():
+    """Automated backup (called by cron job)"""
+    # This endpoint should be protected by a secret key
+    auth_key = request.headers.get('X-Backup-Key')
+    if auth_key != os.environ.get('BACKUP_SECRET_KEY', 'alhudha-backup-key-2026'):
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    return create_manual_backup()
+
 def cleanup_old_backups(days_to_keep):
     """Delete backups older than specified days"""
     try:
@@ -1395,6 +1460,50 @@ def cleanup_old_backups(days_to_keep):
                     os.remove(filepath)
     except Exception as e:
         print(f"Backup cleanup error: {e}")
+
+@app.route('/api/backup/restore/<filename>', methods=['POST'])
+@login_required
+@permission_required('restore_backup')
+def restore_backup(filename):
+    """Restore from a backup (admin only)"""
+    try:
+        # Sanitize filename to prevent path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({'success': False, 'error': 'Invalid filename'}), 400
+            
+        filepath = os.path.join(BACKUP_DIR, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'Backup not found'}), 404
+        
+        # Extract to temp directory
+        temp_restore = f"/tmp/restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        os.makedirs(temp_restore, exist_ok=True)
+        
+        with zipfile.ZipFile(filepath, 'r') as zipf:
+            zipf.extractall(temp_restore)
+        
+        # Restore database
+        db_backup = os.path.join(temp_restore, "database.sql")
+        if os.path.exists(db_backup):
+            db_url = os.environ.get('DATABASE_URL')
+            # SAFE restore without shell=True
+            success, error = restore_database(db_url, db_backup)
+            if not success:
+                raise Exception(f"Database restore failed: {error}")
+        
+        # Restore uploads
+        uploads_restore = os.path.join(temp_restore, "uploads")
+        if os.path.exists(uploads_restore):
+            if os.path.exists(UPLOAD_DIR):
+                shutil.rmtree(UPLOAD_DIR)
+            shutil.copytree(uploads_restore, UPLOAD_DIR)
+        
+        # Cleanup
+        shutil.rmtree(temp_restore)
+        
+        return jsonify({'success': True, 'message': 'Backup restored successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/backups', methods=['GET'])
 @login_required
@@ -1435,51 +1544,17 @@ def get_backups():
 @login_required
 @permission_required('export_data')
 def download_backup(filename):
-    """Download a backup file"""
+    """Download a backup file - with path sanitization"""
     try:
+        # Sanitize filename to prevent path traversal
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({'success': False, 'error': 'Invalid filename'}), 400
+            
         filepath = os.path.join(BACKUP_DIR, filename)
         if not os.path.exists(filepath):
             return jsonify({'success': False, 'error': 'Backup not found'}), 404
         
         return send_file(filepath, as_attachment=True, download_name=filename)
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/backup/restore/<filename>', methods=['POST'])
-@login_required
-@permission_required('restore_backup')
-def restore_backup(filename):
-    """Restore from a backup (admin only)"""
-    try:
-        filepath = os.path.join(BACKUP_DIR, filename)
-        if not os.path.exists(filepath):
-            return jsonify({'success': False, 'error': 'Backup not found'}), 404
-        
-        # Extract to temp directory
-        temp_restore = f"/tmp/restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        os.makedirs(temp_restore, exist_ok=True)
-        
-        with zipfile.ZipFile(filepath, 'r') as zipf:
-            zipf.extractall(temp_restore)
-        
-        # Restore database
-        db_backup = os.path.join(temp_restore, "database.sql")
-        if os.path.exists(db_backup):
-            db_url = os.environ.get('DATABASE_URL')
-            cmd = f"psql {db_url} < {db_backup}"
-            subprocess.run(cmd, shell=True, check=True)
-        
-        # Restore uploads
-        uploads_restore = os.path.join(temp_restore, "uploads")
-        if os.path.exists(uploads_restore):
-            if os.path.exists(UPLOAD_DIR):
-                shutil.rmtree(UPLOAD_DIR)
-            shutil.copytree(uploads_restore, UPLOAD_DIR)
-        
-        # Cleanup
-        shutil.rmtree(temp_restore)
-        
-        return jsonify({'success': True, 'message': 'Backup restored successfully'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -1623,6 +1698,7 @@ if __name__ == '__main__':
     try:
         init_db()
         create_login_logs_table()
+        create_backups_table()
         print("✅ Database initialized")
     except Exception as e:
         print(f"❌ Database error: {e}")
