@@ -30,6 +30,32 @@ print(f"📁 Public folder: {PUBLIC_DIR}")
 print(f"📁 Files: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'NOT FOUND'}")
 print(f"📁 Backup folder: {BACKUP_DIR}")
 
+# ============ CREATE LOGIN LOGS TABLE ============
+def create_login_logs_table():
+    """Create table to track all logins"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS login_logs (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES admin_users(id),
+                login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                logout_time TIMESTAMP
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Login logs table ready")
+    except Exception as e:
+        print(f"❌ Error creating login_logs table: {e}")
+
+# Call this at startup
+create_login_logs_table()
+
 # ============ ROLE-BASED ACCESS CONTROL ============
 
 def has_permission(permission_name):
@@ -37,29 +63,12 @@ def has_permission(permission_name):
     if not session.get('admin_logged_in'):
         return False
     
-    user_id = session.get('admin_user_id')
-    if not user_id:
-        return False
+    # Super admin has all permissions
+    if 'super_admin' in session.get('admin_roles', []):
+        return True
     
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        
-        cur.execute("""
-            SELECT COUNT(*) FROM user_roles ur
-            JOIN role_permissions rp ON ur.role_id = rp.role_id
-            JOIN permissions p ON rp.permission_id = p.id
-            WHERE ur.user_id = %s AND p.name = %s
-        """, (user_id, permission_name))
-        
-        count = cur.fetchone()[0]
-        cur.close()
-        conn.close()
-        
-        return count > 0
-    except Exception as e:
-        print(f"Permission check error: {e}")
-        return False
+    permissions = session.get('admin_permissions', [])
+    return permission_name in permissions
 
 def permission_required(permission_name):
     """Decorator for route permission checking"""
@@ -89,9 +98,10 @@ def login_page():
     """Serve the login page"""
     return send_from_directory(PUBLIC_DIR, 'login.html')
 
+# ============ LOGIN WITH ROLE & TIME TRACKING ============
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    """API endpoint for login"""
+    """API endpoint for login with role and time tracking"""
     data = request.json
     username = data.get('username')
     password = data.get('password')
@@ -100,33 +110,99 @@ def api_login():
         conn = get_db()
         cur = conn.cursor()
         
+        # Get user details with roles
         cur.execute("""
-            SELECT id, username, password_hash, full_name 
-            FROM admin_users 
-            WHERE username = %s AND is_active = true
+            SELECT u.id, u.username, u.full_name, 
+                   array_agg(r.name) as roles
+            FROM admin_users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            WHERE u.username = %s AND u.is_active = true
+            GROUP BY u.id
         """, (username,))
         
         user = cur.fetchone()
-        cur.close()
-        conn.close()
         
-        if user and password == 'admin123':
-            session['admin_logged_in'] = True
-            session['admin_user_id'] = user[0]
-            session['admin_username'] = user[1]
-            session['admin_name'] = user[3]
+        if user and password == 'admin123':  # In production, use proper password hashing
+            user_id = user[0]
+            roles = user[3] if user[3] else ['viewer']
             
-            return jsonify({'success': True, 'message': 'Login successful'})
+            # Get all permissions for this user
+            cur.execute("""
+                SELECT DISTINCT p.name
+                FROM permissions p
+                JOIN role_permissions rp ON p.id = rp.permission_id
+                JOIN user_roles ur ON rp.role_id = ur.role_id
+                WHERE ur.user_id = %s
+            """, (user_id,))
+            
+            permissions = [row[0] for row in cur.fetchall()]
+            
+            # Log the login
+            cur.execute("""
+                INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
+                VALUES (%s, NOW(), %s, %s)
+            """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
+            
+            conn.commit()
+            
+            session['admin_logged_in'] = True
+            session['admin_user_id'] = user_id
+            session['admin_username'] = user[1]
+            session['admin_name'] = user[2] or user[1]
+            session['admin_roles'] = roles
+            session['admin_permissions'] = permissions
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Login successful',
+                'user': {
+                    'id': user_id,
+                    'name': user[2] or user[1],
+                    'roles': roles,
+                    'permissions': permissions
+                }
+            })
         else:
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ LOGOUT WITH TIME TRACKING ============
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
-    """API endpoint for logout"""
+    """API endpoint for logout with time tracking"""
+    if session.get('admin_user_id'):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                UPDATE login_logs 
+                SET logout_time = NOW() 
+                WHERE user_id = %s AND logout_time IS NULL
+                ORDER BY login_time DESC LIMIT 1
+            """, (session['admin_user_id'],))
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            print(f"Logout logging error: {e}")
+    
     session.clear()
     return jsonify({'success': True, 'message': 'Logout successful'})
+
+# ============ GET USER PERMISSIONS ============
+@app.route('/api/user/permissions', methods=['GET'])
+@login_required
+def get_user_permissions():
+    """Get current user's permissions"""
+    return jsonify({
+        'success': True,
+        'user_id': session.get('admin_user_id'),
+        'username': session.get('admin_username'),
+        'roles': session.get('admin_roles', []),
+        'permissions': session.get('admin_permissions', [])
+    })
 
 # ============ PROTECTED ADMIN ROUTES ============
 
@@ -183,6 +259,191 @@ def health():
     """Public healthcheck"""
     return jsonify({"status": "healthy"}), 200
 
+# ============ GET ALL ROLES ============
+@app.route('/api/roles', methods=['GET'])
+@login_required
+def get_all_roles():
+    """Get all available roles with permissions"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            SELECT r.*, array_agg(p.name) as permissions
+            FROM roles r
+            LEFT JOIN role_permissions rp ON r.id = rp.role_id
+            LEFT JOIN permissions p ON rp.permission_id = p.id
+            GROUP BY r.id
+            ORDER BY r.id
+        """)
+        
+        roles = []
+        for row in cur.fetchall():
+            roles.append({
+                'id': row[0],
+                'name': row[1],
+                'description': row[2],
+                'permissions': [p for p in row[4] if p]  # Filter out None
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'roles': roles})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ SUPER ADMIN: GET ALL USERS ============
+@app.route('/api/admin/users', methods=['GET'])
+@login_required
+@permission_required('manage_users')
+def get_all_users():
+    """Get all users with their roles and permissions"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            SELECT 
+                u.id, u.username, u.full_name, u.email, u.is_active,
+                COALESCE(array_agg(DISTINCT r.name), '{}') as roles,
+                COALESCE(array_agg(DISTINCT p.name), '{}') as permissions,
+                u.created_at
+            FROM admin_users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            LEFT JOIN role_permissions rp ON r.id = rp.role_id
+            LEFT JOIN permissions p ON rp.permission_id = p.id
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        """)
+        
+        users = []
+        for row in cur.fetchall():
+            users.append({
+                'id': row[0],
+                'username': row[1],
+                'full_name': row[2],
+                'email': row[3],
+                'is_active': row[4],
+                'roles': [r for r in row[5] if r],
+                'permissions': list(set([p for p in row[6] if p])),
+                'created_at': row[7].isoformat() if row[7] else None
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'users': users})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ SUPER ADMIN: GET LOGIN LOGS ============
+@app.route('/api/admin/login-logs', methods=['GET'])
+@login_required
+@permission_required('view_logs')
+def get_login_logs():
+    """Get login logs for last 30 days"""
+    try:
+        days = request.args.get('days', 30)
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            SELECT 
+                l.id, u.username, u.full_name, 
+                l.login_time, l.logout_time, l.ip_address, l.user_agent
+            FROM login_logs l
+            JOIN admin_users u ON l.user_id = u.id
+            WHERE l.login_time > NOW() - INTERVAL '%s days'
+            ORDER BY l.login_time DESC
+        """, (days,))
+        
+        logs = []
+        for row in cur.fetchall():
+            duration = None
+            if row[4]:  # logout_time exists
+                duration = (row[4] - row[3]).total_seconds() / 60  # minutes
+            
+            logs.append({
+                'id': row[0],
+                'username': row[1],
+                'full_name': row[2],
+                'login_time': row[3].isoformat(),
+                'logout_time': row[4].isoformat() if row[4] else None,
+                'duration_minutes': round(duration, 2) if duration else None,
+                'ip_address': row[5],
+                'user_agent': row[6]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'logs': logs})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ SUPER ADMIN: UPDATE USER PERMISSIONS ============
+@app.route('/api/admin/users/<int:user_id>/permissions', methods=['PUT'])
+@login_required
+@permission_required('manage_users')
+def update_user_permissions(user_id):
+    """Update user's roles and permissions"""
+    try:
+        data = request.json
+        role_names = data.get('roles', [])
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Clear existing roles
+        cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
+        
+        # Add new roles
+        for role_name in role_names:
+            cur.execute("SELECT id FROM roles WHERE name = %s", (role_name,))
+            role = cur.fetchone()
+            if role:
+                cur.execute("""
+                    INSERT INTO user_roles (user_id, role_id, assigned_by)
+                    VALUES (%s, %s, %s)
+                """, (user_id, role[0], session['admin_user_id']))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Permissions updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ SUPER ADMIN: TOGGLE USER STATUS ============
+@app.route('/api/admin/users/<int:user_id>/toggle', methods=['POST'])
+@login_required
+@permission_required('manage_users')
+def toggle_user_status(user_id):
+    """Activate or deactivate a user"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            UPDATE admin_users 
+            SET is_active = NOT is_active 
+            WHERE id = %s
+            RETURNING is_active
+        """, (user_id,))
+        
+        new_status = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'User {"activated" if new_status else "deactivated"}',
+            'is_active': new_status
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ BATCHES API ============
 @app.route('/api/batches', methods=['GET'])
 def get_all_batches():
@@ -227,6 +488,7 @@ def get_all_batches():
 
 @app.route('/api/batches', methods=['POST'])
 @login_required
+@permission_required('create_batch')
 def create_batch():
     """Create new batch"""
     try:
@@ -372,6 +634,8 @@ def get_traveler_by_passport(passport_no):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/travelers', methods=['POST'])
+@login_required
+@permission_required('create_traveler')
 def create_traveler():
     """Create new traveler"""
     try:
@@ -596,6 +860,8 @@ def get_payment_stats():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/payments', methods=['POST'])
+@login_required
+@permission_required('create_payment')
 def create_payment():
     """Create a new payment record"""
     try:
@@ -720,6 +986,7 @@ def reverse_payment(payment_id):
 
 @app.route('/api/payments/reversals', methods=['GET'])
 @login_required
+@permission_required('view_payments')
 def get_payment_reversals():
     """Get all payment reversals"""
     try:
@@ -762,6 +1029,7 @@ def get_payment_reversals():
 
 @app.route('/api/invoice/generate/<int:traveler_id>', methods=['GET'])
 @login_required
+@permission_required('view_reports')
 def generate_invoice(traveler_id):
     """Generate GST/TCS invoice for traveler"""
     try:
@@ -895,6 +1163,7 @@ def generate_invoice(traveler_id):
 
 @app.route('/api/invoice/<int:invoice_id>', methods=['GET'])
 @login_required
+@permission_required('view_reports')
 def get_invoice(invoice_id):
     """Get invoice details"""
     try:
@@ -1083,6 +1352,7 @@ def cleanup_old_backups(days_to_keep):
 
 @app.route('/api/backups', methods=['GET'])
 @login_required
+@permission_required('view_reports')
 def get_backups():
     """Get list of all backups"""
     try:
@@ -1111,13 +1381,13 @@ def get_backups():
         
         cur.close()
         conn.close()
-        
         return jsonify({'success': True, 'backups': backups})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/backup/download/<filename>', methods=['GET'])
 @login_required
+@permission_required('export_data')
 def download_backup(filename):
     """Download a backup file"""
     try:
@@ -1306,6 +1576,7 @@ def server_error(e):
 if __name__ == '__main__':
     try:
         init_db()
+        create_login_logs_table()
         print("✅ Database initialized")
     except Exception as e:
         print(f"❌ Database error: {e}")
