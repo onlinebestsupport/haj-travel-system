@@ -460,13 +460,18 @@ def get_all_batches():
             departure_date = b[2].isoformat() if b[2] else None
             return_date = b[3].isoformat() if b[3] else None
             
-            # Handle price conversion safely
+            # Handle price conversion safely - THIS IS THE FIX!
             price = None
-            if b[7] is not None:
+            if b[7] is not None:  # price is at index 7
                 try:
+                    # Convert Decimal to float
                     price = float(b[7])
-                except (TypeError, ValueError):
+                    print(f"Price found: {price} for batch {b[1]}")  # Debug line
+                except (TypeError, ValueError) as e:
+                    print(f"Price conversion error: {e}")
                     price = None
+            else:
+                print(f"Price is None for batch {b[1]}")
             
             result.append({
                 'id': b[0],
@@ -476,11 +481,12 @@ def get_all_batches():
                 'total_seats': b[4],
                 'booked_seats': b[5],
                 'status': b[6],
-                'price': price,
+                'price': price,  # Now properly converted
                 'description': b[8] if len(b) > 8 else None
             })
         cur.close()
         conn.close()
+        print(f"Returning {len(result)} batches with prices")  # Debug
         return jsonify({'success': True, 'batches': result})
     except Exception as e:
         print(f"Batches API error: {e}")
@@ -1584,3 +1590,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
