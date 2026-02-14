@@ -316,28 +316,43 @@
             }
         }
 
-        // Load payment schedule
+        // Load payment schedule - FIXED VERSION
         async function loadPaymentSchedule(travelerId) {
-    try {
-        const response = await fetch(`/api/payments/traveler/${travelerId}`);
-        // ... rest of code
-    }
-}const data = await response.json();
+            try {
+                const response = await fetch(`/api/payments/traveler/${travelerId}`);
+                const data = await response.json();
                 
-                if (data.success && data.payments.length > 0) {
+                if (data.success && data.payments && data.payments.length > 0) {
                     const tbody = document.getElementById('paymentTableBody');
-                    tbody.innerHTML = data.payments.map(p => `
+                    tbody.innerHTML = data.payments.map(p => {
+                        const statusClass = p.status === 'Paid' ? 'payment-paid' : 'payment-pending';
+                        return `
                         <tr>
-                            <td>${p.installment}</td>
-                            <td>${p.due_date}</td>
-                            <td>₹${p.amount}</td>
-                            <td><span class="payment-${p.status.toLowerCase()}">${p.status}</span></td>
+                            <td>${p.installment || '-'}</td>
+                            <td>${p.due_date || '-'}</td>
+                            <td>₹${p.amount ? p.amount.toLocaleString() : '0'}</td>
+                            <td class="${statusClass}">${p.status || 'Pending'}</td>
                             <td>${p.payment_date || '-'}</td>
                         </tr>
-                    `).join('');
+                    `}).join('');
+                } else {
+                    document.getElementById('paymentTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 30px;">
+                                <i class="fas fa-info-circle"></i> No payment records found
+                            </td>
+                        </tr>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading payments:', error);
+                document.getElementById('paymentTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px;">
+                            <i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> Error loading payments
+                        </td>
+                    </tr>
+                `;
             }
         }
 
