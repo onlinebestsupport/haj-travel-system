@@ -13,11 +13,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        body {
-            background: #f8f9fa;
-        }
-
+        body { background: #f8f9fa; }
         .top-bar {
             background: #2c3e50;
             color: white;
@@ -27,38 +23,31 @@
             width: 100%;
             z-index: 1000;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
-
         .top-bar .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .contact-info {
             display: flex;
             gap: 20px;
         }
-
         .contact-info span {
             font-size: 0.9rem;
         }
-
         .contact-info i {
             margin-right: 5px;
             color: #3498db;
         }
-
         .login-links {
             display: flex;
             gap: 15px;
         }
-
         .login-links a {
             color: white;
             text-decoration: none;
@@ -69,89 +58,9 @@
             align-items: center;
             gap: 5px;
         }
-
         .login-links a:hover {
             background: #34495e;
         }
-
-        .whatsapp-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #25d366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 999;
-            text-decoration: none;
-        }
-
-        .whatsapp-float:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
-        }
-
-        .whatsapp-popup {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            padding: 20px;
-            width: 300px;
-            display: none;
-            z-index: 1000;
-        }
-
-        .whatsapp-popup.active {
-            display: block;
-        }
-
-        .whatsapp-popup h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .whatsapp-popup input,
-        .whatsapp-popup textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .whatsapp-popup button {
-            width: 100%;
-            padding: 10px;
-            background: #25d366;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .close-popup {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #7f8c8d;
-        }
-
         nav {
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -160,41 +69,34 @@
             width: 100%;
             z-index: 999;
         }
-
         .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
         }
-
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
             color: #2c3e50;
         }
-
         .logo i {
             color: #3498db;
             margin-right: 10px;
         }
-
         .nav-links {
             display: flex;
             gap: 30px;
         }
-
         .nav-links a {
             text-decoration: none;
             color: #2c3e50;
             font-weight: 500;
             transition: color 0.3s;
         }
-
         .nav-links a:hover {
             color: #3498db;
         }
-
         .hero {
             margin-top: 120px;
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1600');
@@ -204,39 +106,32 @@
             padding: 100px 0;
             text-align: center;
         }
-
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 20px;
         }
-
         .hero p {
             font-size: 1.2rem;
             margin-bottom: 30px;
             opacity: 0.9;
         }
-
         .packages {
             padding: 80px 0;
         }
-
         .section-title {
             text-align: center;
             margin-bottom: 50px;
         }
-
         .section-title h2 {
             font-size: 2.5rem;
             color: #2c3e50;
             margin-bottom: 10px;
         }
-
         .packages-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
         }
-
         .package-card {
             background: white;
             border-radius: 10px;
@@ -244,38 +139,31 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             transition: transform 0.3s;
         }
-
         .package-card:hover {
             transform: translateY(-10px);
         }
-
         .package-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             text-align: center;
         }
-
         .package-header h3 {
             color: white;
             font-size: 1.5rem;
             margin-bottom: 10px;
         }
-
         .package-price {
             font-size: 2rem;
             font-weight: bold;
         }
-
         .package-price small {
             font-size: 1rem;
             opacity: 0.9;
         }
-
         .package-body {
             padding: 20px;
         }
-
         .package-dates {
             display: flex;
             justify-content: space-between;
@@ -283,43 +171,35 @@
             padding-bottom: 20px;
             border-bottom: 1px solid #ecf0f1;
         }
-
         .date-item {
             text-align: center;
         }
-
         .date-item .label {
             color: #7f8c8d;
             font-size: 0.9rem;
         }
-
         .date-item .value {
             font-weight: bold;
             color: #2c3e50;
         }
-
         .package-features {
             list-style: none;
             margin-bottom: 20px;
         }
-
         .package-features li {
             margin-bottom: 10px;
             color: #7f8c8d;
         }
-
         .package-features i {
             color: #27ae60;
             margin-right: 10px;
         }
-
         .package-footer {
             padding: 20px;
             background: #f8f9fa;
             display: flex;
             gap: 10px;
         }
-
         .btn {
             flex: 1;
             padding: 12px;
@@ -334,148 +214,57 @@
             transition: all 0.3s;
             text-decoration: none;
         }
-
         .btn-primary {
             background: #3498db;
             color: white;
         }
-
         .btn-primary:hover {
             background: #2980b9;
         }
-
         .btn-success {
             background: #25d366;
             color: white;
         }
-
         .btn-success:hover {
             background: #128c7e;
         }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #3498db;
-            color: #3498db;
-        }
-
-        .btn-outline:hover {
-            background: #3498db;
-            color: white;
-        }
-
-        .stats-section {
-            background: white;
-            padding: 60px 0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            text-align: center;
-        }
-
-        .stat-item {
-            padding: 20px;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #3498db;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            margin-top: 10px;
-        }
-
         footer {
             background: #2c3e50;
             color: white;
             padding: 50px 0 20px;
         }
-
         .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 40px;
             margin-bottom: 40px;
         }
-
         .footer-section h3 {
             color: white;
             margin-bottom: 20px;
         }
-
         .footer-section p {
             color: #bdc3c7;
             margin-bottom: 10px;
         }
-
         .footer-section i {
             margin-right: 10px;
             color: #3498db;
         }
-
         .footer-bottom {
             text-align: center;
             padding-top: 20px;
             border-top: 1px solid #34495e;
             color: #bdc3c7;
         }
-
-        /* Responsive Design for All Devices */
-        @media (max-width: 1200px) {
-            .container { max-width: 960px; }
-        }
-
-        @media (max-width: 992px) {
-            .container { max-width: 720px; }
-            .hero h1 { font-size: 2.5rem; }
-        }
-
         @media (max-width: 768px) {
-            .container { max-width: 540px; }
             .hero h1 { font-size: 2rem; }
-            .hero p { font-size: 1rem; }
             .top-bar .container { flex-direction: column; gap: 10px; }
             .nav-container { flex-direction: column; gap: 15px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; }
-            .packages-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (max-width: 480px) {
-            .container { padding: 0 15px; }
-            .hero h1 { font-size: 1.5rem; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .package-footer { flex-direction: column; }
-            .btn { width: 100%; }
-        }
-
-        /* iOS specific fixes */
-        @supports (-webkit-touch-callout: none) {
-            input, select, textarea {
-                font-size: 16px !important;
-            }
-        }
-
-        /* Touch-friendly buttons */
-        button, .btn {
-            min-height: 44px;
-            min-width: 44px;
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
         }
     </style>
 </head>
 <body>
-    <!-- Top Bar with Contact Info -->
     <div class="top-bar">
         <div class="container">
             <div class="contact-info">
@@ -489,7 +278,6 @@
         </div>
     </div>
 
-    <!-- Navigation -->
     <nav>
         <div class="container nav-container">
             <div class="logo">
@@ -498,42 +286,18 @@
             <div class="nav-links">
                 <a href="#home">Home</a>
                 <a href="#packages">Packages</a>
-                <a href="#about">About</a>
                 <a href="#contact">Contact</a>
             </div>
         </div>
     </nav>
 
-    <!-- WhatsApp Floating Button -->
-    <a href="#" class="whatsapp-float" onclick="toggleWhatsAppPopup(event)">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <!-- WhatsApp Popup -->
-    <div class="whatsapp-popup" id="whatsappPopup">
-        <button class="close-popup" onclick="toggleWhatsAppPopup(event)">×</button>
-        <h3><i class="fab fa-whatsapp" style="color: #25d366;"></i> Enquire Now</h3>
-        <input type="text" id="wa_name" placeholder="Your Name">
-        <input type="tel" id="wa_phone" placeholder="Phone Number">
-        <select id="wa_package">
-            <option value="">Select Package</option>
-        </select>
-        <textarea id="wa_message" placeholder="Your Message" rows="3"></textarea>
-        <button onclick="sendWhatsApp()">
-            <i class="fab fa-whatsapp"></i> Send via WhatsApp
-        </button>
-    </div>
-
-    <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="container">
             <h1><i class="fas fa-kaaba"></i> Your Journey to the Holy Land</h1>
             <p>Experience the spiritual journey of a lifetime with Alhudha Haj & Umrah Services</p>
-            <p>Premium packages with complete support from start to finish</p>
         </div>
     </section>
 
-    <!-- Packages Section -->
     <section class="packages" id="packages">
         <div class="container">
             <div class="section-title">
@@ -550,38 +314,12 @@
         </div>
     </section>
 
-    <!-- Statistics Section -->
-    <section class="stats-section">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number" id="totalTravelers">0</div>
-                    <div class="stat-label">Happy Pilgrims</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalPackages">0</div>
-                    <div class="stat-label">Tour Packages</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="yearsExperience">29</div>
-                    <div class="stat-label">Years Experience</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="cities">25+</div>
-                    <div class="stat-label">Cities Served</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer id="contact">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
                     <h3>Alhudha Haj & Umrah</h3>
                     <p>Your trusted partner for spiritual journey since 1995</p>
-                    <p><i class="fas fa-map-marker-alt"></i> 123, Haj House, Mumbai - 400001</p>
                 </div>
                 <div class="footer-section">
                     <h3>Quick Links</h3>
@@ -593,7 +331,6 @@
                     <h3>Contact Us</h3>
                     <p><i class="fas fa-phone"></i> +91 98765 43210</p>
                     <p><i class="fas fa-envelope"></i> info@alhudha.com</p>
-                    <p><i class="fab fa-whatsapp"></i> +91 98765 43210</p>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -603,52 +340,16 @@
     </footer>
 
     <script>
-        // Toggle WhatsApp Popup
-        function toggleWhatsAppPopup(event) {
-            event.preventDefault();
-            const popup = document.getElementById('whatsappPopup');
-            popup.classList.toggle('active');
-        }
-
-        // Send WhatsApp Message
-        function sendWhatsApp() {
-            const name = document.getElementById('wa_name').value;
-            const phone = document.getElementById('wa_phone').value;
-            const package_val = document.getElementById('wa_package').value;
-            const message = document.getElementById('wa_message').value;
-            
-            if (!name || !phone) {
-                alert('Please fill in your name and phone number');
-                return;
-            }
-            
-            const text = `*New Enquiry from Alhudha Website*%0A%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Package:* ${package_val || 'Not selected'}%0A*Message:* ${message}`;
-            
-            window.open(`https://wa.me/919876543210?text=${text}`, '_blank');
-            
-            // Close popup
-            document.getElementById('whatsappPopup').classList.remove('active');
-            
-            // Reset form
-            document.getElementById('wa_name').value = '';
-            document.getElementById('wa_phone').value = '';
-            document.getElementById('wa_message').value = '';
-        }
-
-        // Load Packages from Database
         async function loadPackages() {
             try {
                 const response = await fetch('/api/batches');
                 const data = await response.json();
                 
                 const container = document.getElementById('packages-container');
-                const packageSelect = document.getElementById('wa_package');
                 
-                if (data.success && data.batches.length > 0) {
+                if (data.success && data.batches && data.batches.length > 0) {
                     container.innerHTML = data.batches.map(batch => {
-                        // Format price properly
                         const priceDisplay = batch.price ? '₹' + Number(batch.price).toLocaleString('en-IN') : 'Contact for price';
-                        
                         return `
                         <div class="package-card">
                             <div class="package-header">
@@ -675,7 +376,7 @@
                                     <li><i class="fas fa-check"></i> Transportation included</li>
                                     <li><i class="fas fa-check"></i> Meals provided</li>
                                 </ul>
-                                <div style="text-align: center; margin-bottom: 10px;">
+                                <div style="text-align: center;">
                                     <strong>Available Seats:</strong> ${batch.booked_seats || 0}/${batch.total_seats || 150}
                                 </div>
                             </div>
@@ -683,18 +384,9 @@
                                 <a href="/traveler-login" class="btn btn-primary">
                                     <i class="fas fa-user"></i> Book Now
                                 </a>
-                                <button class="btn btn-success" onclick="enquirePackage('${batch.batch_name}')">
-                                    <i class="fab fa-whatsapp"></i> Enquire
-                                </button>
                             </div>
                         </div>
                     `}).join('');
-                    
-                    // Update select options
-                    if (packageSelect) {
-                        packageSelect.innerHTML = '<option value="">Select Package</option>' + 
-                            data.batches.map(b => `<option value="${b.batch_name}">${b.batch_name}</option>`).join('');
-                    }
                 } else {
                     container.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 50px;"><h3>No packages available yet</h3><p>Please check back later or contact our team</p></div>';
                 }
@@ -704,56 +396,7 @@
             }
         }
 
-        // Enquire about specific package
-        function enquirePackage(packageName) {
-            const packageSelect = document.getElementById('wa_package');
-            if (packageSelect) {
-                packageSelect.value = packageName;
-            }
-            document.getElementById('whatsappPopup').classList.add('active');
-        }
-
-        // Load Statistics
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/travelers/stats/summary');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('totalTravelers').textContent = data.stats.totalTravelers || 0;
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-            
-            // Get total packages count
-            try {
-                const response = await fetch('/api/batches');
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('totalPackages').textContent = data.batches.length || 0;
-                }
-            } catch (error) {
-                console.error('Error loading packages count:', error);
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadPackages();
-            loadStats();
-        });
-
-        // Add smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
+        document.addEventListener('DOMContentLoaded', loadPackages);
     </script>
 </body>
 </html>
