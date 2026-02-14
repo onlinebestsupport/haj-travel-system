@@ -1597,4 +1597,41 @@ if __name__ == '__main__':
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
 
+@app.route('/api/payments/traveler/<int:traveler_id>', methods=['GET'])
+def get_traveler_payments(traveler_id):
+    """Get payments for a specific traveler"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                p.id,
+                p.installment,
+                p.amount,
+                TO_CHAR(p.due_date, 'DD-MM-YYYY') as due_date,
+                TO_CHAR(p.payment_date, 'DD-MM-YYYY') as payment_date,
+                p.status,
+                p.payment_method
+            FROM payments p
+            WHERE p.traveler_id = %s
+            ORDER BY p.due_date
+        """, (traveler_id,))
+        
+        payments = []
+        for row in cur.fetchall():
+            payments.append({
+                'id': row[0],
+                'installment': row[1],
+                'amount': float(row[2]),
+                'due_date': row[3],
+                'payment_date': row[4],
+                'status': row[5],
+                'payment_method': row[6]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'payments': payments})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
