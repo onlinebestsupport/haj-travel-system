@@ -318,8 +318,11 @@
 
         // Load payment schedule
         async function loadPaymentSchedule(travelerId) {
-            try {
-                const response = await fetch(`/api/payments/${travelerId}`);
+    try {
+        const response = await fetch(`/api/payments/traveler/${travelerId}`);
+        // ... rest of code
+    }
+}
                 const data = await response.json();
                 
                 if (data.success && data.payments.length > 0) {
