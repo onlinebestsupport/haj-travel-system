@@ -1635,4 +1635,35 @@ def get_traveler_payments(traveler_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ SUPER ADMIN: DELETE USER ============
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@login_required
+@permission_required('manage_users')
+def delete_user(user_id):
+    """Delete a user (super admin only)"""
+    try:
+        # Prevent deleting yourself
+        if user_id == session.get('admin_user_id'):
+            return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Delete user roles first (cascade should handle this, but let's be explicit)
+        cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
+        
+        # Delete the user
+        cur.execute("DELETE FROM admin_users WHERE id = %s RETURNING id", (user_id,))
+        deleted = cur.fetchone()
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        if deleted:
+            return jsonify({'success': True, 'message': 'User deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
