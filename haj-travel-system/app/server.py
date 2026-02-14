@@ -341,10 +341,10 @@ def get_all_users():
 @app.route('/api/admin/login-logs', methods=['GET'])
 @login_required
 @permission_required('view_logs')
-def get_admin_login_logs():  # Make sure the name is unique
+def get_admin_login_logs():
     """Get login logs for last 30 days"""
     try:
-        days = request.args.get('days', '30')
+        days = request.args.get('days', 30)
         
         # Convert to integer safely
         try:
@@ -355,7 +355,7 @@ def get_admin_login_logs():  # Make sure the name is unique
         conn = get_db()
         cur = conn.cursor()
         
-        # FIXED: Use %s placeholder correctly with integer
+        # CORRECT SYNTAX - Use %s placeholder for the integer value
         cur.execute("""
             SELECT 
                 l.id, 
@@ -367,9 +367,9 @@ def get_admin_login_logs():  # Make sure the name is unique
                 l.user_agent
             FROM login_logs l
             JOIN admin_users u ON l.user_id = u.id
-            WHERE l.login_time > NOW() - INTERVAL '%s days'
+            WHERE l.login_time > NOW() - INTERVAL %s || ' days'
             ORDER BY l.login_time DESC
-        """, (days_int,))  # Pass as integer, not string with quotes
+        """, (days_int,))
         
         logs = []
         for row in cur.fetchall():
@@ -1730,6 +1730,7 @@ def delete_user(user_id):
             return jsonify({'success': False, 'error': 'User not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
 
