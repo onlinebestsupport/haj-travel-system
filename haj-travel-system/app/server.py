@@ -412,6 +412,99 @@ def create_traveler():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ TRAVELER LOGIN API ============
+@app.route('/api/traveler/login', methods=['POST'])
+def traveler_login():
+    """API endpoint for traveler login using passport + PIN"""
+    try:
+        data = request.json
+        passport_no = data.get('passport_no')
+        pin = data.get('pin')
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            SELECT id, first_name, last_name 
+            FROM travelers 
+            WHERE passport_no = %s AND pin = %s
+        """, (passport_no, pin))
+        
+        traveler = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if traveler:
+            return jsonify({
+                'success': True,
+                'traveler_id': traveler[0],
+                'name': f"{traveler[1]} {traveler[2]}"
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/traveler/<passport_no>', methods=['GET'])
+def get_traveler_by_passport_api(passport_no):
+    """Get traveler details by passport number"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT t.*, b.batch_name, b.departure_date, b.return_date, b.status as batch_status
+            FROM travelers t
+            LEFT JOIN batches b ON t.batch_id = b.id
+            WHERE t.passport_no = %s
+        """, (passport_no,))
+        
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if row:
+            traveler = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'passport_name': row[3],
+                'batch_id': row[4],
+                'passport_no': row[5],
+                'passport_issue_date': row[6].isoformat() if row[6] else None,
+                'passport_expiry_date': row[7].isoformat() if row[7] else None,
+                'passport_status': row[8],
+                'gender': row[9],
+                'dob': row[10].isoformat() if row[10] else None,
+                'mobile': row[11],
+                'email': row[12],
+                'aadhaar': row[13],
+                'pan': row[14],
+                'aadhaar_pan_linked': row[15],
+                'vaccine_status': row[16],
+                'wheelchair': row[17],
+                'place_of_birth': row[18],
+                'place_of_issue': row[19],
+                'passport_address': row[20],
+                'father_name': row[21],
+                'mother_name': row[22],
+                'spouse_name': row[23],
+                'passport_scan': row[24],
+                'aadhaar_scan': row[25],
+                'pan_scan': row[26],
+                'vaccine_scan': row[27],
+                'extra_fields': row[28],
+                'pin': row[29],
+                'batch_name': row[32] if len(row) > 32 else None,
+                'departure_date': row[33].isoformat() if len(row) > 33 and row[33] else None,
+                'return_date': row[34].isoformat() if len(row) > 34 and row[34] else None,
+                'batch_status': row[35] if len(row) > 35 else None
+            }
+            return jsonify({'success': True, 'traveler': traveler})
+        else:
+            return jsonify({'success': False}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ PAYMENTS API ============
 
 @app.route('/api/payments', methods=['GET'])
