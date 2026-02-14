@@ -1213,11 +1213,58 @@
 
     <!-- SUPER ADMIN TAB -->
     <div id="superAdminTab" class="tab-content" style="display: none;">
-        <h2><i class="fas fa-user-shield"></i> Super Admin - User Management</h2>
+        <h2><i class="fas fa-user-shield"></i> Super Admin Dashboard</h2>
         
-        <!-- User List -->
+        <!-- Payment Statistics Cards -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <i class="fas fa-rupee-sign" style="color: #27ae60;"></i>
+                <h3>Total Collections</h3>
+                <div class="stat-number" id="superTotalCollected">₹0</div>
+                <small>All time payments received</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock" style="color: #f39c12;"></i>
+                <h3>Pending Amount</h3>
+                <div class="stat-number" id="superPendingAmount">₹0</div>
+                <small>Awaiting payment</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                <h3>Paid Payments</h3>
+                <div class="stat-number" id="superPaidCount">0</div>
+                <small>Successful transactions</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-hourglass-half" style="color: #e74c3c;"></i>
+                <h3>Pending Payments</h3>
+                <div class="stat-number" id="superPendingCount">0</div>
+                <small>Payments due</small>
+            </div>
+        </div>
+        
+        <!-- Quick Stats Row -->
+        <div class="stats-grid" style="margin-bottom: 30px; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3>Total Travelers</h3>
+                <div class="stat-number" id="superTotalTravelers">0</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-layer-group"></i>
+                <h3>Active Batches</h3>
+                <div class="stat-number" id="superActiveBatches">0</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Avg. Payment</h3>
+                <div class="stat-number" id="superAvgPayment">₹0</div>
+            </div>
+        </div>
+        
+        <!-- User Management Section -->
         <div class="dashboard-card">
-            <h3><i class="fas fa-users-cog"></i> All Users</h3>
+            <h3><i class="fas fa-users-cog"></i> User Management</h3>
             <div class="table-container">
                 <table>
                     <thead>
@@ -1388,6 +1435,8 @@
             if (tabName === 'superAdmin') {
                 loadUsers();
                 loadLoginLogs();
+                loadSuperPaymentStats();
+                loadSuperBasicStats();
             }
         }
 
@@ -2000,6 +2049,43 @@
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #e74c3c;">Error loading users</td></tr>';
                 }
+            }
+        }
+
+        // ============ LOAD SUPER ADMIN PAYMENT STATS ============
+        async function loadSuperPaymentStats() {
+            try {
+                const response = await fetch('/api/payments/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('superTotalCollected').textContent = `₹${data.stats.total_collected.toLocaleString()}`;
+                    document.getElementById('superPendingAmount').textContent = `₹${data.stats.pending_amount.toLocaleString()}`;
+                    document.getElementById('superPaidCount').textContent = data.stats.status_counts?.Paid || 0;
+                    document.getElementById('superPendingCount').textContent = data.stats.status_counts?.Pending || 0;
+                    
+                    // Calculate average payment
+                    const totalPayments = (data.stats.status_counts?.Paid || 0) + (data.stats.status_counts?.Pending || 0);
+                    const avgPayment = totalPayments > 0 ? data.stats.total_collected / totalPayments : 0;
+                    document.getElementById('superAvgPayment').textContent = `₹${Math.round(avgPayment).toLocaleString()}`;
+                }
+            } catch (error) {
+                console.error('Error loading super payment stats:', error);
+            }
+        }
+
+        // ============ LOAD SUPER ADMIN BASIC STATS ============
+        async function loadSuperBasicStats() {
+            try {
+                const response = await fetch('/api/travelers/stats/summary');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('superTotalTravelers').textContent = data.stats.totalTravelers;
+                    document.getElementById('superActiveBatches').textContent = data.stats.openBatches;
+                }
+            } catch (error) {
+                console.error('Error loading super basic stats:', error);
             }
         }
 
