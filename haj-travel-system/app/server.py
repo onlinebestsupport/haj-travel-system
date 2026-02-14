@@ -337,7 +337,6 @@ def get_all_users():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ SUPER ADMIN: GET LOGIN LOGS ============
-# ============ GET LOGIN LOGS ============
 @app.route('/api/admin/login-logs', methods=['GET'])
 @login_required
 @permission_required('view_logs')
@@ -355,7 +354,7 @@ def get_admin_login_logs():
         conn = get_db()
         cur = conn.cursor()
         
-        # CORRECT SYNTAX - Use %s placeholder for the integer value
+        # CORRECT SYNTAX FOR POSTGRESQL INTERVAL
         cur.execute("""
             SELECT 
                 l.id, 
@@ -367,7 +366,7 @@ def get_admin_login_logs():
                 l.user_agent
             FROM login_logs l
             JOIN admin_users u ON l.user_id = u.id
-            WHERE l.login_time > NOW() - INTERVAL %s || ' days'
+            WHERE l.login_time > NOW() - INTERVAL '%s days'
             ORDER BY l.login_time DESC
         """, (days_int,))
         
@@ -385,7 +384,7 @@ def get_admin_login_logs():
                 'logout_time': row[4].isoformat() if row[4] else None,
                 'duration_minutes': duration,
                 'ip_address': row[5],
-                'user_agent': row[6]
+                'user_agent': row[6][:50] + '...' if row[6] and len(row[6]) > 50 else row[6]  # Truncate long user agents
             })
         
         cur.close()
@@ -459,6 +458,38 @@ def toggle_user_status(user_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ SUPER ADMIN: DELETE USER ============
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@login_required
+@permission_required('manage_users')
+def delete_user(user_id):
+    """Delete a user (super admin only)"""
+    try:
+        # Prevent deleting yourself
+        if user_id == session.get('admin_user_id'):
+            return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Delete user roles first
+        cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
+        
+        # Delete the user
+        cur.execute("DELETE FROM admin_users WHERE id = %s RETURNING id", (user_id,))
+        deleted = cur.fetchone()
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        if deleted:
+            return jsonify({'success': True, 'message': 'User deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ BATCHES API ============
 @app.route('/api/batches', methods=['GET'])
 def get_all_batches():
@@ -471,28 +502,17 @@ def get_all_batches():
         
         result = []
         for b in batches:
-            # Log the entire row to see structure (temporary debug)
-            print(f"Row has {len(b)} columns")
-            
-            # CORRECT COLUMN INDEXES based on your schema:
-            # 0:id, 1:batch_name, 2:departure_date, 3:return_date, 
-            # 4:total_seats, 5:booked_seats, 6:status, 7:created_at, 8:price, 9:description
-            
             # Convert date objects to strings safely
             departure_date = b[2].isoformat() if b[2] else None
             return_date = b[3].isoformat() if b[3] else None
             
-            # PRICE IS AT INDEX 8, NOT 7!
+            # Handle price conversion safely
             price = None
-            if len(b) > 8 and b[8] is not None:
+            if b[7] is not None:
                 try:
-                    price = float(b[8])
-                    print(f"✅ Price found: {price} for {b[1]}")
-                except (TypeError, ValueError) as e:
-                    print(f"❌ Price conversion error for {b[1]}: {e}")
+                    price = float(b[7])
+                except (TypeError, ValueError):
                     price = None
-            else:
-                print(f"⚠️ No price for {b[1]}")
             
             result.append({
                 'id': b[0],
@@ -503,14 +523,13 @@ def get_all_batches():
                 'booked_seats': b[5],
                 'status': b[6],
                 'price': price,
-                'description': b[9] if len(b) > 9 else None
+                'description': b[8] if len(b) > 8 else None
             })
         cur.close()
         conn.close()
-        print(f"✅ Returning {len(result)} batches with prices")
         return jsonify({'success': True, 'batches': result})
     except Exception as e:
-        print(f"❌ Batches API error: {e}")
+        print(f"Batches API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/batches', methods=['POST'])
@@ -1611,127 +1630,3 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
-
-@app.route('/api/payments/traveler/<int:traveler_id>', methods=['GET'])
-def get_traveler_payments(traveler_id):
-    """Get payments for a specific traveler"""
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT 
-                p.id,
-                p.installment,
-                p.amount,
-                TO_CHAR(p.due_date, 'DD-MM-YYYY') as due_date,
-                TO_CHAR(p.payment_date, 'DD-MM-YYYY') as payment_date,
-                p.status,
-                p.payment_method
-            FROM payments p
-            WHERE p.traveler_id = %s
-            ORDER BY p.due_date
-        """, (traveler_id,))
-        
-        payments = []
-        for row in cur.fetchall():
-            payments.append({
-                'id': row[0],
-                'installment': row[1],
-                'amount': float(row[2]),
-                'due_date': row[3],
-                'payment_date': row[4],
-                'status': row[5],
-                'payment_method': row[6]
-            })
-        
-        cur.close()
-        conn.close()
-        return jsonify({'success': True, 'payments': payments})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-        # ============ GET LOGIN LOGS ============
-@app.route('/api/admin/login-logs', methods=['GET'])
-@login_required
-@permission_required('view_logs')
-def get_admin_login_logs():  # ← Changed from 'get_login_logs' to 'get_admin_login_logs'
-    """Get login logs for last 30 days"""
-    try:
-        days = request.args.get('days', 30)
-        conn = get_db()
-        cur = conn.cursor()
-        
-        cur.execute("""
-            SELECT 
-                l.id, 
-                u.username, 
-                u.full_name, 
-                l.login_time, 
-                l.logout_time, 
-                l.ip_address, 
-                l.user_agent
-            FROM login_logs l
-            JOIN admin_users u ON l.user_id = u.id
-            WHERE l.login_time > NOW() - INTERVAL '%s days'
-            ORDER BY l.login_time DESC
-        """, (days,))
-        
-        logs = []
-        for row in cur.fetchall():
-            duration = None
-            if row[4]:  # logout_time exists
-                duration = round((row[4] - row[3]).total_seconds() / 60, 2)
-            
-            logs.append({
-                'id': row[0],
-                'username': row[1],
-                'full_name': row[2],
-                'login_time': row[3].isoformat(),
-                'logout_time': row[4].isoformat() if row[4] else None,
-                'duration_minutes': duration,
-                'ip_address': row[5],
-                'user_agent': row[6]
-            })
-        
-        cur.close()
-        conn.close()
-        return jsonify({'success': True, 'logs': logs})
-    except Exception as e:
-        print(f"Login logs error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ============ SUPER ADMIN: DELETE USER ============
-@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
-@login_required
-@permission_required('manage_users')
-def delete_user(user_id):
-    """Delete a user (super admin only)"""
-    try:
-        # Prevent deleting yourself
-        if user_id == session.get('admin_user_id'):
-            return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
-        
-        conn = get_db()
-        cur = conn.cursor()
-        
-        # Delete user roles first (cascade should handle this, but let's be explicit)
-        cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
-        
-        # Delete the user
-        cur.execute("DELETE FROM admin_users WHERE id = %s RETURNING id", (user_id,))
-        deleted = cur.fetchone()
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        if deleted:
-            return jsonify({'success': True, 'message': 'User deleted successfully'})
-        else:
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-
-
-
