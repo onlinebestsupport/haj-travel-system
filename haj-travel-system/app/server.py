@@ -456,22 +456,28 @@ def get_all_batches():
         
         result = []
         for b in batches:
+            # Log the entire row to see structure (temporary debug)
+            print(f"Row has {len(b)} columns")
+            
+            # CORRECT COLUMN INDEXES based on your schema:
+            # 0:id, 1:batch_name, 2:departure_date, 3:return_date, 
+            # 4:total_seats, 5:booked_seats, 6:status, 7:created_at, 8:price, 9:description
+            
             # Convert date objects to strings safely
             departure_date = b[2].isoformat() if b[2] else None
             return_date = b[3].isoformat() if b[3] else None
             
-            # Handle price conversion safely - THIS IS THE FIX!
+            # PRICE IS AT INDEX 8, NOT 7!
             price = None
-            if b[7] is not None:  # price is at index 7
+            if len(b) > 8 and b[8] is not None:
                 try:
-                    # Convert Decimal to float
-                    price = float(b[7])
-                    print(f"Price found: {price} for batch {b[1]}")  # Debug line
+                    price = float(b[8])
+                    print(f"✅ Price found: {price} for {b[1]}")
                 except (TypeError, ValueError) as e:
-                    print(f"Price conversion error: {e}")
+                    print(f"❌ Price conversion error for {b[1]}: {e}")
                     price = None
             else:
-                print(f"Price is None for batch {b[1]}")
+                print(f"⚠️ No price for {b[1]}")
             
             result.append({
                 'id': b[0],
@@ -481,15 +487,15 @@ def get_all_batches():
                 'total_seats': b[4],
                 'booked_seats': b[5],
                 'status': b[6],
-                'price': price,  # Now properly converted
-                'description': b[8] if len(b) > 8 else None
+                'price': price,
+                'description': b[9] if len(b) > 9 else None
             })
         cur.close()
         conn.close()
-        print(f"Returning {len(result)} batches with prices")  # Debug
+        print(f"✅ Returning {len(result)} batches with prices")
         return jsonify({'success': True, 'batches': result})
     except Exception as e:
-        print(f"Batches API error: {e}")
+        print(f"❌ Batches API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/batches', methods=['POST'])
@@ -1590,4 +1596,5 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
 
