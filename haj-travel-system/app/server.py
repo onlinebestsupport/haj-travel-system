@@ -1634,6 +1634,55 @@ def get_traveler_payments(traveler_id):
         return jsonify({'success': True, 'payments': payments})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+        # ============ GET LOGIN LOGS ============
+@app.route('/api/admin/login-logs', methods=['GET'])
+@login_required
+@permission_required('view_logs')
+def get_login_logs():
+    """Get login logs for last 30 days"""
+    try:
+        days = request.args.get('days', 30)
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            SELECT 
+                l.id, 
+                u.username, 
+                u.full_name, 
+                l.login_time, 
+                l.logout_time, 
+                l.ip_address, 
+                l.user_agent
+            FROM login_logs l
+            JOIN admin_users u ON l.user_id = u.id
+            WHERE l.login_time > NOW() - INTERVAL '%s days'
+            ORDER BY l.login_time DESC
+        """, (days,))
+        
+        logs = []
+        for row in cur.fetchall():
+            duration = None
+            if row[4]:  # logout_time exists
+                duration = round((row[4] - row[3]).total_seconds() / 60, 2)
+            
+            logs.append({
+                'id': row[0],
+                'username': row[1],
+                'full_name': row[2],
+                'login_time': row[3].isoformat(),
+                'logout_time': row[4].isoformat() if row[4] else None,
+                'duration_minutes': duration,
+                'ip_address': row[5],
+                'user_agent': row[6]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'logs': logs})
+    except Exception as e:
+        print(f"Login logs error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ SUPER ADMIN: DELETE USER ============
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
@@ -1666,4 +1715,5 @@ def delete_user(user_id):
             return jsonify({'success': False, 'error': 'User not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
