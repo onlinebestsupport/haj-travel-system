@@ -1638,7 +1638,7 @@ def get_traveler_payments(traveler_id):
 @app.route('/api/admin/login-logs', methods=['GET'])
 @login_required
 @permission_required('view_logs')
-def get_login_logs():
+def get_admin_login_logs():  # ← Changed from 'get_login_logs' to 'get_admin_login_logs'
     """Get login logs for last 30 days"""
     try:
         days = request.args.get('days', 30)
@@ -1715,5 +1715,6 @@ def delete_user(user_id):
             return jsonify({'success': False, 'error': 'User not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
