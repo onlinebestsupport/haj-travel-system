@@ -322,8 +322,7 @@
         const response = await fetch(`/api/payments/traveler/${travelerId}`);
         // ... rest of code
     }
-}
-                const data = await response.json();
+}const data = await response.json();
                 
                 if (data.success && data.payments.length > 0) {
                     const tbody = document.getElementById('paymentTableBody');
