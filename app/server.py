@@ -666,74 +666,75 @@ def get_all_travelers():
         print(f"Travelers API error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/travelers/<int:traveler_id>', methods=['GET'])
-def get_traveler_by_id(traveler_id):
-    """Get traveler by ID for editing"""
+# ============ UPDATE TRAVELER (PUT) - FIXED VERSION ============
+@app.route('/api/travelers/<int:traveler_id>', methods=['PUT'])
+def update_traveler(traveler_id):
+    """Update an existing traveler's 33 fields"""
     try:
+        if not request.is_json:
+            return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
+
+        data = request.get_json()
         conn = get_db()
         cur = conn.cursor()
-        
-        # Get all 33 fields
+
+        # Handle extra_fields carefully - ensure it's a valid JSON string for the database
+        extra_fields_data = data.get('extra_fields', '{}')
+        # If it's already a string (like from the form), try to parse and re-stringify to ensure it's clean
+        if isinstance(extra_fields_data, str):
+            try:
+                # Attempt to parse it to validate, then dump it back to a compact string
+                parsed_extra = json.loads(extra_fields_data)
+                extra_fields_json = json.dumps(parsed_extra)
+            except json.JSONDecodeError:
+                # If it's not valid JSON, store it as an empty object
+                print(f"⚠️ Invalid JSON string for extra_fields: {extra_fields_data}. Storing empty object.")
+                extra_fields_json = '{}'
+        else:
+            # If it's already a dict/list, convert to JSON string
+            extra_fields_json = json.dumps(extra_fields_data)
+
+        # SQL Update query - Ensure column names match your database
         cur.execute("""
-            SELECT 
-                id, first_name, last_name, passport_name, batch_id,
-                passport_no, passport_issue_date, passport_expiry_date, passport_status,
-                gender, dob, mobile, email, aadhaar, pan, aadhaar_pan_linked,
-                vaccine_status, wheelchair, place_of_birth, place_of_issue,
-                passport_address, father_name, mother_name, spouse_name,
-                passport_scan, aadhaar_scan, pan_scan, vaccine_scan,
-                extra_fields, pin, created_at, updated_at
-            FROM travelers 
+            UPDATE travelers SET
+                first_name = %s, last_name = %s, batch_id = %s,
+                passport_no = %s, passport_issue_date = %s, passport_expiry_date = %s,
+                passport_status = %s, gender = %s, dob = %s,
+                mobile = %s, email = %s, aadhaar = %s, pan = %s,
+                aadhaar_pan_linked = %s, vaccine_status = %s, wheelchair = %s,
+                place_of_birth = %s, place_of_issue = %s, passport_address = %s,
+                father_name = %s, mother_name = %s, spouse_name = %s,
+                extra_fields = %s::jsonb, pin = %s,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
-        """, (traveler_id,))
-        
-        row = cur.fetchone()
+        """, (
+            data.get('first_name'), data.get('last_name'), data.get('batch_id'),
+            data.get('passport_no'), data.get('passport_issue_date'), data.get('passport_expiry_date'),
+            data.get('passport_status', 'Active'), data.get('gender'), data.get('dob'),
+            data.get('mobile'), data.get('email'), data.get('aadhaar'), data.get('pan'),
+            data.get('aadhaar_pan_linked', 'No'), data.get('vaccine_status', 'Not Vaccinated'), data.get('wheelchair', 'No'),
+            data.get('place_of_birth'), data.get('place_of_issue'), data.get('passport_address'),
+            data.get('father_name'), data.get('mother_name'), data.get('spouse_name'),
+            extra_fields_json, data.get('pin', '0000'),
+            traveler_id
+        ))
+
+        conn.commit()
         cur.close()
         conn.close()
-        
-        if row:
-            traveler = {
-                'id': row[0],
-                'first_name': row[1],
-                'last_name': row[2],
-                'passport_name': row[3],
-                'batch_id': row[4],
-                'passport_no': row[5],
-                'passport_issue_date': row[6].isoformat() if row[6] else None,
-                'passport_expiry_date': row[7].isoformat() if row[7] else None,
-                'passport_status': row[8],
-                'gender': row[9],
-                'dob': row[10].isoformat() if row[10] else None,
-                'mobile': row[11],
-                'email': row[12],
-                'aadhaar': row[13],
-                'pan': row[14],
-                'aadhaar_pan_linked': row[15],
-                'vaccine_status': row[16],
-                'wheelchair': row[17],
-                'place_of_birth': row[18],
-                'place_of_issue': row[19],
-                'passport_address': row[20],
-                'father_name': row[21],
-                'mother_name': row[22],
-                'spouse_name': row[23],
-                'passport_scan': row[24],
-                'aadhaar_scan': row[25],
-                'pan_scan': row[26],
-                'vaccine_scan': row[27],
-                'extra_fields': row[28] if row[28] else {},
-                'pin': row[29],
-                'created_at': row[30].isoformat() if row[30] else None,
-                'updated_at': row[31].isoformat() if row[31] else None
-            }
-            return jsonify({'success': True, 'traveler': traveler})
-        else:
-            return jsonify({'success': False, 'error': 'Traveler not found'}), 404
-            
-    except Exception as e:
-        print(f"❌ Error in get_traveler_by_id: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
 
+        return jsonify({'success': True, 'message': 'Traveler updated successfully'})
+
+    except psycopg2.Error as e:
+        print(f"❌ Database error during update for ID {traveler_id}: {e}")
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': 'Database error occurred'}), 500
+    except Exception as e:
+        print(f"❌ Unexpected error during update for ID {traveler_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 @app.route('/api/travelers/passport/<passport_no>', methods=['GET'])
 def get_traveler_by_passport(passport_no):
     """Get traveler by passport number"""
