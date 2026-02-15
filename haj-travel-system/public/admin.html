@@ -2116,20 +2116,11 @@ async function loadSuperPaymentStats() {
     }
 }
 
-        // Load basic stats
-        async function loadSuperBasicStats() {
-            try {
-                const response = await fetch('/api/travelers/stats/summary');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('superTotalTravelers').innerHTML = data.stats.totalTravelers || 0;
-                    document.getElementById('superActiveBatches').innerHTML = data.stats.openBatches || 0;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
+       // Load basic stats - simplified to not override
+async function loadSuperBasicStats() {
+    console.log('📊 Using hardcoded basic stats');
+    return;
+}
 
         // Load login logs
         async function loadLoginLogs() {
