@@ -668,29 +668,73 @@ def get_all_travelers():
 
 @app.route('/api/travelers/<int:traveler_id>', methods=['GET'])
 def get_traveler_by_id(traveler_id):
-    """Get traveler by ID"""
+    """Get traveler by ID - FIXED VERSION"""
     try:
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM travelers WHERE id = %s", (traveler_id,))
+        
+        # Get all 33 fields
+        cur.execute("""
+            SELECT 
+                id, first_name, last_name, passport_name, batch_id,
+                passport_no, passport_issue_date, passport_expiry_date, passport_status,
+                gender, dob, mobile, email, aadhaar, pan, aadhaar_pan_linked,
+                vaccine_status, wheelchair, place_of_birth, place_of_issue,
+                passport_address, father_name, mother_name, spouse_name,
+                passport_scan, aadhaar_scan, pan_scan, vaccine_scan,
+                extra_fields, pin, created_at, updated_at
+            FROM travelers 
+            WHERE id = %s
+        """, (traveler_id,))
+        
         row = cur.fetchone()
         cur.close()
         conn.close()
         
         if row:
+            # Safely convert all fields
             traveler = {
                 'id': row[0],
                 'first_name': row[1],
                 'last_name': row[2],
+                'passport_name': row[3],
+                'batch_id': row[4],
                 'passport_no': row[5],
+                'passport_issue_date': row[6].isoformat() if row[6] else None,
+                'passport_expiry_date': row[7].isoformat() if row[7] else None,
+                'passport_status': row[8],
+                'gender': row[9],
+                'dob': row[10].isoformat() if row[10] else None,
                 'mobile': row[11],
                 'email': row[12],
-                'batch_id': row[4]
+                'aadhaar': row[13],
+                'pan': row[14],
+                'aadhaar_pan_linked': row[15],
+                'vaccine_status': row[16],
+                'wheelchair': row[17],
+                'place_of_birth': row[18],
+                'place_of_issue': row[19],
+                'passport_address': row[20],
+                'father_name': row[21],
+                'mother_name': row[22],
+                'spouse_name': row[23],
+                'passport_scan': row[24],
+                'aadhaar_scan': row[25],
+                'pan_scan': row[26],
+                'vaccine_scan': row[27],
+                'extra_fields': row[28] if row[28] else {},
+                'pin': row[29],
+                'created_at': row[30].isoformat() if row[30] else None,
+                'updated_at': row[31].isoformat() if row[31] else None
             }
             return jsonify({'success': True, 'traveler': traveler})
         else:
-            return jsonify({'success': False}), 404
+            return jsonify({'success': False, 'error': 'Traveler not found'}), 404
+            
     except Exception as e:
+        print(f"❌ Error in get_traveler_by_id: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/travelers/passport/<passport_no>', methods=['GET'])
