@@ -387,6 +387,18 @@
         .full-width {
             grid-column: 1 / -1;
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
     </style>
 </head>
 <body>
@@ -495,27 +507,27 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="batch_name">Batch Name *</label>
-                            <input type="text" id="batch_name" name="batch_name" required placeholder="e.g., Haj Silver 2026">
+                            <input type="text" id="batch_name" name="batch_name" autocomplete="off" required placeholder="e.g., Haj Silver 2026">
                         </div>
                         <div class="form-group">
                             <label for="total_seats">Total Seats</label>
-                            <input type="number" id="total_seats" name="total_seats" value="150">
+                            <input type="number" id="total_seats" name="total_seats" autocomplete="off" value="150">
                         </div>
                         <div class="form-group">
                             <label for="price">Price (₹)</label>
-                            <input type="number" id="price" name="price" step="1000" placeholder="350000">
+                            <input type="number" id="price" name="price" autocomplete="off" step="1000" placeholder="350000">
                         </div>
                         <div class="form-group">
                             <label for="departure_date">Departure Date</label>
-                            <input type="date" id="departure_date" name="departure_date">
+                            <input type="date" id="departure_date" name="departure_date" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="return_date">Return Date</label>
-                            <input type="date" id="return_date" name="return_date">
+                            <input type="date" id="return_date" name="return_date" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="status">Status</label>
-                            <select id="status" name="status">
+                            <select id="status" name="status" autocomplete="off">
                                 <option value="Open">Open</option>
                                 <option value="Closing Soon">Closing Soon</option>
                                 <option value="Full">Full</option>
@@ -524,7 +536,7 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="description">Description</label>
-                            <textarea id="description" name="description" rows="3" placeholder="Package details..."></textarea>
+                            <textarea id="description" name="description" autocomplete="off" rows="3" placeholder="Package details..."></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -534,10 +546,10 @@
                 </form>
             </div>
 
-            <!-- Batches List -->
+            <!-- Batches List - FIXED with autocomplete -->
             <div class="search-box">
                 <label for="searchBatches" class="sr-only">Search Batches</label>
-                <input type="text" id="searchBatches" placeholder="Search batches...">
+                <input type="text" id="searchBatches" name="searchBatches" autocomplete="off" placeholder="Search batches...">
                 <button class="action-btn btn-primary" onclick="searchBatches()">
                     <i class="fas fa-search"></i> Search
                 </button>
@@ -582,37 +594,37 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_first_name">First Name *</label>
-                                <input type="text" id="add_first_name" name="add_first_name" required>
+                                <input type="text" id="add_first_name" name="add_first_name" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_last_name">Last Name *</label>
-                                <input type="text" id="add_last_name" name="add_last_name" required>
+                                <input type="text" id="add_last_name" name="add_last_name" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_name">Passport Name (Auto)</label>
-                                <input type="text" id="add_passport_name" name="add_passport_name" readonly>
+                                <input type="text" id="add_passport_name" name="add_passport_name" autocomplete="off" readonly>
                             </div>
                             <div class="form-group">
                                 <label for="add_batch_id">Batch *</label>
-                                <select id="add_batch_id" name="add_batch_id" required>
+                                <select id="add_batch_id" name="add_batch_id" autocomplete="off" required>
                                     <option value="">Select Batch</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_no">Passport Number *</label>
-                                <input type="text" id="add_passport_no" name="add_passport_no" required>
+                                <input type="text" id="add_passport_no" name="add_passport_no" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_issue_date">Passport Issue Date</label>
-                                <input type="date" id="add_passport_issue_date" name="add_passport_issue_date">
+                                <input type="date" id="add_passport_issue_date" name="add_passport_issue_date" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_expiry_date">Passport Expiry Date</label>
-                                <input type="date" id="add_passport_expiry_date" name="add_passport_expiry_date">
+                                <input type="date" id="add_passport_expiry_date" name="add_passport_expiry_date" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_status">Passport Status</label>
-                                <select id="add_passport_status" name="add_passport_status">
+                                <select id="add_passport_status" name="add_passport_status" autocomplete="off">
                                     <option value="Active">Active</option>
                                     <option value="Expired">Expired</option>
                                     <option value="Submitted">Submitted</option>
@@ -621,7 +633,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_gender">Gender</label>
-                                <select id="add_gender" name="add_gender">
+                                <select id="add_gender" name="add_gender" autocomplete="off">
                                     <option value="">Select</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -630,7 +642,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_dob">Date of Birth</label>
-                                <input type="date" id="add_dob" name="add_dob">
+                                <input type="date" id="add_dob" name="add_dob" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -641,23 +653,23 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_mobile">Mobile Number *</label>
-                                <input type="tel" id="add_mobile" name="add_mobile" required>
+                                <input type="tel" id="add_mobile" name="add_mobile" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_email">Email</label>
-                                <input type="email" id="add_email" name="add_email">
+                                <input type="email" id="add_email" name="add_email" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_aadhaar">Aadhaar Number</label>
-                                <input type="text" id="add_aadhaar" name="add_aadhaar">
+                                <input type="text" id="add_aadhaar" name="add_aadhaar" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_pan">PAN Number</label>
-                                <input type="text" id="add_pan" name="add_pan">
+                                <input type="text" id="add_pan" name="add_pan" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_aadhaar_pan_linked">Aadhaar-PAN Linked</label>
-                                <select id="add_aadhaar_pan_linked" name="add_aadhaar_pan_linked">
+                                <select id="add_aadhaar_pan_linked" name="add_aadhaar_pan_linked" autocomplete="off">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                     <option value="Pending">Pending</option>
@@ -665,7 +677,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_vaccine_status">Vaccine Status</label>
-                                <select id="add_vaccine_status" name="add_vaccine_status">
+                                <select id="add_vaccine_status" name="add_vaccine_status" autocomplete="off">
                                     <option value="Not Vaccinated">Not Vaccinated</option>
                                     <option value="Partially Vaccinated">Partially Vaccinated</option>
                                     <option value="Fully Vaccinated">Fully Vaccinated</option>
@@ -674,7 +686,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_wheelchair">Wheelchair Required</label>
-                                <select id="add_wheelchair" name="add_wheelchair">
+                                <select id="add_wheelchair" name="add_wheelchair" autocomplete="off">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                 </select>
@@ -688,27 +700,27 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_place_of_birth">Place of Birth</label>
-                                <input type="text" id="add_place_of_birth" name="add_place_of_birth">
+                                <input type="text" id="add_place_of_birth" name="add_place_of_birth" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_place_of_issue">Place of Issue</label>
-                                <input type="text" id="add_place_of_issue" name="add_place_of_issue">
+                                <input type="text" id="add_place_of_issue" name="add_place_of_issue" autocomplete="off">
                             </div>
                             <div class="form-group full-width">
                                 <label for="add_passport_address">Passport Address</label>
-                                <textarea id="add_passport_address" name="add_passport_address" rows="3"></textarea>
+                                <textarea id="add_passport_address" name="add_passport_address" autocomplete="off" rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="add_father_name">Father's Name</label>
-                                <input type="text" id="add_father_name" name="add_father_name">
+                                <input type="text" id="add_father_name" name="add_father_name" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_mother_name">Mother's Name</label>
-                                <input type="text" id="add_mother_name" name="add_mother_name">
+                                <input type="text" id="add_mother_name" name="add_mother_name" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="add_spouse_name">Spouse's Name</label>
-                                <input type="text" id="add_spouse_name" name="add_spouse_name">
+                                <input type="text" id="add_spouse_name" name="add_spouse_name" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -722,7 +734,7 @@
                                 <div class="document-upload" onclick="document.getElementById('add_passport_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="add_passport_scan_text">Click to upload</p>
-                                    <input type="file" id="add_passport_scan" name="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="add_passport_scan" name="add_passport_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -730,7 +742,7 @@
                                 <div class="document-upload" onclick="document.getElementById('add_aadhaar_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="add_aadhaar_scan_text">Click to upload</p>
-                                    <input type="file" id="add_aadhaar_scan" name="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="add_aadhaar_scan" name="add_aadhaar_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -738,7 +750,7 @@
                                 <div class="document-upload" onclick="document.getElementById('add_pan_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="add_pan_scan_text">Click to upload</p>
-                                    <input type="file" id="add_pan_scan" name="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="add_pan_scan" name="add_pan_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -746,7 +758,7 @@
                                 <div class="document-upload" onclick="document.getElementById('add_vaccine_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="add_vaccine_scan_text">Click to upload</p>
-                                    <input type="file" id="add_vaccine_scan" name="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="add_vaccine_scan" name="add_vaccine_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                         </div>
@@ -758,11 +770,11 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_pin">PIN (4 digits)</label>
-                                <input type="text" id="add_pin" name="add_pin" maxlength="4" value="0000">
+                                <input type="text" id="add_pin" name="add_pin" autocomplete="off" maxlength="4" value="0000">
                             </div>
                             <div class="form-group full-width">
                                 <label for="add_extra_fields">Extra Fields (JSON)</label>
-                                <textarea id="add_extra_fields" name="add_extra_fields" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
+                                <textarea id="add_extra_fields" name="add_extra_fields" autocomplete="off" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
                             </div>
                         </div>
                     </div>
@@ -784,37 +796,37 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="edit_first_name">First Name *</label>
-                                <input type="text" id="edit_first_name" name="edit_first_name" required>
+                                <input type="text" id="edit_first_name" name="edit_first_name" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="edit_last_name">Last Name *</label>
-                                <input type="text" id="edit_last_name" name="edit_last_name" required>
+                                <input type="text" id="edit_last_name" name="edit_last_name" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="edit_passport_name">Passport Name (Auto)</label>
-                                <input type="text" id="edit_passport_name" name="edit_passport_name" readonly>
+                                <input type="text" id="edit_passport_name" name="edit_passport_name" autocomplete="off" readonly>
                             </div>
                             <div class="form-group">
                                 <label for="edit_batch_id">Batch</label>
-                                <select id="edit_batch_id" name="edit_batch_id">
+                                <select id="edit_batch_id" name="edit_batch_id" autocomplete="off">
                                     <option value="">Select Batch</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="edit_passport_no">Passport Number *</label>
-                                <input type="text" id="edit_passport_no" name="edit_passport_no" required>
+                                <input type="text" id="edit_passport_no" name="edit_passport_no" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="edit_passport_issue_date">Passport Issue Date</label>
-                                <input type="date" id="edit_passport_issue_date" name="edit_passport_issue_date">
+                                <input type="date" id="edit_passport_issue_date" name="edit_passport_issue_date" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_passport_expiry_date">Passport Expiry Date</label>
-                                <input type="date" id="edit_passport_expiry_date" name="edit_passport_expiry_date">
+                                <input type="date" id="edit_passport_expiry_date" name="edit_passport_expiry_date" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_passport_status">Passport Status</label>
-                                <select id="edit_passport_status" name="edit_passport_status">
+                                <select id="edit_passport_status" name="edit_passport_status" autocomplete="off">
                                     <option value="Active">Active</option>
                                     <option value="Expired">Expired</option>
                                     <option value="Submitted">Submitted</option>
@@ -823,7 +835,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit_gender">Gender</label>
-                                <select id="edit_gender" name="edit_gender">
+                                <select id="edit_gender" name="edit_gender" autocomplete="off">
                                     <option value="">Select</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -832,7 +844,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit_dob">Date of Birth</label>
-                                <input type="date" id="edit_dob" name="edit_dob">
+                                <input type="date" id="edit_dob" name="edit_dob" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -843,23 +855,23 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="edit_mobile">Mobile Number *</label>
-                                <input type="tel" id="edit_mobile" name="edit_mobile" required>
+                                <input type="tel" id="edit_mobile" name="edit_mobile" autocomplete="off" required>
                             </div>
                             <div class="form-group">
                                 <label for="edit_email">Email</label>
-                                <input type="email" id="edit_email" name="edit_email">
+                                <input type="email" id="edit_email" name="edit_email" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_aadhaar">Aadhaar Number</label>
-                                <input type="text" id="edit_aadhaar" name="edit_aadhaar">
+                                <input type="text" id="edit_aadhaar" name="edit_aadhaar" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_pan">PAN Number</label>
-                                <input type="text" id="edit_pan" name="edit_pan">
+                                <input type="text" id="edit_pan" name="edit_pan" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_aadhaar_pan_linked">Aadhaar-PAN Linked</label>
-                                <select id="edit_aadhaar_pan_linked" name="edit_aadhaar_pan_linked">
+                                <select id="edit_aadhaar_pan_linked" name="edit_aadhaar_pan_linked" autocomplete="off">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                     <option value="Pending">Pending</option>
@@ -867,7 +879,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit_vaccine_status">Vaccine Status</label>
-                                <select id="edit_vaccine_status" name="edit_vaccine_status">
+                                <select id="edit_vaccine_status" name="edit_vaccine_status" autocomplete="off">
                                     <option value="Not Vaccinated">Not Vaccinated</option>
                                     <option value="Partially Vaccinated">Partially Vaccinated</option>
                                     <option value="Fully Vaccinated">Fully Vaccinated</option>
@@ -876,7 +888,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit_wheelchair">Wheelchair Required</label>
-                                <select id="edit_wheelchair" name="edit_wheelchair">
+                                <select id="edit_wheelchair" name="edit_wheelchair" autocomplete="off">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                 </select>
@@ -890,27 +902,27 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="edit_place_of_birth">Place of Birth</label>
-                                <input type="text" id="edit_place_of_birth" name="edit_place_of_birth">
+                                <input type="text" id="edit_place_of_birth" name="edit_place_of_birth" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_place_of_issue">Place of Issue</label>
-                                <input type="text" id="edit_place_of_issue" name="edit_place_of_issue">
+                                <input type="text" id="edit_place_of_issue" name="edit_place_of_issue" autocomplete="off">
                             </div>
                             <div class="form-group full-width">
                                 <label for="edit_passport_address">Passport Address</label>
-                                <textarea id="edit_passport_address" name="edit_passport_address" rows="3"></textarea>
+                                <textarea id="edit_passport_address" name="edit_passport_address" autocomplete="off" rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="edit_father_name">Father's Name</label>
-                                <input type="text" id="edit_father_name" name="edit_father_name">
+                                <input type="text" id="edit_father_name" name="edit_father_name" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_mother_name">Mother's Name</label>
-                                <input type="text" id="edit_mother_name" name="edit_mother_name">
+                                <input type="text" id="edit_mother_name" name="edit_mother_name" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="edit_spouse_name">Spouse's Name</label>
-                                <input type="text" id="edit_spouse_name" name="edit_spouse_name">
+                                <input type="text" id="edit_spouse_name" name="edit_spouse_name" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -924,7 +936,7 @@
                                 <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="edit_passport_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_passport_scan" name="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="edit_passport_scan" name="edit_passport_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -932,7 +944,7 @@
                                 <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="edit_aadhaar_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_aadhaar_scan" name="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="edit_aadhaar_scan" name="edit_aadhaar_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -940,7 +952,7 @@
                                 <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="edit_pan_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_pan_scan" name="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="edit_pan_scan" name="edit_pan_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -948,7 +960,7 @@
                                 <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                     <p id="edit_vaccine_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_vaccine_scan" name="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.png">
+                                    <input type="file" id="edit_vaccine_scan" name="edit_vaccine_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
                                 </div>
                             </div>
                         </div>
@@ -960,11 +972,11 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="edit_pin">PIN (4 digits)</label>
-                                <input type="text" id="edit_pin" name="edit_pin" maxlength="4" value="0000">
+                                <input type="text" id="edit_pin" name="edit_pin" autocomplete="off" maxlength="4" value="0000">
                             </div>
                             <div class="form-group full-width">
                                 <label for="edit_extra_fields">Extra Fields (JSON)</label>
-                                <textarea id="edit_extra_fields" name="edit_extra_fields" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
+                                <textarea id="edit_extra_fields" name="edit_extra_fields" autocomplete="off" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
                             </div>
                         </div>
                     </div>
@@ -976,10 +988,10 @@
                 </form>
             </div>
 
-            <!-- Travelers List -->
+            <!-- Travelers List - FIXED with autocomplete -->
             <div class="search-box">
                 <label for="searchTravelers" class="sr-only">Search Travelers</label>
-                <input type="text" id="searchTravelers" placeholder="Search travelers...">
+                <input type="text" id="searchTravelers" name="searchTravelers" autocomplete="off" placeholder="Search travelers...">
                 <button class="action-btn btn-primary" onclick="searchTravelers()">
                     <i class="fas fa-search"></i> Search
                 </button>
@@ -1045,7 +1057,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="payment_search">Traveler ID or Passport</label>
-                            <input type="text" id="payment_search" placeholder="Enter ID or Passport Number">
+                            <input type="text" id="payment_search" name="payment_search" autocomplete="off" placeholder="Enter ID or Passport Number">
                         </div>
                     </div>
                     <button class="action-btn btn-primary" onclick="verifyTraveler()">
@@ -1054,7 +1066,7 @@
                 </div>
 
                 <form id="paymentForm" style="display: none;">
-                    <input type="hidden" id="payment_traveler_id">
+                    <input type="hidden" id="payment_traveler_id" name="payment_traveler_id">
                     
                     <div class="verification-panel">
                         <p><strong>Traveler:</strong> <span id="display_traveler_name"></span></p>
@@ -1065,7 +1077,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="installment">Installment *</label>
-                            <select id="installment" required>
+                            <select id="installment" name="installment" autocomplete="off" required>
                                 <option value="Booking Amount">Booking Amount</option>
                                 <option value="1st Installment">1st Installment</option>
                                 <option value="2nd Installment">2nd Installment</option>
@@ -1076,15 +1088,15 @@
                         </div>
                         <div class="form-group">
                             <label for="amount">Amount (₹) *</label>
-                            <input type="number" id="amount" step="100" min="1" required>
+                            <input type="number" id="amount" name="amount" autocomplete="off" step="100" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="payment_date">Payment Date *</label>
-                            <input type="date" id="payment_date" required>
+                            <input type="date" id="payment_date" name="payment_date" autocomplete="off" required>
                         </div>
                         <div class="form-group">
                             <label for="payment_method">Payment Method *</label>
-                            <select id="payment_method" required>
+                            <select id="payment_method" name="payment_method" autocomplete="off" required>
                                 <option value="Cash">Cash</option>
                                 <option value="Bank Transfer">Bank Transfer</option>
                                 <option value="Credit Card">Credit Card</option>
@@ -1095,11 +1107,11 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="transaction_id">Transaction ID / Reference</label>
-                            <input type="text" id="transaction_id" placeholder="Optional">
+                            <input type="text" id="transaction_id" name="transaction_id" autocomplete="off" placeholder="Optional">
                         </div>
                         <div class="form-group full-width">
                             <label for="remarks">Remarks</label>
-                            <textarea id="remarks" rows="2" placeholder="Any notes..."></textarea>
+                            <textarea id="remarks" name="remarks" autocomplete="off" rows="2" placeholder="Any notes..."></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -1145,23 +1157,23 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="username">Username *</label>
-                            <input type="text" id="username" required>
+                            <input type="text" id="username" name="username" autocomplete="off" required>
                         </div>
                         <div class="form-group">
                             <label for="password">Password *</label>
-                            <input type="password" id="password" required>
+                            <input type="password" id="password" name="password" autocomplete="new-password" required>
                         </div>
                         <div class="form-group">
                             <label for="email">Email *</label>
-                            <input type="email" id="email" required>
+                            <input type="email" id="email" name="email" autocomplete="off" required>
                         </div>
                         <div class="form-group">
                             <label for="fullname">Full Name</label>
-                            <input type="text" id="fullname">
+                            <input type="text" id="fullname" name="fullname" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="role">Role</label>
-                            <select id="role">
+                            <select id="role" name="role" autocomplete="off">
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
                                 <option value="staff">Staff</option>
@@ -1332,7 +1344,7 @@
         <h3 style="margin-bottom: 20px; color: #2c3e50;"><i class="fas fa-file-invoice"></i> Generate Invoice</h3>
         <div class="form-group">
             <label for="invoiceTravelerSelect">Select Traveler</label>
-            <select id="invoiceTravelerSelect" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+            <select id="invoiceTravelerSelect" name="invoiceTravelerSelect" autocomplete="off" style="width: 100%; padding: 10px; margin-bottom: 15px;">
                 <option value="">Loading travelers...</option>
             </select>
         </div>
@@ -1372,21 +1384,6 @@
 
     <!-- Overlay -->
     <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999;" onclick="closeAllModals()"></div>
-
-    <style>
-        /* Add this for screen reader only labels */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
-    </style>
 
     <script>
         // Your existing JavaScript remains exactly the same
