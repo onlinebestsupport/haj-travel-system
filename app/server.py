@@ -287,7 +287,6 @@ def traveler_login_page():
 def traveler_dashboard():
     return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
 
-# This catch-all route should be at the end
 @app.route('/<path:path>')
 def serve_static(path):
     if path.endswith('.css') or path.endswith('.js') or path.endswith('.png') or path.endswith('.jpg') or path.endswith('.svg'):
