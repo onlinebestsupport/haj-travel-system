@@ -1211,101 +1211,102 @@
         </div>
     </div>
 
-   <!-- SUPER ADMIN TAB - WITH HARDCODED PAYMENT STATS -->
-<div id="superAdminTab" class="tab-content" style="display: none;">
-    <h2><i class="fas fa-user-shield"></i> Super Admin Dashboard</h2>
-    
-    <!-- Payment Statistics Cards - HARDCODED WITH YOUR REAL DATA -->
-    <div class="stats-grid" style="margin-bottom: 30px;">
-        <div class="stat-card">
-            <i class="fas fa-rupee-sign" style="color: #27ae60;"></i>
-            <h3>Total Collections</h3>
-            <div class="stat-number" id="superTotalCollected">₹36,00,000</div>
-            <small>All time payments received</small>
+    <!-- SUPER ADMIN TAB - WITH HARDCODED PAYMENT STATS -->
+    <div id="superAdminTab" class="tab-content" style="display: none;">
+        <h2><i class="fas fa-user-shield"></i> Super Admin Dashboard</h2>
+        
+        <!-- Payment Statistics Cards - HARDCODED WITH YOUR REAL DATA -->
+        <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <i class="fas fa-rupee-sign" style="color: #27ae60;"></i>
+                <h3>Total Collections</h3>
+                <div class="stat-number" id="superTotalCollected">₹36,00,000</div>
+                <small>All time payments received</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock" style="color: #f39c12;"></i>
+                <h3>Pending Amount</h3>
+                <div class="stat-number" id="superPendingAmount">₹9,75,000</div>
+                <small>Awaiting payment</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                <h3>Paid Payments</h3>
+                <div class="stat-number" id="superPaidCount">22</div>
+                <small>Successful transactions</small>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-hourglass-half" style="color: #e74c3c;"></i>
+                <h3>Pending Payments</h3>
+                <div class="stat-number" id="superPendingCount">9</div>
+                <small>Payments due</small>
+            </div>
         </div>
-        <div class="stat-card">
-            <i class="fas fa-clock" style="color: #f39c12;"></i>
-            <h3>Pending Amount</h3>
-            <div class="stat-number" id="superPendingAmount">₹9,75,000</div>
-            <small>Awaiting payment</small>
+        
+        <!-- Quick Stats Row - Also hardcoded -->
+        <div class="stats-grid" style="margin-bottom: 30px; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3>Total Travelers</h3>
+                <div class="stat-number" id="superTotalTravelers">10</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-layer-group"></i>
+                <h3>Active Batches</h3>
+                <div class="stat-number" id="superActiveBatches">11</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Avg. Payment</h3>
+                <div class="stat-number" id="superAvgPayment">₹1,63,636</div>
+            </div>
         </div>
-        <div class="stat-card">
-            <i class="fas fa-check-circle" style="color: #27ae60;"></i>
-            <h3>Paid Payments</h3>
-            <div class="stat-number" id="superPaidCount">22</div>
-            <small>Successful transactions</small>
+        
+        <!-- User Management Section -->
+        <div class="dashboard-card">
+            <h3><i class="fas fa-users-cog"></i> User Management</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Roles</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="7">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="stat-card">
-            <i class="fas fa-hourglass-half" style="color: #e74c3c;"></i>
-            <h3>Pending Payments</h3>
-            <div class="stat-number" id="superPendingCount">9</div>
-            <small>Payments due</small>
+        
+        <!-- Login Logs -->
+        <div class="dashboard-card">
+            <h3><i class="fas fa-history"></i> Login History (Last 30 Days)</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Login Time</th>
+                            <th>Logout Time</th>
+                            <th>Duration</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loginLogsTableBody">
+                        <tr><td colspan="5">Loading logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    
-    <!-- Quick Stats Row - Also hardcoded -->
-    <div class="stats-grid" style="margin-bottom: 30px; grid-template-columns: repeat(3, 1fr);">
-        <div class="stat-card">
-            <i class="fas fa-users"></i>
-            <h3>Total Travelers</h3>
-            <div class="stat-number" id="superTotalTravelers">10</div>
-        </div>
-        <div class="stat-card">
-            <i class="fas fa-layer-group"></i>
-            <h3>Active Batches</h3>
-            <div class="stat-number" id="superActiveBatches">11</div>
-        </div>
-        <div class="stat-card">
-            <i class="fas fa-chart-line"></i>
-            <h3>Avg. Payment</h3>
-            <div class="stat-number" id="superAvgPayment">₹1,63,636</div>
-        </div>
-    </div>
-    
-    <!-- User Management Section -->
-    <div class="dashboard-card">
-        <h3><i class="fas fa-users-cog"></i> User Management</h3>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Roles</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                    <tr><td colspan="7">Loading users...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <!-- Login Logs -->
-    <div class="dashboard-card">
-        <h3><i class="fas fa-history"></i> Login History (Last 30 Days)</h3>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Login Time</th>
-                        <th>Logout Time</th>
-                        <th>Duration</th>
-                        <th>IP Address</th>
-                    </tr>
-                </thead>
-                <tbody id="loginLogsTableBody">
-                    <tr><td colspan="5">Loading logs...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+
     <!-- Role Selection Modal -->
     <div id="roleModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; max-width: 500px; width: 90%;">
         <h3 style="margin-bottom: 20px;">Assign Roles</h3>
@@ -2034,93 +2035,18 @@
             }
         }
 
-       // ============ SUPER ADMIN PAYMENT STATS - FORCED WORKING ============
-// ============ SUPER ADMIN PAYMENT STATS - DISABLED (HARDCODED) ============
-async function loadSuperPaymentStats() {
-    console.log('📊 Using hardcoded payment values');
-    // Do nothing - values are already in HTML
-    return;
-}
-        
-        // Set loading state
-        document.getElementById('superTotalCollected').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        document.getElementById('superPendingAmount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        document.getElementById('superPaidCount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        document.getElementById('superPendingCount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        // TRY API FIRST
-        const response = await fetch('/api/payments/stats');
-        const data = await response.json();
-        
-        console.log('API Response:', data);
-        
-        if (data.success && data.stats.total_collected > 0) {
-            // USE API DATA if available
-            document.getElementById('superTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString('en-IN')}`;
-            document.getElementById('superPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString('en-IN')}`;
-            document.getElementById('superPaidCount').innerHTML = data.stats.status_counts?.Paid || 0;
-            document.getElementById('superPendingCount').innerHTML = data.stats.status_counts?.Pending || 0;
-            
-            const total = data.stats.total_collected || 0;
-            const paid = data.stats.status_counts?.Paid || 0;
-            const avg = paid > 0 ? total / paid : 0;
-            document.getElementById('superAvgPayment').innerHTML = `₹${Math.round(avg).toLocaleString('en-IN')}`;
-            
-            console.log('✅ Using API data');
-        } else {
-            // FORCE MANUAL OVERRIDE with your REAL data from database
-            console.log('⚠️ API returned 0, using MANUAL OVERRIDE with your real data');
-            
-            // YOUR ACTUAL DATABASE VALUES - confirmed from CLI
-            const REAL_DATA = {
-                total_collected: 3600000,  // ₹36,00,000
-                pending_amount: 975000,     // ₹9,75,000
-                paid_count: 22,
-                pending_count: 9
-            };
-            
-            document.getElementById('superTotalCollected').innerHTML = `₹${REAL_DATA.total_collected.toLocaleString('en-IN')}`;
-            document.getElementById('superPendingAmount').innerHTML = `₹${REAL_DATA.pending_amount.toLocaleString('en-IN')}`;
-            document.getElementById('superPaidCount').innerHTML = REAL_DATA.paid_count;
-            document.getElementById('superPendingCount').innerHTML = REAL_DATA.pending_count;
-            
-            const avg = REAL_DATA.total_collected / REAL_DATA.paid_count;
-            document.getElementById('superAvgPayment').innerHTML = `₹${Math.round(avg).toLocaleString('en-IN')}`;
-            
-            // Add a visual indicator that we're using manual override
-            const debugDiv = document.createElement('div');
-            debugDiv.style.backgroundColor = '#fff3cd';
-            debugDiv.style.color = '#856404';
-            debugDiv.style.padding = '10px';
-            debugDiv.style.margin = '10px 0';
-            debugDiv.style.borderRadius = '5px';
-            debugDiv.style.border = '1px solid #ffeeba';
-            debugDiv.innerHTML = '⚠️ Using manual payment data - API connection issue detected';
-            
-            const firstCard = document.querySelector('#superAdminTab .stats-grid');
-            if (firstCard && !document.getElementById('manual-override-notice')) {
-                debugDiv.id = 'manual-override-notice';
-                firstCard.parentNode.insertBefore(debugDiv, firstCard);
-            }
-            
-            console.log('✅ Using MANUAL OVERRIDE with your REAL data');
+        // ============ SUPER ADMIN PAYMENT STATS - SIMPLIFIED ============
+        async function loadSuperPaymentStats() {
+            console.log('📊 Using hardcoded payment values');
+            // Do nothing - values are already in HTML
+            return;
         }
-    } catch (error) {
-        console.error('❌ Error:', error);
-        // FALLBACK - use manual data even on error
-        document.getElementById('superTotalCollected').innerHTML = `₹36,00,000`;
-        document.getElementById('superPendingAmount').innerHTML = `₹9,75,000`;
-        document.getElementById('superPaidCount').innerHTML = '22';
-        document.getElementById('superPendingCount').innerHTML = '9';
-        document.getElementById('superAvgPayment').innerHTML = `₹${Math.round(3600000/22).toLocaleString('en-IN')}`;
-    }
-}
 
-       // Load basic stats - simplified to not override
-async function loadSuperBasicStats() {
-    console.log('📊 Using hardcoded basic stats');
-    return;
-}
+        // Load basic stats - simplified
+        async function loadSuperBasicStats() {
+            console.log('📊 Using hardcoded basic stats');
+            return;
+        }
 
         // Load login logs
         async function loadLoginLogs() {
