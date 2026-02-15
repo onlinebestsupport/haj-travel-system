@@ -97,11 +97,11 @@ def has_permission(permission_name):
     """Check if logged-in user has specific permission"""
     if not session.get('admin_logged_in'):
         return False
-    
+
     # Super admin has all permissions
     if 'super_admin' in session.get('admin_roles', []):
         return True
-    
+
     permissions = session.get('admin_permissions', [])
     return permission_name in permissions
 
@@ -140,14 +140,14 @@ def api_login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
+
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Get user details with roles
         cur.execute("""
-            SELECT u.id, u.username, u.full_name, 
+            SELECT u.id, u.username, u.full_name,
                    array_agg(r.name) as roles
             FROM admin_users u
             LEFT JOIN user_roles ur ON u.id = ur.user_id
@@ -155,13 +155,13 @@ def api_login():
             WHERE u.username = %s AND u.is_active = true
             GROUP BY u.id
         """, (username,))
-        
+
         user = cur.fetchone()
-        
+
         if user and password == 'admin123':  # In production, use proper password hashing
             user_id = user[0]
             roles = user[3] if user[3] else ['viewer']
-            
+
             # Get all permissions for this user
             cur.execute("""
                 SELECT DISTINCT p.name
@@ -170,26 +170,26 @@ def api_login():
                 JOIN user_roles ur ON rp.role_id = ur.role_id
                 WHERE ur.user_id = %s
             """, (user_id,))
-            
+
             permissions = [row[0] for row in cur.fetchall()]
-            
+
             # Log the login
             cur.execute("""
                 INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
                 VALUES (%s, NOW(), %s, %s)
             """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
-            
+
             conn.commit()
-            
+
             session['admin_logged_in'] = True
             session['admin_user_id'] = user_id
             session['admin_username'] = user[1]
             session['admin_name'] = user[2] or user[1]
             session['admin_roles'] = roles
             session['admin_permissions'] = permissions
-            
+
             return jsonify({
-                'success': True, 
+                'success': True,
                 'message': 'Login successful',
                 'user': {
                     'id': user_id,
@@ -212,8 +212,8 @@ def api_logout():
             conn = get_db()
             cur = conn.cursor()
             cur.execute("""
-                UPDATE login_logs 
-                SET logout_time = NOW() 
+                UPDATE login_logs
+                SET logout_time = NOW()
                 WHERE user_id = %s AND logout_time IS NULL
                 ORDER BY login_time DESC LIMIT 1
             """, (session['admin_user_id'],))
@@ -222,7 +222,7 @@ def api_logout():
             conn.close()
         except Exception as e:
             print(f"Logout logging error: {e}")
-    
+
     session.clear()
     return jsonify({'success': True, 'message': 'Logout successful'})
 
@@ -270,11 +270,14 @@ def traveler_dashboard():
     """Serve traveler dashboard"""
     return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
 
+# Serve static files - this should generally be at the end
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve static files - skip login for CSS, JS, images"""
     if path.endswith('.css') or path.endswith('.js') or path.endswith('.png') or path.endswith('.jpg') or path.endswith('.svg'):
         return send_from_directory(PUBLIC_DIR, path)
+    # This return might be redundant if the file isn't found, but it's a common pattern.
+    # Consider adding a check or letting Flask's 404 handler take over.
     return send_from_directory(PUBLIC_DIR, path)
 
 # ============ API ROUTES ============
@@ -302,7 +305,7 @@ def get_all_roles():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             SELECT r.*, array_agg(p.name) as permissions
             FROM roles r
@@ -311,7 +314,7 @@ def get_all_roles():
             GROUP BY r.id
             ORDER BY r.id
         """)
-        
+
         roles = []
         for row in cur.fetchall():
             roles.append({
@@ -320,7 +323,7 @@ def get_all_roles():
                 'description': row[2],
                 'permissions': [p for p in row[4] if p]  # Filter out None
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'roles': roles})
@@ -336,9 +339,9 @@ def get_all_users():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
-            SELECT 
+            SELECT
                 u.id, u.username, u.full_name, u.email, u.is_active,
                 COALESCE(array_agg(DISTINCT r.name), '{}') as roles,
                 COALESCE(array_agg(DISTINCT p.name), '{}') as permissions,
@@ -351,7 +354,7 @@ def get_all_users():
             GROUP BY u.id
             ORDER BY u.created_at DESC
         """)
-        
+
         users = []
         for row in cur.fetchall():
             users.append({
@@ -364,7 +367,7 @@ def get_all_users():
                 'permissions': list(set([p for p in row[6] if p])),
                 'created_at': row[7].isoformat() if row[7] else None
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'users': users})
@@ -379,24 +382,24 @@ def get_admin_login_logs():
     """Get login logs for last 30 days - FIXED SQL SYNTAX"""
     try:
         days = request.args.get('days', 30)
-        
+
         # Convert to integer safely
         try:
             days_int = int(days)
         except ValueError:
             days_int = 30
-        
+
         conn = get_db()
         cur = conn.cursor()
-        
+
         # CORRECT SQL SYNTAX FOR POSTGRESQL
         cur.execute("""
-            SELECT 
-                l.id, 
-                u.username, 
-                u.full_name, 
-                l.login_time, 
-                l.logout_time, 
+            SELECT
+                l.id,
+                u.username,
+                u.full_name,
+                l.login_time,
+                l.logout_time,
                 l.ip_address,
                 l.user_agent
             FROM login_logs l
@@ -404,13 +407,13 @@ def get_admin_login_logs():
             WHERE l.login_time > NOW() - INTERVAL '%s days'
             ORDER BY l.login_time DESC
         """, (days_int,))
-        
+
         logs = []
         for row in cur.fetchall():
             duration = None
             if row[4]:  # logout_time exists
                 duration = round((row[4] - row[3]).total_seconds() / 60, 2)
-            
+
             logs.append({
                 'id': row[0],
                 'username': row[1],
@@ -421,7 +424,7 @@ def get_admin_login_logs():
                 'ip_address': row[5],
                 'user_agent': row[6][:50] + '...' if row[6] and len(row[6]) > 50 else row[6]
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'logs': logs})
@@ -438,13 +441,13 @@ def update_user_permissions(user_id):
     try:
         data = request.json
         role_names = data.get('roles', [])
-        
+
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Clear existing roles
         cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
-        
+
         # Add new roles
         for role_name in role_names:
             cur.execute("SELECT id FROM roles WHERE name = %s", (role_name,))
@@ -454,11 +457,11 @@ def update_user_permissions(user_id):
                     INSERT INTO user_roles (user_id, role_id, assigned_by)
                     VALUES (%s, %s, %s)
                 """, (user_id, role[0], session['admin_user_id']))
-        
+
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'message': 'Permissions updated'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -472,21 +475,21 @@ def toggle_user_status(user_id):
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
-            UPDATE admin_users 
-            SET is_active = NOT is_active 
+            UPDATE admin_users
+            SET is_active = NOT is_active
             WHERE id = %s
             RETURNING is_active
         """, (user_id,))
-        
+
         new_status = cur.fetchone()[0]
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': f'User {"activated" if new_status else "deactivated"}',
             'is_active': new_status
         })
@@ -503,21 +506,21 @@ def delete_user(user_id):
         # Prevent deleting yourself
         if user_id == session.get('admin_user_id'):
             return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
-        
+
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Delete user roles first
         cur.execute("DELETE FROM user_roles WHERE user_id = %s", (user_id,))
-        
+
         # Delete the user
         cur.execute("DELETE FROM admin_users WHERE id = %s RETURNING id", (user_id,))
         deleted = cur.fetchone()
-        
+
         conn.commit()
         cur.close()
         conn.close()
-        
+
         if deleted:
             return jsonify({'success': True, 'message': 'User deleted successfully'})
         else:
@@ -535,13 +538,13 @@ def get_all_batches():
         cur = conn.cursor()
         cur.execute("SELECT * FROM batches ORDER BY departure_date")
         batches = cur.fetchall()
-        
+
         result = []
         for b in batches:
             # Convert date objects to strings safely
             departure_date = b[2].isoformat() if b[2] else None
             return_date = b[3].isoformat() if b[3] else None
-            
+
             # FIXED: Price is at index 8 (after created_at), not index 7
             price = None
             if len(b) > 8 and b[8] is not None:
@@ -553,7 +556,7 @@ def get_all_batches():
                     price = None
             else:
                 print(f"⚠️ No price for {b[1]}")
-            
+
             result.append({
                 'id': b[0],
                 'batch_name': b[1],
@@ -582,7 +585,7 @@ def create_batch():
         data = request.json
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             INSERT INTO batches (batch_name, departure_date, return_date, total_seats, status, price, description)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -596,12 +599,12 @@ def create_batch():
             data.get('price'),
             data.get('description')
         ))
-        
+
         batch_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'message': 'Batch created', 'batch_id': batch_id})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -615,12 +618,12 @@ def get_all_travelers():
         conn = get_db()
         cur = conn.cursor()
         cur.execute("""
-            SELECT t.*, b.batch_name 
-            FROM travelers t 
-            LEFT JOIN batches b ON t.batch_id = b.id 
+            SELECT t.*, b.batch_name
+            FROM travelers t
+            LEFT JOIN batches b ON t.batch_id = b.id
             ORDER BY t.created_at DESC
         """)
-        
+
         travelers = []
         for row in cur.fetchall():
             travelers.append({
@@ -658,12 +661,83 @@ def get_all_travelers():
                 'updated_at': row[31].isoformat() if row[31] else None,
                 'batch_name': row[32] if len(row) > 32 else None
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'travelers': travelers})
     except Exception as e:
         print(f"Travelers API error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ GET SINGLE TRAVELER (FIXED - ADDED MISSING ROUTE) ============
+@app.route('/api/travelers/<int:traveler_id>', methods=['GET'])
+def get_traveler_by_id(traveler_id):
+    """Get a single traveler by their ID - FIXED VERSION"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+
+        # Get all 33 fields for the specific traveler
+        cur.execute("""
+            SELECT
+                id, first_name, last_name, passport_name, batch_id,
+                passport_no, passport_issue_date, passport_expiry_date, passport_status,
+                gender, dob, mobile, email, aadhaar, pan, aadhaar_pan_linked,
+                vaccine_status, wheelchair, place_of_birth, place_of_issue,
+                passport_address, father_name, mother_name, spouse_name,
+                passport_scan, aadhaar_scan, pan_scan, vaccine_scan,
+                extra_fields, pin, created_at, updated_at
+            FROM travelers
+            WHERE id = %s
+        """, (traveler_id,))
+
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if row:
+            traveler = {
+                'id': row[0],
+                'first_name': row[1],
+                'last_name': row[2],
+                'passport_name': row[3],
+                'batch_id': row[4],
+                'passport_no': row[5],
+                'passport_issue_date': row[6].isoformat() if row[6] else None,
+                'passport_expiry_date': row[7].isoformat() if row[7] else None,
+                'passport_status': row[8],
+                'gender': row[9],
+                'dob': row[10].isoformat() if row[10] else None,
+                'mobile': row[11],
+                'email': row[12],
+                'aadhaar': row[13],
+                'pan': row[14],
+                'aadhaar_pan_linked': row[15],
+                'vaccine_status': row[16],
+                'wheelchair': row[17],
+                'place_of_birth': row[18],
+                'place_of_issue': row[19],
+                'passport_address': row[20],
+                'father_name': row[21],
+                'mother_name': row[22],
+                'spouse_name': row[23],
+                'passport_scan': row[24],
+                'aadhaar_scan': row[25],
+                'pan_scan': row[26],
+                'vaccine_scan': row[27],
+                'extra_fields': row[28] if row[28] else {},
+                'pin': row[29],
+                'created_at': row[30].isoformat() if row[30] else None,
+                'updated_at': row[31].isoformat() if row[31] else None
+            }
+            return jsonify({'success': True, 'traveler': traveler})
+        else:
+            return jsonify({'success': False, 'error': f'Traveler with id {traveler_id} not found'}), 404
+
+    except Exception as e:
+        print(f"❌ Error in get_traveler_by_id for ID {traveler_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ UPDATE TRAVELER (PUT) - FIXED VERSION ============
@@ -727,14 +801,19 @@ def update_traveler(traveler_id):
 
     except psycopg2.Error as e:
         print(f"❌ Database error during update for ID {traveler_id}: {e}")
-        if conn:
-            conn.rollback()
+        # Attempt rollback if connection exists
+        try:
+            if conn:
+                conn.rollback()
+        except:
+            pass
         return jsonify({'success': False, 'error': 'Database error occurred'}), 500
     except Exception as e:
         print(f"❌ Unexpected error during update for ID {traveler_id}: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/travelers/passport/<passport_no>', methods=['GET'])
 def get_traveler_by_passport(passport_no):
     """Get traveler by passport number"""
@@ -745,7 +824,7 @@ def get_traveler_by_passport(passport_no):
         row = cur.fetchone()
         cur.close()
         conn.close()
-        
+
         if row:
             traveler = {
                 'id': row[0],
@@ -758,7 +837,7 @@ def get_traveler_by_passport(passport_no):
             }
             return jsonify({'success': True, 'traveler': traveler})
         else:
-            return jsonify({'success': False}), 404
+            return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -771,7 +850,7 @@ def create_traveler():
         data = request.json
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             INSERT INTO travelers (
                 first_name, last_name, batch_id, passport_no,
@@ -787,20 +866,20 @@ def create_traveler():
             data.get('email'),
             data.get('pin', '0000')
         ))
-        
+
         traveler_id = cur.fetchone()[0]
-        
+
         # Update booked seats
         cur.execute("""
-            UPDATE batches 
-            SET booked_seats = booked_seats + 1 
+            UPDATE batches
+            SET booked_seats = booked_seats + 1
             WHERE id = %s
         """, (data.get('batch_id'),))
-        
+
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'traveler_id': traveler_id})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -813,20 +892,20 @@ def traveler_login():
         data = request.json
         passport_no = data.get('passport_no')
         pin = data.get('pin')
-        
+
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
-            SELECT id, first_name, last_name 
-            FROM travelers 
+            SELECT id, first_name, last_name
+            FROM travelers
             WHERE passport_no = %s AND pin = %s
         """, (passport_no, pin))
-        
+
         traveler = cur.fetchone()
         cur.close()
         conn.close()
-        
+
         if traveler:
             return jsonify({
                 'success': True,
@@ -850,11 +929,11 @@ def get_traveler_by_passport_api(passport_no):
             LEFT JOIN batches b ON t.batch_id = b.id
             WHERE t.passport_no = %s
         """, (passport_no,))
-        
+
         row = cur.fetchone()
         cur.close()
         conn.close()
-        
+
         if row:
             traveler = {
                 'id': row[0],
@@ -907,7 +986,7 @@ def get_all_payments():
         conn = get_db()
         cur = conn.cursor()
         cur.execute("""
-            SELECT 
+            SELECT
                 p.id,
                 t.first_name || ' ' || t.last_name as traveler_name,
                 p.installment,
@@ -918,16 +997,16 @@ def get_all_payments():
                 p.payment_method
             FROM payments p
             JOIN travelers t ON p.traveler_id = t.id
-            ORDER BY 
-                CASE 
-                    WHEN p.status = 'Pending' THEN 1 
-                    WHEN p.status = 'Paid' THEN 2 
+            ORDER BY
+                CASE
+                    WHEN p.status = 'Pending' THEN 1
+                    WHEN p.status = 'Paid' THEN 2
                     WHEN p.status = 'Reversed' THEN 3
-                    ELSE 4 
+                    ELSE 4
                 END,
                 p.due_date ASC
         """)
-        
+
         payments = []
         for row in cur.fetchall():
             payments.append({
@@ -940,7 +1019,7 @@ def get_all_payments():
                 'status': row[6],
                 'payment_method': row[7]
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'payments': payments})
@@ -954,35 +1033,35 @@ def get_payment_stats():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Total collected
         cur.execute("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Paid'")
         total_collected = cur.fetchone()[0]
-        
+
         # Pending amount
         cur.execute("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Pending'")
         pending_amount = cur.fetchone()[0]
-        
+
         # Reversed amount
         cur.execute("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'Reversed'")
         reversed_amount = cur.fetchone()[0]
-        
+
         # Payment count by status
         cur.execute("SELECT status, COUNT(*) FROM payments GROUP BY status")
         status_counts = {}
         for row in cur.fetchall():
             status_counts[row[0]] = row[1]
-        
+
         cur.close()
         conn.close()
-        
+
         # Check if we have data - if not, use hardcoded values from your database
         if total_collected == 0 and pending_amount == 0:
             print("⚠️ Database returned 0 payments - using hardcoded fallback values")
             total_collected = 3600000.0
             pending_amount = 975000.0
             status_counts = {'Paid': 22, 'Pending': 9}
-        
+
         return jsonify({
             'success': True,
             'stats': {
@@ -1014,10 +1093,10 @@ def create_payment():
         data = request.json
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             INSERT INTO payments (
-                traveler_id, installment, amount, payment_date, 
+                traveler_id, installment, amount, payment_date,
                 payment_method, transaction_id, remarks, status
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
@@ -1031,12 +1110,12 @@ def create_payment():
             data.get('remarks'),
             data.get('status', 'Paid')
         ))
-        
+
         payment_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'payment_id': payment_id})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1053,26 +1132,26 @@ def reverse_payment(payment_id):
         reason = data.get('reason')
         reversal_amount = data.get('amount')  # For partial reversal
         is_full_reversal = data.get('full_reversal', True)
-        
+
         if not reason:
             return jsonify({'success': False, 'error': 'Reason is required for reversal'}), 400
-        
+
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Get original payment
         cur.execute("SELECT * FROM payments WHERE id = %s", (payment_id,))
         payment = cur.fetchone()
-        
+
         if not payment:
             return jsonify({'success': False, 'error': 'Payment not found'}), 404
-        
+
         if payment[6] == 'Reversed':  # status column
             return jsonify({'success': False, 'error': 'Payment already reversed'}), 400
-        
+
         # Calculate reversal amount
         reversal_amt = payment[3] if is_full_reversal else reversal_amount  # amount column
-        
+
         # Create payment_reversals table if not exists
         cur.execute("""
             CREATE TABLE IF NOT EXISTS payment_reversals (
@@ -1085,7 +1164,7 @@ def reverse_payment(payment_id):
                 is_full_reversal BOOLEAN DEFAULT true
             )
         """)
-        
+
         # Create reversal record
         cur.execute("""
             INSERT INTO payment_reversals (
@@ -1093,19 +1172,19 @@ def reverse_payment(payment_id):
             ) VALUES (%s, %s, %s, %s, %s)
             RETURNING id
         """, (payment_id, reversal_amt, reason, session['admin_user_id'], is_full_reversal))
-        
+
         reversal_id = cur.fetchone()[0]
-        
+
         if is_full_reversal:
             # Update original payment status
             cur.execute("UPDATE payments SET status = 'Reversed' WHERE id = %s", (payment_id,))
         else:
-            # For partial reversal, keep original but reduce amount? 
+            # For partial reversal, keep original but reduce amount?
             # This depends on your business logic
             # Option: Create a new negative payment
             cur.execute("""
                 INSERT INTO payments (
-                    traveler_id, installment, amount, payment_date, 
+                    traveler_id, installment, amount, payment_date,
                     payment_method, remarks, status
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
@@ -1117,13 +1196,13 @@ def reverse_payment(payment_id):
                 f"Partial reversal of payment {payment_id}: {reason}",
                 'Reversed'
             ))
-        
+
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': 'Payment reversed successfully',
             'reversal_id': reversal_id
         })
@@ -1138,7 +1217,7 @@ def get_payment_reversals():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             SELECT pr.*, p.id as payment_id, p.amount as original_amount,
                    t.first_name || ' ' || t.last_name as traveler_name,
@@ -1149,7 +1228,7 @@ def get_payment_reversals():
             LEFT JOIN admin_users a ON pr.reversed_by = a.id
             ORDER BY pr.reversed_at DESC
         """)
-        
+
         reversals = []
         for row in cur.fetchall():
             reversals.append({
@@ -1163,10 +1242,10 @@ def get_payment_reversals():
                 'traveler_name': row[9],
                 'reversed_by': row[10]
             })
-        
+
         cur.close()
         conn.close()
-        
+
         return jsonify({'success': True, 'reversals': reversals})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1180,14 +1259,14 @@ def generate_invoice(traveler_id):
     """Generate GST/TCS invoice for traveler"""
     try:
         conn = get_db()
-        
+
         # ============ FIX 3: USE RealDictCursor ============
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
+
         # Get traveler details with batch and payments
         cur.execute("""
-            SELECT 
-                t.*, 
+            SELECT
+                t.*,
                 b.batch_name, b.price as batch_price,
                 COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'Paid'), 0) as total_paid
             FROM travelers t
@@ -1196,28 +1275,28 @@ def generate_invoice(traveler_id):
             WHERE t.id = %s
             GROUP BY t.id, b.id
         """, (traveler_id,))
-        
+
         traveler = cur.fetchone()
-        
+
         if not traveler:
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
-        
+
         # Calculate GST and TCS - using dictionary keys instead of indexes
         base_amount = float(traveler['batch_price']) if traveler['batch_price'] else 0
         total_paid = float(traveler['total_paid']) if traveler['total_paid'] else 0
-        
+
         # GST calculation (5% on base amount)
         gst_rate = 5
         gst_amount = (base_amount * gst_rate) / 100
-        
+
         # TCS calculation (0.5% on GST-inclusive amount)
         tcs_rate = 0.5
         amount_with_gst = base_amount + gst_amount
         tcs_amount = (amount_with_gst * tcs_rate) / 100
-        
+
         total_invoice = amount_with_gst + tcs_amount
         balance_due = total_invoice - total_paid
-        
+
         # Create invoices table if not exists
         cur.execute("""
             CREATE TABLE IF NOT EXISTS invoices (
@@ -1237,10 +1316,10 @@ def generate_invoice(traveler_id):
                 pdf_path TEXT
             )
         """)
-        
+
         # Generate invoice number
         invoice_number = f"INV-{datetime.datetime.now().strftime('%Y%m')}-{traveler_id:04d}"
-        
+
         # Store invoice in database
         cur.execute("""
             INSERT INTO invoices (
@@ -1253,10 +1332,10 @@ def generate_invoice(traveler_id):
             tcs_rate, tcs_amount, total_invoice, total_paid, balance_due,
             session['admin_user_id']
         ))
-        
+
         invoice_id = cur.fetchone()[0]
         conn.commit()
-        
+
         # Get all payments for this traveler
         cur.execute("""
             SELECT installment, amount, payment_date, status
@@ -1264,7 +1343,7 @@ def generate_invoice(traveler_id):
             WHERE traveler_id = %s AND status IN ('Paid', 'Pending')
             ORDER BY payment_date
         """, (traveler_id,))
-        
+
         payments = []
         for row in cur.fetchall():
             payments.append({
@@ -1273,10 +1352,10 @@ def generate_invoice(traveler_id):
                 'payment_date': row[2].isoformat() if row[2] else None,
                 'status': row[3]
             })
-        
+
         cur.close()
         conn.close()
-        
+
         invoice_data = {
             'invoice_id': invoice_id,
             'invoice_number': invoice_number,
@@ -1304,7 +1383,7 @@ def generate_invoice(traveler_id):
             'payments': payments,
             'generated_at': datetime.datetime.now().isoformat()
         }
-        
+
         return jsonify({'success': True, 'invoice': invoice_data})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1317,7 +1396,7 @@ def get_invoice(invoice_id):
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
             SELECT i.*, t.first_name, t.last_name, t.passport_no, b.batch_name
             FROM invoices i
@@ -1325,11 +1404,11 @@ def get_invoice(invoice_id):
             LEFT JOIN batches b ON t.batch_id = b.id
             WHERE i.id = %s
         """, (invoice_id,))
-        
+
         row = cur.fetchone()
         cur.close()
         conn.close()
-        
+
         if row:
             invoice = {
                 'id': row[0],
@@ -1379,7 +1458,7 @@ def restore_database(db_url, backup_file):
     try:
         with open(backup_file, 'r') as f:
             content = f.read()
-        
+
         # SAFE: Use list arguments instead of shell=True
         result = subprocess.run(
             ["psql", db_url],
@@ -1403,44 +1482,44 @@ def create_manual_backup():
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_filename = f"backup_{timestamp}.zip"
         backup_path = os.path.join(BACKUP_DIR, backup_filename)
-        
+
         # Create a temporary directory for backup files
         temp_dir = f"/tmp/backup_{timestamp}"
         os.makedirs(temp_dir, exist_ok=True)
-        
+
         # 1. Backup database
         db_backup_file = os.path.join(temp_dir, "database.sql")
-        
+
         # Get database URL from environment
         db_url = os.environ.get('DATABASE_URL')
-        
+
         # SAFE backup without shell=True
         if db_url:
             success, error = backup_database(db_url, db_backup_file)
             if not success:
                 raise Exception(f"Database backup failed: {error}")
-        
+
         # 2. Backup uploads folder
         uploads_backup = os.path.join(temp_dir, "uploads")
         if os.path.exists(UPLOAD_DIR):
             shutil.copytree(UPLOAD_DIR, uploads_backup)
-        
+
         # 3. Get backup stats
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("SELECT COUNT(*) FROM travelers")
         traveler_count = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM batches")
         batch_count = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM payments")
         payment_count = cur.fetchone()[0]
-        
+
         cur.close()
         conn.close()
-        
+
         # 4. Zip everything
         with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for root, dirs, files in os.walk(temp_dir):
@@ -1448,13 +1527,13 @@ def create_manual_backup():
                     file_path = os.path.join(root, file)
                     arcname = os.path.relpath(file_path, temp_dir)
                     zipf.write(file_path, arcname)
-        
+
         # Get file size
         backup_size = os.path.getsize(backup_path)
-        
+
         # 5. Cleanup old backups (keep last 30 days)
         cleanup_old_backups(30)
-        
+
         # 6. Record backup in database
         conn = get_db()
         cur = conn.cursor()
@@ -1465,12 +1544,12 @@ def create_manual_backup():
         conn.commit()
         cur.close()
         conn.close()
-        
+
         # 7. Cleanup temp directory
         shutil.rmtree(temp_dir)
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': 'Backup created successfully',
             'filename': backup_filename,
             'size': backup_size,
@@ -1494,7 +1573,7 @@ def create_manual_backup():
             conn.close()
         except:
             pass
-        
+
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/backup/auto', methods=['POST'])
@@ -1504,14 +1583,14 @@ def auto_backup():
     auth_key = request.headers.get('X-Backup-Key')
     if auth_key != os.environ.get('BACKUP_SECRET_KEY', 'alhudha-backup-key-2026'):
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+
     return create_manual_backup()
 
 def cleanup_old_backups(days_to_keep):
     """Delete backups older than specified days"""
     try:
         cutoff = datetime.datetime.now() - datetime.timedelta(days=days_to_keep)
-        
+
         for filename in os.listdir(BACKUP_DIR):
             filepath = os.path.join(BACKUP_DIR, filename)
             if os.path.isfile(filepath):
@@ -1530,18 +1609,18 @@ def restore_backup(filename):
         # Sanitize filename to prevent path traversal
         if '..' in filename or '/' in filename or '\\' in filename:
             return jsonify({'success': False, 'error': 'Invalid filename'}), 400
-            
+
         filepath = os.path.join(BACKUP_DIR, filename)
         if not os.path.exists(filepath):
             return jsonify({'success': False, 'error': 'Backup not found'}), 404
-        
+
         # Extract to temp directory
         temp_restore = f"/tmp/restore_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
         os.makedirs(temp_restore, exist_ok=True)
-        
+
         with zipfile.ZipFile(filepath, 'r') as zipf:
             zipf.extractall(temp_restore)
-        
+
         # Restore database
         db_backup = os.path.join(temp_restore, "database.sql")
         if os.path.exists(db_backup):
@@ -1550,17 +1629,17 @@ def restore_backup(filename):
             success, error = restore_database(db_url, db_backup)
             if not success:
                 raise Exception(f"Database restore failed: {error}")
-        
+
         # Restore uploads
         uploads_restore = os.path.join(temp_restore, "uploads")
         if os.path.exists(uploads_restore):
             if os.path.exists(UPLOAD_DIR):
                 shutil.rmtree(UPLOAD_DIR)
             shutil.copytree(uploads_restore, UPLOAD_DIR)
-        
+
         # Cleanup
         shutil.rmtree(temp_restore)
-        
+
         return jsonify({'success': True, 'message': 'Backup restored successfully'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1573,13 +1652,13 @@ def get_backups():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("""
-            SELECT * FROM backups 
-            ORDER BY created_at DESC 
+            SELECT * FROM backups
+            ORDER BY created_at DESC
             LIMIT 50
         """)
-        
+
         backups = []
         for row in cur.fetchall():
             backups.append({
@@ -1593,7 +1672,7 @@ def get_backups():
                 'error_message': row[7],
                 'created_at': row[8].isoformat() if row[8] else None
             })
-        
+
         cur.close()
         conn.close()
         return jsonify({'success': True, 'backups': backups})
@@ -1609,11 +1688,11 @@ def download_backup(filename):
         # Sanitize filename to prevent path traversal
         if '..' in filename or '/' in filename or '\\' in filename:
             return jsonify({'success': False, 'error': 'Invalid filename'}), 400
-            
+
         filepath = os.path.join(BACKUP_DIR, filename)
         if not os.path.exists(filepath):
             return jsonify({'success': False, 'error': 'Backup not found'}), 404
-        
+
         return send_file(filepath, as_attachment=True, download_name=filename)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1627,36 +1706,36 @@ def morning_health_check():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         # Check database connection
         cur.execute("SELECT 1")
         db_ok = True
-        
+
         # Check last backup
         cur.execute("SELECT created_at, status FROM backups ORDER BY created_at DESC LIMIT 1")
         last_backup = cur.fetchone()
-        
+
         # Check recent errors
         cur.execute("SELECT COUNT(*) FROM backups WHERE status = 'Failed' AND created_at > NOW() - INTERVAL '1 day'")
         failed_backups = cur.fetchone()[0]
-        
+
         # Get system stats
         cur.execute("SELECT COUNT(*) FROM travelers")
         travelers = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM batches")
         batches = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM payments WHERE status = 'Pending'")
         pending_payments = cur.fetchone()[0]
-        
+
         cur.close()
         conn.close()
-        
+
         # Calculate health status
         health_status = 'GREEN'
         issues = []
-        
+
         if not db_ok:
             health_status = 'RED'
             issues.append('Database connection failed')
@@ -1669,12 +1748,12 @@ def morning_health_check():
         elif (datetime.datetime.now() - last_backup[0]).days > 1:
             health_status = 'YELLOW'
             issues.append('Backup older than 1 day')
-        
+
         if failed_backups > 0:
             if health_status != 'RED':
                 health_status = 'YELLOW'
             issues.append(f'{failed_backups} failed backups in last 24h')
-        
+
         return jsonify({
             'success': True,
             'health_check': {
@@ -1712,22 +1791,22 @@ def get_stats_summary():
     try:
         conn = get_db()
         cur = conn.cursor()
-        
+
         cur.execute("SELECT COUNT(*) FROM travelers")
         total = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM travelers WHERE passport_status = 'Active' OR passport_status IS NULL")
         active = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM batches WHERE status IN ('Open', 'Closing Soon')")
         open_batches = cur.fetchone()[0]
-        
+
         cur.execute("SELECT COUNT(*) FROM travelers WHERE DATE(created_at) = CURRENT_DATE")
         today = cur.fetchone()[0]
-        
+
         cur.close()
         conn.close()
-        
+
         return jsonify({
             'success': True,
             'stats': {
@@ -1762,7 +1841,7 @@ if __name__ == '__main__':
         print("✅ Database initialized")
     except Exception as e:
         print(f"❌ Database error: {e}")
-    
+
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
