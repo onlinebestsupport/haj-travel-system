@@ -1412,35 +1412,40 @@
             roleBadge.className = 'role-badge role-' + userRole.replace('_', '');
         }
 
-        // ============ TAB NAVIGATION - FIXED VERSION ============
-        function showTab(tabName) {
-            const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports', 'superAdmin'];
-            tabs.forEach(t => {
-                const el = document.getElementById(t + 'Tab');
-                if (el) el.style.display = t === tabName ? 'block' : 'none';
-                
-                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-                if (btn) {
-                    btn.className = t === tabName ? 'tab-btn active' : 'tab-btn';
-                }
-            });
-            
-            if (tabName === 'dashboard') loadDashboardStats();
-            if (tabName === 'batches') loadBatches();
-            if (tabName === 'travelers') loadTravelers();
-            if (tabName === 'payments') {
-                loadPayments();
-                loadPaymentStats();
-            }
-            if (tabName === 'superAdmin') {
-                console.log('🔄 Loading super admin data...');
-                loadUsers();               // Load users table
-                loadLoginLogs();            // Load login logs
-                loadSuperPaymentStats();    // Load payment stats
-                loadSuperBasicStats();      // Load traveler/batch stats
-            }
+       // ============ TAB NAVIGATION - FIXED VERSION ============
+function showTab(tabName) {
+    const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports', 'superAdmin'];
+    tabs.forEach(t => {
+        const el = document.getElementById(t + 'Tab');
+        if (el) el.style.display = t === tabName ? 'block' : 'none';
+        
+        const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) {
+            btn.className = t === tabName ? 'tab-btn active' : 'tab-btn';
         }
-
+    });
+    
+    if (tabName === 'dashboard') loadDashboardStats();
+    if (tabName === 'batches') loadBatches();
+    if (tabName === 'travelers') loadTravelers();
+    if (tabName === 'payments') {
+        loadPayments();
+        loadPaymentStats();
+    }
+    if (tabName === 'superAdmin') {
+        console.log('🔄 Loading super admin data...');
+        loadUsers();
+        loadLoginLogs();
+        loadSuperPaymentStats();  // Load payment stats
+        loadSuperBasicStats();    // Load traveler/batch stats
+        
+        // Force refresh after 2 seconds to ensure data loads
+        setTimeout(() => {
+            console.log('🔄 Refreshing super admin stats...');
+            loadSuperPaymentStats();
+        }, 2000);
+    }
+}
         // ============ DASHBOARD STATS ============
         async function loadDashboardStats() {
             try {
