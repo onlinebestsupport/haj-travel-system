@@ -158,9 +158,16 @@ def login_page():
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
+    """API endpoint for login with proper password hashing"""
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    
+    # Add debug logging
+    print("="*50)
+    print(f"🔐 Login attempt at {datetime.datetime.now()}")
+    print(f"Username: {username}")
+    print(f"Password length: {len(password) if password else 0}")
     
     try:
         conn = get_db()
@@ -178,49 +185,61 @@ def api_login():
         
         user = cur.fetchone()
         
-        if user and check_password_hash(user[3], password):
-            user_id = user[0]
-            roles = user[4] if user[4] else ['viewer']
+        if user:
+            print(f"✅ User found: {user[1]}")
+            print(f"Stored hash: {user[3]}")
+            print(f"Generated hash for comparison: {generate_password_hash(password)}")
+            print(f"Hashes match: {check_password_hash(user[3], password)}")
             
-            cur.execute("""
-                SELECT DISTINCT p.name
-                FROM permissions p
-                JOIN role_permissions rp ON p.id = rp.permission_id
-                JOIN user_roles ur ON rp.role_id = ur.role_id
-                WHERE ur.user_id = %s
-            """, (user_id,))
-            
-            permissions = [row[0] for row in cur.fetchall()]
-            
-            cur.execute("""
-                INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
-                VALUES (%s, NOW(), %s, %s)
-            """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
-            
-            cur.execute("UPDATE admin_users SET last_login = NOW() WHERE id = %s", (user_id,))
-            conn.commit()
-            
-            session['admin_logged_in'] = True
-            session['admin_user_id'] = user_id
-            session['admin_username'] = user[1]
-            session['admin_name'] = user[2] or user[1]
-            session['admin_roles'] = roles
-            session['admin_permissions'] = permissions
-            
-            return jsonify({
-                'success': True,
-                'message': 'Login successful',
-                'user': {
-                    'id': user_id,
-                    'name': user[2] or user[1],
-                    'username': user[1],
-                    'roles': roles,
-                    'permissions': permissions
-                }
-            })
+            if check_password_hash(user[3], password):
+                print("✅ Password correct!")
+                user_id = user[0]
+                roles = user[4] if user[4] else ['viewer']
+                
+                cur.execute("""
+                    SELECT DISTINCT p.name
+                    FROM permissions p
+                    JOIN role_permissions rp ON p.id = rp.permission_id
+                    JOIN user_roles ur ON rp.role_id = ur.role_id
+                    WHERE ur.user_id = %s
+                """, (user_id,))
+                
+                permissions = [row[0] for row in cur.fetchall()]
+                
+                cur.execute("""
+                    INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
+                    VALUES (%s, NOW(), %s, %s)
+                """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
+                
+                cur.execute("UPDATE admin_users SET last_login = NOW() WHERE id = %s", (user_id,))
+                conn.commit()
+                
+                session['admin_logged_in'] = True
+                session['admin_user_id'] = user_id
+                session['admin_username'] = user[1]
+                session['admin_name'] = user[2] or user[1]
+                session['admin_roles'] = roles
+                session['admin_permissions'] = permissions
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Login successful',
+                    'user': {
+                        'id': user_id,
+                        'name': user[2] or user[1],
+                        'username': user[1],
+                        'roles': roles,
+                        'permissions': permissions
+                    }
+                })
+            else:
+                print("❌ Password incorrect!")
+                return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
         else:
+            print(f"❌ User not found: {username}")
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     except Exception as e:
+        print(f"❌ Login error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/logout', methods=['POST'])
@@ -268,6 +287,7 @@ def traveler_login_page():
 def traveler_dashboard():
     return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
 
+# This catch-all route should be at the end
 @app.route('/<path:path>')
 def serve_static(path):
     if path.endswith('.css') or path.endswith('.js') or path.endswith('.png') or path.endswith('.jpg') or path.endswith('.svg'):
