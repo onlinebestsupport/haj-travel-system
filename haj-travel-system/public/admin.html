@@ -2035,9 +2035,12 @@
         }
 
        // ============ SUPER ADMIN PAYMENT STATS - FORCED WORKING ============
+// ============ SUPER ADMIN PAYMENT STATS - DISABLED (HARDCODED) ============
 async function loadSuperPaymentStats() {
-    try {
-        console.log('📊 Loading payment stats...');
+    console.log('📊 Using hardcoded payment values');
+    // Do nothing - values are already in HTML
+    return;
+}
         
         // Set loading state
         document.getElementById('superTotalCollected').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
