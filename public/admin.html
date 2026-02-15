@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Your existing styles remain exactly the same */
         * {
             margin: 0;
             padding: 0;
@@ -500,7 +499,6 @@
                 </button>
             </div>
 
-            <!-- Create Batch Form - WITH FIXED LABELS -->
             <div class="form-container" id="createBatchForm">
                 <h3><i class="fas fa-plus-circle"></i> Create New Haj/Umrah Package</h3>
                 <form id="batchCreateForm">
@@ -546,7 +544,6 @@
                 </form>
             </div>
 
-            <!-- Batches List - FIXED with autocomplete -->
             <div class="search-box">
                 <label for="searchBatches" class="sr-only">Search Batches</label>
                 <input type="text" id="searchBatches" name="searchBatches" autocomplete="off" placeholder="Search batches...">
@@ -584,7 +581,7 @@
                 </button>
             </div>
 
-            <!-- ADD TRAVELER FORM - 33 FIELDS WITH FIXED LABELS -->
+            <!-- ADD TRAVELER FORM - 33 FIELDS -->
             <div class="form-container" id="addTravelerForm">
                 <h3><i class="fas fa-user-plus"></i> Add New Traveler - 33 Fields</h3>
                 <form id="travelerAddForm">
@@ -786,7 +783,7 @@
                 </form>
             </div>
 
-            <!-- EDIT TRAVELER FORM - 33 FIELDS WITH FIXED LABELS -->
+            <!-- EDIT TRAVELER FORM - 33 FIELDS WITH FIXED JSON HANDLING -->
             <div class="form-container" id="editTravelerForm" style="display: none;">
                 <h3><i class="fas fa-user-edit"></i> Edit Traveler - 33 Fields</h3>
                 <form id="adminTravelerForm">
@@ -988,7 +985,7 @@
                 </form>
             </div>
 
-            <!-- Travelers List - FIXED with autocomplete -->
+            <!-- Travelers List -->
             <div class="search-box">
                 <label for="searchTravelers" class="sr-only">Search Travelers</label>
                 <input type="text" id="searchTravelers" name="searchTravelers" autocomplete="off" placeholder="Search travelers...">
@@ -1049,7 +1046,6 @@
                 </div>
             </div>
 
-            <!-- Payment Form - WITH FIXED LABELS -->
             <div class="form-container" id="addPaymentForm" style="display: none;">
                 <h3><i class="fas fa-credit-card"></i> Record Payment</h3>
                 
@@ -1150,7 +1146,6 @@
                 </button>
             </div>
 
-            <!-- User Form - WITH FIXED LABELS -->
             <div class="form-container" id="addUserForm">
                 <h3><i class="fas fa-user-plus"></i> Create New Staff User</h3>
                 <form id="userCreateForm">
@@ -1227,7 +1222,7 @@
         </div>
     </div>
 
-    <!-- SUPER ADMIN TAB - WITH HARDCODED PAYMENT STATS -->
+    <!-- SUPER ADMIN TAB -->
     <div id="superAdminTab" class="tab-content" style="display: none;">
         <h2><i class="fas fa-user-shield"></i> Super Admin Dashboard</h2>
         
@@ -1319,7 +1314,7 @@
         </div>
     </div>
 
-    <!-- Role Selection Modal -->
+    <!-- Modals -->
     <div id="roleModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; max-width: 500px; width: 90%;">
         <h3 style="margin-bottom: 20px;">Assign Roles</h3>
         <div id="roleCheckboxes" style="margin-bottom: 20px;"></div>
@@ -1329,7 +1324,6 @@
         </div>
     </div>
 
-    <!-- Traveler Detail Modal -->
     <div id="travelerModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
         <h3 style="margin-bottom: 20px; color: #2c3e50;"><i class="fas fa-user"></i> Traveler Full Details</h3>
         <div id="travelerDetails" style="margin-bottom: 20px;"></div>
@@ -1339,7 +1333,6 @@
         </div>
     </div>
 
-    <!-- Invoice Modal -->
     <div id="invoiceModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; max-width: 600px; width: 90%;">
         <h3 style="margin-bottom: 20px; color: #2c3e50;"><i class="fas fa-file-invoice"></i> Generate Invoice</h3>
         <div class="form-group">
@@ -1355,7 +1348,6 @@
         </div>
     </div>
 
-    <!-- Backup Panel -->
     <div id="backupPanel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
         <h3 style="margin-bottom: 20px; color: #2c3e50;"><i class="fas fa-database"></i> Backup Management</h3>
         <div style="margin-bottom: 20px;">
@@ -1382,15 +1374,14 @@
         </div>
     </div>
 
-    <!-- Overlay -->
     <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999;" onclick="closeAllModals()"></div>
 
     <script>
-        // Your existing JavaScript remains exactly the same
         const API_URL = window.location.origin;
         let currentEditId = null;
         let currentEditUserId = null;
 
+        // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadDashboardStats();
@@ -1450,10 +1441,9 @@
             }
         }
 
+        // ============ DASHBOARD STATS ============
         async function loadDashboardStats() {
             try {
-                console.log('📊 Loading dashboard stats...');
-                
                 const travelerResponse = await fetch('/api/travelers/stats/summary');
                 const travelerData = await travelerResponse.json();
                 
@@ -1486,27 +1476,13 @@
                     if (document.getElementById('pendingCount')) {
                         document.getElementById('pendingCount').innerHTML = pendingCount;
                     }
-                    
-                    if (document.getElementById('superTotalCollected')) {
-                        document.getElementById('superTotalCollected').innerHTML = `₹${totalCollected.toLocaleString('en-IN')}`;
-                    }
-                    if (document.getElementById('superPendingAmount')) {
-                        document.getElementById('superPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString('en-IN')}`;
-                    }
-                    if (document.getElementById('superPaidCount')) {
-                        document.getElementById('superPaidCount').innerHTML = paidCount;
-                    }
-                    if (document.getElementById('superPendingCount')) {
-                        document.getElementById('superPendingCount').innerHTML = pendingCount;
-                    }
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
-                document.getElementById('totalCollected').innerHTML = '₹36,00,000';
-                document.getElementById('pendingAmount').innerHTML = '₹9,75,000';
             }
         }
 
+        // ============ BATCH FUNCTIONS ============
         function showCreateBatchForm() {
             document.getElementById('createBatchForm').style.display = 'block';
         }
@@ -1577,14 +1553,14 @@
                 const addSelect = document.getElementById('add_batch_id');
                 const editSelect = document.getElementById('edit_batch_id');
                 
-                if (addSelect && data.success) {
+                if (addSelect && data.success && data.batches) {
                     addSelect.innerHTML = '<option value="">Select Batch</option>';
                     data.batches.forEach(b => {
                         addSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date || 'TBD'})</option>`;
                     });
                 }
                 
-                if (editSelect && data.success) {
+                if (editSelect && data.success && data.batches) {
                     editSelect.innerHTML = '<option value="">Select Batch</option>';
                     data.batches.forEach(b => {
                         editSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date || 'TBD'})</option>`;
@@ -1595,6 +1571,7 @@
             }
         }
 
+        // ============ ADD TRAVELER FUNCTIONS ============
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
         }
@@ -1675,78 +1652,97 @@
             }
         });
 
-       // ============ EDIT TRAVELER FUNCTION - COMPLETE 33 FIELDS ============
-async function adminEditTraveler(id) {
-    currentEditId = id;
-    try {
-        const response = await fetch(`/api/travelers/${id}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const t = data.traveler;
-            
-            // Personal Information (10 fields)
-            document.getElementById('edit_first_name').value = t.first_name || '';
-            document.getElementById('edit_last_name').value = t.last_name || '';
-            document.getElementById('edit_passport_name').value = t.passport_name || `${t.first_name || ''} ${t.last_name || ''}`.trim();
-            document.getElementById('edit_batch_id').value = t.batch_id || '';
-            document.getElementById('edit_passport_no').value = t.passport_no || '';
-            document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
-            document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
-            document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
-            document.getElementById('edit_gender').value = t.gender || '';
-            document.getElementById('edit_dob').value = t.dob || '';
-            
-            // Contact Information (7 fields)
-            document.getElementById('edit_mobile').value = t.mobile || '';
-            document.getElementById('edit_email').value = t.email || '';
-            document.getElementById('edit_aadhaar').value = t.aadhaar || '';
-            document.getElementById('edit_pan').value = t.pan || '';
-            document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
-            document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
-            document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
-            
-            // Address & Family (6 fields)
-            document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
-            document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
-            document.getElementById('edit_passport_address').value = t.passport_address || '';
-            document.getElementById('edit_father_name').value = t.father_name || '';
-            document.getElementById('edit_mother_name').value = t.mother_name || '';
-            document.getElementById('edit_spouse_name').value = t.spouse_name || '';
-            
-            // Documents - update text (4 fields)
-            document.getElementById('edit_passport_scan_text').innerHTML = t.passport_scan || 'Click to upload';
-            document.getElementById('edit_aadhaar_scan_text').innerHTML = t.aadhaar_scan || 'Click to upload';
-            document.getElementById('edit_pan_scan_text').innerHTML = t.pan_scan || 'Click to upload';
-            document.getElementById('edit_vaccine_scan_text').innerHTML = t.vaccine_scan || 'Click to upload';
-            
-            // Extra Fields (2 fields)
+        // ============ EDIT TRAVELER FUNCTION - COMPLETE 33 FIELDS ============
+        async function adminEditTraveler(id) {
+            currentEditId = id;
             try {
-                const extraFields = typeof t.extra_fields === 'string' ? JSON.parse(t.extra_fields) : t.extra_fields;
-                document.getElementById('edit_extra_fields').value = extraFields ? JSON.stringify(extraFields, null, 2) : '{}';
-            } catch (e) {
-                document.getElementById('edit_extra_fields').value = '{}';
+                const response = await fetch(`/api/travelers/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const t = data.traveler;
+                    
+                    // Personal Information (10 fields)
+                    document.getElementById('edit_first_name').value = t.first_name || '';
+                    document.getElementById('edit_last_name').value = t.last_name || '';
+                    document.getElementById('edit_passport_name').value = t.passport_name || `${t.first_name || ''} ${t.last_name || ''}`.trim();
+                    document.getElementById('edit_batch_id').value = t.batch_id || '';
+                    document.getElementById('edit_passport_no').value = t.passport_no || '';
+                    document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
+                    document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
+                    document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
+                    document.getElementById('edit_gender').value = t.gender || '';
+                    document.getElementById('edit_dob').value = t.dob || '';
+                    
+                    // Contact Information (7 fields)
+                    document.getElementById('edit_mobile').value = t.mobile || '';
+                    document.getElementById('edit_email').value = t.email || '';
+                    document.getElementById('edit_aadhaar').value = t.aadhaar || '';
+                    document.getElementById('edit_pan').value = t.pan || '';
+                    document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
+                    document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
+                    document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
+                    
+                    // Address & Family (6 fields)
+                    document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
+                    document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
+                    document.getElementById('edit_passport_address').value = t.passport_address || '';
+                    document.getElementById('edit_father_name').value = t.father_name || '';
+                    document.getElementById('edit_mother_name').value = t.mother_name || '';
+                    document.getElementById('edit_spouse_name').value = t.spouse_name || '';
+                    
+                    // Documents - update text (4 fields)
+                    document.getElementById('edit_passport_scan_text').innerHTML = t.passport_scan || 'Click to upload';
+                    document.getElementById('edit_aadhaar_scan_text').innerHTML = t.aadhaar_scan || 'Click to upload';
+                    document.getElementById('edit_pan_scan_text').innerHTML = t.pan_scan || 'Click to upload';
+                    document.getElementById('edit_vaccine_scan_text').innerHTML = t.vaccine_scan || 'Click to upload';
+                    
+                    // Extra Fields (2 fields)
+                    try {
+                        const extraFields = typeof t.extra_fields === 'string' ? JSON.parse(t.extra_fields) : t.extra_fields;
+                        document.getElementById('edit_extra_fields').value = extraFields ? JSON.stringify(extraFields, null, 2) : '{}';
+                    } catch (e) {
+                        document.getElementById('edit_extra_fields').value = '{}';
+                    }
+                    
+                    document.getElementById('edit_pin').value = t.pin || '0000';
+                    
+                    // Show the edit form
+                    document.getElementById('editTravelerForm').style.display = 'block';
+                    
+                    console.log('✅ Edit form populated for traveler ID:', id);
+                } else {
+                    alert('Error loading traveler: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading traveler: ' + error.message);
             }
-            
-            document.getElementById('edit_pin').value = t.pin || '0000';
-            
-            // Show the edit form
-            document.getElementById('editTravelerForm').style.display = 'block';
-            
-            console.log('✅ Edit form populated for traveler ID:', id);
-        } else {
-            alert('Error loading traveler: ' + data.error);
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error loading traveler: ' + error.message);
-    }
-}
 
+        // ============ FIXED EDIT TRAVELER FORM SUBMIT ============
         document.getElementById('adminTravelerForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (!currentEditId) return;
+            
+            // Get the extra fields value and ensure it's valid JSON
+            let extraFieldsValue = document.getElementById('edit_extra_fields').value.trim();
+            
+            // If it's empty, set to empty object
+            if (!extraFieldsValue) {
+                extraFieldsValue = '{}';
+            }
+            
+            // Try to parse and re-stringify to ensure valid JSON
+            try {
+                // Parse it to validate, then stringify without extra spaces
+                const parsedExtra = JSON.parse(extraFieldsValue);
+                extraFieldsValue = JSON.stringify(parsedExtra);
+            } catch (e) {
+                console.warn('Invalid JSON, using empty object', e);
+                extraFieldsValue = '{}';
+            }
             
             const traveler = {
                 first_name: document.getElementById('edit_first_name').value,
@@ -1771,16 +1767,26 @@ async function adminEditTraveler(id) {
                 father_name: document.getElementById('edit_father_name').value,
                 mother_name: document.getElementById('edit_mother_name').value,
                 spouse_name: document.getElementById('edit_spouse_name').value,
-                extra_fields: document.getElementById('edit_extra_fields').value || '{}',
+                extra_fields: extraFieldsValue,
                 pin: document.getElementById('edit_pin').value || '0000'
             };
             
             try {
+                console.log('Sending update for traveler:', currentEditId);
+                
                 const response = await fetch(`/api/travelers/${currentEditId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(traveler)
                 });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Server response:', text);
+                    throw new Error(`Server error: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 
@@ -1793,6 +1799,7 @@ async function adminEditTraveler(id) {
                     alert('❌ Error: ' + data.error);
                 }
             } catch (error) {
+                console.error('❌ Connection error:', error);
                 alert('❌ Connection error: ' + error.message);
             }
         });
@@ -1843,6 +1850,97 @@ async function adminEditTraveler(id) {
             }
         }
 
+        // ============ TRAVELER DETAIL VIEW - COMPLETE 33 FIELDS ============
+        function viewTravelerDetails(id) {
+            fetch(`/api/travelers/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const t = data.traveler;
+                        let html = `
+                            <div style="max-height: 70vh; overflow-y: auto; padding: 10px;">
+                                <h4 style="color: #3498db; margin: 15px 0 10px;">📋 Personal Information</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa; width: 200px;"><strong>Full Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.first_name} ${t.last_name}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_name || 'N/A'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Batch:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.batch_name || 'Not Assigned'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_no}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Issue Date:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_issue_date || 'N/A'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Expiry Date:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_expiry_date || 'N/A'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd;"><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Gender:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.gender || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Date of Birth:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.dob || 'Not specified'}</td></tr>
+                                </table>
+                                
+                                <h4 style="color: #3498db; margin: 15px 0 10px;">📞 Contact Information</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Mobile Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.mobile}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Email:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.email || 'Not provided'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Aadhaar Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.aadhaar || 'Not provided'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>PAN Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.pan || 'Not provided'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Aadhaar-PAN Linked:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.aadhaar_pan_linked || 'No'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Vaccine Status:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.vaccine_status || 'Not Vaccinated'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Wheelchair Required:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.wheelchair || 'No'}</td></tr>
+                                </table>
+                                
+                                <h4 style="color: #3498db; margin: 15px 0 10px;">🏠 Address & Family</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Place of Birth:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.place_of_birth || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Place of Issue:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.place_of_issue || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Address:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_address || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Father's Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.father_name || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Mother's Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.mother_name || 'Not specified'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Spouse's Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.spouse_name || 'Not specified'}</td></tr>
+                                </table>
+                                
+                                <h4 style="color: #3498db; margin: 15px 0 10px;">📎 Documents</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Scan:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_scan ? `<a href="/uploads/${t.passport_scan}" target="_blank">View Document</a>` : 'Not uploaded'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Aadhaar Scan:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.aadhaar_scan ? `<a href="/uploads/${t.aadhaar_scan}" target="_blank">View Document</a>` : 'Not uploaded'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>PAN Scan:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.pan_scan ? `<a href="/uploads/${t.pan_scan}" target="_blank">View Document</a>` : 'Not uploaded'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Vaccine Certificate:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.vaccine_scan ? `<a href="/uploads/${t.vaccine_scan}" target="_blank">View Document</a>` : 'Not uploaded'}</td></tr>
+                                </table>
+                                
+                                <h4 style="color: #3498db; margin: 15px 0 10px;">🔐 Additional Information</h4>
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>PIN:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${t.pin || '0000'}</td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Extra Fields:</strong></td><td style="padding: 8px; border: 1px solid #ddd;"><pre style="background: #f0f0f0; padding: 5px; border-radius: 3px;">${JSON.stringify(t.extra_fields, null, 2) || '{}'}</pre></td></tr>
+                                    <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Created At:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${new Date(t.created_at).toLocaleString() || 'N/A'}</td></tr>
+                                </table>
+                            </div>
+                        `;
+                        document.getElementById('travelerDetails').innerHTML = html;
+                        document.getElementById('travelerModal').style.display = 'block';
+                        document.getElementById('modalOverlay').style.display = 'block';
+                    }
+                });
+        }
+
+        function closeTravelerModal() {
+            document.getElementById('travelerModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function printTravelerDetails() {
+            const content = document.getElementById('travelerDetails').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head><title>Traveler Details</title>
+                <style>
+                    table { width: 100%; border-collapse: collapse; }
+                    th { background: #3498db; color: white; padding: 10px; }
+                    td { padding: 8px; border: 1px solid #ddd; }
+                </style>
+                </head>
+                <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // ============ PAYMENT FUNCTIONS ============
         function showAddPaymentForm() {
             showTab('payments');
             document.getElementById('addPaymentForm').style.display = 'block';
@@ -1972,13 +2070,10 @@ async function adminEditTraveler(id) {
                 }
             } catch (error) {
                 console.error('Error loading payment stats:', error);
-                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
-                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
-                document.getElementById('paidCount').innerHTML = '22';
-                document.getElementById('pendingCount').innerHTML = '9';
             }
         }
 
+        // ============ USER FUNCTIONS ============
         function showAddUserForm() {
             document.getElementById('addUserForm').style.display = 'block';
         }
@@ -1988,6 +2083,7 @@ async function adminEditTraveler(id) {
             document.getElementById('userCreateForm').reset();
         }
 
+        // ============ UTILITY FUNCTIONS ============
         function searchBatches() {
             const search = document.getElementById('searchBatches').value.toLowerCase();
             const rows = document.querySelectorAll('#batchesTable tr');
@@ -2023,6 +2119,7 @@ async function adminEditTraveler(id) {
             window.location.href = '/login';
         }
 
+        // Document upload handlers
         document.getElementById('add_passport_scan')?.addEventListener('change', function(e) {
             document.getElementById('add_passport_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
@@ -2049,6 +2146,7 @@ async function adminEditTraveler(id) {
             document.getElementById('edit_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
 
+        // ============ SUPER ADMIN FUNCTIONS ============
         async function loadUsers() {
             try {
                 const response = await fetch('/api/admin/users');
@@ -2236,69 +2334,7 @@ async function adminEditTraveler(id) {
             }
         }
 
-        function viewTravelerDetails(id) {
-            fetch(`/api/travelers/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const t = data.traveler;
-                        let html = `
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr><th colspan="2" style="background: #3498db; color: white; padding: 10px;">Personal Information</th></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Name</td><td style="padding: 8px; border: 1px solid #ddd;">${t.first_name} ${t.last_name}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Passport Name</td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_name}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Passport No</td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_no}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Gender</td><td style="padding: 8px; border: 1px solid #ddd;">${t.gender || 'Not specified'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Date of Birth</td><td style="padding: 8px; border: 1px solid #ddd;">${t.dob || 'Not specified'}</td></tr>
-                                
-                                <tr><th colspan="2" style="background: #3498db; color: white; padding: 10px;">Contact Information</th></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Mobile</td><td style="padding: 8px; border: 1px solid #ddd;">${t.mobile}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Email</td><td style="padding: 8px; border: 1px solid #ddd;">${t.email || 'Not provided'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Aadhaar</td><td style="padding: 8px; border: 1px solid #ddd;">${t.aadhaar || 'Not provided'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">PAN</td><td style="padding: 8px; border: 1px solid #ddd;">${t.pan || 'Not provided'}</td></tr>
-                                
-                                <tr><th colspan="2" style="background: #3498db; color: white; padding: 10px;">Batch Information</th></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Batch</td><td style="padding: 8px; border: 1px solid #ddd;">${t.batch_name || 'Not assigned'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">PIN</td><td style="padding: 8px; border: 1px solid #ddd;">${t.pin}</td></tr>
-                                
-                                <tr><th colspan="2" style="background: #3498db; color: white; padding: 10px;">Address & Family</th></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Place of Birth</td><td style="padding: 8px; border: 1px solid #ddd;">${t.place_of_birth || 'Not specified'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Address</td><td style="padding: 8px; border: 1px solid #ddd;">${t.passport_address || 'Not specified'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Father's Name</td><td style="padding: 8px; border: 1px solid #ddd;">${t.father_name || 'Not specified'}</td></tr>
-                                <tr><td style="padding: 8px; border: 1px solid #ddd;">Mother's Name</td><td style="padding: 8px; border: 1px solid #ddd;">${t.mother_name || 'Not specified'}</td></tr>
-                            </table>
-                        `;
-                        document.getElementById('travelerDetails').innerHTML = html;
-                        document.getElementById('travelerModal').style.display = 'block';
-                        document.getElementById('modalOverlay').style.display = 'block';
-                    }
-                });
-        }
-
-        function closeTravelerModal() {
-            document.getElementById('travelerModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        function printTravelerDetails() {
-            const content = document.getElementById('travelerDetails').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>Traveler Details</title>
-                <style>
-                    table { width: 100%; border-collapse: collapse; }
-                    th { background: #3498db; color: white; padding: 10px; }
-                    td { padding: 8px; border: 1px solid #ddd; }
-                </style>
-                </head>
-                <body>${content}</body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
+        // ============ INVOICE FUNCTIONS ============
         function showInvoiceModal() {
             fetch('/api/travelers')
                 .then(res => res.json())
@@ -2351,6 +2387,7 @@ async function adminEditTraveler(id) {
             }
         }
 
+        // ============ BACKUP FUNCTIONS ============
         function showBackupPanel() {
             loadBackups();
             document.getElementById('backupPanel').style.display = 'block';
