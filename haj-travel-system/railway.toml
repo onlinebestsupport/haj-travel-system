@@ -1,0 +1,33 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "gunicorn app.server:app"
+
+[[deploy.include]]
+path = "public"
+destination = "/app/public"
+
+[[deploy.include]]
+path = "app"
+destination = "/app/app"
+
+[[deploy.include]]
+path = "sql"
+destination = "/app/sql"
+
+[[deploy.include]]
+path = "start.sh"
+destination = "/app/start.sh"
+
+[[deploy.include]]
+path = "Procfile"
+destination = "/app/Procfile"
+
+[[deploy.include]]
+path = "requirements.txt"
+destination = "/app/requirements.txt"
+
+[[deploy.include]]
+path = "runtime.txt"
+destination = "/app/runtime.txt"
