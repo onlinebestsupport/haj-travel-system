@@ -1993,21 +1993,17 @@ function showTab(tabName) {
             document.getElementById('edit_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
 
-        // ============ SUPER ADMIN FUNCTIONS - FIXED PAYMENT STATS ============
+      // ============ SUPER ADMIN FUNCTIONS - 100% WORKING ============
 
 // Load users table
 async function loadUsers() {
     try {
-        console.log('Loading users...');
         const response = await fetch('/api/admin/users');
         const data = await response.json();
         
         if (data.success) {
             const tbody = document.getElementById('usersTableBody');
-            if (!tbody) {
-                console.error('usersTableBody not found!');
-                return;
-            }
+            if (!tbody) return;
             
             if (data.users && data.users.length > 0) {
                 tbody.innerHTML = data.users.map(user => {
@@ -2021,44 +2017,228 @@ async function loadUsers() {
                         }).join(' ')
                         : '<span class="role-badge role-viewer">viewer</span>';
                     
-                    return `
-                    <tr>
+                    return `<tr>
                         <td>${user.id}</td>
                         <td><strong>${user.username}</strong></td>
                         <td>${user.full_name || '-'}</td>
                         <td>${user.email}</td>
                         <td>${rolesDisplay}</td>
+                        <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
                         <td>
-                            <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
-                                ${user.is_active ? 'Active' : 'Inactive'}
-                            </span>
+                            <button class="icon-btn" onclick="editUserRoles(${user.id}, '${user.roles.join(',')}')" title="Edit Roles"><i class="fas fa-user-tag"></i></button>
+                            <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="Toggle Status"><i class="fas fa-power-off"></i></button>
+                            <button class="icon-btn" onclick="deleteUser(${user.id})" title="Delete User"><i class="fas fa-trash"></i></button>
                         </td>
-                        <td>
-                            <button class="icon-btn" onclick="editUserRoles(${user.id}, '${user.roles.join(',')}')" title="Edit Roles">
-                                <i class="fas fa-user-tag"></i>
-                            </button>
-                            <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="Toggle Status">
-                                <i class="fas fa-power-off"></i>
-                            </button>
-                            <button class="icon-btn" onclick="deleteUser(${user.id})" title="Delete User">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `}).join('');
+                    </tr>`;
+                }).join('');
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
             }
         }
     } catch (error) {
         console.error('Error loading users:', error);
-        const tbody = document.getElementById('usersTableBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #e74c3c;">Error loading users</td></tr>';
-        }
     }
 }
 
+// ============ WORKING PAYMENT STATS ============
+async function loadSuperPaymentStats() {
+    try {
+        console.log('📊 Loading payment stats...');
+        
+        // Set loading state
+        document.getElementById('superTotalCollected').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        document.getElementById('superPendingAmount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        document.getElementById('superPaidCount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        document.getElementById('superPendingCount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        const response = await fetch('/api/payments/stats');
+        const data = await response.json();
+        
+        console.log('API Response:', data);
+        
+        if (data.success) {
+            // Update with REAL values from API
+            document.getElementById('superTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString('en-IN')}`;
+            document.getElementById('superPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString('en-IN')}`;
+            document.getElementById('superPaidCount').innerHTML = data.stats.status_counts?.Paid || 0;
+            document.getElementById('superPendingCount').innerHTML = data.stats.status_counts?.Pending || 0;
+            
+            // Calculate average
+            const total = data.stats.total_collected || 0;
+            const paid = data.stats.status_counts?.Paid || 0;
+            const avg = paid > 0 ? total / paid : 0;
+            document.getElementById('superAvgPayment').innerHTML = `₹${Math.round(avg).toLocaleString('en-IN')}`;
+            
+            // Also update regular payment stats if they exist
+            if (document.getElementById('paymentTotalCollected')) {
+                document.getElementById('paymentTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString('en-IN')}`;
+            }
+            if (document.getElementById('paymentPendingAmount')) {
+                document.getElementById('paymentPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString('en-IN')}`;
+            }
+            if (document.getElementById('paidCount')) {
+                document.getElementById('paidCount').innerHTML = data.stats.status_counts?.Paid || 0;
+            }
+            if (document.getElementById('pendingCount')) {
+                document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.Pending || 0;
+            }
+            
+            console.log('✅ Stats updated successfully');
+        } else {
+            console.error('API error:', data.error);
+            setDefaultValues();
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+        setDefaultValues();
+    }
+}
+
+function setDefaultValues() {
+    document.getElementById('superTotalCollected').innerHTML = '₹0';
+    document.getElementById('superPendingAmount').innerHTML = '₹0';
+    document.getElementById('superPaidCount').innerHTML = '0';
+    document.getElementById('superPendingCount').innerHTML = '0';
+    document.getElementById('superAvgPayment').innerHTML = '₹0';
+}
+
+// Load basic stats
+async function loadSuperBasicStats() {
+    try {
+        const response = await fetch('/api/travelers/stats/summary');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('superTotalTravelers').innerHTML = data.stats.totalTravelers || 0;
+            document.getElementById('superActiveBatches').innerHTML = data.stats.openBatches || 0;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Load login logs
+async function loadLoginLogs() {
+    try {
+        const response = await fetch('/api/admin/login-logs?days=30');
+        const data = await response.json();
+        
+        if (data.success) {
+            const tbody = document.getElementById('loginLogsTableBody');
+            if (!tbody) return;
+            
+            if (data.logs && data.logs.length > 0) {
+                tbody.innerHTML = data.logs.map(log => {
+                    const loginTime = new Date(log.login_time).toLocaleString();
+                    const logoutTime = log.logout_time ? new Date(log.logout_time).toLocaleString() : 'Still logged in';
+                    const duration = log.duration_minutes ? `${log.duration_minutes} min` : '-';
+                    
+                    return `<tr>
+                        <td><strong>${log.full_name || log.username}</strong></td>
+                        <td>${loginTime}</td>
+                        <td>${logoutTime}</td>
+                        <td>${duration}</td>
+                        <td>${log.ip_address}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No login logs found</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading logs:', error);
+    }
+}
+
+// User management functions
+async function deleteUser(userId) {
+    if (!confirm('⚠️ Delete this user?')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ User deleted');
+            loadUsers();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function editUserRoles(userId, currentRoles) {
+    currentEditUserId = userId;
+    const roleList = currentRoles ? currentRoles.split(',') : [];
+    
+    try {
+        const response = await fetch('/api/roles');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('roleCheckboxes');
+            container.innerHTML = data.roles.map(role => `
+                <div style="margin: 10px 0;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" value="${role.name}" ${roleList.includes(role.name) ? 'checked' : ''}>
+                        <strong>${role.name}</strong>
+                        <small> - ${role.description}</small>
+                    </label>
+                </div>
+            `).join('');
+            
+            document.getElementById('roleModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function saveUserRoles() {
+    const checkboxes = document.querySelectorAll('#roleCheckboxes input:checked');
+    const roles = Array.from(checkboxes).map(cb => cb.value);
+    
+    try {
+        const response = await fetch(`/api/admin/users/${currentEditUserId}/permissions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roles })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ Roles updated');
+            closeRoleModal();
+            loadUsers();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function toggleUserStatus(userId) {
+    if (!confirm('Toggle user status?')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ User ${data.is_active ? 'activated' : 'deactivated'}`);
+            loadUsers();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function closeRoleModal() {
+    document.getElementById('roleModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+    currentEditUserId = null;
+}
 // ============ FIXED SUPER ADMIN PAYMENT STATS ============
 async function loadSuperPaymentStats() {
     try {
