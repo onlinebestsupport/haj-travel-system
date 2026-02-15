@@ -1988,252 +1988,281 @@
             document.getElementById('edit_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
 
-        // ============ SUPER ADMIN FUNCTIONS ============
-        async function loadUsers() {
-            try {
-                console.log('Loading users...');
-                const response = await fetch('/api/admin/users');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const tbody = document.getElementById('usersTableBody');
-                    if (!tbody) {
-                        console.error('usersTableBody not found!');
-                        return;
-                    }
-                    
-                    if (data.users && data.users.length > 0) {
-                        tbody.innerHTML = data.users.map(user => {
-                            // Format roles display with proper badges
-                            const rolesDisplay = user.roles && user.roles.length > 0 
-                                ? user.roles.map(role => {
-                                    const roleClass = role === 'super_admin' ? 'role-super_admin' :
-                                                    role === 'admin' ? 'role-admin' :
-                                                    role === 'manager' ? 'role-manager' :
-                                                    role === 'staff' ? 'role-staff' : 'role-viewer';
-                                    return `<span class="role-badge ${roleClass}">${role}</span>`;
-                                }).join(' ')
-                                : '<span class="role-badge role-viewer">viewer</span>';
-                            
-                            return `
-                            <tr>
-                                <td>${user.id}</td>
-                                <td><strong>${user.username}</strong></td>
-                                <td>${user.full_name || '-'}</td>
-                                <td>${user.email}</td>
-                                <td>${rolesDisplay}</td>
-                                <td>
-                                    <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
-                                        ${user.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="icon-btn" onclick="editUserRoles(${user.id}, '${user.roles.join(',')}')" title="Edit Roles">
-                                        <i class="fas fa-user-tag"></i>
-                                    </button>
-                                    <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="Toggle Status">
-                                        <i class="fas fa-power-off"></i>
-                                    </button>
-                                    <button class="icon-btn" onclick="deleteUser(${user.id})" title="Delete User">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `}).join('');
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading users:', error);
-                const tbody = document.getElementById('usersTableBody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #e74c3c;">Error loading users</td></tr>';
-                }
-            }
-        }
+        // ============ SUPER ADMIN FUNCTIONS - FIXED PAYMENT STATS ============
 
-        // ============ LOAD SUPER ADMIN PAYMENT STATS ============
-        async function loadSuperPaymentStats() {
-            try {
-                const response = await fetch('/api/payments/stats');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('superTotalCollected').textContent = `₹${data.stats.total_collected.toLocaleString()}`;
-                    document.getElementById('superPendingAmount').textContent = `₹${data.stats.pending_amount.toLocaleString()}`;
-                    document.getElementById('superPaidCount').textContent = data.stats.status_counts?.Paid || 0;
-                    document.getElementById('superPendingCount').textContent = data.stats.status_counts?.Pending || 0;
-                    
-                    // Calculate average payment
-                    const totalPayments = (data.stats.status_counts?.Paid || 0) + (data.stats.status_counts?.Pending || 0);
-                    const avgPayment = totalPayments > 0 ? data.stats.total_collected / totalPayments : 0;
-                    document.getElementById('superAvgPayment').textContent = `₹${Math.round(avgPayment).toLocaleString()}`;
-                }
-            } catch (error) {
-                console.error('Error loading super payment stats:', error);
+// Load users table
+async function loadUsers() {
+    try {
+        console.log('Loading users...');
+        const response = await fetch('/api/admin/users');
+        const data = await response.json();
+        
+        if (data.success) {
+            const tbody = document.getElementById('usersTableBody');
+            if (!tbody) {
+                console.error('usersTableBody not found!');
+                return;
             }
-        }
-
-        // ============ LOAD SUPER ADMIN BASIC STATS ============
-        async function loadSuperBasicStats() {
-            try {
-                const response = await fetch('/api/travelers/stats/summary');
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('superTotalTravelers').textContent = data.stats.totalTravelers;
-                    document.getElementById('superActiveBatches').textContent = data.stats.openBatches;
-                }
-            } catch (error) {
-                console.error('Error loading super basic stats:', error);
-            }
-        }
-
-        // ============ DELETE USER FUNCTION ============
-        async function deleteUser(userId) {
-            if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
             
-            try {
-                const response = await fetch(`/api/admin/users/${userId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ User deleted successfully');
-                    loadUsers(); // Refresh the list
-                } else {
-                    alert('❌ Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
-
-        // ============ EDIT USER ROLES ============
-        async function editUserRoles(userId, currentRoles) {
-            currentEditUserId = userId;
-            const roleList = currentRoles ? currentRoles.split(',') : [];
-            
-            try {
-                const response = await fetch('/api/roles');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const container = document.getElementById('roleCheckboxes');
-                    container.innerHTML = data.roles.map(role => `
-                        <div style="margin: 10px 0;">
-                            <label style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" value="${role.name}" ${roleList.includes(role.name) ? 'checked' : ''}>
-                                <strong>${role.name}</strong>
-                                <small style="color: #7f8c8d;">- ${role.description}</small>
-                            </label>
-                        </div>
-                    `).join('');
+            if (data.users && data.users.length > 0) {
+                tbody.innerHTML = data.users.map(user => {
+                    const rolesDisplay = user.roles && user.roles.length > 0 
+                        ? user.roles.map(role => {
+                            const roleClass = role === 'super_admin' ? 'role-super_admin' :
+                                            role === 'admin' ? 'role-admin' :
+                                            role === 'manager' ? 'role-manager' :
+                                            role === 'staff' ? 'role-staff' : 'role-viewer';
+                            return `<span class="role-badge ${roleClass}">${role}</span>`;
+                        }).join(' ')
+                        : '<span class="role-badge role-viewer">viewer</span>';
                     
-                    document.getElementById('roleModal').style.display = 'block';
-                    document.getElementById('modalOverlay').style.display = 'block';
-                }
-            } catch (error) {
-                alert('Error loading roles: ' + error.message);
+                    return `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.full_name || '-'}</td>
+                        <td>${user.email}</td>
+                        <td>${rolesDisplay}</td>
+                        <td>
+                            <span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">
+                                ${user.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="icon-btn" onclick="editUserRoles(${user.id}, '${user.roles.join(',')}')" title="Edit Roles">
+                                <i class="fas fa-user-tag"></i>
+                            </button>
+                            <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="Toggle Status">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                            <button class="icon-btn" onclick="deleteUser(${user.id})" title="Delete User">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
             }
         }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        const tbody = document.getElementById('usersTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #e74c3c;">Error loading users</td></tr>';
+        }
+    }
+}
 
-        // ============ SAVE USER ROLES ============
-        async function saveUserRoles() {
-            const checkboxes = document.querySelectorAll('#roleCheckboxes input[type="checkbox"]:checked');
-            const roles = Array.from(checkboxes).map(cb => cb.value);
+// ============ FIXED SUPER ADMIN PAYMENT STATS ============
+async function loadSuperPaymentStats() {
+    try {
+        console.log('📊 Loading super admin payment stats...');
+        const response = await fetch('/api/payments/stats');
+        const data = await response.json();
+        
+        console.log('Payment stats response:', data);
+        
+        if (data.success) {
+            // Get values with fallback to 0
+            const totalCollected = data.stats.total_collected || 0;
+            const pendingAmount = data.stats.pending_amount || 0;
+            const paidCount = data.stats.status_counts?.Paid || 0;
+            const pendingCount = data.stats.status_counts?.Pending || 0;
             
-            try {
-                const response = await fetch(`/api/admin/users/${currentEditUserId}/permissions`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ roles })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('✅ User permissions updated!');
-                    closeRoleModal();
-                    loadUsers();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-
-        // ============ TOGGLE USER STATUS ============
-        async function toggleUserStatus(userId) {
-            if (!confirm('Toggle user active status?')) return;
+            // Calculate average payment
+            const totalPayments = paidCount + pendingCount;
+            const avgPayment = totalPayments > 0 ? totalCollected / totalPayments : 0;
             
-            try {
-                const response = await fetch(`/api/admin/users/${userId}/toggle`, {
-                    method: 'POST'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert(`✅ User ${data.is_active ? 'activated' : 'deactivated'}`);
-                    loadUsers();
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            // Update DOM elements with Indian number formatting
+            document.getElementById('superTotalCollected').textContent = `₹${totalCollected.toLocaleString('en-IN')}`;
+            document.getElementById('superPendingAmount').textContent = `₹${pendingAmount.toLocaleString('en-IN')}`;
+            document.getElementById('superPaidCount').textContent = paidCount;
+            document.getElementById('superPendingCount').textContent = pendingCount;
+            document.getElementById('superAvgPayment').textContent = `₹${Math.round(avgPayment).toLocaleString('en-IN')}`;
+            
+            console.log('✅ Super admin payment stats updated:', {
+                total: totalCollected,
+                pending: pendingAmount,
+                paid: paidCount,
+                pending_count: pendingCount
+            });
+        } else {
+            console.error('Payment stats API error:', data.error);
+            setDefaultPaymentValues();
         }
+    } catch (error) {
+        console.error('❌ Error loading super payment stats:', error);
+        setDefaultPaymentValues();
+    }
+}
 
-        // ============ LOAD LOGIN LOGS ============
-        async function loadLoginLogs() {
-            try {
-                const response = await fetch('/api/admin/login-logs?days=30');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const tbody = document.getElementById('loginLogsTableBody');
-                    if (!tbody) return;
+// Set default values if API fails
+function setDefaultPaymentValues() {
+    document.getElementById('superTotalCollected').textContent = '₹0';
+    document.getElementById('superPendingAmount').textContent = '₹0';
+    document.getElementById('superPaidCount').textContent = '0';
+    document.getElementById('superPendingCount').textContent = '0';
+    document.getElementById('superAvgPayment').textContent = '₹0';
+}
+
+// ============ LOAD SUPER ADMIN BASIC STATS ============
+async function loadSuperBasicStats() {
+    try {
+        const response = await fetch('/api/travelers/stats/summary');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('superTotalTravelers').textContent = data.stats.totalTravelers || 0;
+            document.getElementById('superActiveBatches').textContent = data.stats.openBatches || 0;
+        }
+    } catch (error) {
+        console.error('Error loading super basic stats:', error);
+        document.getElementById('superTotalTravelers').textContent = '0';
+        document.getElementById('superActiveBatches').textContent = '0';
+    }
+}
+
+// ============ LOAD LOGIN LOGS ============
+async function loadLoginLogs() {
+    try {
+        const response = await fetch('/api/admin/login-logs?days=30');
+        const data = await response.json();
+        
+        if (data.success) {
+            const tbody = document.getElementById('loginLogsTableBody');
+            if (!tbody) return;
+            
+            if (data.logs && data.logs.length > 0) {
+                tbody.innerHTML = data.logs.map(log => {
+                    const loginTime = new Date(log.login_time).toLocaleString();
+                    const logoutTime = log.logout_time ? new Date(log.logout_time).toLocaleString() : 'Still logged in';
+                    const duration = log.duration_minutes ? `${log.duration_minutes} min` : '-';
                     
-                    if (data.logs && data.logs.length > 0) {
-                        tbody.innerHTML = data.logs.map(log => {
-                            const loginTime = new Date(log.login_time).toLocaleString();
-                            const logoutTime = log.logout_time ? new Date(log.logout_time).toLocaleString() : 'Still logged in';
-                            const duration = log.duration_minutes ? `${log.duration_minutes} min` : '-';
-                            
-                            return `
-                            <tr>
-                                <td><strong>${log.full_name || log.username}</strong></td>
-                                <td>${loginTime}</td>
-                                <td>${logoutTime}</td>
-                                <td>${duration}</td>
-                                <td>${log.ip_address}</td>
-                            </tr>
-                        `}).join('');
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No login logs found</td></tr>';
-                    }
-                } else {
-                    console.error('Login logs API error:', data.error);
-                    document.getElementById('loginLogsTableBody').innerHTML = 
-                        '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">Error loading logs</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading logs:', error);
-                const tbody = document.getElementById('loginLogsTableBody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">Error loading logs</td></tr>';
-                }
+                    return `
+                    <tr>
+                        <td><strong>${log.full_name || log.username}</strong></td>
+                        <td>${loginTime}</td>
+                        <td>${logoutTime}</td>
+                        <td>${duration}</td>
+                        <td>${log.ip_address}</td>
+                    </tr>
+                `}).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No login logs found</td></tr>';
             }
         }
-
-        // ============ CLOSE ROLE MODAL ============
-        function closeRoleModal() {
-            document.getElementById('roleModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-            currentEditUserId = null;
+    } catch (error) {
+        console.error('Error loading logs:', error);
+        const tbody = document.getElementById('loginLogsTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">Error loading logs</td></tr>';
         }
+    }
+}
+
+// ============ DELETE USER FUNCTION ============
+async function deleteUser(userId) {
+    if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ User deleted successfully');
+            loadUsers();
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// ============ EDIT USER ROLES ============
+async function editUserRoles(userId, currentRoles) {
+    currentEditUserId = userId;
+    const roleList = currentRoles ? currentRoles.split(',') : [];
+    
+    try {
+        const response = await fetch('/api/roles');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('roleCheckboxes');
+            container.innerHTML = data.roles.map(role => `
+                <div style="margin: 10px 0;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" value="${role.name}" ${roleList.includes(role.name) ? 'checked' : ''}>
+                        <strong>${role.name}</strong>
+                        <small style="color: #7f8c8d;">- ${role.description}</small>
+                    </label>
+                </div>
+            `).join('');
+            
+            document.getElementById('roleModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+    } catch (error) {
+        alert('Error loading roles: ' + error.message);
+    }
+}
+
+// ============ SAVE USER ROLES ============
+async function saveUserRoles() {
+    const checkboxes = document.querySelectorAll('#roleCheckboxes input[type="checkbox"]:checked');
+    const roles = Array.from(checkboxes).map(cb => cb.value);
+    
+    try {
+        const response = await fetch(`/api/admin/users/${currentEditUserId}/permissions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roles })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ User permissions updated!');
+            closeRoleModal();
+            loadUsers();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// ============ TOGGLE USER STATUS ============
+async function toggleUserStatus(userId) {
+    if (!confirm('Toggle user active status?')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ User ${data.is_active ? 'activated' : 'deactivated'}`);
+            loadUsers();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// ============ CLOSE ROLE MODAL ============
+function closeRoleModal() {
+    document.getElementById('roleModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+    currentEditUserId = null;
+}
 
         // ============ ADD SUPER ADMIN TAB ============
         function addSuperAdminTab() {
