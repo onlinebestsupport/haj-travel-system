@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveler Login - Alhudha Haj</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        h1 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .info {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .info a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1><i class="fas fa-kaaba"></i> Traveler Portal</h1>
+        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 20px;">Login with Your Passport</h2>
+        
+        <form id="travelerLoginForm">
+            <div class="form-group">
+                <label><i class="fas fa-passport"></i> Passport Number</label>
+                <input type="text" id="passport_no" placeholder="Enter your passport number" required autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> PIN</label>
+                <input type="password" id="pin" placeholder="Enter your 4-digit PIN" maxlength="4" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit">
+                <i class="fas fa-sign-in-alt"></i> View My Haj Details
+            </button>
+            
+            <div id="errorMessage" class="error">
+                <i class="fas fa-exclamation-circle"></i> Invalid passport number or PIN
+            </div>
+        </form>
+        
+        <div class="info">
+            <i class="fas fa-info-circle"></i> Don't have PIN? Contact your Haj administrator
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('travelerLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const passport_no = document.getElementById('passport_no').value.trim();
+            const pin = document.getElementById('pin').value.trim();
+            
+            try {
+                const response = await fetch('/api/traveler/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ passport_no, pin })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionStorage.setItem('travelerId', data.traveler_id);
+                    sessionStorage.setItem('travelerPassport', passport_no);
+                    window.location.href = '/traveler/dashboard';
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
