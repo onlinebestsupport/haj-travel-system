@@ -1433,11 +1433,13 @@ function showTab(tabName) {
         loadPaymentStats();
     }
     if (tabName === 'superAdmin') {
-        console.log('🔄 Loading super admin data...');
+        console.log('🔄 Loading super admin...');
         loadUsers();
         loadLoginLogs();
-        loadSuperPaymentStats();  // Load payment stats
-        loadSuperBasicStats();    // Load traveler/batch stats
+        loadSuperPaymentStats();  // This will now work!
+        loadSuperBasicStats();
+    }
+}
         
         // Force refresh after 2 seconds to ensure data loads
         setTimeout(() => {
