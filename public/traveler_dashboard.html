@@ -7,75 +7,212 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            background: #f5f7fa;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f0f4f8;
+            min-height: 100vh;
         }
         
         .traveler-nav {
             background: linear-gradient(135deg, #27ae60 0%, #2c3e50 100%);
             color: white;
             padding: 20px 0;
-            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 30px;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-brand i {
+            font-size: 2.2rem;
+            color: #f1c40f;
+        }
+        
+        .nav-brand h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .nav-brand p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            margin-top: 5px;
         }
         
         .logout-btn {
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 30px;
+            border-radius: 50px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            float: right;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
         
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        /* Loading State */
+        .loading-container {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #27ae60;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        /* Dashboard Cards */
         .welcome-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
             margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .welcome-card h2 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-card p {
+            font-size: 1.1rem;
+            opacity: 0.95;
         }
         
         .batch-card {
             background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
-            padding: 25px;
-            border-radius: 15px;
+            padding: 35px;
+            border-radius: 20px;
             margin-bottom: 30px;
+            box-shadow: 0 15px 30px rgba(52, 152, 219, 0.3);
         }
         
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
         
         .info-card {
             background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+        
+        .info-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+        }
+        
+        .info-card h3 i {
+            color: #27ae60;
+            font-size: 1.5rem;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ecf0f1;
+        }
+        
+        .info-label {
+            flex: 0 0 120px;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #2c3e50;
+            font-weight: 500;
         }
         
         .status-badge {
             display: inline-block;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-weight: bold;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
         
-        .status-confirmed {
+        .status-active {
             background: #d4edda;
             color: #155724;
         }
@@ -85,12 +222,48 @@
             color: #856404;
         }
         
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .document-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .document-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        
+        .document-item:hover {
+            background: #e8f4f8;
+            border-color: #3498db;
+        }
+        
+        .document-item i {
+            font-size: 2rem;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .document-item span {
+            display: block;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
+            margin-top: 20px;
         }
         
         .payment-table th {
@@ -98,55 +271,183 @@
             color: white;
             padding: 15px;
             text-align: left;
+            font-size: 0.95rem;
         }
         
         .payment-table td {
             padding: 15px;
             border-bottom: 1px solid #ecf0f1;
+            background: white;
+        }
+        
+        .payment-table tr:hover td {
+            background: #f8f9fa;
         }
         
         .payment-paid {
             color: #27ae60;
-            font-weight: bold;
+            font-weight: 600;
         }
         
         .payment-pending {
             color: #e74c3c;
-            font-weight: bold;
+            font-weight: 600;
+        }
+        
+        .print-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .print-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .error-container {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .error-container i {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        
+        .error-container h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .error-container p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        
+        .retry-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .retry-btn:hover {
+            background: #2980b9;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .info-label {
+                flex: none;
+            }
+            
+            .payment-table {
+                font-size: 0.9rem;
+            }
+            
+            .payment-table th,
+            .payment-table td {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .welcome-card h2 {
+                font-size: 1.5rem;
+            }
+            
+            .batch-card h2 {
+                font-size: 1.3rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="traveler-nav">
-        <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-kaaba"></i>
                 <div>
-                    <h1 style="color: white; margin: 0;"><i class="fas fa-kaaba"></i> My Haj Journey</h1>
-                    <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0;">Welcome, <span id="travelerName">Loading...</span></p>
+                    <h1>My Haj Journey</h1>
+                    <p id="travelerNameDisplay">Loading...</p>
                 </div>
-                <button onclick="logout()" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
             </div>
+            <button onclick="logout()" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </div>
     </div>
 
-    <main class="container">
-        <!-- Loading Indicator -->
-        <div id="loading" style="text-align: center; padding: 50px;">
-            <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #3498db;"></i>
-            <p style="margin-top: 20px;">Loading your Haj journey details...</p>
+    <main class="container main-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading your Haj journey details...</p>
         </div>
 
-        <!-- Traveler Dashboard Content (Hidden by default) -->
+        <!-- Error State -->
+        <div id="error" class="error-container" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <h2>Oops! Something went wrong</h2>
+            <p>We couldn't load your details. Please try again.</p>
+            <button onclick="loadTravelerData()" class="retry-btn">
+                <i class="fas fa-sync-alt"></i> Retry
+            </button>
+        </div>
+
+        <!-- Traveler Dashboard Content -->
         <div id="dashboardContent" style="display: none;">
+            <!-- Welcome Card -->
+            <div class="welcome-card" id="welcomeCard">
+                <h2><i class="fas fa-hand-peace"></i> Welcome, <span id="travelerFullName">Traveler</span>!</h2>
+                <p>Your spiritual journey is our priority. Here's your Haj/Umrah details.</p>
+            </div>
+
             <!-- Batch Information -->
             <div class="batch-card" id="batchInfo">
-                <h2 style="color: white; margin-bottom: 15px;"><i class="fas fa-layer-group"></i> Your Batch Details</h2>
+                <h2 style="color: white; margin-bottom: 20px;"><i class="fas fa-layer-group"></i> Your Package Details</h2>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div>
-                        <p style="opacity: 0.9; margin-bottom: 5px;">Batch Name</p>
-                        <h3 style="color: white; margin: 0;" id="batchName">-</h3>
+                        <p style="opacity: 0.9; margin-bottom: 5px;">Package Name</p>
+                        <h3 style="color: white; margin: 0; font-size: 1.4rem;" id="batchName">-</h3>
                     </div>
                     <div>
                         <p style="opacity: 0.9; margin-bottom: 5px;">Departure Date</p>
@@ -163,97 +464,180 @@
                 </div>
             </div>
 
-            <!-- Personal Information -->
-            <div class="welcome-card">
-                <h2 style="color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-user"></i> Your Personal Information</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Full Name</p>
-                        <p style="font-size: 18px; font-weight: bold;" id="fullName">-</p>
+            <!-- Personal Information Grid -->
+            <div class="info-grid">
+                <!-- Personal Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" id="fullName">-</span>
                     </div>
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Passport Number</p>
-                        <p style="font-size: 18px; font-weight: bold;" id="passportNo">-</p>
+                    <div class="info-row">
+                        <span class="info-label">Passport Number</span>
+                        <span class="info-value" id="passportNo">-</span>
                     </div>
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Mobile</p>
-                        <p style="font-size: 18px;" id="mobile">-</p>
+                    <div class="info-row">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value" id="gender">-</span>
                     </div>
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Email</p>
-                        <p style="font-size: 18px;" id="email">-</p>
+                    <div class="info-row">
+                        <span class="info-label">Date of Birth</span>
+                        <span class="info-value" id="dob">-</span>
                     </div>
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Vaccine Status</p>
-                        <p><span class="status-badge status-confirmed" id="vaccineStatus">-</span></p>
+                </div>
+
+                <!-- Contact Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-address-book"></i> Contact Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Mobile</span>
+                        <span class="info-value" id="mobile">-</span>
                     </div>
-                    <div>
-                        <p style="color: #7f8c8d; margin-bottom: 5px;">Wheelchair Required</p>
-                        <p id="wheelchair">-</p>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" id="email">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Aadhaar</span>
+                        <span class="info-value" id="aadhaar">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">PAN</span>
+                        <span class="info-value" id="pan">-</span>
+                    </div>
+                </div>
+
+                <!-- Health & Special Needs -->
+                <div class="info-card">
+                    <h3><i class="fas fa-heartbeat"></i> Health Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Vaccine Status</span>
+                        <span class="info-value" id="vaccineStatus">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Wheelchair</span>
+                        <span class="info-value" id="wheelchair">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Blood Group</span>
+                        <span class="info-value" id="bloodGroup">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Allergies</span>
+                        <span class="info-value" id="allergies">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Family Details -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3><i class="fas fa-family"></i> Family Details</h3>
+                    <div class="info-row">
+                        <span class="info-label">Father's Name</span>
+                        <span class="info-value" id="fatherName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Mother's Name</span>
+                        <span class="info-value" id="motherName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Spouse's Name</span>
+                        <span class="info-value" id="spouseName">-</span>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="info-card">
+                    <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                    <div class="info-row">
+                        <span class="info-label">Place of Birth</span>
+                        <span class="info-value" id="placeOfBirth">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Place of Issue</span>
+                        <span class="info-value" id="placeOfIssue">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Address</span>
+                        <span class="info-value" id="address">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="info-card">
+                <h3><i class="fas fa-file-alt"></i> Documents</h3>
+                <div class="document-grid">
+                    <div class="document-item" id="passportDoc">
+                        <i class="fas fa-passport"></i>
+                        <span>Passport</span>
+                        <small id="passportStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="aadhaarDoc">
+                        <i class="fas fa-id-card"></i>
+                        <span>Aadhaar</span>
+                        <small id="aadhaarStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="panDoc">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>PAN Card</span>
+                        <small id="panStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="vaccineDoc">
+                        <i class="fas fa-syringe"></i>
+                        <span>Vaccine</span>
+                        <small id="vaccineStatus">Not uploaded</small>
                     </div>
                 </div>
             </div>
 
             <!-- Payment Schedule -->
             <div class="info-card">
-                <h2 style="color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-credit-card"></i> Payment Schedule</h2>
-                <table class="payment-table">
-                    <thead>
-                        <tr>
-                            <th>Installment</th>
-                            <th>Due Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Payment Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentTableBody">
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px;">
-                                <i class="fas fa-info-circle"></i> Payment schedule will be updated by admin
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Important Documents -->
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3><i class="fas fa-passport"></i> Passport</h3>
-                    <p id="passportStatus">Status: <span class="status-badge status-confirmed">Submitted</span></p>
-                </div>
-                <div class="info-card">
-                    <h3><i class="fas fa-id-card"></i> Aadhaar</h3>
-                    <p id="aadhaarStatus">Status: <span class="status-badge status-confirmed">Verified</span></p>
-                </div>
-                <div class="info-card">
-                    <h3><i class="fas fa-file-invoice"></i> PAN</h3>
-                    <p id="panStatus">Status: <span class="status-badge status-confirmed">Verified</span></p>
-                </div>
-                <div class="info-card">
-                    <h3><i class="fas fa-syringe"></i> Vaccine</h3>
-                    <p id="vaccineCertStatus">Status: <span class="status-badge status-confirmed">Uploaded</span></p>
+                <h3><i class="fas fa-credit-card"></i> Payment Schedule</h3>
+                <div class="table-responsive">
+                    <table class="payment-table">
+                        <thead>
+                            <tr>
+                                <th>Installment</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Payment Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 30px;">
+                                    <i class="fas fa-info-circle"></i> Loading payment schedule...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Emergency Contact -->
             <div class="info-card">
-                <h2 style="color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-phone-alt"></i> Emergency Contact</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <h3><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                     <div>
-                        <p style="color: #7f8c8d;">Father's Name</p>
-                        <p style="font-weight: bold;" id="fatherName">-</p>
+                        <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Contact Person</p>
+                        <p style="font-weight: 600;" id="emergencyContact">-</p>
                     </div>
                     <div>
-                        <p style="color: #7f8c8d;">Mother's Name</p>
-                        <p style="font-weight: bold;" id="motherName">-</p>
-                    </div>
-                    <div>
-                        <p style="color: #7f8c8d;">Spouse's Name</p>
-                        <p style="font-weight: bold;" id="spouseName">-</p>
+                        <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Phone</p>
+                        <p style="font-weight: 600;" id="emergencyPhone">-</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Print Button -->
+            <div style="text-align: right; margin-top: 30px;">
+                <button onclick="printDashboard()" class="print-btn">
+                    <i class="fas fa-print"></i> Print My Details
+                </button>
             </div>
         </div>
     </main>
@@ -267,9 +651,16 @@
             window.location.href = '/traveler-login';
         }
 
+        // Update welcome name
+        const travelerName = sessionStorage.getItem('travelerName');
+        if (travelerName) {
+            document.getElementById('travelerNameDisplay').textContent = travelerName;
+        }
+
         // Logout function
         function logout() {
             sessionStorage.removeItem('travelerId');
+            sessionStorage.removeItem('travelerName');
             sessionStorage.removeItem('travelerPassport');
             window.location.href = '/traveler-login';
         }
@@ -277,6 +668,11 @@
         // Load traveler data
         async function loadTravelerData() {
             try {
+                // Show loading, hide error and content
+                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'none';
+
                 const response = await fetch(`/api/traveler/${travelerPassport}`);
                 const data = await response.json();
                 
@@ -287,40 +683,123 @@
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('dashboardContent').style.display = 'block';
                     
-                    // Update personal info
-                    document.getElementById('travelerName').textContent = `${t.first_name} ${t.last_name}`;
-                    document.getElementById('fullName').textContent = `${t.first_name} ${t.last_name}`;
-                    document.getElementById('passportNo').textContent = t.passport_no;
-                    document.getElementById('mobile').textContent = t.mobile;
+                    // Update welcome
+                    document.getElementById('travelerFullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim();
+                    
+                    // Personal Information
+                    document.getElementById('fullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim() || '-';
+                    document.getElementById('passportNo').textContent = t.passport_no || '-';
+                    document.getElementById('gender').textContent = t.gender || '-';
+                    document.getElementById('dob').textContent = t.dob || '-';
+                    
+                    // Contact Information
+                    document.getElementById('mobile').textContent = t.mobile || '-';
                     document.getElementById('email').textContent = t.email || '-';
+                    document.getElementById('aadhaar').textContent = t.aadhaar || '-';
+                    document.getElementById('pan').textContent = t.pan || '-';
+                    
+                    // Health Information
                     document.getElementById('vaccineStatus').textContent = t.vaccine_status || 'Not Vaccinated';
                     document.getElementById('wheelchair').textContent = t.wheelchair || 'No';
                     
-                    // Update batch info
+                    // Parse extra fields
+                    let extraFields = {};
+                    if (t.extra_fields) {
+                        try {
+                            extraFields = typeof t.extra_fields === 'string' ? 
+                                JSON.parse(t.extra_fields) : t.extra_fields;
+                        } catch (e) {
+                            console.error('Error parsing extra fields:', e);
+                        }
+                    }
+                    
+                    document.getElementById('bloodGroup').textContent = extraFields.blood_group || '-';
+                    document.getElementById('allergies').textContent = extraFields.allergies || '-';
+                    document.getElementById('emergencyContact').textContent = extraFields.emergency_contact || '-';
+                    document.getElementById('emergencyPhone').textContent = extraFields.emergency_phone || '-';
+                    
+                    // Family Information
+                    document.getElementById('fatherName').textContent = t.father_name || '-';
+                    document.getElementById('motherName').textContent = t.mother_name || '-';
+                    document.getElementById('spouseName').textContent = t.spouse_name || '-';
+                    
+                    // Address
+                    document.getElementById('placeOfBirth').textContent = t.place_of_birth || '-';
+                    document.getElementById('placeOfIssue').textContent = t.place_of_issue || '-';
+                    document.getElementById('address').textContent = t.passport_address || '-';
+                    
+                    // Document status
+                    document.getElementById('passportStatus').textContent = t.passport_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('aadhaarStatus').textContent = t.aadhaar_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('panStatus').textContent = t.pan_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('vaccineStatus').textContent = t.vaccine_scan ? '✓ Uploaded' : '✗ Missing';
+                    
+                    // Update document styling
+                    updateDocumentStyle('passportDoc', t.passport_scan);
+                    updateDocumentStyle('aadhaarDoc', t.aadhaar_scan);
+                    updateDocumentStyle('panDoc', t.pan_scan);
+                    updateDocumentStyle('vaccineDoc', t.vaccine_scan);
+                    
+                    // Batch info
                     document.getElementById('batchName').textContent = t.batch_name || 'Not Assigned';
                     document.getElementById('departureDate').textContent = t.departure_date || 'TBD';
                     document.getElementById('returnDate').textContent = t.return_date || 'TBD';
                     document.getElementById('batchStatus').textContent = t.batch_status || 'Open';
                     
-                    // Update family info
-                    document.getElementById('fatherName').textContent = t.father_name || '-';
-                    document.getElementById('motherName').textContent = t.mother_name || '-';
-                    document.getElementById('spouseName').textContent = t.spouse_name || '-';
-                    
                     // Load payment schedule
-                    loadPaymentSchedule(t.id);
+                    if (t.id) {
+                        loadPaymentSchedule(t.id);
+                    }
+                } else {
+                    showError();
                 }
             } catch (error) {
                 console.error('Error loading traveler data:', error);
-                alert('Error loading your data. Please try again.');
+                showError();
             }
         }
 
-        // Load payment schedule - FIXED VERSION
+        function updateDocumentStyle(elementId, hasDocument) {
+            const element = document.getElementById(elementId);
+            if (hasDocument) {
+                element.style.background = '#d4edda';
+                element.style.borderColor = '#27ae60';
+            } else {
+                element.style.background = '#f8d7da';
+                element.style.borderColor = '#e74c3c';
+            }
+        }
+
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        }
+
+        // Load payment schedule
         async function loadPaymentSchedule(travelerId) {
             try {
-                const response = await fetch(`/api/payments/traveler/${travelerId}`);
-                const data = await response.json();
+                // Try multiple endpoints for payments
+                let response;
+                let data;
+                
+                // Try traveler-specific payments endpoint first
+                response = await fetch(`/api/payments/traveler/${travelerId}`);
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    // Fallback to all payments and filter
+                    response = await fetch('/api/payments');
+                    const allData = await response.json();
+                    if (allData.success) {
+                        data = {
+                            success: true,
+                            payments: allData.payments.filter(p => p.traveler_id === travelerId)
+                        };
+                    } else {
+                        throw new Error('Failed to load payments');
+                    }
+                }
                 
                 if (data.success && data.payments && data.payments.length > 0) {
                     const tbody = document.getElementById('paymentTableBody');
@@ -328,9 +807,9 @@
                         const statusClass = p.status === 'Paid' ? 'payment-paid' : 'payment-pending';
                         return `
                         <tr>
-                            <td>${p.installment || '-'}</td>
+                            <td><strong>${p.installment || 'Installment'}</strong></td>
                             <td>${p.due_date || '-'}</td>
-                            <td>₹${p.amount ? p.amount.toLocaleString() : '0'}</td>
+                            <td>₹${p.amount ? p.amount.toLocaleString('en-IN') : '0'}</td>
                             <td class="${statusClass}">${p.status || 'Pending'}</td>
                             <td>${p.payment_date || '-'}</td>
                         </tr>
@@ -339,7 +818,8 @@
                     document.getElementById('paymentTableBody').innerHTML = `
                         <tr>
                             <td colspan="5" style="text-align: center; padding: 30px;">
-                                <i class="fas fa-info-circle"></i> No payment records found
+                                <i class="fas fa-info-circle" style="color: #3498db;"></i>
+                                No payment records found. Contact admin for payment schedule.
                             </td>
                         </tr>
                     `;
@@ -348,12 +828,47 @@
                 console.error('Error loading payments:', error);
                 document.getElementById('paymentTableBody').innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px;">
-                            <i class="fas fa-exclamation-circle" style="color: #e74c3c;"></i> Error loading payments
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #e74c3c;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Error loading payment schedule
                         </td>
                     </tr>
                 `;
             }
+        }
+
+        // Print dashboard
+        function printDashboard() {
+            const content = document.getElementById('dashboardContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>My Haj Journey - Details</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 30px; }
+                        h1 { color: #2c3e50; }
+                        h2 { color: #27ae60; margin-top: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
+                        td { padding: 10px; border: 1px solid #ddd; }
+                        .info-card { margin-bottom: 20px; }
+                        .status-badge { padding: 5px 10px; border-radius: 5px; }
+                        @media print {
+                            body { padding: 15px; }
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>My Haj Journey - Complete Details</h1>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         // Initialize
