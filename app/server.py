@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+Entry point for running the application directly.
+For production, use: gunicorn app:app
+"""
+
+import os
+from app import app
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
 from flask import Flask, send_from_directory, jsonify, request, redirect, url_for, session, send_file
 from flask_cors import CORS
 from app.database import init_db, get_db
