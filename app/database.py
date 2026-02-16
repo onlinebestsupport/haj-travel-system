@@ -3,16 +3,17 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_db():
     """Get database connection with error handling"""
     database_url = os.environ.get('DATABASE_URL')
     
     if not database_url:
-        print("❌ DATABASE_URL environment variable not set!")
-        print("⚠️ Using fallback connection string for development")
-        # Fallback for development - Railway will override this with actual DATABASE_URL
-        database_url = "postgresql://postgres:postgres@localhost:5432/haj_travel"
+        print("⚠️ DATABASE_URL not set - using SQLite fallback for development")
+        return None
     
     try:
         conn = psycopg2.connect(database_url)
@@ -258,264 +259,252 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_batches_dates ON batches(departure_date, return_date);")
         print("✅ indexes created")
         
-        # ============ INSERT DEFAULT DATA ============
+        # ============ INSERT DEFAULT DATA (ONLY IF MISSING) ============
         
-        # Insert default roles
-        cur.execute("""
-            INSERT INTO roles (name, description) VALUES 
-            ('super_admin', 'Full system access - can manage users and all data'),
-            ('admin', 'Can manage all data except users'),
-            ('manager', 'Can manage batches and travelers'),
-            ('staff', 'Can add and edit travelers'),
-            ('viewer', 'Read-only access')
-            ON CONFLICT (name) DO NOTHING;
-        """)
+        # Check if roles already exist
+        cur.execute("SELECT COUNT(*) FROM roles")
+        role_count = cur.fetchone()[0]
         
-        # Insert default permissions
-        cur.execute("""
-            INSERT INTO permissions (name, description) VALUES 
-            ('manage_users', 'Create, edit, delete users'),
-            ('view_users', 'View user list'),
-            ('manage_batches', 'Create, edit, delete batches'),
-            ('view_batches', 'View batches'),
-            ('manage_travelers', 'Create, edit, delete travelers'),
-            ('view_travelers', 'View travelers'),
-            ('create_payment', 'Record payments'),
-            ('view_payments', 'View payments'),
-            ('reverse_payment', 'Reverse/cancel payments'),
-            ('view_reports', 'View reports'),
-            ('create_backup', 'Create database backups'),
-            ('restore_backup', 'Restore from backup'),
-            ('export_data', 'Export data'),
-            ('view_logs', 'View login logs')
-            ON CONFLICT (name) DO NOTHING;
-        """)
+        if role_count == 0:
+            # Insert default roles
+            cur.execute("""
+                INSERT INTO roles (name, description) VALUES 
+                ('super_admin', 'Full system access - can manage users and all data'),
+                ('admin', 'Can manage all data except users'),
+                ('manager', 'Can manage batches and travelers'),
+                ('staff', 'Can add and edit travelers'),
+                ('viewer', 'Read-only access')
+                ON CONFLICT (name) DO NOTHING;
+            """)
+            print("✅ Default roles inserted")
+        else:
+            print("✅ Roles already exist, skipping insert")
         
-        # Super Admin gets all permissions
-        cur.execute("""
-            INSERT INTO role_permissions (role_id, permission_id)
-            SELECT r.id, p.id FROM roles r, permissions p
-            WHERE r.name = 'super_admin'
-            ON CONFLICT DO NOTHING;
-        """)
+        # Check if permissions already exist
+        cur.execute("SELECT COUNT(*) FROM permissions")
+        perm_count = cur.fetchone()[0]
         
-        # Admin permissions
-        cur.execute("""
-            INSERT INTO role_permissions (role_id, permission_id)
-            SELECT r.id, p.id FROM roles r, permissions p
-            WHERE r.name = 'admin' AND p.name IN (
-                'manage_batches', 'view_batches',
-                'manage_travelers', 'view_travelers',
-                'create_payment', 'view_payments',
-                'reverse_payment', 'view_reports',
-                'create_backup', 'export_data', 'view_logs'
-            )
-            ON CONFLICT DO NOTHING;
-        """)
+        if perm_count == 0:
+            # Insert default permissions
+            cur.execute("""
+                INSERT INTO permissions (name, description) VALUES 
+                ('manage_users', 'Create, edit, delete users'),
+                ('view_users', 'View user list'),
+                ('manage_batches', 'Create, edit, delete batches'),
+                ('view_batches', 'View batches'),
+                ('manage_travelers', 'Create, edit, delete travelers'),
+                ('view_travelers', 'View travelers'),
+                ('create_payment', 'Record payments'),
+                ('view_payments', 'View payments'),
+                ('reverse_payment', 'Reverse/cancel payments'),
+                ('view_reports', 'View reports'),
+                ('create_backup', 'Create database backups'),
+                ('restore_backup', 'Restore from backup'),
+                ('export_data', 'Export data'),
+                ('view_logs', 'View login logs')
+                ON CONFLICT (name) DO NOTHING;
+            """)
+            print("✅ Default permissions inserted")
+            
+            # Super Admin gets all permissions
+            cur.execute("""
+                INSERT INTO role_permissions (role_id, permission_id)
+                SELECT r.id, p.id FROM roles r, permissions p
+                WHERE r.name = 'super_admin'
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            # Admin permissions
+            cur.execute("""
+                INSERT INTO role_permissions (role_id, permission_id)
+                SELECT r.id, p.id FROM roles r, permissions p
+                WHERE r.name = 'admin' AND p.name IN (
+                    'manage_batches', 'view_batches',
+                    'manage_travelers', 'view_travelers',
+                    'create_payment', 'view_payments',
+                    'reverse_payment', 'view_reports',
+                    'create_backup', 'export_data', 'view_logs'
+                )
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            # Manager permissions
+            cur.execute("""
+                INSERT INTO role_permissions (role_id, permission_id)
+                SELECT r.id, p.id FROM roles r, permissions p
+                WHERE r.name = 'manager' AND p.name IN (
+                    'manage_batches', 'view_batches',
+                    'manage_travelers', 'view_travelers',
+                    'create_payment', 'view_payments',
+                    'view_reports'
+                )
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            # Staff permissions
+            cur.execute("""
+                INSERT INTO role_permissions (role_id, permission_id)
+                SELECT r.id, p.id FROM roles r, permissions p
+                WHERE r.name = 'staff' AND p.name IN (
+                    'view_batches',
+                    'manage_travelers', 'view_travelers',
+                    'create_payment', 'view_payments'
+                )
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            # Viewer permissions
+            cur.execute("""
+                INSERT INTO role_permissions (role_id, permission_id)
+                SELECT r.id, p.id FROM roles r, permissions p
+                WHERE r.name = 'viewer' AND p.name IN (
+                    'view_batches', 'view_travelers', 'view_payments'
+                )
+                ON CONFLICT DO NOTHING;
+            """)
+            print("✅ Role permissions assigned")
+        else:
+            print("✅ Permissions already exist, skipping insert")
         
-        # Manager permissions
-        cur.execute("""
-            INSERT INTO role_permissions (role_id, permission_id)
-            SELECT r.id, p.id FROM roles r, permissions p
-            WHERE r.name = 'manager' AND p.name IN (
-                'manage_batches', 'view_batches',
-                'manage_travelers', 'view_travelers',
-                'create_payment', 'view_payments',
-                'view_reports'
-            )
-            ON CONFLICT DO NOTHING;
-        """)
+        # Check if admin users already exist
+        cur.execute("SELECT COUNT(*) FROM admin_users")
+        admin_count = cur.fetchone()[0]
         
-        # Staff permissions
-        cur.execute("""
-            INSERT INTO role_permissions (role_id, permission_id)
-            SELECT r.id, p.id FROM roles r, permissions p
-            WHERE r.name = 'staff' AND p.name IN (
-                'view_batches',
-                'manage_travelers', 'view_travelers',
-                'create_payment', 'view_payments'
-            )
-            ON CONFLICT DO NOTHING;
-        """)
+        if admin_count == 0:
+            # Insert default admin users (password: admin123)
+            admin_password_hash = 'L5Ks5qk2Y8O+c1CXzX6hWpPxG69RyB5+2n4O7U+DmVQ='
+            
+            cur.execute("""
+                INSERT INTO admin_users (username, password_hash, email, full_name, is_active) VALUES 
+                ('superadmin', %s, 'super@alhudha.com', 'Super Admin', true),
+                ('admin', %s, 'admin@alhudha.com', 'Admin User', true),
+                ('manager', %s, 'manager@alhudha.com', 'Manager', true),
+                ('staff', %s, 'staff@alhudha.com', 'Staff Member', true),
+                ('viewer', %s, 'viewer@alhudha.com', 'Viewer Only', true)
+                ON CONFLICT (username) DO NOTHING;
+            """, (admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash))
+            print("✅ Default admin users created")
+            
+            # Assign roles to users
+            cur.execute("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM admin_users u, roles r
+                WHERE u.username = 'superadmin' AND r.name = 'super_admin'
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM admin_users u, roles r
+                WHERE u.username = 'admin' AND r.name = 'admin'
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM admin_users u, roles r
+                WHERE u.username = 'manager' AND r.name = 'manager'
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM admin_users u, roles r
+                WHERE u.username = 'staff' AND r.name = 'staff'
+                ON CONFLICT DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO user_roles (user_id, role_id)
+                SELECT u.id, r.id FROM admin_users u, roles r
+                WHERE u.username = 'viewer' AND r.name = 'viewer'
+                ON CONFLICT DO NOTHING;
+            """)
+            print("✅ User roles assigned")
+        else:
+            print("✅ Admin users already exist, skipping insert")
         
-        # Viewer permissions
-        cur.execute("""
-            INSERT INTO role_permissions (role_id, permission_id)
-            SELECT r.id, p.id FROM roles r, permissions p
-            WHERE r.name = 'viewer' AND p.name IN (
-                'view_batches', 'view_travelers', 'view_payments'
-            )
-            ON CONFLICT DO NOTHING;
-        """)
+        # Check if batches already exist
+        cur.execute("SELECT COUNT(*) FROM batches")
+        batch_count = cur.fetchone()[0]
         
-        # Insert default admin users (password: admin123)
-        # SHA256 hash for "admin123" with salt "alhudha-salt-2026"
-        admin_password_hash = 'L5Ks5qk2Y8O+c1CXzX6hWpPxG69RyB5+2n4O7U+DmVQ='
+        if batch_count == 0:
+            # Insert sample batches
+            cur.execute("""
+                INSERT INTO batches (batch_name, departure_date, return_date, total_seats, price, status, description) VALUES 
+                ('Haj Silver 2026', '2026-06-15', '2026-07-30', 150, 350000.00, 'Open', 'Economy Haj package with shared accommodation in Azizia. Includes visa processing, transportation, and meals.'),
+                ('Haj Gold 2026', '2026-06-15', '2026-07-30', 100, 550000.00, 'Open', 'Comfort Haj package with private rooms in Makkah (500m from Haram) and Madinah (300m from Masjid Nabawi).'),
+                ('Haj Platinum 2026', '2026-06-14', '2026-07-31', 50, 850000.00, 'Open', 'Premium Haj package with luxury hotels overlooking Haram in Makkah and Madinah. VIP transportation and guided tours.'),
+                ('Umrah Ramadhan Special', '2026-03-01', '2026-03-20', 200, 125000.00, 'Open', '20-day Umrah package during Ramadhan. Stay in Makkah (10 days) and Madinah (10 days). All meals included.'),
+                ('Umrah Winter', '2026-12-10', '2026-12-25', 150, 95000.00, 'Open', '15-day Umrah package with pleasant weather. Includes Ziyarat visits to historical sites.')
+                ON CONFLICT (batch_name) DO NOTHING;
+            """)
+            print("✅ Sample batches created")
+        else:
+            print("✅ Batches already exist, skipping insert")
         
-        cur.execute("""
-            INSERT INTO admin_users (username, password_hash, email, full_name, is_active) VALUES 
-            ('superadmin', %s, 'super@alhudha.com', 'Super Admin', true),
-            ('admin', %s, 'admin@alhudha.com', 'Admin User', true),
-            ('manager', %s, 'manager@alhudha.com', 'Manager', true),
-            ('staff', %s, 'staff@alhudha.com', 'Staff Member', true),
-            ('viewer', %s, 'viewer@alhudha.com', 'Viewer Only', true)
-            ON CONFLICT (username) DO NOTHING;
-        """, (admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash))
+        # Check if travelers already exist
+        cur.execute("SELECT COUNT(*) FROM travelers")
+        traveler_count = cur.fetchone()[0]
         
-        # Assign roles to users
-        cur.execute("""
-            INSERT INTO user_roles (user_id, role_id)
-            SELECT u.id, r.id FROM admin_users u, roles r
-            WHERE u.username = 'superadmin' AND r.name = 'super_admin'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO user_roles (user_id, role_id)
-            SELECT u.id, r.id FROM admin_users u, roles r
-            WHERE u.username = 'admin' AND r.name = 'admin'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO user_roles (user_id, role_id)
-            SELECT u.id, r.id FROM admin_users u, roles r
-            WHERE u.username = 'manager' AND r.name = 'manager'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO user_roles (user_id, role_id)
-            SELECT u.id, r.id FROM admin_users u, roles r
-            WHERE u.username = 'staff' AND r.name = 'staff'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO user_roles (user_id, role_id)
-            SELECT u.id, r.id FROM admin_users u, roles r
-            WHERE u.username = 'viewer' AND r.name = 'viewer'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        # Insert sample batches
-        cur.execute("""
-            INSERT INTO batches (batch_name, departure_date, return_date, total_seats, price, status, description) VALUES 
-            ('Haj Silver 2026', '2026-06-15', '2026-07-30', 150, 350000.00, 'Open', 'Economy Haj package with shared accommodation in Azizia. Includes visa processing, transportation, and meals.'),
-            ('Haj Gold 2026', '2026-06-15', '2026-07-30', 100, 550000.00, 'Open', 'Comfort Haj package with private rooms in Makkah (500m from Haram) and Madinah (300m from Masjid Nabawi).'),
-            ('Haj Platinum 2026', '2026-06-14', '2026-07-31', 50, 850000.00, 'Open', 'Premium Haj package with luxury hotels overlooking Haram in Makkah and Madinah. VIP transportation and guided tours.'),
-            ('Umrah Ramadhan Special', '2026-03-01', '2026-03-20', 200, 125000.00, 'Open', '20-day Umrah package during Ramadhan. Stay in Makkah (10 days) and Madinah (10 days). All meals included.'),
-            ('Umrah Winter', '2026-12-10', '2026-12-25', 150, 95000.00, 'Open', '15-day Umrah package with pleasant weather. Includes Ziyarat visits to historical sites.')
-            ON CONFLICT (batch_name) DO NOTHING;
-        """)
-        
-        # Insert sample travelers
-        cur.execute("""
-            INSERT INTO travelers (
-                first_name, last_name, passport_no, mobile, email, pin, 
-                gender, dob, passport_issue_date, passport_expiry_date,
-                aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
-                extra_fields, batch_id
-            ) 
-            SELECT 
-                'Ahmed', 'Khan', 'A1234567', '9876543210', 'ahmed.khan@email.com', '1234',
-                'Male', '1985-05-20', '2020-01-15', '2030-01-14',
-                '1234-5678-9012', 'ABCDE1234F', 'Fully Vaccinated', 'Mumbai', 'Abdul Khan', 'Aisha Khan',
-                '{"blood_group": "O+", "allergies": "None", "emergency_contact": "Brother - Abdul", "emergency_phone": "9876543211"}',
-                id FROM batches WHERE batch_name = 'Haj Platinum 2026'
-            ON CONFLICT (passport_no) DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO travelers (
-                first_name, last_name, passport_no, mobile, email, pin,
-                gender, dob, passport_issue_date, passport_expiry_date,
-                aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
-                extra_fields, batch_id
-            ) 
-            SELECT 
-                'Fatima', 'Begum', 'B7654321', '9876543211', 'fatima.begum@email.com', '5678',
-                'Female', '1990-08-15', '2021-03-10', '2031-03-09',
-                '2345-6789-0123', 'FGHIJ5678K', 'Fully Vaccinated', 'Delhi', 'Mohammed Ali', 'Zainab Ali',
-                '{"blood_group": "A+", "allergies": "Dust", "emergency_contact": "Hassan Khan", "emergency_phone": "9876543212"}',
-                id FROM batches WHERE batch_name = 'Haj Gold 2026'
-            ON CONFLICT (passport_no) DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO travelers (
-                first_name, last_name, passport_no, mobile, email, pin,
-                gender, dob, passport_issue_date, passport_expiry_date,
-                aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
-                extra_fields, batch_id
-            ) 
-            SELECT 
-                'Mohammed', 'Rafi', 'C9876543', '9876543212', 'mohammed.rafi@email.com', '9012',
-                'Male', '1982-11-30', '2019-12-05', '2029-12-04',
-                '3456-7890-1234', 'KLMNO9012P', 'Fully Vaccinated', 'Hyderabad', 'Ibrahim Rafi', 'Zahara Rafi',
-                '{"blood_group": "B+", "allergies": "Pollen", "emergency_contact": "Sister - Aisha", "emergency_phone": "9876543213"}',
-                id FROM batches WHERE batch_name = 'Haj Silver 2026'
-            ON CONFLICT (passport_no) DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO travelers (
-                first_name, last_name, passport_no, mobile, email, pin,
-                gender, dob, passport_issue_date, passport_expiry_date,
-                aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
-                extra_fields, batch_id
-            ) 
-            SELECT 
-                'Aisha', 'Begum', 'D2468135', '9876543213', 'aisha.begum@email.com', '3456',
-                'Female', '1988-03-25', '2022-07-20', '2032-07-19',
-                '4567-8901-2345', 'PQRST3456U', 'Fully Vaccinated', 'Chennai', 'Yusuf Begum', 'Khadija Begum',
-                '{"blood_group": "AB+", "allergies": "None", "emergency_contact": "Husband - Salman", "emergency_phone": "9876543214"}',
-                id FROM batches WHERE batch_name = 'Umrah Ramadhan Special'
-            ON CONFLICT (passport_no) DO NOTHING;
-        """)
-        
-        # Insert sample payments
-        cur.execute("""
-            INSERT INTO payments (traveler_id, installment, amount, payment_date, status, payment_method, transaction_id)
-            SELECT id, 'Booking Amount', 85000, CURRENT_DATE - INTERVAL '30 days', 'Paid', 'Bank Transfer', 'TXN' || floor(random() * 1000000)::text
-            FROM travelers WHERE passport_no = 'A1234567'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO payments (traveler_id, installment, amount, payment_date, status, payment_method, transaction_id)
-            SELECT id, '1st Installment', 170000, CURRENT_DATE - INTERVAL '15 days', 'Paid', 'UPI', 'TXN' || floor(random() * 1000000)::text
-            FROM travelers WHERE passport_no = 'A1234567'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO payments (traveler_id, installment, amount, due_date, status)
-            SELECT id, '2nd Installment', 255000, CURRENT_DATE + INTERVAL '15 days', 'Pending'
-            FROM travelers WHERE passport_no = 'A1234567'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO payments (traveler_id, installment, amount, payment_date, status, payment_method, transaction_id)
-            SELECT id, 'Booking Amount', 55000, CURRENT_DATE - INTERVAL '25 days', 'Paid', 'Credit Card', 'TXN' || floor(random() * 1000000)::text
-            FROM travelers WHERE passport_no = 'B7654321'
-            ON CONFLICT DO NOTHING;
-        """)
-        
-        cur.execute("""
-            INSERT INTO payments (traveler_id, installment, amount, due_date, status)
-            SELECT id, '1st Installment', 110000, CURRENT_DATE + INTERVAL '10 days', 'Pending'
-            FROM travelers WHERE passport_no = 'B7654321'
-            ON CONFLICT DO NOTHING;
-        """)
+        if traveler_count == 0:
+            # Insert sample travelers
+            cur.execute("""
+                INSERT INTO travelers (
+                    first_name, last_name, passport_no, mobile, email, pin, 
+                    gender, dob, passport_issue_date, passport_expiry_date,
+                    aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
+                    extra_fields, batch_id
+                ) 
+                SELECT 
+                    'Ahmed', 'Khan', 'A1234567', '9876543210', 'ahmed.khan@email.com', '1234',
+                    'Male', '1985-05-20', '2020-01-15', '2030-01-14',
+                    '1234-5678-9012', 'ABCDE1234F', 'Fully Vaccinated', 'Mumbai', 'Abdul Khan', 'Aisha Khan',
+                    '{"blood_group": "O+", "allergies": "None", "emergency_contact": "Brother - Abdul", "emergency_phone": "9876543211"}',
+                    id FROM batches WHERE batch_name = 'Haj Platinum 2026'
+                ON CONFLICT (passport_no) DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO travelers (
+                    first_name, last_name, passport_no, mobile, email, pin,
+                    gender, dob, passport_issue_date, passport_expiry_date,
+                    aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
+                    extra_fields, batch_id
+                ) 
+                SELECT 
+                    'Fatima', 'Begum', 'B7654321', '9876543211', 'fatima.begum@email.com', '5678',
+                    'Female', '1990-08-15', '2021-03-10', '2031-03-09',
+                    '2345-6789-0123', 'FGHIJ5678K', 'Fully Vaccinated', 'Delhi', 'Mohammed Ali', 'Zainab Ali',
+                    '{"blood_group": "A+", "allergies": "Dust", "emergency_contact": "Hassan Khan", "emergency_phone": "9876543212"}',
+                    id FROM batches WHERE batch_name = 'Haj Gold 2026'
+                ON CONFLICT (passport_no) DO NOTHING;
+            """)
+            
+            cur.execute("""
+                INSERT INTO travelers (
+                    first_name, last_name, passport_no, mobile, email, pin,
+                    gender, dob, passport_issue_date, passport_expiry_date,
+                    aadhaar, pan, vaccine_status, place_of_birth, father_name, mother_name,
+                    extra_fields, batch_id
+                ) 
+                SELECT 
+                    'Mohammed', 'Rafi', 'C9876543', '9876543212', 'mohammed.rafi@email.com', '9012',
+                    'Male', '1982-11-30', '2019-12-05', '2029-12-04',
+                    '3456-7890-1234', 'KLMNO9012P', 'Fully Vaccinated', 'Hyderabad', 'Ibrahim Rafi', 'Zahara Rafi',
+                    '{"blood_group": "B+", "allergies": "Pollen", "emergency_contact": "Sister - Aisha", "emergency_phone": "9876543213"}',
+                    id FROM batches WHERE batch_name = 'Haj Silver 2026'
+                ON CONFLICT (passport_no) DO NOTHING;
+            """)
+            print("✅ Sample travelers created")
+        else:
+            print("✅ Travelers already exist, skipping insert")
         
         conn.commit()
-        print("✅ Default data inserted successfully")
+        print("🎉 Database initialization COMPLETE! All tables ready.")
         
         cur.close()
         conn.close()
-        print("🎉 Database initialization COMPLETE! All tables ready.")
         return True
         
     except Exception as e:
@@ -524,81 +513,6 @@ def init_db():
             conn.rollback()
             conn.close()
         return False
-
-def get_db_cursor(dictionary=False):
-    """Get database connection and cursor with optional dictionary cursor"""
-    conn = get_db()
-    if not conn:
-        return None, None
-    
-    try:
-        if dictionary:
-            cur = conn.cursor(cursor_factory=RealDictCursor)
-        else:
-            cur = conn.cursor()
-        return conn, cur
-    except Exception as e:
-        print(f"❌ Error creating cursor: {e}")
-        conn.close()
-        return None, None
-
-def execute_query(query, params=None, fetch_one=False, fetch_all=False, commit=False):
-    """Execute a query with automatic connection handling"""
-    conn = get_db()
-    if not conn:
-        return None
-    
-    try:
-        cur = conn.cursor()
-        cur.execute(query, params or ())
-        
-        result = None
-        if fetch_one:
-            result = cur.fetchone()
-        elif fetch_all:
-            result = cur.fetchall()
-        
-        if commit:
-            conn.commit()
-        
-        cur.close()
-        conn.close()
-        return result
-    except Exception as e:
-        print(f"❌ Query error: {e}")
-        if conn:
-            conn.rollback()
-            conn.close()
-        return None
-
-def execute_query_with_dict(query, params=None, fetch_one=False, fetch_all=False, commit=False):
-    """Execute a query and return results as dictionary"""
-    conn = get_db()
-    if not conn:
-        return None
-    
-    try:
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(query, params or ())
-        
-        result = None
-        if fetch_one:
-            result = cur.fetchone()
-        elif fetch_all:
-            result = cur.fetchall()
-        
-        if commit:
-            conn.commit()
-        
-        cur.close()
-        conn.close()
-        return result
-    except Exception as e:
-        print(f"❌ Query error: {e}")
-        if conn:
-            conn.rollback()
-            conn.close()
-        return None
 
 def check_database():
     """Check if all required tables exist"""
@@ -660,71 +574,19 @@ def check_database():
         if conn:
             conn.close()
 
-def get_table_counts():
-    """Get counts from all major tables"""
+def get_db_cursor(dictionary=False):
+    """Get database connection and cursor with optional dictionary cursor"""
     conn = get_db()
     if not conn:
-        return {}
+        return None, None
     
     try:
-        cur = conn.cursor()
-        counts = {}
-        
-        tables = ['admin_users', 'batches', 'travelers', 'payments', 'login_logs', 'backups']
-        for table in tables:
-            cur.execute(f"SELECT COUNT(*) FROM {table}")
-            counts[table] = cur.fetchone()[0]
-        
-        cur.close()
-        conn.close()
-        return counts
+        if dictionary:
+            cur = conn.cursor(cursor_factory=RealDictCursor)
+        else:
+            cur = conn.cursor()
+        return conn, cur
     except Exception as e:
-        print(f"❌ Error getting counts: {e}")
-        return {}
-
-def reset_database(confirm=False):
-    """WARNING: This will delete all data and recreate tables"""
-    if not confirm:
-        print("⚠️ This will DELETE ALL DATA! Set confirm=True to proceed.")
-        return False
-    
-    conn = get_db()
-    if not conn:
-        return False
-    
-    try:
-        cur = conn.cursor()
-        
-        # Drop all tables in reverse order
-        tables = [
-            'payment_reversals', 'invoices', 'payments', 'travelers', 
-            'batches', 'login_logs', 'backups', 'user_roles', 
-            'role_permissions', 'permissions', 'roles', 'admin_users'
-        ]
-        
-        for table in tables:
-            cur.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
-            print(f"✅ Dropped {table}")
-        
-        conn.commit()
-        cur.close()
+        print(f"❌ Error creating cursor: {e}")
         conn.close()
-        
-        print("🎉 Database reset complete! Now run init_db()")
-        return True
-    except Exception as e:
-        print(f"❌ Error resetting database: {e}")
-        conn.rollback()
-        conn.close()
-        return False
-
-# Run initialization if this file is executed directly
-if __name__ == "__main__":
-    print("🚀 Initializing database...")
-    if init_db():
-        print("✅ Database initialization successful!")
-        check_database()
-        counts = get_table_counts()
-        print("📊 Table counts:", counts)
-    else:
-        print("❌ Database initialization failed!")
+        return None, None
