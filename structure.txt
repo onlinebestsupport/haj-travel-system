@@ -1,13 +1,28 @@
 haj-travel-system/
-├── 📂 app/                 ✅ PYTHON BACKEND (KEEP)
-├── 📂 public/             ✅ HTML/CSS (KEEP)
-├── 📂 sql/                ✅ SQL FILES (KEEP)
-├── 📂 uploads/            ✅ EMPTY FOLDER (KEEP)
-├── requirements.txt       ✅ WITH CODE (ADDED)
-├── runtime.txt           ✅ WITH CODE (ADDED)
-├── .env.example          ✅ WITH CODE (ADDED)
-├── .gitignore            ✅ WITH CODE (ADDED)
-├── Procfile              ✅ gunicorn app.server:app
-├── railway.json          ✅ {"build":{"builder":"NIXPACKS"}}
-├── README.md             ✅ Documentation
-└── structure.txt         ✅ Your file - KEEP IT!
+├── app/
+│   ├── __init__.py
+│   ├── database.py
+│   ├── server.py
+│   └── routes/
+│       ├── travelers.py
+│       └── uploads.py
+├── public/
+│   ├── admin.html
+│   ├── index.html (NEW - front page)
+│   ├── login.html
+│   ├── style.css
+│   ├── traveler_dashboard.html
+│   └── traveler_login.html
+├── sql/
+│   ├── init.sql
+│   └── seed.sql
+├── uploads/
+│   └── .gitkeep
+├── .env.example
+├── .gitignore
+├── Procfile
+├── railway.json
+├── README.md
+├── requirements.txt
+└── runtime.txt
+structure.txt
