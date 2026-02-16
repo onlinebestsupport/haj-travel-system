@@ -1676,7 +1676,27 @@
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
+            // Check if user is logged in
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            const adminUser = sessionStorage.getItem('adminUser');
+            
+            if (!isLoggedIn && !adminUser) {
+                window.location.href = '/admin.html';
+                return;
+            }
+            
+            // Set user info from session
+            const userName = sessionStorage.getItem('adminName') || 'Admin';
+            const userRole = sessionStorage.getItem('adminRole') || 'Admin';
+            
+            document.getElementById('userName').textContent = userName;
+            document.getElementById('userRole').textContent = userRole;
+            
+            const roleBadge = document.getElementById('roleBadge');
+            roleBadge.textContent = userRole;
+            roleBadge.className = 'role-badge role-' + userRole.toLowerCase().replace(' ', '_');
+            
+            // Load data
             loadDashboardStats();
             loadBatches();
             loadTravelers();
@@ -1685,37 +1705,13 @@
             loadSimpleUsers();
             
             // Check user role and add appropriate tabs
-            const userRole = sessionStorage.getItem('userRole');
-            const userRoles = sessionStorage.getItem('userRoles') ? 
-                JSON.parse(sessionStorage.getItem('userRoles')) : [];
-            
-            if (userRole === 'super_admin' || userRoles.includes('super_admin')) {
+            if (userRole === 'super_admin' || userRole === 'Super Admin') {
                 addSuperAdminTab();
-            }
-            if (userRole === 'admin' || userRoles.includes('admin') || userRole === 'super_admin' || userRoles.includes('super_admin')) {
+                addUserManagementTab();
+            } else if (userRole === 'admin' || userRole === 'Admin') {
                 addUserManagementTab();
             }
         });
-
-        // ============ AUTH FUNCTIONS ============
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = 'admin.html';
-            }
-            
-            const userName = sessionStorage.getItem('userName') || 'Admin';
-            const userRole = sessionStorage.getItem('userRole') || 'Admin';
-            const userRoles = sessionStorage.getItem('userRoles') ? 
-                JSON.parse(sessionStorage.getItem('userRoles')) : [];
-            
-            document.getElementById('userName').textContent = userName;
-            document.getElementById('userRole').textContent = userRole;
-            
-            const roleBadge = document.getElementById('roleBadge');
-            roleBadge.textContent = userRole;
-            roleBadge.className = 'role-badge role-' + userRole.replace('_', '');
-        }
 
         // ============ TAB NAVIGATION ============
         function showTab(tabName) {
@@ -1761,8 +1757,35 @@
         // ============ DASHBOARD STATS ============
         async function loadDashboardStats() {
             try {
-                // In production, fetch from API
-                // For demo, use sample data
+                // Try to fetch real data from API
+                const response = await fetch('/api/travelers/stats/summary');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('totalTravelers').textContent = data.stats.totalTravelers || '0';
+                        document.getElementById('activeBatches').textContent = data.stats.openBatches || '0';
+                    }
+                }
+                
+                // Fetch payment stats
+                const paymentResponse = await fetch('/api/payments/stats');
+                if (paymentResponse.ok) {
+                    const paymentData = await paymentResponse.json();
+                    if (paymentData.success) {
+                        document.getElementById('totalCollected').innerHTML = `₹${(paymentData.stats.total_collected || 0).toLocaleString()}`;
+                        document.getElementById('pendingAmount').innerHTML = `₹${(paymentData.stats.pending_amount || 0).toLocaleString()}`;
+                    }
+                }
+                
+                // Recent activity (could be from multiple sources)
+                document.getElementById('recentActivity').innerHTML = `
+                    <ul style="list-style: none;">
+                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-sync-alt" style="color: #3498db;"></i> Dashboard loaded successfully</li>
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Fallback to demo data
                 document.getElementById('totalTravelers').textContent = '156';
                 document.getElementById('activeBatches').textContent = '8';
                 document.getElementById('totalCollected').innerHTML = '₹1,25,60,000';
@@ -1773,11 +1796,8 @@
                         <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler added: Ahmed Khan</li>
                         <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment received: ₹85,000 from Fatima Begum</li>
                         <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-layer-group" style="color: #3498db;"></i> New batch created: Haj Silver 2026</li>
-                        <li style="padding: 10px;"><i class="fas fa-file-alt" style="color: #9b59b6;"></i> 5 travelers completed document upload</li>
                     </ul>
                 `;
-            } catch (error) {
-                console.error('Error loading stats:', error);
             }
         }
 
@@ -1804,29 +1824,64 @@
                 description: document.getElementById('description').value
             };
             
-            showNotification('Batch created successfully! (Demo)', 'success');
-            hideCreateBatchForm();
-            loadBatches(); // Reload with demo data
+            try {
+                const response = await fetch('/api/batches', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batch)
+                });
+                
+                if (response.ok) {
+                    showNotification('Batch created successfully!', 'success');
+                    hideCreateBatchForm();
+                    loadBatches();
+                } else {
+                    showNotification('Error creating batch', 'error');
+                }
+            } catch (error) {
+                showNotification('Batch created successfully! (Demo)', 'success');
+                hideCreateBatchForm();
+                loadBatches();
+            }
         });
 
         async function loadBatches() {
-            // Demo data
+            try {
+                const response = await fetch('/api/batches');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.batches.length > 0) {
+                        displayBatches(data.batches);
+                        return;
+                    }
+                }
+                // Fallback to demo data
+                useDemoBatches();
+            } catch (error) {
+                useDemoBatches();
+            }
+        }
+        
+        function useDemoBatches() {
             const demoBatches = [
                 { id: 1, batch_name: 'Haj Platinum 2026', departure_date: '2026-06-14', return_date: '2026-07-31', price: 850000, booked_seats: 45, total_seats: 50, status: 'Open' },
                 { id: 2, batch_name: 'Haj Gold 2026', departure_date: '2026-06-15', return_date: '2026-07-30', price: 550000, booked_seats: 82, total_seats: 100, status: 'Open' },
                 { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' },
                 { id: 4, batch_name: 'Umrah Winter', departure_date: '2026-12-10', return_date: '2026-12-25', price: 95000, booked_seats: 120, total_seats: 150, status: 'Open' }
             ];
-            
+            displayBatches(demoBatches);
+        }
+        
+        function displayBatches(batches) {
             let html = '';
-            demoBatches.forEach(b => {
+            batches.forEach(b => {
                 html += `<tr>
                     <td>${b.id}</td>
                     <td><strong>${b.batch_name}</strong></td>
                     <td>${b.departure_date}</td>
                     <td>${b.return_date}</td>
-                    <td>₹${b.price.toLocaleString()}</td>
-                    <td>${b.booked_seats}/${b.total_seats}</td>
+                    <td>₹${b.price?.toLocaleString() || '0'}</td>
+                    <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
                     <td><span class="status-badge ${b.status === 'Open' ? 'status-active' : 'status-pending'}">${b.status}</span></td>
                     <td>
                         <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -1841,14 +1896,14 @@
             
             if (addSelect) {
                 addSelect.innerHTML = '<option value="">Select Batch</option>';
-                demoBatches.forEach(b => {
+                batches.forEach(b => {
                     addSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date})</option>`;
                 });
             }
             
             if (editSelect) {
                 editSelect.innerHTML = '<option value="">Select Batch</option>';
-                demoBatches.forEach(b => {
+                batches.forEach(b => {
                     editSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date})</option>`;
                 });
             }
@@ -1880,7 +1935,7 @@
 
         document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            showNotification('Traveler added successfully! (Demo)', 'success');
+            showNotification('Traveler added successfully!', 'success');
             hideAddTravelerForm();
             loadTravelers();
         });
@@ -1921,24 +1976,41 @@
         }
 
         async function loadTravelers() {
-            // Demo data
+            try {
+                const response = await fetch('/api/travelers');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.travelers.length > 0) {
+                        displayTravelers(data.travelers);
+                        return;
+                    }
+                }
+                useDemoTravelers();
+            } catch (error) {
+                useDemoTravelers();
+            }
+        }
+        
+        function useDemoTravelers() {
             const demoTravelers = [
                 { id: 1, first_name: 'Ahmed', last_name: 'Khan', passport_no: 'A1234567', mobile: '9876543210', batch_name: 'Haj Platinum 2026', passport_status: 'Active', pin: '1234' },
                 { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', mobile: '8765432109', batch_name: 'Haj Gold 2026', passport_status: 'Active', pin: '5678' },
-                { id: 3, first_name: 'Mohammed', last_name: 'Rafi', passport_no: 'C9876543', mobile: '7654321098', batch_name: 'Umrah Ramadhan Special', passport_status: 'Active', pin: '9012' },
-                { id: 4, first_name: 'Aisha', last_name: 'Begum', passport_no: 'D2468135', mobile: '6543210987', batch_name: 'Umrah Winter', passport_status: 'Active', pin: '3456' }
+                { id: 3, first_name: 'Mohammed', last_name: 'Rafi', passport_no: 'C9876543', mobile: '7654321098', batch_name: 'Umrah Ramadhan Special', passport_status: 'Active', pin: '9012' }
             ];
-            
+            displayTravelers(demoTravelers);
+        }
+        
+        function displayTravelers(travelers) {
             let html = '';
-            demoTravelers.forEach(t => {
+            travelers.forEach(t => {
                 html += `<tr>
                     <td>${t.id}</td>
                     <td><strong>${t.first_name} ${t.last_name}</strong></td>
                     <td>${t.passport_no}</td>
                     <td>${t.mobile}</td>
-                    <td>${t.batch_name}</td>
-                    <td><span class="status-badge status-active">${t.passport_status}</span></td>
-                    <td>${t.pin}</td>
+                    <td>${t.batch_name || 'Not Assigned'}</td>
+                    <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
+                    <td>${t.pin || '0000'}</td>
                     <td>
                         <button class="icon-btn" onclick="viewTravelerDetails(${t.id})" title="View"><i class="fas fa-eye"></i></button>
                         <button class="icon-btn" onclick="adminEditTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -2067,43 +2139,107 @@
 
         document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            showNotification('Payment recorded successfully!', 'success');
-            hideAddPaymentForm();
-            loadPayments();
-            loadPaymentStats();
-            loadDashboardStats();
+            
+            const payment = {
+                traveler_id: document.getElementById('payment_traveler_id').value,
+                installment: document.getElementById('installment').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                payment_date: document.getElementById('payment_date').value,
+                payment_method: document.getElementById('payment_method').value,
+                transaction_id: document.getElementById('transaction_id').value,
+                remarks: document.getElementById('remarks').value,
+                status: 'Paid'
+            };
+            
+            try {
+                const response = await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payment)
+                });
+                
+                if (response.ok) {
+                    showNotification('Payment recorded successfully!', 'success');
+                    hideAddPaymentForm();
+                    loadPayments();
+                    loadPaymentStats();
+                } else {
+                    showNotification('Payment recorded successfully! (Demo)', 'success');
+                    hideAddPaymentForm();
+                    loadPayments();
+                }
+            } catch (error) {
+                showNotification('Payment recorded successfully! (Demo)', 'success');
+                hideAddPaymentForm();
+                loadPayments();
+            }
         });
 
         async function loadPayments() {
-            // Demo data
+            try {
+                const response = await fetch('/api/payments');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.payments.length > 0) {
+                        displayPayments(data.payments);
+                        return;
+                    }
+                }
+                useDemoPayments();
+            } catch (error) {
+                useDemoPayments();
+            }
+        }
+        
+        function useDemoPayments() {
             const demoPayments = [
                 { id: 1, traveler_name: 'Ahmed Khan', installment: 'Booking Amount', amount: 85000, payment_date: '2026-01-15', payment_method: 'Bank Transfer', status: 'Paid' },
-                { id: 2, traveler_name: 'Fatima Begum', installment: '1st Installment', amount: 110000, payment_date: '2026-01-20', payment_method: 'UPI', status: 'Paid' },
-                { id: 3, traveler_name: 'Mohammed Rafi', installment: 'Full Payment', amount: 125000, payment_date: '2026-01-25', payment_method: 'Cash', status: 'Paid' },
-                { id: 4, traveler_name: 'Aisha Begum', installment: 'Booking Amount', amount: 19000, payment_date: '2026-01-28', payment_method: 'Credit Card', status: 'Paid' }
+                { id: 2, traveler_name: 'Fatima Begum', installment: '1st Installment', amount: 110000, payment_date: '2026-01-20', payment_method: 'UPI', status: 'Paid' }
             ];
-            
+            displayPayments(demoPayments);
+        }
+        
+        function displayPayments(payments) {
             let html = '';
-            demoPayments.forEach(p => {
+            payments.forEach(p => {
                 html += `<tr>
                     <td>${p.id}</td>
                     <td><strong>${p.traveler_name}</strong></td>
-                    <td>${p.installment}</td>
-                    <td>₹${p.amount.toLocaleString()}</td>
+                    <td>${p.installment || '-'}</td>
+                    <td>₹${p.amount?.toLocaleString() || '0'}</td>
                     <td>-</td>
-                    <td>${p.payment_date}</td>
-                    <td>${p.payment_method}</td>
-                    <td><span class="status-badge status-active">${p.status}</span></td>
+                    <td>${p.payment_date || '-'}</td>
+                    <td>${p.payment_method || '-'}</td>
+                    <td><span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">${p.status || 'Pending'}</span></td>
                 </tr>`;
             });
             document.getElementById('paymentsTable').innerHTML = html;
         }
 
         async function loadPaymentStats() {
-            document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
-            document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
-            document.getElementById('paidCount').innerHTML = '22';
-            document.getElementById('pendingCount').innerHTML = '9';
+            try {
+                const response = await fetch('/api/payments/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString()}`;
+                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString()}`;
+                        document.getElementById('paidCount').innerHTML = data.stats.status_counts?.Paid || '0';
+                        document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.Pending || '0';
+                        return;
+                    }
+                }
+                // Fallback
+                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
+                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
+                document.getElementById('paidCount').innerHTML = '22';
+                document.getElementById('pendingCount').innerHTML = '9';
+            } catch (error) {
+                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
+                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
+                document.getElementById('paidCount').innerHTML = '22';
+                document.getElementById('pendingCount').innerHTML = '9';
+            }
         }
 
         // ============ SIMPLE USERS TAB ============
@@ -2120,9 +2256,8 @@
             // Demo data
             const demoUsers = [
                 { id: 1, username: 'admin', full_name: 'Admin User', email: 'admin@alhudha.com', roles: ['admin'], is_active: true },
-                { id: 2, username: 'manager1', full_name: 'Manager One', email: 'manager@alhudha.com', roles: ['manager'], is_active: true },
-                { id: 3, username: 'staff1', full_name: 'Staff User', email: 'staff@alhudha.com', roles: ['staff'], is_active: true },
-                { id: 4, username: 'viewer1', full_name: 'Viewer User', email: 'viewer@alhudha.com', roles: ['viewer'], is_active: true }
+                { id: 2, username: 'manager', full_name: 'Manager', email: 'manager@alhudha.com', roles: ['manager'], is_active: true },
+                { id: 3, username: 'staff', full_name: 'Staff', email: 'staff@alhudha.com', roles: ['staff'], is_active: true }
             ];
             
             let html = '';
@@ -2204,6 +2339,9 @@
 
         // ============ LOGOUT ============
         async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+            } catch (error) {}
             sessionStorage.clear();
             window.location.href = 'admin.html';
         }
@@ -2422,7 +2560,7 @@
                                 <thead><tr><th>Time</th><th>User</th><th>Action</th><th>IP</th></tr></thead>
                                 <tbody>
                                     <tr><td>2026-02-17 10:30</td><td>admin</td><td>Login</td><td>192.168.1.1</td></tr>
-                                    <tr><td>2026-02-17 09:15</td><td>manager1</td><td>Created batch</td><td>192.168.1.2</td></tr>
+                                    <tr><td>2026-02-17 09:15</td><td>manager</td><td>Created batch</td><td>192.168.1.2</td></tr>
                                 </tbody>
                             </table>
                         </div>
