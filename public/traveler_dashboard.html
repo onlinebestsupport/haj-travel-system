@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Haj Journey - Traveler Portal</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>My Haj Journey - Traveler Dashboard | Alhudha Haj Travel</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -20,7 +20,7 @@
         }
         
         .traveler-nav {
-            background: linear-gradient(135deg, #27ae60 0%, #2c3e50 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             padding: 20px 0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -51,7 +51,7 @@
         
         .nav-brand i {
             font-size: 2.2rem;
-            color: #f1c40f;
+            color: #ffd700;
         }
         
         .nav-brand h1 {
@@ -96,13 +96,16 @@
         .loading-container {
             text-align: center;
             padding: 80px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
         .spinner {
             width: 60px;
             height: 60px;
             border: 5px solid #f3f3f3;
-            border-top: 5px solid #27ae60;
+            border-top: 5px solid #ffd700;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -120,12 +123,18 @@
         
         /* Dashboard Cards */
         .welcome-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             padding: 40px;
             border-radius: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(30, 60, 114, 0.3);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .welcome-card h2 {
@@ -134,18 +143,23 @@
             margin-bottom: 10px;
         }
         
+        .welcome-card h2 i {
+            color: #ffd700;
+        }
+        
         .welcome-card p {
             font-size: 1.1rem;
             opacity: 0.95;
         }
         
         .batch-card {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
             color: white;
             padding: 35px;
             border-radius: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 15px 30px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 15px 30px rgba(30, 60, 114, 0.3);
+            animation: fadeIn 0.5s ease 0.1s both;
         }
         
         .info-grid {
@@ -162,6 +176,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             transition: all 0.3s;
             border: 1px solid rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease 0.2s both;
         }
         
         .info-card:hover {
@@ -170,7 +185,7 @@
         }
         
         .info-card h3 {
-            color: #2c3e50;
+            color: #1e3c72;
             margin-bottom: 20px;
             font-size: 1.3rem;
             display: flex;
@@ -181,7 +196,7 @@
         }
         
         .info-card h3 i {
-            color: #27ae60;
+            color: #ffd700;
             font-size: 1.5rem;
         }
         
@@ -239,25 +254,51 @@
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            border: 1px solid #e9ecef;
+            border: 2px solid #e9ecef;
             transition: all 0.3s;
+            cursor: pointer;
         }
         
         .document-item:hover {
-            background: #e8f4f8;
-            border-color: #3498db;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         
         .document-item i {
             font-size: 2rem;
-            color: #27ae60;
+            color: #ffd700;
             margin-bottom: 10px;
         }
         
         .document-item span {
             display: block;
-            font-size: 0.9rem;
-            color: #2c3e50;
+            font-size: 1rem;
+            color: #1e3c72;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .document-item small {
+            display: block;
+            font-size: 0.85rem;
+        }
+        
+        .document-uploaded {
+            background: #d4edda;
+            border-color: #27ae60;
+        }
+        
+        .document-uploaded i {
+            color: #27ae60;
+        }
+        
+        .document-missing {
+            background: #f8d7da;
+            border-color: #e74c3c;
+        }
+        
+        .document-missing i {
+            color: #e74c3c;
         }
         
         .payment-table {
@@ -267,7 +308,7 @@
         }
         
         .payment-table th {
-            background: #2c3e50;
+            background: #1e3c72;
             color: white;
             padding: 15px;
             text-align: left;
@@ -295,11 +336,11 @@
         }
         
         .print-btn {
-            background: #3498db;
-            color: white;
+            background: #ffd700;
+            color: #1e3c72;
             border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
+            padding: 15px 30px;
+            border-radius: 50px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -308,11 +349,13 @@
             font-weight: 600;
             transition: all 0.3s;
             margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
         }
         
         .print-btn:hover {
-            background: #2980b9;
+            background: #ffed4a;
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255,215,0,0.4);
         }
         
         .error-container {
@@ -330,7 +373,7 @@
         }
         
         .error-container h2 {
-            color: #2c3e50;
+            color: #1e3c72;
             margin-bottom: 15px;
         }
         
@@ -340,23 +383,71 @@
         }
         
         .retry-btn {
-            background: #3498db;
+            background: #1e3c72;
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            padding: 15px 40px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .retry-btn:hover {
-            background: #2980b9;
+            background: #2a5298;
+            transform: translateY(-2px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .no-data i {
+            font-size: 3rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
         }
         
         /* Responsive */
         @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
             .nav-container {
                 flex-direction: column;
                 text-align: center;
@@ -379,15 +470,15 @@
             .payment-table td {
                 padding: 10px;
             }
+            
+            .welcome-card h2 {
+                font-size: 1.5rem;
+            }
         }
         
         @media (max-width: 480px) {
             .container {
                 padding: 0 15px;
-            }
-            
-            .welcome-card h2 {
-                font-size: 1.5rem;
             }
             
             .batch-card h2 {
@@ -396,6 +487,10 @@
             
             .info-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .document-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -416,21 +511,28 @@
         </div>
     </div>
 
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
     <main class="container main-content">
         <!-- Loading State -->
         <div id="loading" class="loading-container">
             <div class="spinner"></div>
             <p class="loading-text">Loading your Haj journey details...</p>
+            <p style="color: #95a5a6; margin-top: 10px; font-size: 0.9rem;">Please wait while we fetch your information</p>
         </div>
 
         <!-- Error State -->
         <div id="error" class="error-container" style="display: none;">
             <i class="fas fa-exclamation-circle"></i>
             <h2>Oops! Something went wrong</h2>
-            <p>We couldn't load your details. Please try again.</p>
+            <p>We couldn't load your details. This could be due to a network issue or server error.</p>
             <button onclick="loadTravelerData()" class="retry-btn">
-                <i class="fas fa-sync-alt"></i> Retry
+                <i class="fas fa-sync-alt"></i> Try Again
             </button>
+            <p style="margin-top: 20px;">
+                <a href="index.html" style="color: #1e3c72;">← Back to Home</a>
+            </p>
         </div>
 
         <!-- Traveler Dashboard Content -->
@@ -438,7 +540,7 @@
             <!-- Welcome Card -->
             <div class="welcome-card" id="welcomeCard">
                 <h2><i class="fas fa-hand-peace"></i> Welcome, <span id="travelerFullName">Traveler</span>!</h2>
-                <p>Your spiritual journey is our priority. Here's your Haj/Umrah details.</p>
+                <p>Your spiritual journey is our priority. Here are your Haj/Umrah details.</p>
             </div>
 
             <!-- Batch Information -->
@@ -447,7 +549,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                     <div>
                         <p style="opacity: 0.9; margin-bottom: 5px;">Package Name</p>
-                        <h3 style="color: white; margin: 0; font-size: 1.4rem;" id="batchName">-</h3>
+                        <h3 style="color: #ffd700; margin: 0; font-size: 1.4rem;" id="batchName">-</h3>
                     </div>
                     <div>
                         <p style="opacity: 0.9; margin-bottom: 5px;">Departure Date</p>
@@ -570,27 +672,30 @@
             <div class="info-card">
                 <h3><i class="fas fa-file-alt"></i> Documents</h3>
                 <div class="document-grid">
-                    <div class="document-item" id="passportDoc">
+                    <div class="document-item" id="passportDoc" onclick="viewDocument('passport')">
                         <i class="fas fa-passport"></i>
                         <span>Passport</span>
                         <small id="passportStatus">Not uploaded</small>
                     </div>
-                    <div class="document-item" id="aadhaarDoc">
+                    <div class="document-item" id="aadhaarDoc" onclick="viewDocument('aadhaar')">
                         <i class="fas fa-id-card"></i>
                         <span>Aadhaar</span>
                         <small id="aadhaarStatus">Not uploaded</small>
                     </div>
-                    <div class="document-item" id="panDoc">
+                    <div class="document-item" id="panDoc" onclick="viewDocument('pan')">
                         <i class="fas fa-file-invoice"></i>
                         <span>PAN Card</span>
                         <small id="panStatus">Not uploaded</small>
                     </div>
-                    <div class="document-item" id="vaccineDoc">
+                    <div class="document-item" id="vaccineDoc" onclick="viewDocument('vaccine')">
                         <i class="fas fa-syringe"></i>
                         <span>Vaccine</span>
                         <small id="vaccineStatus">Not uploaded</small>
                     </div>
                 </div>
+                <p style="color: #7f8c8d; font-size: 0.85rem; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Click on any document to view
+                </p>
             </div>
 
             <!-- Payment Schedule -->
@@ -609,8 +714,9 @@
                         </thead>
                         <tbody id="paymentTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 30px;">
-                                    <i class="fas fa-info-circle"></i> Loading payment schedule...
+                                <td colspan="5" class="no-data">
+                                    <i class="fas fa-info-circle"></i>
+                                    <p>Loading payment schedule...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -624,17 +730,20 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                     <div>
                         <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Contact Person</p>
-                        <p style="font-weight: 600;" id="emergencyContact">-</p>
+                        <p style="font-weight: 600; color: #1e3c72;" id="emergencyContact">-</p>
                     </div>
                     <div>
                         <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Phone</p>
-                        <p style="font-weight: 600;" id="emergencyPhone">-</p>
+                        <p style="font-weight: 600; color: #1e3c72;" id="emergencyPhone">-</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Print Button -->
-            <div style="text-align: right; margin-top: 30px;">
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px; flex-wrap: wrap;">
+                <button onclick="refreshData()" class="print-btn" style="background: #3498db; color: white;">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
                 <button onclick="printDashboard()" class="print-btn">
                     <i class="fas fa-print"></i> Print My Details
                 </button>
@@ -643,217 +752,376 @@
     </main>
 
     <script>
+        // Configuration
+        const API_URL = window.location.origin;
+        let travelerData = null;
+
         // Check if traveler is logged in
-        const travelerId = sessionStorage.getItem('travelerId');
-        const travelerPassport = sessionStorage.getItem('travelerPassport');
+        document.addEventListener('DOMContentLoaded', function() {
+            const travelerId = sessionStorage.getItem('travelerId');
+            const travelerPassport = sessionStorage.getItem('travelerPassport');
+            const travelerName = sessionStorage.getItem('travelerName');
 
-        if (!travelerId || !travelerPassport) {
-            window.location.href = '/traveler-login';
-        }
+            if (!travelerId || !travelerPassport) {
+                showNotification('Please login to access your dashboard', 'error');
+                setTimeout(() => {
+                    window.location.href = 'traveler_login.html';
+                }, 2000);
+                return;
+            }
 
-        // Update welcome name
-        const travelerName = sessionStorage.getItem('travelerName');
-        if (travelerName) {
-            document.getElementById('travelerNameDisplay').textContent = travelerName;
-        }
+            // Update welcome name
+            if (travelerName) {
+                document.getElementById('travelerNameDisplay').textContent = travelerName;
+            }
+
+            // Load traveler data
+            loadTravelerData();
+        });
 
         // Logout function
         function logout() {
+            // Clear all session data
             sessionStorage.removeItem('travelerId');
             sessionStorage.removeItem('travelerName');
             sessionStorage.removeItem('travelerPassport');
-            window.location.href = '/traveler-login';
+            sessionStorage.removeItem('travelerLoggedIn');
+            
+            showNotification('Logged out successfully', 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'traveler_login.html';
+            }, 1500);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
         }
 
         // Load traveler data
         async function loadTravelerData() {
+            const travelerPassport = sessionStorage.getItem('travelerPassport');
+            
             try {
                 // Show loading, hide error and content
-                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('loading').style.display = 'block';
                 document.getElementById('error').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'none';
 
-                const response = await fetch(`/api/traveler/${travelerPassport}`);
-                const data = await response.json();
+                // For demo purposes - use mock data
+                // In production, replace with actual API call
                 
-                if (data.success) {
-                    const t = data.traveler;
-                    
-                    // Hide loading, show dashboard
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('dashboardContent').style.display = 'block';
-                    
-                    // Update welcome
-                    document.getElementById('travelerFullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim();
-                    
-                    // Personal Information
-                    document.getElementById('fullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim() || '-';
-                    document.getElementById('passportNo').textContent = t.passport_no || '-';
-                    document.getElementById('gender').textContent = t.gender || '-';
-                    document.getElementById('dob').textContent = t.dob || '-';
-                    
-                    // Contact Information
-                    document.getElementById('mobile').textContent = t.mobile || '-';
-                    document.getElementById('email').textContent = t.email || '-';
-                    document.getElementById('aadhaar').textContent = t.aadhaar || '-';
-                    document.getElementById('pan').textContent = t.pan || '-';
-                    
-                    // Health Information
-                    document.getElementById('vaccineStatus').textContent = t.vaccine_status || 'Not Vaccinated';
-                    document.getElementById('wheelchair').textContent = t.wheelchair || 'No';
-                    
-                    // Parse extra fields
-                    let extraFields = {};
-                    if (t.extra_fields) {
-                        try {
-                            extraFields = typeof t.extra_fields === 'string' ? 
-                                JSON.parse(t.extra_fields) : t.extra_fields;
-                        } catch (e) {
-                            console.error('Error parsing extra fields:', e);
-                        }
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+                
+                // Mock data based on passport
+                const mockTravelers = {
+                    'A1234567': {
+                        id: 1,
+                        first_name: 'Ahmed',
+                        last_name: 'Khan',
+                        passport_no: 'A1234567',
+                        gender: 'Male',
+                        dob: '1985-05-20',
+                        mobile: '9876543210',
+                        email: 'ahmed.khan@email.com',
+                        aadhaar: '1234-5678-9012',
+                        pan: 'ABCDE1234F',
+                        vaccine_status: 'Fully Vaccinated',
+                        wheelchair: 'No',
+                        father_name: 'Abdul Khan',
+                        mother_name: 'Aisha Khan',
+                        spouse_name: 'Fatima Khan',
+                        place_of_birth: 'Mumbai',
+                        place_of_issue: 'Mumbai',
+                        passport_address: '123, Haj House, Mumbai - 400001',
+                        passport_scan: 'passport_1.pdf',
+                        aadhaar_scan: 'aadhaar_1.pdf',
+                        pan_scan: 'pan_1.pdf',
+                        vaccine_scan: 'vaccine_1.pdf',
+                        batch_name: 'Haj Platinum 2026',
+                        departure_date: '2026-06-14',
+                        return_date: '2026-07-31',
+                        batch_status: 'Open',
+                        extra_fields: {
+                            blood_group: 'O+',
+                            allergies: 'None',
+                            emergency_contact: 'Brother - Abdul',
+                            emergency_phone: '9876543211'
+                        },
+                        payments: [
+                            { installment: 'Booking Amount', due_date: '2026-01-15', amount: 85000, status: 'Paid', payment_date: '2026-01-15' },
+                            { installment: '1st Installment', due_date: '2026-03-15', amount: 170000, status: 'Paid', payment_date: '2026-03-10' },
+                            { installment: '2nd Installment', due_date: '2026-05-15', amount: 255000, status: 'Pending', payment_date: '-' },
+                            { installment: 'Final Payment', due_date: '2026-06-01', amount: 340000, status: 'Pending', payment_date: '-' }
+                        ]
+                    },
+                    'B7654321': {
+                        id: 2,
+                        first_name: 'Fatima',
+                        last_name: 'Begum',
+                        passport_no: 'B7654321',
+                        gender: 'Female',
+                        dob: '1990-08-15',
+                        mobile: '8765432109',
+                        email: 'fatima.begum@email.com',
+                        aadhaar: '2345-6789-0123',
+                        pan: 'FGHIJ5678K',
+                        vaccine_status: 'Fully Vaccinated',
+                        wheelchair: 'No',
+                        father_name: 'Mohammed Ali',
+                        mother_name: 'Zainab Ali',
+                        spouse_name: 'Hassan Khan',
+                        place_of_birth: 'Delhi',
+                        place_of_issue: 'Delhi',
+                        passport_address: '456, Green Park, Delhi - 110016',
+                        passport_scan: 'passport_2.pdf',
+                        aadhaar_scan: 'aadhaar_2.pdf',
+                        pan_scan: 'pan_2.pdf',
+                        vaccine_scan: 'vaccine_2.pdf',
+                        batch_name: 'Haj Gold 2026',
+                        departure_date: '2026-06-15',
+                        return_date: '2026-07-30',
+                        batch_status: 'Open',
+                        extra_fields: {
+                            blood_group: 'A+',
+                            allergies: 'Dust',
+                            emergency_contact: 'Hassan Khan',
+                            emergency_phone: '8765432108'
+                        },
+                        payments: [
+                            { installment: 'Booking Amount', due_date: '2026-01-20', amount: 55000, status: 'Paid', payment_date: '2026-01-20' },
+                            { installment: '1st Installment', due_date: '2026-03-20', amount: 110000, status: 'Paid', payment_date: '2026-03-15' },
+                            { installment: '2nd Installment', due_date: '2026-05-20', amount: 165000, status: 'Pending', payment_date: '-' }
+                        ]
                     }
-                    
-                    document.getElementById('bloodGroup').textContent = extraFields.blood_group || '-';
-                    document.getElementById('allergies').textContent = extraFields.allergies || '-';
-                    document.getElementById('emergencyContact').textContent = extraFields.emergency_contact || '-';
-                    document.getElementById('emergencyPhone').textContent = extraFields.emergency_phone || '-';
-                    
-                    // Family Information
-                    document.getElementById('fatherName').textContent = t.father_name || '-';
-                    document.getElementById('motherName').textContent = t.mother_name || '-';
-                    document.getElementById('spouseName').textContent = t.spouse_name || '-';
-                    
-                    // Address
-                    document.getElementById('placeOfBirth').textContent = t.place_of_birth || '-';
-                    document.getElementById('placeOfIssue').textContent = t.place_of_issue || '-';
-                    document.getElementById('address').textContent = t.passport_address || '-';
-                    
-                    // Document status
-                    document.getElementById('passportStatus').textContent = t.passport_scan ? '✓ Uploaded' : '✗ Missing';
-                    document.getElementById('aadhaarStatus').textContent = t.aadhaar_scan ? '✓ Uploaded' : '✗ Missing';
-                    document.getElementById('panStatus').textContent = t.pan_scan ? '✓ Uploaded' : '✗ Missing';
-                    document.getElementById('vaccineStatus').textContent = t.vaccine_scan ? '✓ Uploaded' : '✗ Missing';
-                    
-                    // Update document styling
-                    updateDocumentStyle('passportDoc', t.passport_scan);
-                    updateDocumentStyle('aadhaarDoc', t.aadhaar_scan);
-                    updateDocumentStyle('panDoc', t.pan_scan);
-                    updateDocumentStyle('vaccineDoc', t.vaccine_scan);
-                    
-                    // Batch info
-                    document.getElementById('batchName').textContent = t.batch_name || 'Not Assigned';
-                    document.getElementById('departureDate').textContent = t.departure_date || 'TBD';
-                    document.getElementById('returnDate').textContent = t.return_date || 'TBD';
-                    document.getElementById('batchStatus').textContent = t.batch_status || 'Open';
-                    
-                    // Load payment schedule
-                    if (t.id) {
-                        loadPaymentSchedule(t.id);
-                    }
-                } else {
-                    showError();
-                }
+                };
+
+                const t = mockTravelers[travelerPassport] || mockTravelers['A1234567']; // Default to first if not found
+                travelerData = t;
+                
+                // Hide loading, show dashboard
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                
+                // Update welcome
+                document.getElementById('travelerFullName').textContent = `${t.first_name} ${t.last_name}`;
+                document.getElementById('travelerNameDisplay').textContent = `${t.first_name} ${t.last_name}`;
+                
+                // Personal Information
+                document.getElementById('fullName').textContent = `${t.first_name} ${t.last_name}`;
+                document.getElementById('passportNo').textContent = t.passport_no;
+                document.getElementById('gender').textContent = t.gender;
+                document.getElementById('dob').textContent = formatDate(t.dob);
+                
+                // Contact Information
+                document.getElementById('mobile').textContent = t.mobile;
+                document.getElementById('email').textContent = t.email;
+                document.getElementById('aadhaar').textContent = t.aadhaar;
+                document.getElementById('pan').textContent = t.pan;
+                
+                // Health Information
+                document.getElementById('vaccineStatus').textContent = t.vaccine_status;
+                document.getElementById('wheelchair').textContent = t.wheelchair;
+                document.getElementById('bloodGroup').textContent = t.extra_fields?.blood_group || '-';
+                document.getElementById('allergies').textContent = t.extra_fields?.allergies || '-';
+                
+                // Family Information
+                document.getElementById('fatherName').textContent = t.father_name;
+                document.getElementById('motherName').textContent = t.mother_name;
+                document.getElementById('spouseName').textContent = t.spouse_name || '-';
+                
+                // Address
+                document.getElementById('placeOfBirth').textContent = t.place_of_birth;
+                document.getElementById('placeOfIssue').textContent = t.place_of_issue;
+                document.getElementById('address').textContent = t.passport_address;
+                
+                // Emergency Contact
+                document.getElementById('emergencyContact').textContent = t.extra_fields?.emergency_contact || '-';
+                document.getElementById('emergencyPhone').textContent = t.extra_fields?.emergency_phone || '-';
+                
+                // Document status
+                updateDocumentStatus('passport', t.passport_scan);
+                updateDocumentStatus('aadhaar', t.aadhaar_scan);
+                updateDocumentStatus('pan', t.pan_scan);
+                updateDocumentStatus('vaccine', t.vaccine_scan);
+                
+                // Batch info
+                document.getElementById('batchName').textContent = t.batch_name;
+                document.getElementById('departureDate').textContent = formatDate(t.departure_date);
+                document.getElementById('returnDate').textContent = formatDate(t.return_date);
+                document.getElementById('batchStatus').textContent = t.batch_status;
+                
+                // Load payment schedule
+                loadPaymentSchedule(t.payments);
+                
+                showNotification('Data loaded successfully', 'success');
+                
             } catch (error) {
                 console.error('Error loading traveler data:', error);
                 showError();
+                showNotification('Failed to load data. Please try again.', 'error');
             }
         }
 
-        function updateDocumentStyle(elementId, hasDocument) {
-            const element = document.getElementById(elementId);
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString('en-IN', options);
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        // Update document status styling
+        function updateDocumentStatus(docType, hasDocument) {
+            const element = document.getElementById(docType + 'Doc');
+            const statusElement = document.getElementById(docType + 'Status');
+            
             if (hasDocument) {
-                element.style.background = '#d4edda';
-                element.style.borderColor = '#27ae60';
+                element.className = 'document-item document-uploaded';
+                statusElement.innerHTML = '✓ Uploaded';
+                statusElement.style.color = '#27ae60';
             } else {
-                element.style.background = '#f8d7da';
-                element.style.borderColor = '#e74c3c';
+                element.className = 'document-item document-missing';
+                statusElement.innerHTML = '✗ Missing';
+                statusElement.style.color = '#e74c3c';
             }
         }
 
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('dashboardContent').style.display = 'none';
+        // View document (mock function)
+        function viewDocument(docType) {
+            const hasDocument = travelerData && travelerData[docType + '_scan'];
+            
+            if (hasDocument) {
+                showNotification(`Opening ${docType} document... (Demo)`, 'info');
+                // In production, open actual document:
+                // window.open(`/uploads/${travelerData[docType + '_scan']}`, '_blank');
+            } else {
+                showNotification(`No ${docType} document uploaded yet`, 'error');
+            }
         }
 
         // Load payment schedule
-        async function loadPaymentSchedule(travelerId) {
-            try {
-                // Try multiple endpoints for payments
-                let response;
-                let data;
-                
-                // Try traveler-specific payments endpoint first
-                response = await fetch(`/api/payments/traveler/${travelerId}`);
-                if (response.ok) {
-                    data = await response.json();
-                } else {
-                    // Fallback to all payments and filter
-                    response = await fetch('/api/payments');
-                    const allData = await response.json();
-                    if (allData.success) {
-                        data = {
-                            success: true,
-                            payments: allData.payments.filter(p => p.traveler_id === travelerId)
-                        };
-                    } else {
-                        throw new Error('Failed to load payments');
-                    }
-                }
-                
-                if (data.success && data.payments && data.payments.length > 0) {
-                    const tbody = document.getElementById('paymentTableBody');
-                    tbody.innerHTML = data.payments.map(p => {
-                        const statusClass = p.status === 'Paid' ? 'payment-paid' : 'payment-pending';
-                        return `
+        function loadPaymentSchedule(payments) {
+            const tbody = document.getElementById('paymentTableBody');
+            
+            if (payments && payments.length > 0) {
+                tbody.innerHTML = payments.map(p => {
+                    const statusClass = p.status === 'Paid' ? 'payment-paid' : 'payment-pending';
+                    return `
                         <tr>
-                            <td><strong>${p.installment || 'Installment'}</strong></td>
-                            <td>${p.due_date || '-'}</td>
-                            <td>₹${p.amount ? p.amount.toLocaleString('en-IN') : '0'}</td>
-                            <td class="${statusClass}">${p.status || 'Pending'}</td>
-                            <td>${p.payment_date || '-'}</td>
-                        </tr>
-                    `}).join('');
-                } else {
-                    document.getElementById('paymentTableBody').innerHTML = `
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px;">
-                                <i class="fas fa-info-circle" style="color: #3498db;"></i>
-                                No payment records found. Contact admin for payment schedule.
+                            <td><strong>${p.installment}</strong></td>
+                            <td>${formatDate(p.due_date)}</td>
+                            <td>₹${p.amount.toLocaleString('en-IN')}</td>
+                            <td class="${statusClass}">
+                                <span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">
+                                    ${p.status}
+                                </span>
                             </td>
+                            <td>${p.payment_date !== '-' ? formatDate(p.payment_date) : '-'}</td>
                         </tr>
                     `;
-                }
-            } catch (error) {
-                console.error('Error loading payments:', error);
-                document.getElementById('paymentTableBody').innerHTML = `
+                }).join('');
+            } else {
+                tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px; color: #e74c3c;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            Error loading payment schedule
+                        <td colspan="5" class="no-data">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; color: #ffd700;"></i>
+                            <p style="margin-top: 10px;">No payment records found</p>
+                            <p style="color: #95a5a6; font-size: 0.9rem;">Contact admin for payment schedule</p>
                         </td>
                     </tr>
                 `;
             }
         }
 
+        // Show error state
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        }
+
+        // Refresh data
+        function refreshData() {
+            showNotification('Refreshing data...', 'info');
+            loadTravelerData();
+        }
+
         // Print dashboard
         function printDashboard() {
+            if (!travelerData) {
+                showNotification('No data to print', 'error');
+                return;
+            }
+            
             const content = document.getElementById('dashboardContent').innerHTML;
+            const travelerName = `${travelerData.first_name} ${travelerData.last_name}`;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
                 <head>
-                    <title>My Haj Journey - Details</title>
+                    <title>Haj Journey Details - ${travelerName}</title>
                     <style>
-                        body { font-family: Arial, sans-serif; padding: 30px; }
-                        h1 { color: #2c3e50; }
-                        h2 { color: #27ae60; margin-top: 30px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
-                        td { padding: 10px; border: 1px solid #ddd; }
-                        .info-card { margin-bottom: 20px; }
-                        .status-badge { padding: 5px 10px; border-radius: 5px; }
+                        body { 
+                            font-family: 'Segoe UI', Arial, sans-serif; 
+                            padding: 30px; 
+                            max-width: 1200px;
+                            margin: 0 auto;
+                        }
+                        h1 { 
+                            color: #1e3c72; 
+                            border-bottom: 2px solid #ffd700;
+                            padding-bottom: 10px;
+                        }
+                        h2 { 
+                            color: #2a5298; 
+                            margin-top: 30px;
+                        }
+                        table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            margin: 20px 0; 
+                        }
+                        th { 
+                            background: #1e3c72; 
+                            color: white; 
+                            padding: 12px; 
+                            text-align: left; 
+                        }
+                        td { 
+                            padding: 10px; 
+                            border: 1px solid #ddd; 
+                        }
+                        .info-card { 
+                            margin-bottom: 20px; 
+                            border: 1px solid #ddd;
+                            padding: 15px;
+                            border-radius: 8px;
+                        }
+                        .status-badge { 
+                            padding: 5px 10px; 
+                            border-radius: 5px; 
+                            display: inline-block;
+                        }
+                        .status-active { background: #d4edda; color: #155724; }
+                        .status-pending { background: #fff3cd; color: #856404; }
+                        .print-date {
+                            color: #7f8c8d;
+                            text-align: right;
+                            margin-bottom: 20px;
+                        }
                         @media print {
                             body { padding: 15px; }
                             button { display: none; }
@@ -861,18 +1129,33 @@
                     </style>
                 </head>
                 <body>
-                    <h1>My Haj Journey - Complete Details</h1>
-                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <div class="print-date">
+                        Generated on: ${new Date().toLocaleString()}
+                    </div>
+                    <h1>Alhudha Haj Travel System</h1>
+                    <h2>Haj Journey Details - ${travelerName}</h2>
                     ${content}
+                    <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">
+                        Alhudha Haj Travel System - Official Document
+                    </p>
                 </body>
                 </html>
             `);
             printWindow.document.close();
-            printWindow.print();
+            
+            // Wait for content to load then print
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
         }
 
-        // Initialize
-        loadTravelerData();
+        // Prevent back button after logout
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function() {
+            if (!sessionStorage.getItem('travelerId')) {
+                window.location.href = 'traveler_login.html';
+            }
+        });
     </script>
 </body>
 </html>
