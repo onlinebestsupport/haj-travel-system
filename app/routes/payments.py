@@ -36,7 +36,7 @@ def get_all_payments():
         cur.close()
         conn.close()
         
-        return jsonify({'success': True, 'payments': payments})
+        return jsonify({'success': True, 'payments': payments, 'count': len(payments)})
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -104,6 +104,11 @@ def create_payment():
     """Create a new payment"""
     try:
         data = request.json
+        required_fields = ['traveler_id', 'amount']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'success': False, 'error': f'{field} is required'}), 400
+        
         conn = get_db()
         if not conn:
             return jsonify({'success': False, 'error': 'Database not available'}), 503
@@ -118,7 +123,7 @@ def create_payment():
             RETURNING id
         """, (
             data.get('traveler_id'),
-            data.get('installment'),
+            data.get('installment', 'Full Payment'),
             data.get('amount'),
             data.get('due_date'),
             data.get('payment_date'),
@@ -161,6 +166,24 @@ def get_payment_stats():
         for row in cur.fetchall():
             status_counts[row[0]] = row[1]
         
+        # Recent payments
+        cur.execute("""
+            SELECT p.id, t.first_name || ' ' || t.last_name as traveler_name, p.amount, p.status
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            ORDER BY p.created_at DESC
+            LIMIT 5
+        """)
+        
+        recent = []
+        for row in cur.fetchall():
+            recent.append({
+                'id': row[0],
+                'traveler_name': row[1],
+                'amount': float(row[2]),
+                'status': row[3]
+            })
+        
         cur.close()
         conn.close()
         
@@ -169,9 +192,60 @@ def get_payment_stats():
             'stats': {
                 'total_collected': float(total_collected),
                 'pending_amount': float(pending_amount),
-                'status_counts': status_counts
+                'status_counts': status_counts,
+                'recent_payments': recent
             }
         })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@payments_bp.route('/<int:payment_id>', methods=['PUT'])
+def update_payment(payment_id):
+    """Update payment status"""
+    try:
+        data = request.json
+        conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
+        cur = conn.cursor()
+        
+        cur.execute("""
+            UPDATE payments 
+            SET status = %s, payment_date = %s, payment_method = %s
+            WHERE id = %s
+        """, (
+            data.get('status'),
+            data.get('payment_date'),
+            data.get('payment_method'),
+            payment_id
+        ))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Payment updated successfully'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@payments_bp.route('/<int:payment_id>', methods=['DELETE'])
+def delete_payment(payment_id):
+    """Delete a payment"""
+    try:
+        conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
+        cur = conn.cursor()
+        cur.execute("DELETE FROM payments WHERE id = %s", (payment_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Payment deleted successfully'})
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
