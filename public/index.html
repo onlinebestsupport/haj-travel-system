@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alhudha Haj Travel - Your Journey to the Holy Land</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Front page specific styles */
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(52, 73, 94, 0.9)), url('https://images.unsplash.com/photo-1542816417-5cef58c1e8e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 40px 0;
+        }
+        
+        .package-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .package-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .package-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .package-body {
+            padding: 20px;
+        }
+        
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .features i {
+            color: #27ae60;
+            margin-right: 10px;
+        }
+        
+        .btn-enquire {
+            background: #27ae60;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        
+        .btn-enquire:hover {
+            background: #219a52;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-kaaba"></i>
+                <span>Alhudha Haj Travel</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="#packages">Packages</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="/login">Admin Login</a>
+                <a href="/traveler-login">Traveler Login</a>
+            </div>
+        </div>
+    </div>
 
+    <section class="hero">
+        <div class="container">
+            <h1>Your Journey to the Holy Land</h1>
+            <p class="subtitle">Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages</p>
+            <a href="#packages" class="btn-enquire">View Packages</a>
+        </div>
+    </section>
+
+    <section id="packages" class="container">
+        <h2 style="text-align: center; margin: 40px 0;">Our Haj & Umrah Packages</h2>
+        <div class="packages-grid" id="packagesGrid">
+            <!-- Packages will be loaded via API -->
+            <div style="text-align: center; grid-column: 1/-1;">Loading packages...</div>
+        </div>
+    </section>
+
+    <section id="about" class="container" style="padding: 60px 0;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Why Choose Alhudha?</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+            <div style="text-align: center;">
+                <i class="fas fa-mosque" style="font-size: 48px; color: #3498db;"></i>
+                <h3>25+ Years Experience</h3>
+                <p>Trusted by thousands of pilgrims</p>
+            </div>
+            <div style="text-align: center;">
+                <i class="fas fa-hotel" style="font-size: 48px; color: #3498db;"></i>
+                <h3>Premium Accommodation</h3>
+                <p>Hotels near Haram</p>
+            </div>
+            <div style="text-align: center;">
+                <i class="fas fa-bus" style="font-size: 48px; color: #3498db;"></i>
+                <h3>VIP Transportation</h3>
+                <p>Comfortable travel between holy sites</p>
+            </div>
+            <div style="text-align: center;">
+                <i class="fas fa-users" style="font-size: 48px; color: #3498db;"></i>
+                <h3>Expert Guides</h3>
+                <p>Knowledgeable guides throughout</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Alhudha Haj Travel</h3>
+                    <p>Your trusted partner for Haj and Umrah since 1998</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="/">Home</a>
+                    <a href="#packages">Packages</a>
+                    <a href="/login">Admin Login</a>
+                    <a href="/traveler-login">Traveler Login</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-phone"></i> +123 456 7890</p>
+                    <p><i class="fas fa-envelope"></i> info@alhudha.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Alhudha Haj Travel System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load packages from API
+        async function loadPackages() {
+            try {
+                const response = await fetch('/api/batches');
+                const data = await response.json();
+                
+                if (data.success && data.batches.length > 0) {
+                    const grid = document.getElementById('packagesGrid');
+                    grid.innerHTML = data.batches.map(b => `
+                        <div class="package-card">
+                            <div class="package-header">
+                                <h3>${b.batch_name}</h3>
+                            </div>
+                            <div class="package-body">
+                                <div class="price">₹${b.price?.toLocaleString() || 'Contact for price'}</div>
+                                <ul class="features">
+                                    <li><i class="fas fa-calendar"></i> Departure: ${b.departure_date || 'TBD'}</li>
+                                    <li><i class="fas fa-calendar-check"></i> Return: ${b.return_date || 'TBD'}</li>
+                                    <li><i class="fas fa-users"></i> Seats: ${b.booked_seats || 0}/${b.total_seats || 150}</li>
+                                    <li><i class="fas fa-tag"></i> Status: <span class="status-badge ${b.status === 'Open' ? 'status-active' : 'status-pending'}">${b.status}</span></li>
+                                </ul>
+                                <p>${b.description || 'Contact us for package details'}</p>
+                                <a href="https://wa.me/1234567890?text=I'm interested in ${b.batch_name}" class="btn-enquire" style="display: block; text-align: center;">
+                                    <i class="fab fa-whatsapp"></i> Enquire on WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading packages:', error);
+            }
+        }
+        
+        loadPackages();
+    </script>
+</body>
+</html>
