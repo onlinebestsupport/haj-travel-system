@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traveler Login - Alhudha Haj Travel System</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Traveler Login - Alhudha Haj Travel</title>
+    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -32,18 +32,6 @@
             max-width: 450px;
             position: relative;
             overflow: hidden;
-            animation: fadeInUp 0.5s ease;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         .login-container::before {
@@ -53,7 +41,7 @@
             left: 0;
             right: 0;
             height: 10px;
-            background: linear-gradient(90deg, #ffd700, #f39c12, #e74c3c, #9b59b6);
+            background: linear-gradient(90deg, #ffd700, #f39c12);
         }
         
         .login-header {
@@ -68,14 +56,6 @@
             background: rgba(255,215,0,0.1);
             padding: 25px;
             border-radius: 50%;
-            box-shadow: 0 10px 25px rgba(255,215,0,0.2);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
         }
         
         .login-header h1 {
@@ -89,17 +69,6 @@
             font-size: 1rem;
         }
         
-        .badge {
-            display: inline-block;
-            background: #ffd700;
-            color: #1e3c72;
-            padding: 5px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        
         .form-group {
             margin-bottom: 25px;
         }
@@ -109,13 +78,11 @@
             margin-bottom: 10px;
             color: #1e3c72;
             font-weight: 600;
-            font-size: 0.95rem;
         }
         
         .form-group label i {
             margin-right: 8px;
             color: #ffd700;
-            width: 20px;
         }
         
         .input-wrapper {
@@ -128,7 +95,6 @@
             top: 50%;
             transform: translateY(-50%);
             color: #95a5a6;
-            transition: color 0.3s;
         }
         
         .input-wrapper input {
@@ -148,33 +114,10 @@
             background: white;
         }
         
-        .input-wrapper input:focus + i {
-            color: #ffd700;
-        }
-        
-        .input-wrapper input:hover {
-            border-color: #b0b0b0;
-        }
-        
         .pin-input {
             letter-spacing: 8px;
             font-size: 1.5rem;
-            font-weight: 600;
             text-align: center;
-        }
-        
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #95a5a6;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        
-        .password-toggle:hover {
-            color: #1e3c72;
         }
         
         .login-btn {
@@ -193,131 +136,21 @@
             gap: 10px;
             transition: all 0.3s;
             margin-top: 20px;
-            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.3);
         }
         
         .login-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 35px rgba(30, 60, 114, 0.4);
-            background: linear-gradient(135deg, #2a5298, #1e3c72);
-        }
-        
-        .login-btn i {
-            font-size: 1.2rem;
-        }
-        
-        .login-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
         }
         
         .error-message {
             background: #fee;
             color: #e74c3c;
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 12px;
             margin-bottom: 25px;
-            font-size: 0.95rem;
             display: none;
-            align-items: center;
-            gap: 12px;
             border-left: 4px solid #e74c3c;
-            animation: shake 0.5s;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        
-        .error-message i {
-            font-size: 1.5rem;
-            color: #e74c3c;
-        }
-        
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            border-left: 4px solid #28a745;
-            animation: slideIn 0.3s;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .success-message i {
-            font-size: 1.5rem;
-            color: #28a745;
-        }
-        
-        .info-box {
-            background: #e8f4f8;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 25px 0 20px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .info-box p {
-            color: #1e3c72;
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-box i {
-            color: #3498db;
-            font-size: 1.2rem;
-        }
-        
-        .info-box small {
-            color: #7f8c8d;
-            display: block;
-            margin-left: 30px;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-        }
-        
-        .footer a {
-            color: #1e3c72;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-            margin: 0 10px;
-        }
-        
-        .footer a:hover {
-            color: #ffd700;
-        }
-        
-        .footer i {
-            margin-right: 5px;
-        }
-        
-        .footer p {
-            color: #95a5a6;
-            font-size: 0.85rem;
-            margin-top: 15px;
         }
         
         .demo-credentials {
@@ -330,53 +163,30 @@
         
         .demo-credentials p {
             color: #856404;
-            font-size: 0.9rem;
             margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .demo-credentials i {
-            color: #ffd700;
         }
         
         .demo-credentials small {
             color: #856404;
             display: block;
             margin-left: 25px;
-            font-size: 0.85rem;
         }
         
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .footer a {
+            color: #1e3c72;
+            text-decoration: none;
+            margin: 0 10px;
         }
         
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 20px;
-            }
-            
-            .login-header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .login-header i {
-                font-size: 4rem;
-                padding: 20px;
-            }
+        .footer a:hover {
+            color: #ffd700;
         }
     </style>
 </head>
@@ -386,31 +196,21 @@
             <i class="fas fa-user-circle"></i>
             <h1>Traveler Portal</h1>
             <p>Login with your passport number and PIN</p>
-            <span class="badge"><i class="fas fa-lock"></i> Secure Access</span>
         </div>
         
-        <!-- Demo Credentials (Remove in production) -->
-        <div class="demo-credentials" id="demoCredentials">
+        <!-- Demo Credentials -->
+        <div class="demo-credentials">
             <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials:</strong></p>
             <small>Passport: <strong>A1234567</strong> PIN: <strong>1234</strong></small>
             <small>Passport: <strong>B7654321</strong> PIN: <strong>5678</strong></small>
-            <small><i class="fas fa-exclamation-triangle"></i> Use these for testing</small>
         </div>
         
-        <!-- Error Message Display -->
+        <!-- Error Message -->
         <div id="errorMessage" class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            <span id="errorText">Invalid passport number or PIN</span>
-        </div>
-        
-        <!-- Success Message Display -->
-        <div id="successMessage" class="success-message">
-            <i class="fas fa-check-circle"></i>
-            <span id="successText">Login successful! Redirecting...</span>
+            <i class="fas fa-exclamation-circle"></i> Invalid passport number or PIN
         </div>
         
         <form id="travelerLoginForm">
-            <!-- Passport Number Field -->
             <div class="form-group">
                 <label for="passport_no">
                     <i class="fas fa-passport"></i> Passport Number
@@ -424,18 +224,10 @@
                         placeholder="Enter your passport number" 
                         required
                         autocomplete="off"
-                        autofocus
-                        maxlength="20"
-                        pattern="[A-Za-z0-9]+"
-                        title="Only letters and numbers allowed"
                     >
                 </div>
-                <small style="color: #7f8c8d; margin-top: 5px; display: block;">
-                    <i class="fas fa-info-circle"></i> Enter your passport number as shown on your document
-                </small>
             </div>
             
-            <!-- PIN Field -->
             <div class="form-group">
                 <label for="pin">
                     <i class="fas fa-key"></i> PIN (4 digits)
@@ -449,275 +241,73 @@
                         placeholder="****" 
                         maxlength="4"
                         required
-                        autocomplete="current-password"
                         class="pin-input"
-                        pattern="\d{4}"
-                        title="Please enter a 4-digit PIN"
-                        inputmode="numeric"
                     >
-                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
                 </div>
-                <small style="color: #7f8c8d; margin-top: 5px; display: block;">
-                    <i class="fas fa-info-circle"></i> 4-digit PIN provided during registration
-                </small>
             </div>
             
-            <!-- Login Button -->
             <button type="submit" id="loginBtn" class="login-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>View My Haj Details</span>
+                <i class="fas fa-sign-in-alt"></i> View My Haj Details
             </button>
         </form>
         
-        <!-- Information Box -->
-        <div class="info-box">
-            <p>
-                <i class="fas fa-info-circle"></i>
-                <strong>How to get your PIN?</strong>
-            </p>
-            <small>• Your PIN was provided during registration</small>
-            <small>• Contact your Haj administrator if you forgot your PIN</small>
-            <small>• For demo, use the credentials above</small>
-        </div>
-        
-        <!-- Footer Links -->
         <div class="footer">
-            <a href="index.html"><i class="fas fa-home"></i> Home</a>
-            <a href="admin.html"><i class="fas fa-lock"></i> Admin Login</a>
-            <p>© 2026 Alhudha Haj Travel System v2.0</p>
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="/admin.html"><i class="fas fa-lock"></i> Admin Login</a>
         </div>
     </div>
 
     <script>
-        // Toggle password visibility
-        const togglePassword = document.getElementById('togglePassword');
-        const pinInput = document.getElementById('pin');
-        
-        togglePassword.addEventListener('click', function() {
-            const type = pinInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            pinInput.setAttribute('type', type);
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
-        
-        // Auto-uppercase passport number
-        document.getElementById('passport_no').addEventListener('input', function(e) {
-            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            // Clear error when typing
-            document.getElementById('errorMessage').style.display = 'none';
-        });
-        
-        // Allow only digits in PIN
-        document.getElementById('pin').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            // Clear error when typing
-            document.getElementById('errorMessage').style.display = 'none';
-        });
-        
-        // Handle login form submission
         document.getElementById('travelerLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const passport_no = document.getElementById('passport_no').value.trim();
             const pin = document.getElementById('pin').value.trim();
             const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            const successDiv = document.getElementById('successMessage');
             const loginBtn = document.getElementById('loginBtn');
             
-            // Clear previous messages
             errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
             
-            // Validate inputs
             if (!passport_no || !pin) {
-                showError('Please enter both passport number and PIN');
+                errorDiv.style.display = 'block';
                 return;
             }
             
-            if (!/^\d{4}$/.test(pin)) {
-                showError('PIN must be exactly 4 digits');
-                return;
-            }
-            
-            if (passport_no.length < 5) {
-                showError('Please enter a valid passport number');
-                return;
-            }
-            
-            // Show loading state
-            const originalBtnText = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
+            // Show loading
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             loginBtn.disabled = true;
             
             try {
-                // For demo purposes - simulate API call
-                // In production, replace with actual API call
-                
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-                
-                // Demo authentication
-                const validCredentials = {
-                    'A1234567': '1234',
-                    'B7654321': '5678',
-                    'C9876543': '9012',
-                    'D2468135': '3456'
-                };
-                
-                if (validCredentials[passport_no] && validCredentials[passport_no] === pin) {
-                    // Login successful
-                    showSuccess('Login successful! Redirecting to dashboard...');
-                    
-                    // Store traveler info in session
-                    sessionStorage.setItem('travelerLoggedIn', 'true');
-                    sessionStorage.setItem('travelerPassport', passport_no);
-                    sessionStorage.setItem('travelerId', 'T' + Math.floor(Math.random() * 1000));
-                    sessionStorage.setItem('travelerName', getTravelerName(passport_no));
-                    sessionStorage.setItem('loginTime', new Date().toISOString());
-                    
-                    // Redirect to traveler dashboard
-                    setTimeout(() => {
-                        window.location.href = 'traveler_dashboard.html';
-                    }, 1500);
-                } else {
-                    // Login failed
-                    showError('Invalid passport number or PIN');
-                    
-                    // Clear PIN field on error
-                    document.getElementById('pin').value = '';
-                    document.getElementById('pin').focus();
-                    
-                    // Reset button
-                    loginBtn.innerHTML = originalBtnText;
-                    loginBtn.disabled = false;
-                }
-                
-                /* 
-                // PRODUCTION CODE - Uncomment when backend is ready
+                // Call API
                 const response = await fetch('/api/traveler/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        passport_no: passport_no, 
-                        pin: pin 
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ passport_no, pin })
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.success) {
-                    showSuccess('Login successful! Redirecting to dashboard...');
-                    
-                    sessionStorage.setItem('travelerLoggedIn', 'true');
+                if (data.success) {
                     sessionStorage.setItem('travelerId', data.traveler_id);
-                    sessionStorage.setItem('travelerPassport', passport_no);
                     sessionStorage.setItem('travelerName', data.name);
-                    sessionStorage.setItem('travelerBatch', data.batch_name);
+                    sessionStorage.setItem('travelerPassport', passport_no);
                     
-                    setTimeout(() => {
-                        window.location.href = data.redirect || 'traveler_dashboard.html';
-                    }, 1500);
+                    window.location.href = '/traveler/dashboard';
                 } else {
-                    showError(data.message || 'Invalid passport number or PIN');
-                    
-                    document.getElementById('pin').value = '';
-                    document.getElementById('pin').focus();
-                    
-                    loginBtn.innerHTML = originalBtnText;
+                    errorDiv.style.display = 'block';
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> View My Haj Details';
                     loginBtn.disabled = false;
                 }
-                */
-                
             } catch (error) {
-                console.error('Login error:', error);
-                showError('Connection error. Please try again.');
-                
-                // Reset button
-                loginBtn.innerHTML = originalBtnText;
+                errorDiv.style.display = 'block';
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> View My Haj Details';
                 loginBtn.disabled = false;
             }
         });
         
-        // Helper function to get traveler name from passport (demo)
-        function getTravelerName(passport) {
-            const names = {
-                'A1234567': 'Ahmed Khan',
-                'B7654321': 'Fatima Begum',
-                'C9876543': 'Mohammed Rafi',
-                'D2468135': 'Aisha Begum'
-            };
-            return names[passport] || 'Traveler';
-        }
-        
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorDiv.style.display = 'flex';
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Show success message
-        function showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            const successText = document.getElementById('successText');
-            successText.textContent = message;
-            successDiv.style.display = 'flex';
-        }
-        
-        // Check if already logged in
-        if (sessionStorage.getItem('travelerLoggedIn') === 'true') {
-            window.location.href = 'traveler_dashboard.html';
-        }
-        
-        // Add keyboard shortcut (Ctrl+Alt+T) for demo credentials
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.altKey && e.key === 't') {
-                document.getElementById('passport_no').value = 'A1234567';
-                document.getElementById('pin').value = '1234';
-                document.getElementById('loginBtn').focus();
-            }
-        });
-        
-        // Log login attempt for security (can be sent to server)
-        function logLoginAttempt(passport, success) {
-            console.log(`Login attempt: ${passport}, Success: ${success}, Time: ${new Date().toISOString()}`);
-            // In production, send this to your backend
-        }
-        
-        // Add animation style if not exists
-        if (!document.getElementById('traveler-style')) {
-            const style = document.createElement('style');
-            style.id = 'traveler-style';
-            style.textContent = `
-                .notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    padding: 15px 25px;
-                    border-radius: 8px;
-                    color: white;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-                    z-index: 9999;
-                    animation: slideInRight 0.3s ease;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // Prevent back button after logout
-        window.history.pushState(null, null, window.location.href);
-        window.addEventListener('popstate', function() {
-            if (sessionStorage.getItem('travelerLoggedIn') === 'true') {
-                window.location.href = 'traveler_dashboard.html';
-            }
+        // Auto-uppercase passport
+        document.getElementById('passport_no').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
         });
     </script>
 </body>
