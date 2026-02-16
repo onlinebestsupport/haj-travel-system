@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db, execute_query_with_dict
-import json
+from app.database import get_db, get_db_cursor
 import psycopg2
 import psycopg2.extras
 from functools import wraps
@@ -93,11 +92,14 @@ def validate_traveler_data(data, is_update=False):
 
 # ============ PUBLIC ROUTES (No Login Required) ============
 
-@travelers_bp.route('', methods=['GET'])
+@travelers_bp.route('/', methods=['GET'])
 def get_all_travelers():
     """Get all travelers with their batch names - Public limited view"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # For public access, only return limited fields
@@ -143,6 +145,9 @@ def get_traveler(traveler_id):
     """Get a single traveler by ID - Public limited view or full view for admin"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         if session.get('admin_logged_in'):
@@ -176,6 +181,9 @@ def get_traveler_by_passport(passport_no):
     """Get traveler by passport number - For traveler login"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # For traveler portal, we need more fields but not all admin fields
@@ -224,8 +232,11 @@ def create_traveler():
             return jsonify({'success': False, 'errors': errors}), 400
         
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
-        
+
         # Handle extra_fields JSON
         extra_fields = data.get('extra_fields', '{}')
         if isinstance(extra_fields, dict):
@@ -305,6 +316,9 @@ def update_traveler(traveler_id):
             return jsonify({'success': False, 'errors': errors}), 400
         
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
 
         # Handle extra_fields JSON
@@ -388,6 +402,9 @@ def delete_traveler(traveler_id):
     """Delete a traveler - Admin only"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
         
         # Get batch_id before deleting
@@ -421,11 +438,13 @@ def delete_traveler(traveler_id):
 # ============ ADMIN ROUTES - STATS AND SEARCH ============
 
 @travelers_bp.route('/stats/summary', methods=['GET'])
-@login_required
 def get_traveler_stats():
     """Get traveler statistics summary - Admin only"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
         
         # Total travelers
@@ -521,6 +540,9 @@ def search_travelers():
             return jsonify({'success': True, 'travelers': []})
         
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Search in multiple fields with better ranking
@@ -570,6 +592,9 @@ def get_travelers_by_batch(batch_id):
     """Get all travelers in a specific batch - Admin only"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         cur.execute("""
@@ -598,6 +623,9 @@ def export_travelers():
     """Export all travelers data (for admin use) - Admin only"""
     try:
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         # Get all fields for export
@@ -650,6 +678,9 @@ def bulk_update_status():
             return jsonify({'success': False, 'error': 'Traveler IDs and status are required'}), 400
         
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
         
         cur.execute("""
@@ -684,6 +715,9 @@ def bulk_delete():
             return jsonify({'success': False, 'error': 'No traveler IDs provided'}), 400
         
         conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+            
         cur = conn.cursor()
         
         # Get batch IDs before deleting to update seat counts
