@@ -151,23 +151,58 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ============ LOGIN ROUTES ============
+# ============ PUBLIC ROUTES (FIRST) ============
+@app.route('/')
+def serve_index():
+    """Public main page - shows packages"""
+    return send_from_directory(PUBLIC_DIR, 'index.html')
+
+@app.route('/traveler-login')
+def traveler_login_page():
+    """Serve traveler login page"""
+    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+
+@app.route('/traveler/dashboard')
+def traveler_dashboard():
+    """Serve traveler dashboard"""
+    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+
 @app.route('/login')
 def login_page():
+    """Serve admin login page"""
     return send_from_directory(PUBLIC_DIR, 'login.html')
 
+# ============ ADMIN ROUTES ============
+@app.route('/admin')
+@login_required
+def serve_admin():
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
+
+@app.route('/admin/dashboard')
+@login_required
+def serve_admin_dashboard():
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
+
+# ============ API ROUTES ============
+@app.route('/api')
+def api():
+    return jsonify({
+        "name": "Haj Travel System",
+        "status": "active",
+        "fields": 33,
+        "message": "API is working!"
+    })
+
+@app.route('/api/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
+
+# ============ LOGIN API ============
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    """API endpoint for login with proper password hashing"""
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
-    # Add debug logging
-    print("="*50)
-    print(f"🔐 Login attempt at {datetime.datetime.now()}")
-    print(f"Username: {username}")
-    print(f"Password length: {len(password) if password else 0}")
     
     try:
         conn = get_db()
@@ -185,61 +220,49 @@ def api_login():
         
         user = cur.fetchone()
         
-        if user:
-            print(f"✅ User found: {user[1]}")
-            print(f"Stored hash: {user[3]}")
-            print(f"Generated hash for comparison: {generate_password_hash(password)}")
-            print(f"Hashes match: {check_password_hash(user[3], password)}")
+        if user and check_password_hash(user[3], password):
+            user_id = user[0]
+            roles = user[4] if user[4] else ['viewer']
             
-            if check_password_hash(user[3], password):
-                print("✅ Password correct!")
-                user_id = user[0]
-                roles = user[4] if user[4] else ['viewer']
-                
-                cur.execute("""
-                    SELECT DISTINCT p.name
-                    FROM permissions p
-                    JOIN role_permissions rp ON p.id = rp.permission_id
-                    JOIN user_roles ur ON rp.role_id = ur.role_id
-                    WHERE ur.user_id = %s
-                """, (user_id,))
-                
-                permissions = [row[0] for row in cur.fetchall()]
-                
-                cur.execute("""
-                    INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
-                    VALUES (%s, NOW(), %s, %s)
-                """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
-                
-                cur.execute("UPDATE admin_users SET last_login = NOW() WHERE id = %s", (user_id,))
-                conn.commit()
-                
-                session['admin_logged_in'] = True
-                session['admin_user_id'] = user_id
-                session['admin_username'] = user[1]
-                session['admin_name'] = user[2] or user[1]
-                session['admin_roles'] = roles
-                session['admin_permissions'] = permissions
-                
-                return jsonify({
-                    'success': True,
-                    'message': 'Login successful',
-                    'user': {
-                        'id': user_id,
-                        'name': user[2] or user[1],
-                        'username': user[1],
-                        'roles': roles,
-                        'permissions': permissions
-                    }
-                })
-            else:
-                print("❌ Password incorrect!")
-                return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+            cur.execute("""
+                SELECT DISTINCT p.name
+                FROM permissions p
+                JOIN role_permissions rp ON p.id = rp.permission_id
+                JOIN user_roles ur ON rp.role_id = ur.role_id
+                WHERE ur.user_id = %s
+            """, (user_id,))
+            
+            permissions = [row[0] for row in cur.fetchall()]
+            
+            cur.execute("""
+                INSERT INTO login_logs (user_id, login_time, ip_address, user_agent)
+                VALUES (%s, NOW(), %s, %s)
+            """, (user_id, request.remote_addr, request.headers.get('User-Agent')))
+            
+            cur.execute("UPDATE admin_users SET last_login = NOW() WHERE id = %s", (user_id,))
+            conn.commit()
+            
+            session['admin_logged_in'] = True
+            session['admin_user_id'] = user_id
+            session['admin_username'] = user[1]
+            session['admin_name'] = user[2] or user[1]
+            session['admin_roles'] = roles
+            session['admin_permissions'] = permissions
+            
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'id': user_id,
+                    'name': user[2] or user[1],
+                    'username': user[1],
+                    'roles': roles,
+                    'permissions': permissions
+                }
+            })
         else:
-            print(f"❌ User not found: {username}")
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     except Exception as e:
-        print(f"❌ Login error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/logout', methods=['POST'])
@@ -263,49 +286,18 @@ def api_logout():
     session.clear()
     return jsonify({'success': True, 'message': 'Logout successful'})
 
-# ============ PROTECTED ADMIN ROUTES ============
-@app.route('/admin')
+# ============ USER PERMISSIONS ============
+@app.route('/api/user/permissions', methods=['GET'])
 @login_required
-def serve_admin():
-    return send_from_directory(PUBLIC_DIR, 'admin.html')
-
-@app.route('/admin/dashboard')
-@login_required
-def serve_admin_dashboard():
-    return send_from_directory(PUBLIC_DIR, 'admin.html')
-
-# ============ PUBLIC ROUTES ============
-@app.route('/')
-def serve_index():
-    return send_from_directory(PUBLIC_DIR, 'index.html')
-
-@app.route('/traveler-login')
-def traveler_login_page():
-    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
-
-@app.route('/traveler/dashboard')
-def traveler_dashboard():
-    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    if path.endswith('.css') or path.endswith('.js') or path.endswith('.png') or path.endswith('.jpg') or path.endswith('.svg'):
-        return send_from_directory(PUBLIC_DIR, path)
-    return send_from_directory(PUBLIC_DIR, path)
-
-# ============ API ROUTES ============
-@app.route('/api')
-def api():
+def get_user_permissions():
+    """Get current user's permissions"""
     return jsonify({
-        "name": "Haj Travel System",
-        "status": "active",
-        "fields": 33,
-        "message": "API is working!"
+        'success': True,
+        'user_id': session.get('admin_user_id'),
+        'username': session.get('admin_username'),
+        'roles': session.get('admin_roles', []),
+        'permissions': session.get('admin_permissions', [])
     })
-
-@app.route('/api/health')
-def health():
-    return jsonify({"status": "healthy"}), 200
 
 # ============ ROLES API ============
 @app.route('/api/roles', methods=['GET'])
@@ -1363,9 +1355,6 @@ def get_stats_summary():
         cur.execute("SELECT COUNT(*) FROM batches WHERE status IN ('Open', 'Closing Soon')")
         open_batches = cur.fetchone()[0]
         
-        cur.execute("SELECT COUNT(*) FROM travelers WHERE DATE(created_at) = CURRENT_DATE")
-        today = cur.fetchone()[0]
-        
         cur.close()
         conn.close()
         
@@ -1373,8 +1362,7 @@ def get_stats_summary():
             'success': True,
             'stats': {
                 'totalTravelers': total,
-                'openBatches': open_batches,
-                'todayRegistrations': today
+                'openBatches': open_batches
             }
         })
     except Exception as e:
@@ -1387,45 +1375,38 @@ def get_stats_summary():
 def get_admin_login_logs():
     try:
         days = request.args.get('days', 30)
-        
-        try:
-            days_int = int(days)
-        except ValueError:
-            days_int = 30
+        days_int = int(days) if days else 30
         
         conn = get_db()
         cur = conn.cursor()
         
         cur.execute("""
             SELECT 
-                l.id, 
                 u.username, 
                 u.full_name, 
                 l.login_time, 
                 l.logout_time, 
-                l.ip_address,
-                l.user_agent
+                l.ip_address
             FROM login_logs l
             JOIN admin_users u ON l.user_id = u.id
             WHERE l.login_time > NOW() - INTERVAL '%s days'
             ORDER BY l.login_time DESC
+            LIMIT 100
         """, (days_int,))
         
         logs = []
         for row in cur.fetchall():
             duration = None
-            if row[4]:
-                duration = round((row[4] - row[3]).total_seconds() / 60, 2)
+            if row[3]:
+                duration = round((row[3] - row[2]).total_seconds() / 60, 2)
             
             logs.append({
-                'id': row[0],
-                'username': row[1],
-                'full_name': row[2],
-                'login_time': row[3].isoformat(),
-                'logout_time': row[4].isoformat() if row[4] else None,
+                'username': row[0],
+                'full_name': row[1] or row[0],
+                'login_time': row[2].isoformat(),
+                'logout_time': row[3].isoformat() if row[3] else None,
                 'duration_minutes': duration,
-                'ip_address': row[5],
-                'user_agent': row[6][:50] + '...' if row[6] and len(row[6]) > 50 else row[6]
+                'ip_address': row[4]
             })
         
         cur.close()
@@ -1433,6 +1414,11 @@ def get_admin_login_logs():
         return jsonify({'success': True, 'logs': logs})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ STATIC FILES - MUST BE LAST ============
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory(PUBLIC_DIR, path)
 
 # ============ ERROR HANDLERS ============
 @app.errorhandler(404)
