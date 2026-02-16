@@ -2310,17 +2310,28 @@
         }
 
         function printTravelerDetails() {
-            const content = document.getElementById('travelerDetails').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>Traveler Details</title>
-                /* Super Admin Dashboard Fixes */
-#superAdminTab .stat-number {
-    font-size: clamp(1.2rem, 3vw, 2rem);
-    white-space: normal;
-    word-break: break-word;
-    overflow-wrap: break-word;
+    const content = document.getElementById('travelerDetails').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head><title>Traveler Details</title>
+        /* Super Admin Dashboard Fixes */
+        #superAdminTab .stat-number {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        ... (rest of CSS) ...
+        <style>
+            table { width: 100%; border-collapse: collapse; }
+            th { background: #3498db; color: white; padding: 10px; }
+            td { padding: 8px; border: 1px solid #ddd; }
+        </style>
+        </head>
+        <body>${content}</body>
+        </html>
+    `);
 }
 
 #superAdminTab .stat-card {
