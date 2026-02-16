@@ -1,14 +1,11 @@
 {
   "build": {
-    "builder": "RAILPACK",
-    "buildCommand": null,
-    "detect": {
-      "python": true
-    }
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "gunicorn app.server:app",
-    "healthcheckPath": "/api",
+    "startCommand": "gunicorn app:app",
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 5,
     "restartPolicyType": "ON_FAILURE"
   }
 }
