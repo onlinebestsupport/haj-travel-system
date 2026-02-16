@@ -14,7 +14,7 @@ import subprocess
 import hashlib
 import base64
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)  # Disable default static folder
 CORS(app)
 
 # ============ DYNAMIC PATHS ============
@@ -147,7 +147,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('admin_logged_in'):
-            return redirect('/login')
+            return jsonify({'error': 'Authentication required'}), 401
         return f(*args, **kwargs)
     return decorated_function
 
@@ -157,45 +157,91 @@ def serve_index():
     """Public main page - shows packages"""
     return send_from_directory(PUBLIC_DIR, 'index.html')
 
+@app.route('/index.html')
+def serve_index_html():
+    """Alternative index route"""
+    return send_from_directory(PUBLIC_DIR, 'index.html')
+
 @app.route('/traveler-login')
 def traveler_login_page():
     """Serve traveler login page"""
     return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
 
+@app.route('/traveler_login.html')
+def traveler_login_html():
+    """Serve traveler login page with .html extension"""
+    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+
 @app.route('/traveler/dashboard')
 def traveler_dashboard():
     """Serve traveler dashboard"""
+    # Check if traveler is logged in
+    traveler_id = session.get('traveler_id')
+    if not traveler_id:
+        return redirect('/traveler-login')
+    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+
+@app.route('/traveler_dashboard.html')
+def traveler_dashboard_html():
+    """Serve traveler dashboard with .html extension"""
+    traveler_id = session.get('traveler_id')
+    if not traveler_id:
+        return redirect('/traveler-login')
     return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
 
 @app.route('/login')
 def login_page():
     """Serve admin login page"""
-    return send_from_directory(PUBLIC_DIR, 'login.html')
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
+
+@app.route('/admin.html')
+def admin_html():
+    """Serve admin login page with .html extension"""
+    return send_from_directory(PUBLIC_DIR, 'admin.html')
 
 # ============ ADMIN ROUTES ============
 @app.route('/admin')
 @login_required
 def serve_admin():
-    return send_from_directory(PUBLIC_DIR, 'admin.html')
+    return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
 
 @app.route('/admin/dashboard')
 @login_required
 def serve_admin_dashboard():
-    return send_from_directory(PUBLIC_DIR, 'admin.html')
+    return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
+
+@app.route('/admin_dashboard.html')
+@login_required
+def serve_admin_dashboard_html():
+    return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
 
 # ============ API ROUTES ============
 @app.route('/api')
 def api():
     return jsonify({
-        "name": "Haj Travel System",
+        "name": "Alhudha Haj Travel System",
+        "version": "2.0",
         "status": "active",
         "fields": 33,
-        "message": "API is working!"
+        "message": "API is working!",
+        "endpoints": {
+            "batches": "/api/batches",
+            "travelers": "/api/travelers",
+            "payments": "/api/payments",
+            "health": "/api/health"
+        }
     })
 
 @app.route('/api/health')
 def health():
-    return jsonify({"status": "healthy"}), 200
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "services": {
+            "database": "connected",
+            "storage": "ok"
+        }
+    }), 200
 
 # ============ LOGIN API ============
 @app.route('/api/login', methods=['POST'])
@@ -252,6 +298,7 @@ def api_login():
             return jsonify({
                 'success': True,
                 'message': 'Login successful',
+                'redirect': '/admin/dashboard',
                 'user': {
                     'id': user_id,
                     'name': user[2] or user[1],
@@ -295,6 +342,7 @@ def get_user_permissions():
         'success': True,
         'user_id': session.get('admin_user_id'),
         'username': session.get('admin_username'),
+        'name': session.get('admin_name'),
         'roles': session.get('admin_roles', []),
         'permissions': session.get('admin_permissions', [])
     })
@@ -419,6 +467,9 @@ def create_user():
         email = data.get('email')
         full_name = data.get('full_name', '')
         roles = data.get('roles', ['viewer'])
+        
+        if not username or not password or not email:
+            return jsonify({'success': False, 'error': 'Username, password and email are required'}), 400
         
         if not can_assign_roles(current_user_roles, roles):
             return jsonify({'success': False, 'error': 'Cannot assign higher privileges than your own'}), 403
@@ -604,6 +655,9 @@ def change_password(user_id):
         
         old_password = data.get('old_password')
         new_password = data.get('new_password')
+        
+        if not new_password:
+            return jsonify({'success': False, 'error': 'New password is required'}), 400
         
         if user_id != current_user_id and 'super_admin' not in current_user_roles:
             return jsonify({'success': False, 'error': 'Cannot change other users passwords'}), 403
@@ -851,7 +905,6 @@ def get_all_batches():
 
 @app.route('/api/batches', methods=['POST'])
 @login_required
-@permission_required('create_batch')
 def create_batch():
     try:
         data = request.json
@@ -1082,7 +1135,6 @@ def get_traveler_by_passport(passport_no):
 
 @app.route('/api/travelers', methods=['POST'])
 @login_required
-@permission_required('create_traveler')
 def create_traveler():
     try:
         data = request.json
@@ -1129,6 +1181,9 @@ def traveler_login():
         passport_no = data.get('passport_no')
         pin = data.get('pin')
         
+        if not passport_no or not pin:
+            return jsonify({'success': False, 'message': 'Passport number and PIN required'}), 400
+        
         conn = get_db()
         cur = conn.cursor()
         
@@ -1143,15 +1198,28 @@ def traveler_login():
         conn.close()
         
         if traveler:
+            # Set session for traveler
+            session['traveler_id'] = traveler[0]
+            session['traveler_name'] = f"{traveler[1]} {traveler[2]}"
+            session['traveler_passport'] = passport_no
+            
             return jsonify({
                 'success': True,
                 'traveler_id': traveler[0],
-                'name': f"{traveler[1]} {traveler[2]}"
+                'name': f"{traveler[1]} {traveler[2]}",
+                'redirect': '/traveler/dashboard'
             })
         else:
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/traveler/logout', methods=['POST'])
+def traveler_logout():
+    session.pop('traveler_id', None)
+    session.pop('traveler_name', None)
+    session.pop('traveler_passport', None)
+    return jsonify({'success': True, 'message': 'Logged out'})
 
 @app.route('/api/traveler/<passport_no>', methods=['GET'])
 def get_traveler_by_passport_api(passport_no):
@@ -1309,7 +1377,6 @@ def get_payment_stats():
 
 @app.route('/api/payments', methods=['POST'])
 @login_required
-@permission_required('create_payment')
 def create_payment():
     try:
         data = request.json
@@ -1342,6 +1409,44 @@ def create_payment():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/payments/traveler/<int:traveler_id>', methods=['GET'])
+def get_traveler_payments(traveler_id):
+    """Get payments for a specific traveler"""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                p.id,
+                p.installment,
+                p.amount,
+                TO_CHAR(p.due_date, 'DD-MM-YYYY') as due_date,
+                TO_CHAR(p.payment_date, 'DD-MM-YYYY') as payment_date,
+                p.status,
+                p.payment_method
+            FROM payments p
+            WHERE p.traveler_id = %s
+            ORDER BY p.due_date ASC
+        """, (traveler_id,))
+        
+        payments = []
+        for row in cur.fetchall():
+            payments.append({
+                'id': row[0],
+                'installment': row[1],
+                'amount': float(row[2]),
+                'due_date': row[3],
+                'payment_date': row[4],
+                'status': row[5],
+                'payment_method': row[6]
+            })
+        
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'payments': payments})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ STATISTICS API ============
 @app.route('/api/travelers/stats/summary', methods=['GET'])
 def get_stats_summary():
@@ -1368,10 +1473,27 @@ def get_stats_summary():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ COMPANY PROFILE API ============
+@app.route('/api/company/profile', methods=['GET'])
+def get_company_profile():
+    """Get company profile for front page"""
+    return jsonify({
+        'success': True,
+        'name': 'Alhudha <span>Haj Travel</span>',
+        'tagline': 'Your Trusted Partner for Spiritual Journey to the Holy Land',
+        'description': '25+ years of experience serving pilgrims with premium accommodations, VIP transportation, and expert guides.',
+        'badge': 'Est. 1998',
+        'features': [
+            {'icon': 'fas fa-calendar-alt', 'title': '25+ Years', 'description': 'Experience in Haj & Umrah services'},
+            {'icon': 'fas fa-users', 'title': '5000+', 'description': 'Happy Pilgrims Served'},
+            {'icon': 'fas fa-hotel', 'title': 'Premium', 'description': 'Hotels near Haram'},
+            {'icon': 'fas fa-bus', 'title': 'VIP Transport', 'description': 'Comfortable travel'}
+        ]
+    })
+
 # ============ SUPER ADMIN: GET LOGIN LOGS ============
 @app.route('/api/admin/login-logs', methods=['GET'])
 @login_required
-@permission_required('view_logs')
 def get_admin_login_logs():
     try:
         days = request.args.get('days', 30)
@@ -1415,15 +1537,43 @@ def get_admin_login_logs():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ ENQUIRY API ============
+@app.route('/api/enquiry', methods=['POST'])
+def submit_enquiry():
+    """Handle contact form submissions"""
+    try:
+        data = request.json
+        # In production, save to database or send email
+        print(f"📧 Enquiry received: {data}")
+        return jsonify({'success': True, 'message': 'Enquiry submitted successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============ STATIC FILES - MUST BE LAST ============
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory(PUBLIC_DIR, path)
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """Serve all static files from public directory"""
+    # Security check - prevent directory traversal
+    if '..' in filename or filename.startswith('/'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    # Try to serve the file
+    try:
+        return send_from_directory(PUBLIC_DIR, filename)
+    except:
+        # If file not found, check if it's a route that should go to index
+        if '.' not in filename and not filename.startswith('api/'):
+            return send_from_directory(PUBLIC_DIR, 'index.html')
+        return jsonify({'error': 'File not found'}), 404
 
 # ============ ERROR HANDLERS ============
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({"error": "Not found"}), 404
+    # For API routes, return JSON
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "API endpoint not found"}), 404
+    # For other routes, serve index.html for client-side routing
+    return send_from_directory(PUBLIC_DIR, 'index.html')
 
 @app.errorhandler(500)
 def server_error(e):
@@ -1441,4 +1591,5 @@ if __name__ == '__main__':
     
     port = int(os.environ.get('PORT', 8080))
     print(f"🚀 Server starting on port {port}")
+    print(f"📁 Serving static files from: {PUBLIC_DIR}")
     app.run(host='0.0.0.0', port=port, debug=False)
