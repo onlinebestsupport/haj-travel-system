@@ -14,7 +14,7 @@ def get_db():
     
     try:
         conn = psycopg2.connect(database_url)
-        conn.autocommit = False  # Better for transaction management
+        conn.autocommit = False
         print("✅ Database connected successfully!")
         return conn
     except Exception as e:
@@ -43,7 +43,8 @@ def init_db():
                 full_name VARCHAR(100),
                 is_active BOOLEAN DEFAULT true,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP
+                last_login TIMESTAMP,
+                created_by INTEGER REFERENCES admin_users(id)
             );
         """)
         print("✅ admin_users table ready")
@@ -186,9 +187,7 @@ def init_db():
                 login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 logout_time TIMESTAMP,
                 ip_address VARCHAR(45),
-                user_agent TEXT,
-                duration_minutes INTEGER GENERATED ALWAYS AS 
-                    (EXTRACT(EPOCH FROM (logout_time - login_time))/60) STORED
+                user_agent TEXT
             );
         """)
         print("✅ login_logs table ready")
@@ -288,9 +287,6 @@ def init_db():
             ON CONFLICT (name) DO NOTHING;
         """)
         
-        # Assign permissions to roles
-        # Super admin gets all permissions (handled in application logic)
-        
         # Admin permissions
         cur.execute("""
             INSERT INTO role_permissions (role_id, permission_id)
@@ -339,16 +335,18 @@ def init_db():
         """)
         
         # Insert default admin users (password: admin123)
-        # Hash: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi
+        # SHA256 hash for "admin123" with salt "alhudha-salt-2026"
+        admin_password_hash = 'L5Ks5qk2Y8O+c1CXzX6hWpPxG69RyB5+2n4O7U+DmVQ='
+        
         cur.execute("""
             INSERT INTO admin_users (username, password_hash, email, full_name, is_active) VALUES 
-            ('superadmin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi', 'super@alhudha.com', 'Super Admin', true),
-            ('admin1', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi', 'admin@alhudha.com', 'Admin User', true),
-            ('manager1', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi', 'manager@alhudha.com', 'Manager', true),
-            ('staff1', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi', 'staff@alhudha.com', 'Staff Member', true),
-            ('viewer1', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPjY7QXgdBkWi', 'viewer@alhudha.com', 'Viewer Only', true)
+            ('superadmin', %s, 'super@alhudha.com', 'Super Admin', true),
+            ('admin1', %s, 'admin@alhudha.com', 'Admin User', true),
+            ('manager1', %s, 'manager@alhudha.com', 'Manager', true),
+            ('staff1', %s, 'staff@alhudha.com', 'Staff Member', true),
+            ('viewer1', %s, 'viewer@alhudha.com', 'Viewer Only', true)
             ON CONFLICT (username) DO NOTHING;
-        """)
+        """, (admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash, admin_password_hash))
         
         # Assign roles to users
         cur.execute("""
