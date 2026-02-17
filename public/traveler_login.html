@@ -274,9 +274,9 @@
     </div>
 
     <script>
-        // Disable Eruda if present (fix for the errors)
-        if (window.eruda) {
-            window.eruda.destroy();
+        // Check if already logged in and redirect
+        if (sessionStorage.getItem('travelerLoggedIn') === 'true') {
+            window.location.replace('/traveler_dashboard.html');
         }
         
         document.getElementById('travelerLoginForm').addEventListener('submit', async function(e) {
@@ -290,14 +290,14 @@
             errorDiv.style.display = 'none';
             
             if (!passport_no || !pin) {
-                errorDiv.style.display = 'block';
                 errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter both passport number and PIN';
+                errorDiv.style.display = 'block';
                 return;
             }
             
             if (!/^\d{4}$/.test(pin)) {
-                errorDiv.style.display = 'block';
                 errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> PIN must be exactly 4 digits';
+                errorDiv.style.display = 'block';
                 return;
             }
             
@@ -307,31 +307,34 @@
             loginBtn.disabled = true;
             
             try {
-                // Demo login for testing
-                const validCredentials = {
-                    'A1234567': '1234',
-                    'B7654321': '5678'
-                };
+                // Call the API
+                const response = await fetch('/api/travelers/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ passport_no, pin })
+                });
                 
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                const data = await response.json();
                 
-                if (validCredentials[passport_no] && validCredentials[passport_no] === pin) {
+                if (data.success) {
+                    // Store login info
                     sessionStorage.setItem('travelerLoggedIn', 'true');
+                    sessionStorage.setItem('travelerId', data.traveler_id);
+                    sessionStorage.setItem('travelerName', data.name);
                     sessionStorage.setItem('travelerPassport', passport_no);
-                    sessionStorage.setItem('travelerName', passport_no === 'A1234567' ? 'Ahmed Khan' : 'Fatima Begum');
                     
-                    window.location.href = '/traveler_dashboard.html';
+                    // Redirect to dashboard
+                    window.location.replace('/traveler_dashboard.html');
                 } else {
+                    errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (data.message || 'Invalid credentials');
                     errorDiv.style.display = 'block';
-                    errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid passport number or PIN';
                     loginBtn.innerHTML = originalText;
                     loginBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                errorDiv.style.display = 'block';
                 errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Connection error. Please try again.';
+                errorDiv.style.display = 'block';
                 loginBtn.innerHTML = originalText;
                 loginBtn.disabled = false;
             }
@@ -346,11 +349,6 @@
         document.getElementById('pin').addEventListener('input', function() {
             document.getElementById('errorMessage').style.display = 'none';
         });
-        
-        // Check if already logged in
-        if (sessionStorage.getItem('travelerLoggedIn') === 'true') {
-            window.location.href = '/traveler_dashboard.html';
-        }
     </script>
 </body>
 </html>
