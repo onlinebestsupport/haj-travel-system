@@ -1,8 +1,9 @@
-from flask import Flask, send_from_directory, jsonify, request, redirect
+from flask import Flask, send_from_directory, jsonify, request, redirect, session
 from flask_cors import CORS
 import os
 import logging
 from datetime import datetime
+from functools import wraps
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -93,7 +94,6 @@ def create_app():
     
     # Login required decorator for protected routes
     def login_required(f):
-        from functools import wraps
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if not session.get('admin_logged_in'):
@@ -142,6 +142,7 @@ def create_app():
             'status': 'operational',
             'endpoints': [
                 '/api/health',
+                '/api/login',
                 '/api/travelers',
                 '/api/uploads',
                 '/api/batches',
@@ -150,6 +151,42 @@ def create_app():
             ],
             'total_fields': 33
         })
+    
+    # ============ LOGIN API ============
+    @app.route('/api/login', methods=['POST'])
+    def api_login():
+        """Handle admin login"""
+        try:
+            data = request.json
+            username = data.get('username')
+            password = data.get('password')
+            
+            # Simple validation
+            if not username or not password:
+                return jsonify({'success': False, 'message': 'Username and password required'}), 400
+            
+            # For demo purposes - accept any credentials
+            # In production, check against database
+            if username in ['superadmin', 'admin1', 'manager1'] and password == 'admin123':
+                session['admin_logged_in'] = True
+                session['admin_username'] = username
+                session['admin_name'] = username
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Login successful',
+                    'redirect': '/admin/dashboard',
+                    'user': {
+                        'name': username,
+                        'roles': ['admin']
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+                
+        except Exception as e:
+            logger.error(f"Login error: {e}")
+            return jsonify({'success': False, 'message': 'Server error'}), 500
     
     # ============ BLUEPRINT REGISTRATION ============
     
@@ -160,9 +197,6 @@ def create_app():
         logger.info("✅ Travelers blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register travelers blueprint: {e}")
-        @app.route('/api/travelers')
-        def travelers_fallback():
-            return jsonify({'success': True, 'travelers': []})
     
     # Uploads blueprint
     try:
@@ -171,9 +205,6 @@ def create_app():
         logger.info("✅ Uploads blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register uploads blueprint: {e}")
-        @app.route('/api/uploads')
-        def uploads_fallback():
-            return jsonify({'success': True, 'message': 'Uploads API temporarily unavailable'})
     
     # Batches blueprint
     try:
@@ -182,9 +213,6 @@ def create_app():
         logger.info("✅ Batches blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register batches blueprint: {e}")
-        @app.route('/api/batches')
-        def batches_fallback():
-            return jsonify({'success': True, 'batches': []})
     
     # Payments blueprint
     try:
@@ -193,9 +221,6 @@ def create_app():
         logger.info("✅ Payments blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register payments blueprint: {e}")
-        @app.route('/api/payments')
-        def payments_fallback():
-            return jsonify({'success': True, 'payments': []})
     
     # Company blueprint
     try:
@@ -204,15 +229,6 @@ def create_app():
         logger.info("✅ Company blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register company blueprint: {e}")
-        @app.route('/api/company/profile')
-        def company_fallback():
-            return jsonify({
-                'success': True,
-                'name': 'Alhudha Haj Travel',
-                'tagline': 'Your Trusted Partner',
-                'badge': 'Est. 1998',
-                'features': []
-            })
     
     # Auth blueprint (optional)
     try:
