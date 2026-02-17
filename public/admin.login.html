@@ -426,6 +426,7 @@
                     document.getElementById('password').value = '';
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 errorText.textContent = 'Connection error. Please try again.';
                 errorDiv.style.display = 'flex';
                 loginBtn.innerHTML = originalBtnText;
