@@ -299,3 +299,32 @@ app = create_app()
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
+# ============ DIRECT LOGIN API (BACKUP) ============
+    @app.route('/api/login', methods=['POST'])
+    def api_login():
+        """Handle admin login directly (backup)"""
+        try:
+            data = request.json
+            username = data.get('username')
+            password = data.get('password')
+            
+            # Demo credentials
+            valid_users = {
+                'superadmin': 'admin123',
+                'admin1': 'admin123',
+                'manager1': 'admin123'
+            }
+            
+            if username in valid_users and valid_users[username] == password:
+                session['admin_logged_in'] = True
+                session['admin_username'] = username
+                return jsonify({
+                    'success': True, 
+                    'redirect': '/admin/dashboard',
+                    'user': {'name': username}
+                })
+            
+            return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+            
+        except Exception as e:
+            return jsonify({'success': False, 'message': 'Server error'}), 500
