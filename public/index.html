@@ -646,6 +646,18 @@
             }
         }
     </style>
+    <!-- Disable Eruda -->
+    <script>
+        // Completely disable Eruda if it tries to load
+        if (typeof window.eruda !== 'undefined') {
+            window.eruda.destroy();
+        }
+        window.eruda = null;
+        Object.defineProperty(window, 'eruda', {
+            get: function() { return null; },
+            set: function() {}
+        });
+    </script>
 </head>
 <body>
     <!-- Navbar -->
@@ -660,7 +672,6 @@
                 <a href="#packages">Packages</a>
                 <a href="#about">About</a>
                 <a href="#contact">Contact</a>
-                <!-- FIXED: Changed from admin.html to admin.login.html -->
                 <a href="admin.login.html" class="admin-link"><i class="fas fa-lock"></i> Admin Panel</a>
                 <a href="traveler_login.html" class="traveler-link"><i class="fas fa-user"></i> Traveler Login</a>
             </div>
@@ -798,7 +809,6 @@
                 <a href="traveler_login.html" class="btn-cta btn-cta-primary">
                     <i class="fas fa-sign-in-alt"></i> Traveler Login
                 </a>
-                <!-- FIXED: Changed from admin.html to admin.login.html -->
                 <a href="admin.login.html" class="btn-cta btn-cta-secondary">
                     <i class="fas fa-lock"></i> Admin Panel
                 </a>
@@ -826,7 +836,6 @@
                     <a href="#packages">Packages</a>
                     <a href="#about">About Us</a>
                     <a href="#contact">Contact</a>
-                    <!-- FIXED: Changed from admin.html to admin.login.html -->
                     <a href="admin.login.html">Admin Panel</a>
                     <a href="traveler_login.html">Traveler Login</a>
                 </div>
@@ -854,6 +863,11 @@
     </footer>
 
     <script>
+        // Disable Eruda completely
+        if (window.eruda) {
+            window.eruda.destroy();
+        }
+        
         // Load Company Profile from Database
         async function loadCompanyProfile() {
             try {
@@ -861,13 +875,11 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Update company info
                     document.getElementById('companyName').innerHTML = data.name || 'Alhudha <span>Haj Travel</span>';
                     document.getElementById('companyTagline').textContent = data.tagline || 'Your Trusted Partner for Spiritual Journey to the Holy Land';
                     document.getElementById('companyDescription').textContent = data.description || 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. 25+ years of trusted service guiding pilgrims to Makkah and Madinah.';
                     document.getElementById('companyBadge').textContent = data.badge || 'Est. 1998';
                     
-                    // Update features if available
                     if (data.features && data.features.length > 0) {
                         const featuresGrid = document.getElementById('companyFeatures');
                         featuresGrid.innerHTML = data.features.map(feature => `
@@ -881,7 +893,6 @@
                 }
             } catch (error) {
                 console.error('Error loading company profile:', error);
-                // Keep default values
             }
         }
 
@@ -890,35 +901,28 @@
             const grid = document.getElementById('packagesGrid');
             
             try {
-                // Try to fetch from API first
                 const response = await fetch('/api/batches');
                 
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Check if we have batches
                     if (data.batches && data.batches.length > 0) {
                         displayPackages(data.batches);
                     } else {
-                        // No batches found, show demo packages
                         showDemoPackages();
                     }
                 } else {
-                    // API not available, show demo packages
                     showDemoPackages();
                 }
             } catch (error) {
                 console.error('Error loading packages:', error);
-                // Show demo packages if API fails
                 showDemoPackages();
             }
         }
         
-        // Display packages from API
         function displayPackages(batches) {
             const grid = document.getElementById('packagesGrid');
             
-            // Filter active batches
             const activeBatches = batches.filter(batch => 
                 batch.status === 'Open' || batch.status === 'open' || batch.status === 'active'
             );
@@ -935,18 +939,15 @@
             }
             
             const packagesHTML = activeBatches.map(batch => {
-                // Calculate seats
                 const totalSeats = batch.total_seats || batch.totalSeats || 150;
                 const bookedSeats = batch.booked_seats || batch.bookedSeats || 0;
                 const availableSeats = totalSeats - bookedSeats;
                 const isClosingSoon = availableSeats < (totalSeats * 0.2);
                 
-                // Determine status class
                 let statusClass = 'status-active';
                 if (isClosingSoon) statusClass = 'status-closing';
                 if (availableSeats === 0) statusClass = 'status-full';
                 
-                // Format WhatsApp message
                 const whatsappMessage = encodeURIComponent(
                     `Hi, I'm interested in ${batch.batch_name || batch.name} package.\n` +
                     `Price: ${batch.price || 'Contact for price'}\n` +
@@ -1007,7 +1008,6 @@
             grid.innerHTML = packagesHTML;
         }
         
-        // Show demo packages (fallback)
         function showDemoPackages() {
             const demoPackages = [
                 {
