@@ -17,8 +17,15 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_PATH', 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
     
-    # Initialize CORS
-    CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": True}})
+    # Initialize CORS with proper settings
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["*"],
+            "supports_credentials": True,
+            "allow_headers": ["Content-Type", "Authorization"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        }
+    })
     
     # Get paths
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +41,20 @@ def create_app():
     
     logger.info(f"📁 Public folder: {PUBLIC_DIR}")
     logger.info(f"📁 Uploads folder: {UPLOAD_DIR}")
+    
+    # Add after-request handler for CORS
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+    
+    # Handle OPTIONS requests for CORS preflight
+    @app.route('/api/<path:path>', methods=['OPTIONS'])
+    def handle_options(path):
+        return '', 200
     
     # ============ SIMPLE HEALTH CHECK (ALWAYS WORKS) ============
     @app.route('/api/health')
@@ -92,13 +113,13 @@ def create_app():
                 '/api/travelers',
                 '/api/uploads',
                 '/api/batches',
-                '/api/payments'
+                '/api/payments',
+                '/api/company/profile'
             ],
             'total_fields': 33
         })
     
-    # ============ LAZY BLUEPRINT REGISTRATION ============
-    # Register blueprints with error handling so app doesn't crash if one fails
+    # ============ BLUEPRINT REGISTRATION ============
     
     # Travelers blueprint
     try:
@@ -107,14 +128,9 @@ def create_app():
         logger.info("✅ Travelers blueprint registered")
     except Exception as e:
         logger.error(f"❌ Failed to register travelers blueprint: {e}")
-        # Add fallback endpoint
         @app.route('/api/travelers')
         def travelers_fallback():
-            return jsonify({
-                'success': True,
-                'message': 'Travelers API temporarily unavailable',
-                'travelers': []
-            })
+            return jsonify({'success': True, 'travelers': []})
     
     # Uploads blueprint
     try:
@@ -125,38 +141,48 @@ def create_app():
         logger.error(f"❌ Failed to register uploads blueprint: {e}")
         @app.route('/api/uploads')
         def uploads_fallback():
-            return jsonify({
-                'success': True,
-                'message': 'Uploads API temporarily unavailable'
-            })
+            return jsonify({'success': True, 'message': 'Uploads API temporarily unavailable'})
     
-    # Batches blueprint (if exists)
+    # Batches blueprint
     try:
         from app.routes.batches import batches_bp
         app.register_blueprint(batches_bp, url_prefix='/api/batches')
         logger.info("✅ Batches blueprint registered")
-    except ImportError:
-        logger.warning("⚠️ Batches blueprint not found")
-        @app.route('/api/batches')
-        def batches_fallback():
-            return jsonify({
-                'success': True,
-                'batches': []
-            })
     except Exception as e:
         logger.error(f"❌ Failed to register batches blueprint: {e}")
+        @app.route('/api/batches')
+        def batches_fallback():
+            return jsonify({'success': True, 'batches': []})
     
-    # Payments blueprint (if exists)
+    # Payments blueprint
     try:
         from app.routes.payments import payments_bp
         app.register_blueprint(payments_bp, url_prefix='/api/payments')
         logger.info("✅ Payments blueprint registered")
-    except ImportError:
-        logger.warning("⚠️ Payments blueprint not found")
     except Exception as e:
         logger.error(f"❌ Failed to register payments blueprint: {e}")
+        @app.route('/api/payments')
+        def payments_fallback():
+            return jsonify({'success': True, 'payments': []})
     
-    # Auth blueprint (if exists)
+    # Company blueprint
+    try:
+        from app.routes.company import company_bp
+        app.register_blueprint(company_bp, url_prefix='/api/company')
+        logger.info("✅ Company blueprint registered")
+    except Exception as e:
+        logger.error(f"❌ Failed to register company blueprint: {e}")
+        @app.route('/api/company/profile')
+        def company_fallback():
+            return jsonify({
+                'success': True,
+                'name': 'Alhudha Haj Travel',
+                'tagline': 'Your Trusted Partner',
+                'badge': 'Est. 1998',
+                'features': []
+            })
+    
+    # Auth blueprint (optional)
     try:
         from app.routes.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -166,7 +192,7 @@ def create_app():
     except Exception as e:
         logger.error(f"❌ Failed to register auth blueprint: {e}")
     
-    # Admin blueprint (if exists)
+    # Admin blueprint (optional)
     try:
         from app.routes.admin import admin_bp
         app.register_blueprint(admin_bp, url_prefix='/api/admin')
@@ -224,7 +250,6 @@ def create_app():
 # Create the application instance
 app = create_app()
 
-# This allows running with `python -m app`
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
