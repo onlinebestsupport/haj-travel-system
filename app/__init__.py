@@ -78,7 +78,16 @@ def create_app():
                 'status': 'running',
                 'message': 'Frontend files not found but API is working'
             })
-    
+    @app.route('/admin.login.html')
+def serve_admin_login():
+    """Serve admin login page"""
+    return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+
+@app.route('/admin/dashboard')
+@login_required
+def serve_admin_dashboard():
+    """Serve admin dashboard"""
+    return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
     # ============ STATIC FILES ============
     @app.route('/<path:filename>')
     def serve_static(filename):
