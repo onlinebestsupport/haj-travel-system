@@ -3,18 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alhudha Haj Travel - Complete Haj & Umrah Management System</title>
-    
-    <!-- Meta Tags -->
-    <meta name="description" content="Complete Haj and Umrah travel management system with 33-field application form, admin panel, and document upload. Book your spiritual journey today.">
-    <meta name="keywords" content="Haj packages 2026, Umrah packages, Ramadhan Umrah, pilgrimage travel, Makkah hotels, Madinah hotels">
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="style.css">
+    <title>Admin Login - Alhudha Haj Travel System</title>
+    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        /* Global Styles */
         * {
             margin: 0;
             padding: 0;
@@ -23,561 +15,279 @@
         }
         
         body {
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+        .admin-login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            position: relative;
         }
         
-        /* Navbar Styles */
-        .navbar {
+        .admin-header {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
-            padding: 1rem 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .nav-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .nav-brand i {
-            color: #ffd700;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 50px;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        
-        .nav-links a:hover {
-            background: rgba(255,255,255,0.1);
-            color: #ffd700;
-        }
-        
-        .nav-links .admin-link {
-            background: #ffd700;
-            color: #1e3c72;
-            font-weight: 600;
-        }
-        
-        .nav-links .admin-link:hover {
-            background: #ffed4a;
-            color: #1e3c72;
-        }
-        
-        .nav-links .traveler-link {
-            border: 2px solid #ffd700;
-        }
-        
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9)), 
-                        url('https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: white;
-            padding: 120px 0;
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
         }
         
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            animation: fadeInUp 1s ease;
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.1) 50%);
         }
         
-        .hero h1 span {
+        .admin-header i {
+            font-size: 5rem;
             color: #ffd700;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        .hero .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            animation: fadeInUp 1s ease 0.2s both;
+        .admin-header h1 {
+            color: white;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
         }
         
-        .company-badge {
+        .admin-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .admin-badge {
             display: inline-block;
             background: #ffd700;
             color: #1e3c72;
-            padding: 0.5rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            animation: fadeInUp 1s ease;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Company Info Section */
-        .company-info {
-            padding: 60px 0;
-            background: white;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-        
-        .info-card {
-            text-align: center;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        
-        .info-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        }
-        
-        .info-card i {
-            font-size: 3rem;
-            color: #ffd700;
-            margin-bottom: 1rem;
-        }
-        
-        .info-card h3 {
-            color: #1e3c72;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Packages Section */
-        .packages-section {
-            padding: 60px 0;
-            background: #f8f9fa;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .section-title h2 {
-            font-size: 2.5rem;
-            color: #1e3c72;
-            margin-bottom: 1rem;
-        }
-        
-        .section-title p {
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .packages-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-        
-        .package-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            position: relative;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .package-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-        }
-        
-        .package-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #ffd700;
-            color: #1e3c72;
-            padding: 0.5rem 1.5rem;
+            padding: 8px 25px;
             border-radius: 50px;
             font-weight: 600;
             font-size: 0.9rem;
-            z-index: 2;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .package-header {
+        .login-form {
+            padding: 40px 40px 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #1e3c72;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group label i {
+            margin-right: 10px;
+            color: #ffd700;
+            width: 20px;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+            transition: all 0.3s;
+        }
+        
+        .input-wrapper input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+        
+        .input-wrapper input:focus {
+            border-color: #ffd700;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.1);
+            background: white;
+        }
+        
+        .input-wrapper input:focus + i {
+            color: #ffd700;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: #1e3c72;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #ffd700;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 16px;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
-            padding: 25px 20px;
-            text-align: center;
-        }
-        
-        .package-header h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .package-price {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ffd700;
-        }
-        
-        .package-body {
-            padding: 25px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .features {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 20px 0;
-        }
-        
-        .features li {
-            padding: 12px 0;
-            border-bottom: 1px solid #ecf0f1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .features i {
-            width: 25px;
-            color: #ffd700;
-            font-size: 1.1rem;
-        }
-        
-        .features span {
-            flex: 1;
-            color: #666;
-        }
-        
-        .features strong {
-            color: #1e3c72;
-            font-weight: 600;
-        }
-        
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-closing {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-full {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .package-description {
-            color: #666;
-            margin: 15px 0;
-            line-height: 1.6;
-            flex-grow: 1;
-        }
-        
-        .package-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .btn {
-            flex: 1;
-            padding: 12px;
             border: none;
-            border-radius: 50px;
+            border-radius: 12px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            transition: all 0.3s;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(30, 60, 114, 0.4);
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #e74c3c;
+            animation: shake 0.5s;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #28a745;
+            animation: slideIn 0.3s;
+        }
+        
+        .demo-credentials {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .demo-credentials p {
+            color: #856404;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
         
-        .btn-whatsapp {
-            background: #25D366;
-            color: white;
-        }
-        
-        .btn-whatsapp:hover {
-            background: #128C7E;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
-        }
-        
-        .btn-apply {
-            background: #1e3c72;
-            color: white;
-        }
-        
-        .btn-apply:hover {
-            background: #2a5298;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
-        }
-        
-        /* Features Section */
-        .features-section {
-            padding: 60px 0;
-            background: white;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-        
-        .feature-item {
-            text-align: center;
-            padding: 30px;
-        }
-        
-        .feature-item i {
-            font-size: 3rem;
+        .demo-credentials i {
             color: #ffd700;
-            margin-bottom: 1rem;
         }
         
-        .feature-item h3 {
-            color: #1e3c72;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Contact Section */
-        .contact-section {
-            padding: 60px 0;
-            background: #f8f9fa;
-        }
-        
-        .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .contact-item {
-            text-align: center;
-        }
-        
-        .contact-item i {
-            font-size: 2.5rem;
-            color: #ffd700;
-            margin-bottom: 1rem;
-        }
-        
-        .contact-item h3 {
-            color: #1e3c72;
-            margin-bottom: 1rem;
-        }
-        
-        .contact-item p {
-            color: #666;
-            margin: 5px 0;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 60px 0;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            text-align: center;
-        }
-        
-        .cta-section h2 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .cta-section p {
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-        
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn-cta {
-            padding: 15px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn-cta-primary {
-            background: #ffd700;
-            color: #1e3c72;
-        }
-        
-        .btn-cta-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(255,215,0,0.3);
-        }
-        
-        .btn-cta-secondary {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-        }
-        
-        .btn-cta-secondary:hover {
-            background: white;
-            color: #1e3c72;
-        }
-        
-        /* Footer */
-        .footer {
-            background: #1e3c72;
-            color: white;
-            padding: 60px 0 20px;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        
-        .footer-section h3 {
-            color: #ffd700;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-        }
-        
-        .footer-section p {
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-        
-        .footer-section a {
-            color: white;
-            text-decoration: none;
+        .demo-credentials small {
+            color: #856404;
             display: block;
-            margin-bottom: 10px;
-            opacity: 0.8;
-            transition: opacity 0.3s;
+            margin-left: 25px;
+            font-size: 0.85rem;
         }
         
-        .footer-section a:hover {
-            opacity: 1;
+        .footer {
+            text-align: center;
+            padding: 20px 40px 30px;
+            background: white;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .footer a {
+            color: #1e3c72;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            margin: 0 10px;
+        }
+        
+        .footer a:hover {
             color: #ffd700;
         }
         
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
+        .footer p {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            margin-top: 15px;
         }
         
-        .social-links a {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.1);
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        
-        .social-links a:hover {
-            background: #ffd700;
-            color: #1e3c72;
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            opacity: 0.8;
-        }
-        
-        .footer-bottom p {
-            margin: 5px 0;
-        }
-        
-        /* Loading States */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            grid-column: 1/-1;
-        }
-        
-        .loading i {
             animation: spin 1s linear infinite;
         }
         
@@ -585,486 +295,154 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .no-packages {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 15px;
-            grid-column: 1/-1;
-        }
-        
-        .no-packages i {
-            font-size: 4rem;
-            color: #ffd700;
-            margin-bottom: 1rem;
-        }
-        
-        .no-packages h3 {
-            color: #1e3c72;
-            margin-bottom: 0.5rem;
-        }
-        
-        .error-message {
-            text-align: center;
-            padding: 40px;
-            color: #dc3545;
-            background: #f8d7da;
-            border-radius: 10px;
-            grid-column: 1/-1;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .nav-links {
-                justify-content: center;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .packages-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .package-actions {
-                flex-direction: column;
-            }
-            
-            .cta-buttons {
-                flex-direction: column;
-            }
-            
-            .contact-grid {
-                padding: 20px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="container nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-kaaba"></i>
-                <span>Alhudha Haj Travel</span>
+    <div class="admin-login-container">
+        <div class="admin-header">
+            <i class="fas fa-user-shield"></i>
+            <h1>Admin Panel</h1>
+            <p>Alhudha Haj Travel Management System</p>
+            <div class="admin-badge">
+                <i class="fas fa-lock"></i> Secure Access
             </div>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="#packages">Packages</a>
-                <a href="#about">About</a>
-                <a href="#contact">Contact</a>
-                <!-- CHANGED: admin.html → admin.login.html -->
-                <a href="admin.login.html" class="admin-link"><i class="fas fa-lock"></i> Admin Panel</a>
-                <a href="traveler_login.html" class="traveler-link"><i class="fas fa-user"></i> Traveler Login</a>
+        </div>
+        
+        <div class="login-form">
+            <div class="demo-credentials">
+                <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials:</strong></p>
+                <small>Username: <strong>superadmin</strong> Password: <strong>admin123</strong></small>
+                <small>Username: <strong>admin1</strong> Password: <strong>admin123</strong></small>
+                <small>Username: <strong>manager1</strong> Password: <strong>admin123</strong></small>
             </div>
+            
+            <div id="errorMessage" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Invalid username or password</span>
+            </div>
+            
+            <div id="successMessage" class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <span id="successText">Login successful! Redirecting...</span>
+            </div>
+            
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                    </div>
+                </div>
+                
+                <label class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span>Remember me</span>
+                </label>
+                
+                <button type="submit" id="loginBtn" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login to Admin Panel
+                </button>
+            </form>
+        </div>
+        
+        <div class="footer">
+            <a href="/"><i class="fas fa-home"></i> Back to Home</a>
+            <a href="/traveler_login.html"><i class="fas fa-user"></i> Traveler Login</a>
+            <p>© 2026 Alhudha Haj Travel System v2.0</p>
         </div>
     </div>
 
-    <!-- Hero Section with Company Profile -->
-    <section class="hero">
-        <div class="container">
-            <div class="company-badge" id="companyBadge">Est. 1998</div>
-            <h1 id="companyName">Alhudha <span>Haj Travel</span></h1>
-            <p class="subtitle" id="companyTagline">Your Trusted Partner for Spiritual Journey to the Holy Land</p>
-            <p id="companyDescription">Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. 25+ years of trusted service guiding pilgrims to Makkah and Madinah.</p>
-            <a href="#packages" class="btn btn-primary" style="display: inline-block; padding: 15px 40px; background: #ffd700; color: #1e3c72; text-decoration: none; border-radius: 50px; font-weight: 600; margin-top: 20px;">View Packages</a>
-        </div>
-    </section>
-
-    <!-- Company Info Section (Dynamic from Database) -->
-    <section class="company-info" id="about">
-        <div class="container">
-            <div class="section-title">
-                <h2>Why Choose Alhudha?</h2>
-                <p>25+ years of excellence in serving pilgrims</p>
-            </div>
-            <div class="info-grid" id="companyFeatures">
-                <!-- Features will be loaded from database -->
-                <div class="info-card">
-                    <i class="fas fa-mosque"></i>
-                    <h3>25+ Years</h3>
-                    <p>Experience in Haj & Umrah services</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-users"></i>
-                    <h3>5000+</h3>
-                    <p>Happy Pilgrims Served</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-hotel"></i>
-                    <h3>Premium</h3>
-                    <p>Hotels near Haram</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-bus"></i>
-                    <h3>VIP Transport</h3>
-                    <p>Comfortable travel</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Packages Section - Shows Batches Created by Admin -->
-    <section id="packages" class="packages-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Our Haj & Umrah Packages</h2>
-                <p>Choose from our carefully curated packages created by admin</p>
-            </div>
-            
-            <div id="packagesGrid" class="packages-grid">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i> Loading packages...
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Complete Management System</h2>
-                <p>Everything you need in one place</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <i class="fas fa-file-alt"></i>
-                    <h3>33-Field Application</h3>
-                    <p>Complete pilgrim registration form</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Document Upload</h3>
-                    <p>Passport, Aadhaar, PAN, Vaccine</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-users-cog"></i>
-                    <h3>Admin Panel</h3>
-                    <p>Full CRUD operations</p>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-credit-card"></i>
-                    <h3>Payment Management</h3>
-                    <p>Secure payment processing</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Contact Us</h2>
-                <p>Get in touch with our team</p>
-            </div>
-            <div class="contact-grid">
-                <div class="contact-item">
-                    <i class="fas fa-phone-alt"></i>
-                    <h3>Phone</h3>
-                    <p>+91 98765 43210</p>
-                    <p>+91 98765 43211</p>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-envelope"></i>
-                    <h3>Email</h3>
-                    <p>info@alhudha.com</p>
-                    <p>support@alhudha.com</p>
-                </div>
-                <div class="contact-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <h3>Office</h3>
-                    <p>123, Haj House,</p>
-                    <p>Mumbai - 400001, India</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="cta-section">
-        <div class="container">
-            <h2>Ready to Start Your Journey?</h2>
-            <p>Fill the 33-field application form to register for Haj or Umrah</p>
-            <div class="cta-buttons">
-                <a href="traveler_login.html" class="btn-cta btn-cta-primary">
-                    <i class="fas fa-sign-in-alt"></i> Traveler Login
-                </a>
-                <!-- CHANGED: admin.html → admin.login.html -->
-                <a href="admin.login.html" class="btn-cta btn-cta-secondary">
-                    <i class="fas fa-lock"></i> Admin Panel
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Alhudha Haj Travel</h3>
-                    <p>Complete Haj & Umrah management system with 33-field application form, document upload, and admin panel. Trusted by thousands of pilgrims since 1998.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <a href="/">Home</a>
-                    <a href="#packages">Packages</a>
-                    <a href="#about">About Us</a>
-                    <a href="#contact">Contact</a>
-                    <!-- CHANGED: admin.html → admin.login.html -->
-                    <a href="admin.login.html">Admin Panel</a>
-                    <a href="traveler_login.html">Traveler Login</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Packages</h3>
-                    <a href="#packages">Haj Packages 2026</a>
-                    <a href="#packages">Umrah Packages</a>
-                    <a href="#packages">Ramadhan Special</a>
-                    <a href="#packages">Winter Umrah</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Newsletter</h3>
-                    <p>Subscribe for latest updates</p>
-                    <form id="newsletterForm" style="display: flex; gap: 10px; margin-top: 15px;">
-                        <input type="email" placeholder="Your email" style="flex: 1; padding: 12px; border: none; border-radius: 5px;" required>
-                        <button type="submit" style="padding: 12px 20px; background: #ffd700; color: #1e3c72; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Subscribe</button>
-                    </form>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 Alhudha Haj Travel System. All rights reserved. | 33-Fields Complete Management System</p>
-                <p>Powered by Alhudha Tech</p>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // Load Company Profile from Database
-        async function loadCompanyProfile() {
-            try {
-                const response = await fetch('/api/company/profile');
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Update company info
-                    document.getElementById('companyName').innerHTML = data.name || 'Alhudha <span>Haj Travel</span>';
-                    document.getElementById('companyTagline').textContent = data.tagline || 'Your Trusted Partner for Spiritual Journey to the Holy Land';
-                    document.getElementById('companyDescription').textContent = data.description || 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. 25+ years of trusted service guiding pilgrims to Makkah and Madinah.';
-                    document.getElementById('companyBadge').textContent = data.badge || 'Est. 1998';
-                    
-                    // Update features if available
-                    if (data.features && data.features.length > 0) {
-                        const featuresGrid = document.getElementById('companyFeatures');
-                        featuresGrid.innerHTML = data.features.map(feature => `
-                            <div class="info-card">
-                                <i class="${feature.icon}"></i>
-                                <h3>${feature.title}</h3>
-                                <p>${feature.description}</p>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading company profile:', error);
-                // Keep default values
-            }
-        }
-
-        // Load Packages (Batches created by Admin)
-        async function loadPackages() {
-            const grid = document.getElementById('packagesGrid');
-            
-            try {
-                // Try to fetch from API first
-                const response = await fetch('/api/batches');
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Check if we have batches
-                    if (data.batches && data.batches.length > 0) {
-                        displayPackages(data.batches);
-                    } else {
-                        // No batches found, show demo packages
-                        showDemoPackages();
-                    }
-                } else {
-                    // API not available, show demo packages
-                    showDemoPackages();
-                }
-            } catch (error) {
-                console.error('Error loading packages:', error);
-                // Show demo packages if API fails
-                showDemoPackages();
-            }
-        }
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
         
-        // Display packages from API
-        function displayPackages(batches) {
-            const grid = document.getElementById('packagesGrid');
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+        
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Filter active batches
-            const activeBatches = batches.filter(batch => 
-                batch.status === 'Open' || batch.status === 'open' || batch.status === 'active'
-            );
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const successDiv = document.getElementById('successMessage');
+            const loginBtn = document.getElementById('loginBtn');
             
-            if (activeBatches.length === 0) {
-                grid.innerHTML = `
-                    <div class="no-packages">
-                        <i class="fas fa-calendar-times"></i>
-                        <h3>No Packages Available</h3>
-                        <p>Please check back later or contact admin for available packages.</p>
-                    </div>
-                `;
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            if (!username || !password) {
+                errorText.textContent = 'Please enter both username and password';
+                errorDiv.style.display = 'flex';
                 return;
             }
             
-            const packagesHTML = activeBatches.map(batch => {
-                // Calculate seats
-                const totalSeats = batch.total_seats || batch.totalSeats || 150;
-                const bookedSeats = batch.booked_seats || batch.bookedSeats || 0;
-                const availableSeats = totalSeats - bookedSeats;
-                const isClosingSoon = availableSeats < (totalSeats * 0.2);
-                
-                // Determine status class
-                let statusClass = 'status-active';
-                if (isClosingSoon) statusClass = 'status-closing';
-                if (availableSeats === 0) statusClass = 'status-full';
-                
-                // Format WhatsApp message
-                const whatsappMessage = encodeURIComponent(
-                    `Hi, I'm interested in ${batch.batch_name || batch.name} package.\n` +
-                    `Price: ${batch.price || 'Contact for price'}\n` +
-                    `Departure: ${batch.departure_date || batch.departure || 'TBD'}\n` +
-                    `Return: ${batch.return_date || batch.return || 'TBD'}\n` +
-                    `Available Seats: ${availableSeats}/${totalSeats}\n\n` +
-                    `Please share more details.`
-                );
-                
-                return `
-                    <div class="package-card">
-                        ${isClosingSoon ? '<div class="package-badge">Closing Soon</div>' : ''}
-                        <div class="package-header">
-                            <h3>${batch.batch_name || batch.name}</h3>
-                            <div class="package-price">${batch.price || 'Contact for price'}</div>
-                        </div>
-                        <div class="package-body">
-                            <ul class="features">
-                                <li>
-                                    <i class="fas fa-calendar"></i>
-                                    <span>Departure:</span>
-                                    <strong>${batch.departure_date || batch.departure || 'TBD'}</strong>
-                                </li>
-                                <li>
-                                    <i class="fas fa-calendar-check"></i>
-                                    <span>Return:</span>
-                                    <strong>${batch.return_date || batch.return || 'TBD'}</strong>
-                                </li>
-                                <li>
-                                    <i class="fas fa-users"></i>
-                                    <span>Available Seats:</span>
-                                    <strong>${availableSeats}/${totalSeats}</strong>
-                                </li>
-                                <li>
-                                    <i class="fas fa-tag"></i>
-                                    <span>Status:</span>
-                                    <span class="status-badge ${statusClass}">${isClosingSoon ? 'Closing Soon' : (availableSeats === 0 ? 'Full' : 'Open')}</span>
-                                </li>
-                            </ul>
-                            
-                            <p class="package-description">${batch.description || 'Contact us for complete package details including accommodation, meals, and transportation.'}</p>
-                            
-                            <div class="package-actions">
-                                <a href="https://wa.me/919876543210?text=${whatsappMessage}" 
-                                   class="btn btn-whatsapp" 
-                                   target="_blank">
-                                    <i class="fab fa-whatsapp"></i> WhatsApp Booking
-                                </a>
-                                <a href="traveler_login.html" class="btn btn-apply">
-                                    <i class="fas fa-file-alt"></i> Apply Now
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const originalBtnText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> Authenticating...';
+            loginBtn.disabled = true;
             
-            grid.innerHTML = packagesHTML;
-        }
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    successDiv.style.display = 'flex';
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    sessionStorage.setItem('adminUsername', username);
+                    sessionStorage.setItem('adminName', data.user?.name || username);
+                    
+                    setTimeout(() => {
+                        window.location.href = data.redirect || '/admin/dashboard';
+                    }, 1500);
+                } else {
+                    errorText.textContent = data.message || 'Invalid username or password';
+                    errorDiv.style.display = 'flex';
+                    loginBtn.innerHTML = originalBtnText;
+                    loginBtn.disabled = false;
+                    document.getElementById('password').value = '';
+                }
+            } catch (error) {
+                errorText.textContent = 'Connection error. Please try again.';
+                errorDiv.style.display = 'flex';
+                loginBtn.innerHTML = originalBtnText;
+                loginBtn.disabled = false;
+            }
+        });
         
-        // Show demo packages (fallback)
-        function showDemoPackages() {
-            const demoPackages = [
-                {
-                    batch_name: "Haj Platinum 2026",
-                    price: "₹8,50,000",
-                    departure_date: "2026-06-14",
-                    return_date: "2026-07-31",
-                    total_seats: 50,
-                    booked_seats: 45,
-                    description: "Premium Haj package with luxury hotels overlooking Haram in Makkah and Madinah. VIP transportation and guided tours."
-                },
-                {
-                    batch_name: "Haj Gold 2026",
-                    price: "₹5,50,000",
-                    departure_date: "2026-06-15",
-                    return_date: "2026-07-30",
-                    total_seats: 100,
-                    booked_seats: 82,
-                    description: "Comfort Haj package with private rooms in Makkah (500m from Haram) and Madinah (300m from Masjid Nabawi)."
-                },
-                {
-                    batch_name: "Umrah Ramadhan Special",
-                    price: "₹1,25,000",
-                    departure_date: "2026-03-01",
-                    return_date: "2026-03-20",
-                    total_seats: 200,
-                    booked_seats: 170,
-                    description: "20-day Umrah package during Ramadhan. Stay in Makkah (10 days) and Madinah (10 days). All meals included."
-                }
-            ];
-            
-            displayPackages(demoPackages);
+        document.getElementById('username').addEventListener('input', () => {
+            document.getElementById('errorMessage').style.display = 'none';
+        });
+        document.getElementById('password').addEventListener('input', () => {
+            document.getElementById('errorMessage').style.display = 'none';
+        });
+        
+        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+            window.location.href = '/admin/dashboard';
         }
-
-        // Newsletter form submission
-        document.getElementById('newsletterForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for subscribing! You will receive updates soon.');
-            this.reset();
-        });
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCompanyProfile();
-            loadPackages();
-        });
     </script>
 </body>
 </html>
