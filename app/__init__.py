@@ -230,13 +230,11 @@ def create_app():
     except Exception as e:
         logger.error(f"❌ Failed to register company blueprint: {e}")
     
-    # Auth blueprint (optional)
+   # Auth blueprint
     try:
         from app.routes.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
         logger.info("✅ Auth blueprint registered")
-    except ImportError:
-        logger.warning("⚠️ Auth blueprint not found")
     except Exception as e:
         logger.error(f"❌ Failed to register auth blueprint: {e}")
     
