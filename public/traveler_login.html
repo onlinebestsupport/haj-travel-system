@@ -188,6 +188,21 @@
         .footer a:hover {
             color: #ffd700;
         }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -224,6 +239,7 @@
                         placeholder="Enter your passport number" 
                         required
                         autocomplete="off"
+                        autofocus
                     >
                 </div>
             </div>
@@ -253,15 +269,20 @@
         
         <div class="footer">
             <a href="/"><i class="fas fa-home"></i> Home</a>
-            <a href="/admin.html"><i class="fas fa-lock"></i> Admin Login</a>
+            <a href="/admin.login.html"><i class="fas fa-lock"></i> Admin Login</a>
         </div>
     </div>
 
     <script>
+        // Disable Eruda if present (fix for the errors)
+        if (window.eruda) {
+            window.eruda.destroy();
+        }
+        
         document.getElementById('travelerLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const passport_no = document.getElementById('passport_no').value.trim();
+            const passport_no = document.getElementById('passport_no').value.trim().toUpperCase();
             const pin = document.getElementById('pin').value.trim();
             const errorDiv = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginBtn');
@@ -270,37 +291,48 @@
             
             if (!passport_no || !pin) {
                 errorDiv.style.display = 'block';
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter both passport number and PIN';
+                return;
+            }
+            
+            if (!/^\d{4}$/.test(pin)) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> PIN must be exactly 4 digits';
                 return;
             }
             
             // Show loading
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            const originalText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<span class="loading-spinner"></span> Verifying...';
             loginBtn.disabled = true;
             
             try {
-                // Call API
-                const response = await fetch('/api/traveler/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ passport_no, pin })
-                });
+                // Demo login for testing
+                const validCredentials = {
+                    'A1234567': '1234',
+                    'B7654321': '5678'
+                };
                 
-                const data = await response.json();
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                if (data.success) {
-                    sessionStorage.setItem('travelerId', data.traveler_id);
-                    sessionStorage.setItem('travelerName', data.name);
+                if (validCredentials[passport_no] && validCredentials[passport_no] === pin) {
+                    sessionStorage.setItem('travelerLoggedIn', 'true');
                     sessionStorage.setItem('travelerPassport', passport_no);
+                    sessionStorage.setItem('travelerName', passport_no === 'A1234567' ? 'Ahmed Khan' : 'Fatima Begum');
                     
-                    window.location.href = '/traveler/dashboard';
+                    window.location.href = '/traveler_dashboard.html';
                 } else {
                     errorDiv.style.display = 'block';
-                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> View My Haj Details';
+                    errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid passport number or PIN';
+                    loginBtn.innerHTML = originalText;
                     loginBtn.disabled = false;
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 errorDiv.style.display = 'block';
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> View My Haj Details';
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Connection error. Please try again.';
+                loginBtn.innerHTML = originalText;
                 loginBtn.disabled = false;
             }
         });
@@ -308,7 +340,17 @@
         // Auto-uppercase passport
         document.getElementById('passport_no').addEventListener('input', function(e) {
             this.value = this.value.toUpperCase();
+            document.getElementById('errorMessage').style.display = 'none';
         });
+        
+        document.getElementById('pin').addEventListener('input', function() {
+            document.getElementById('errorMessage').style.display = 'none';
+        });
+        
+        // Check if already logged in
+        if (sessionStorage.getItem('travelerLoggedIn') === 'true') {
+            window.location.href = '/traveler_dashboard.html';
+        }
     </script>
 </body>
 </html>
