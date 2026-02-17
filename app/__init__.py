@@ -165,9 +165,14 @@ def create_app():
             if not username or not password:
                 return jsonify({'success': False, 'message': 'Username and password required'}), 400
             
-            # For demo purposes - accept any credentials
-            # In production, check against database
-            if username in ['superadmin', 'admin1', 'manager1'] and password == 'admin123':
+            # Demo credentials
+            valid_users = {
+                'superadmin': 'admin123',
+                'admin1': 'admin123',
+                'manager1': 'admin123'
+            }
+            
+            if username in valid_users and valid_users[username] == password:
                 session['admin_logged_in'] = True
                 session['admin_username'] = username
                 session['admin_name'] = username
@@ -230,7 +235,7 @@ def create_app():
     except Exception as e:
         logger.error(f"❌ Failed to register company blueprint: {e}")
     
-   # Auth blueprint
+    # Auth blueprint
     try:
         from app.routes.auth import auth_bp
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -299,32 +304,3 @@ app = create_app()
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
-# ============ DIRECT LOGIN API (BACKUP) ============
-    @app.route('/api/login', methods=['POST'])
-    def api_login():
-        """Handle admin login directly (backup)"""
-        try:
-            data = request.json
-            username = data.get('username')
-            password = data.get('password')
-            
-            # Demo credentials
-            valid_users = {
-                'superadmin': 'admin123',
-                'admin1': 'admin123',
-                'manager1': 'admin123'
-            }
-            
-            if username in valid_users and valid_users[username] == password:
-                session['admin_logged_in'] = True
-                session['admin_username'] = username
-                return jsonify({
-                    'success': True, 
-                    'redirect': '/admin/dashboard',
-                    'user': {'name': username}
-                })
-            
-            return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
-            
-        except Exception as e:
-            return jsonify({'success': False, 'message': 'Server error'}), 500
