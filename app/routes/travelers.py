@@ -661,7 +661,62 @@ def export_travelers():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+# ============ TRAVELER LOGIN ENDPOINT ============
 
+@travelers_bp.route('/login', methods=['POST'])
+def traveler_login():
+    """Handle traveler login with passport number and PIN"""
+    try:
+        data = request.json
+        passport_no = data.get('passport_no')
+        pin = data.get('pin')
+        
+        if not passport_no or not pin:
+            return jsonify({'success': False, 'message': 'Passport number and PIN required'}), 400
+        
+        conn = get_db()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+        
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        
+        # Check if traveler exists with this passport and PIN
+        cur.execute("""
+            SELECT id, first_name, last_name, passport_no, mobile, email
+            FROM travelers 
+            WHERE passport_no = %s AND pin = %s
+        """, (passport_no, pin))
+        
+        traveler = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if traveler:
+            # Store traveler info in session
+            session['traveler_id'] = traveler['id']
+            session['traveler_name'] = f"{traveler['first_name']} {traveler['last_name']}"
+            session['traveler_passport'] = traveler['passport_no']
+            
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'traveler_id': traveler['id'],
+                'name': f"{traveler['first_name']} {traveler['last_name']}",
+                'redirect': '/traveler_dashboard.html'
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Invalid passport number or PIN'}), 401
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@travelers_bp.route('/logout', methods=['POST'])
+def traveler_logout():
+    """Handle traveler logout"""
+    session.pop('traveler_id', None)
+    session.pop('traveler_name', None)
+    session.pop('traveler_passport', None)
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
 # ============ BULK OPERATIONS ============
 
 @travelers_bp.route('/bulk/status', methods=['POST'])
