@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify, session
-import logging
 
 auth_bp = Blueprint('auth', __name__)
-logger = logging.getLogger(__name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -40,7 +38,6 @@ def login():
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
             
     except Exception as e:
-        logger.error(f"Login error: {e}")
         return jsonify({'success': False, 'message': 'Server error'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
