@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, send_from_directory, jsonify, request, redirect
 from flask_cors import CORS
 import os
 import logging
@@ -78,16 +78,39 @@ def create_app():
                 'status': 'running',
                 'message': 'Frontend files not found but API is working'
             })
+    
+    # ============ ADMIN ROUTES ============
     @app.route('/admin.login.html')
-def serve_admin_login():
-    """Serve admin login page"""
-    return send_from_directory(PUBLIC_DIR, 'admin.login.html')
-
-@app.route('/admin/dashboard')
-@login_required
-def serve_admin_dashboard():
-    """Serve admin dashboard"""
-    return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
+    def serve_admin_login():
+        """Serve admin login page"""
+        return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+    
+    # Redirect old admin.html to new login page
+    @app.route('/admin.html')
+    def redirect_admin_to_login():
+        """Redirect anyone trying to access admin.html to the correct login page"""
+        return redirect('/admin.login.html', 301)
+    
+    # Login required decorator for protected routes
+    def login_required(f):
+        from functools import wraps
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not session.get('admin_logged_in'):
+                return jsonify({'error': 'Authentication required'}), 401
+            return f(*args, **kwargs)
+        return decorated_function
+    
+    @app.route('/admin/dashboard')
+    @login_required
+    def serve_admin_dashboard():
+        """Serve admin dashboard (protected)"""
+        try:
+            return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
+        except Exception as e:
+            logger.error(f"Error serving admin dashboard: {e}")
+            return jsonify({'error': 'Dashboard not found'}), 404
+    
     # ============ STATIC FILES ============
     @app.route('/<path:filename>')
     def serve_static(filename):
