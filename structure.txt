@@ -1,28 +1,34 @@
-haj-travel-system/
+haj-travel-system-main/
+├── .env.example
+├── .gitignore
+├── Procfile
+├── README.md
+├── railway.json
+├── requirements.txt
+├── runtime.txt
+├── start.sh
+├── structure.txt
 ├── app/
 │   ├── __init__.py
 │   ├── database.py
 │   ├── server.py
 │   └── routes/
+│       ├── admin.py
+│       ├── auth.py
+│       ├── batches.py
+│       ├── company.py
+│       ├── payments.py
 │       ├── travelers.py
 │       └── uploads.py
 ├── public/
-│   ├── admin.html
-│   ├── index.html (NEW - front page)
-│   ├── login.html
+│   ├── admin.login.html
+│   ├── admin_dashboard.html
+│   ├── index.html
 │   ├── style.css
 │   ├── traveler_dashboard.html
 │   └── traveler_login.html
 ├── sql/
 │   ├── init.sql
 │   └── seed.sql
-├── uploads/
-│   └── .gitkeep
-├── .env.example
-├── .gitignore
-├── Procfile
-├── railway.json
-├── README.md
-├── requirements.txt
-└── runtime.txt
-structure.txt
+└── uploads/
+    └── .gitkeep
