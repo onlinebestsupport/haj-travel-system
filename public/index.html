@@ -901,7 +901,7 @@
             const grid = document.getElementById('packagesGrid');
             
             try {
-                const response = await fetch('/api/batches');
+                const response = await fetch('/api/batches/');
                 
                 if (response.ok) {
                     const data = await response.json();
