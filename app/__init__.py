@@ -4,10 +4,28 @@ import os
 import logging
 from datetime import datetime
 from functools import wraps
+import hashlib
+import base64
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# ============ PASSWORD HELPER FUNCTIONS ============
+def generate_password_hash(password):
+    """Generate password hash (same as in database.py)"""
+    salt = "alhudha-salt-2026"
+    hash_obj = hashlib.sha256((password + salt).encode())
+    return base64.b64encode(hash_obj.digest()).decode()
+
+def check_password_hash(stored_hash, password):
+    """Check if password matches stored hash"""
+    return generate_password_hash(password) == stored_hash
+
+def get_db():
+    """Get database connection"""
+    from app.database import get_db as db_get
+    return db_get()
 
 def create_app():
     """Application factory pattern - creates and configures the Flask app"""
@@ -147,15 +165,16 @@ def create_app():
                 '/api/uploads',
                 '/api/batches',
                 '/api/payments',
-                '/api/company/profile'
+                '/api/company/profile',
+                '/api/admin/users'
             ],
             'total_fields': 33
         })
     
-    # ============ LOGIN API ============
+    # ============ LOGIN API (FIXED - NOW USING DATABASE) ============
     @app.route('/api/login', methods=['POST'])
     def api_login():
-        """Handle admin login"""
+        """Handle admin login with database verification"""
         try:
             data = request.json
             username = data.get('username')
@@ -165,28 +184,49 @@ def create_app():
             if not username or not password:
                 return jsonify({'success': False, 'message': 'Username and password required'}), 400
             
-            # Demo credentials
-            valid_users = {
-                'superadmin': 'admin123',
-                'admin1': 'admin123',
-                'manager1': 'admin123'
-            }
+            # Get database connection
+            conn = get_db()
+            if not conn:
+                logger.error("Database connection failed")
+                return jsonify({'success': False, 'message': 'Database not available'}), 503
             
-            if username in valid_users and valid_users[username] == password:
+            cur = conn.cursor()
+            
+            # Query user from database
+            cur.execute("""
+                SELECT id, username, password_hash, full_name, is_active 
+                FROM admin_users 
+                WHERE username = %s AND is_active = true
+            """, (username,))
+            
+            user = cur.fetchone()
+            cur.close()
+            conn.close()
+            
+            # Check if user exists and password matches
+            if user and check_password_hash(user[2], password):
+                # Login successful
                 session['admin_logged_in'] = True
-                session['admin_username'] = username
-                session['admin_name'] = username
+                session['admin_user_id'] = user[0]
+                session['admin_username'] = user[1]
+                session['admin_name'] = user[3] or user[1]
+                
+                # Get user roles
+                roles = ['admin']  # Default role, you can enhance this
                 
                 return jsonify({
                     'success': True,
                     'message': 'Login successful',
                     'redirect': '/admin/dashboard',
                     'user': {
-                        'name': username,
-                        'roles': ['admin']
+                        'id': user[0],
+                        'name': user[3] or user[1],
+                        'username': user[1],
+                        'roles': roles
                     }
                 })
             else:
+                logger.warning(f"Failed login attempt for username: {username}")
                 return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
                 
         except Exception as e:
@@ -243,13 +283,11 @@ def create_app():
     except Exception as e:
         logger.error(f"❌ Failed to register auth blueprint: {e}")
     
-    # Admin blueprint (optional)
+    # Admin blueprint
     try:
         from app.routes.admin import admin_bp
         app.register_blueprint(admin_bp, url_prefix='/api/admin')
         logger.info("✅ Admin blueprint registered")
-    except ImportError:
-        logger.warning("⚠️ Admin blueprint not found")
     except Exception as e:
         logger.error(f"❌ Failed to register admin blueprint: {e}")
     
