@@ -11,21 +11,24 @@ import base64
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ============ PASSWORD HELPER FUNCTIONS (FIXED) ============
+# ============ PASSWORD HELPER FUNCTIONS (FIXED to match database.py) ============
 def generate_password_hash(password):
-    """Generate password hash matching the database"""
-    # This creates the hash that matches your database
-    hash_obj = hashlib.sha256((password + "alhudha-salt-2026").encode())
+    """Generate password hash matching the database initialization"""
+    # This matches the method used when creating the admin users
+    salt = "alhudha-salt-2026"
+    hash_obj = hashlib.sha256((password + salt).encode())
     return base64.b64encode(hash_obj.digest()).decode()
 
 def check_password_hash(stored_hash, password):
     """Check if password matches stored hash"""
-    # Generate hash and compare
+    # Generate hash using the same method
     calculated_hash = generate_password_hash(password)
-    print(f"Stored: {stored_hash}")  # For debugging
-    print(f"Calculated: {calculated_hash}")  # For debugging
+    # For debugging (remove after fixing)
+    print(f"Login attempt - Username: {username if 'username' in locals() else 'unknown'}")
+    print(f"Stored hash: {stored_hash}")
+    print(f"Calculated: {calculated_hash}")
     return calculated_hash == stored_hash
-
+    
 def get_db():
     """Get database connection"""
     from app.database import get_db as db_get
