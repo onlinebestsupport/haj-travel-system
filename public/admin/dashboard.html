@@ -1,0 +1,50 @@
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <h3>Total Travelers</h3>
+        <div class="stat-number" id="totalTravelers">0</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-layer-group"></i>
+        <h3>Active Batches</h3>
+        <div class="stat-number" id="activeBatches">0</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-rupee-sign"></i>
+        <h3>Total Collections</h3>
+        <div class="stat-number" id="totalCollected">₹0</div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-clock"></i>
+        <h3>Pending Payments</h3>
+        <div class="stat-number" id="pendingAmount">₹0</div>
+    </div>
+</div>
+
+<div class="dashboard-card">
+    <h3><i class="fas fa-chart-line"></i> Recent Activity</h3>
+    <div id="recentActivity">Loading...</div>
+</div>
+
+<script>
+    loadDashboardStats();
+
+    async function loadDashboardStats() {
+        try {
+            document.getElementById('totalTravelers').textContent = '156';
+            document.getElementById('activeBatches').textContent = '8';
+            document.getElementById('totalCollected').innerHTML = '₹1,25,60,000';
+            document.getElementById('pendingAmount').innerHTML = '₹24,50,000';
+            
+            document.getElementById('recentActivity').innerHTML = `
+                <ul style="list-style: none;">
+                    <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler added: Ahmed Khan</li>
+                    <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment received: ₹85,000 from Fatima Begum</li>
+                    <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-layer-group" style="color: #3498db;"></i> New batch created: Haj Silver 2026</li>
+                </ul>
+            `;
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+</script>
