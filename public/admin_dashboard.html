@@ -1811,26 +1811,50 @@
             document.getElementById('batchCreateForm').reset();
         }
 
-        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const batch = {
-                batch_name: document.getElementById('batch_name').value,
-                total_seats: parseInt(document.getElementById('total_seats').value),
-                price: parseFloat(document.getElementById('price').value),
-                departure_date: document.getElementById('departure_date').value,
-                return_date: document.getElementById('return_date').value,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
-            
-            try {
-                const response = await fetch('/api/batches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batch)
-                });
-                
+     document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const batchData = {
+        batch_name: document.getElementById('batch_name').value,
+        total_seats: parseInt(document.getElementById('total_seats').value) || 150,
+        price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
+        departure_date: document.getElementById('departure_date').value || null,
+        return_date: document.getElementById('return_date').value || null,
+        status: document.getElementById('status').value,
+        description: document.getElementById('description').value
+    };
+    
+    // Validate
+    if (!batchData.batch_name) {
+        showNotification('Batch name is required', 'error');
+        return;
+    }
+    const createBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = createBtn.innerHTML;
+    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    createBtn.disabled = true;        
+           try {
+        const response = await fetch('/api/batches/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(batchData)
+        });
+         const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Batch created successfully!', 'success');
+            hideCreateBatchForm();
+            loadBatches();
+        } else {
+            showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
+        }
+    } catch (error) {
+        showNotification('Error creating batch', 'error');
+    } finally {
+        createBtn.innerHTML = originalText;
+        createBtn.disabled = false;
+    }
+});       
                 if (response.ok) {
                     showNotification('Batch created successfully!', 'success');
                     hideCreateBatchForm();
