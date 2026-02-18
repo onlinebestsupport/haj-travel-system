@@ -1847,7 +1847,7 @@
 
         async function loadBatches() {
             try {
-                const response = await fetch('/api/batches');
+                const response = await fetch('/api/batches/');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.batches.length > 0) {
@@ -1977,7 +1977,7 @@
 
         async function loadTravelers() {
             try {
-                const response = await fetch('/api/travelers');
+                const response = await fetch('/api/travelers/');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.travelers.length > 0) {
@@ -2177,7 +2177,7 @@
 
         async function loadPayments() {
             try {
-                const response = await fetch('/api/payments');
+                const response = await fetch('/api/payments/');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.payments.length > 0) {
