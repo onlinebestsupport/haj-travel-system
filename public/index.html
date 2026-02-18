@@ -897,28 +897,34 @@
         }
 
         // Load Packages (Batches created by Admin)
-        async function loadPackages() {
-            const grid = document.getElementById('packagesGrid');
+       async function loadPackages() {
+    const grid = document.getElementById('packagesGrid');
+    
+    try {
+        console.log('Fetching packages...');
+        const response = await fetch('/api/batches/');
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('API Response:', data);
             
-            try {
-                const response = await fetch('/api/batches/');
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.batches && data.batches.length > 0) {
-                        displayPackages(data.batches);
-                    } else {
-                        showDemoPackages();
-                    }
-                } else {
-                    showDemoPackages();
-                }
-            } catch (error) {
-                console.error('Error loading packages:', error);
+            if (data.success && data.batches && data.batches.length > 0) {
+                console.log('Displaying', data.batches.length, 'packages');
+                displayPackages(data.batches);
+            } else {
+                console.log('No batches found, showing demo packages');
                 showDemoPackages();
             }
+        } else {
+            console.log('API not available, showing demo packages');
+            showDemoPackages();
         }
+    } catch (error) {
+        console.error('Error loading packages:', error);
+        showDemoPackages();
+    }
+}
         
         function displayPackages(batches) {
             const grid = document.getElementById('packagesGrid');
