@@ -126,15 +126,35 @@ def create_app():
             return f(*args, **kwargs)
         return decorated_function
     
+    # ============ NEW MODULAR ADMIN DASHBOARD ROUTES ============
+    
     @app.route('/admin/dashboard')
     @login_required
-    def serve_admin_dashboard():
-        """Serve admin dashboard (protected)"""
+    def redirect_old_dashboard():
+        """Redirect old dashboard URL to new modular admin"""
+        return redirect('/admin/index.html', 301)
+    
+    @app.route('/admin/')
+    @app.route('/admin/index.html')
+    @login_required
+    def serve_admin_index():
+        """Serve the new modular admin dashboard"""
         try:
-            return send_from_directory(PUBLIC_DIR, 'admin_dashboard.html')
+            return send_from_directory(os.path.join(PUBLIC_DIR, 'admin'), 'index.html')
         except Exception as e:
-            logger.error(f"Error serving admin dashboard: {e}")
-            return jsonify({'error': 'Dashboard not found'}), 404
+            logger.error(f"Error serving admin index: {e}")
+            return jsonify({'error': 'Admin dashboard not found'}), 404
+    
+    # Serve all admin static files (HTML, CSS, JS)
+    @app.route('/admin/<path:filename>')
+    @login_required
+    def serve_admin_files(filename):
+        """Serve admin section files (batches.html, travelers.html, etc.)"""
+        try:
+            return send_from_directory(os.path.join(PUBLIC_DIR, 'admin'), filename)
+        except Exception as e:
+            logger.error(f"Error serving admin file {filename}: {e}")
+            return jsonify({'error': 'File not found'}), 404
     
     # ============ STATIC FILES ============
     @app.route('/<path:filename>')
@@ -224,7 +244,7 @@ def create_app():
                 return jsonify({
                     'success': True,
                     'message': 'Login successful',
-                    'redirect': '/admin/dashboard',
+                    'redirect': '/admin/index.html',  # Changed from /admin/dashboard
                     'user': {
                         'id': user[0],
                         'name': user[3] or user[1],
@@ -338,6 +358,7 @@ def create_app():
     logger.info("=" * 60)
     logger.info(f"📁 Public directory: {PUBLIC_DIR}")
     logger.info(f"📁 Uploads directory: {UPLOAD_DIR}")
+    logger.info(f"📁 Admin directory: {os.path.join(PUBLIC_DIR, 'admin')}")
     logger.info(f"🔑 Secret key: {'Set from environment' if os.environ.get('SECRET_KEY') else 'Using default (dev only)'}")
     logger.info("=" * 60)
     
