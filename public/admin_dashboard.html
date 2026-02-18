@@ -1811,50 +1811,26 @@
             document.getElementById('batchCreateForm').reset();
         }
 
-     document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const batchData = {
-        batch_name: document.getElementById('batch_name').value,
-        total_seats: parseInt(document.getElementById('total_seats').value) || 150,
-        price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
-        departure_date: document.getElementById('departure_date').value || null,
-        return_date: document.getElementById('return_date').value || null,
-        status: document.getElementById('status').value,
-        description: document.getElementById('description').value
-    };
-    
-    // Validate
-    if (!batchData.batch_name) {
-        showNotification('Batch name is required', 'error');
-        return;
-    }
-    const createBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = createBtn.innerHTML;
-    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-    createBtn.disabled = true;        
-           try {
-        const response = await fetch('/api/batches/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(batchData)
-        });
-         const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Batch created successfully!', 'success');
-            hideCreateBatchForm();
-            loadBatches();
-        } else {
-            showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
-        }
-    } catch (error) {
-        showNotification('Error creating batch', 'error');
-    } finally {
-        createBtn.innerHTML = originalText;
-        createBtn.disabled = false;
-    }
-});       
+        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const batch = {
+                batch_name: document.getElementById('batch_name').value,
+                total_seats: parseInt(document.getElementById('total_seats').value),
+                price: parseFloat(document.getElementById('price').value),
+                departure_date: document.getElementById('departure_date').value,
+                return_date: document.getElementById('return_date').value,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+            
+            try {
+                const response = await fetch('/api/batches', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batch)
+                });
+                
                 if (response.ok) {
                     showNotification('Batch created successfully!', 'success');
                     hideCreateBatchForm();
@@ -1933,154 +1909,9 @@
             }
         }
 
-        // Edit batch function
-function editBatch(id) {
-    // Find the row containing this batch
-    const rows = document.querySelectorAll('#batchesTable tr');
-    let batchData = null;
-    
-    for (let row of rows) {
-        if (row.cells && row.cells[0] && row.cells[0].innerText == id) {
-            batchData = {
-                id: id,
-                name: row.cells[1].innerText,
-                departure: row.cells[2].innerText,
-                return: row.cells[3].innerText,
-                price: row.cells[4].innerText.replace('₹', '').replace(',', ''),
-                seats: row.cells[5].innerText.split('/')[1],
-                status: row.cells[6].innerText
-            };
-            break;
+        function editBatch(id) {
+            showNotification('Edit feature coming soon!', 'info');
         }
-    }
-    
-    if (!batchData) {
-        showNotification('Could not find batch data', 'error');
-        return;
-    }
-    
-    // Create edit form if it doesn't exist
-    if (!document.getElementById('editBatchForm')) {
-        createEditBatchForm();
-    }
-    
-    // Populate form with batch data
-    document.getElementById('edit_batch_id').value = batchData.id;
-    document.getElementById('edit_batch_name').value = batchData.name;
-    document.getElementById('edit_departure_date').value = batchData.departure;
-    document.getElementById('edit_return_date').value = batchData.return;
-    document.getElementById('edit_price').value = batchData.price;
-    document.getElementById('edit_total_seats').value = batchData.seats;
-    document.getElementById('edit_status').value = batchData.status;
-    
-    // Show edit form
-    document.getElementById('editBatchForm').style.display = 'block';
-    
-    // Scroll to form
-    document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
-}
-
-// Create edit batch form
-function createEditBatchForm() {
-    const formHTML = `
-        <div class="form-container" id="editBatchForm" style="display: none;">
-            <h3><i class="fas fa-edit"></i> Edit Batch</h3>
-            <form id="batchEditForm" onsubmit="event.preventDefault(); updateBatch();">
-                <input type="hidden" id="edit_batch_id">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="edit_batch_name">Batch Name *</label>
-                        <input type="text" id="edit_batch_name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_departure_date">Departure Date</label>
-                        <input type="date" id="edit_departure_date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_return_date">Return Date</label>
-                        <input type="date" id="edit_return_date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_price">Price (₹)</label>
-                        <input type="number" id="edit_price" class="form-control" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_total_seats">Total Seats</label>
-                        <input type="number" id="edit_total_seats" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_status">Status</label>
-                        <select id="edit_status" class="form-control">
-                            <option value="Open">Open</option>
-                            <option value="Closing Soon">Closing Soon</option>
-                            <option value="Full">Full</option>
-                            <option value="Closed">Closed</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Batch</button>
-                    <button type="button" class="action-btn btn-secondary" onclick="document.getElementById('editBatchForm').style.display='none'">Cancel</button>
-                </div>
-            </form>
-        </div>
-    `;
-    
-    // Insert form after the create batch form
-    const createForm = document.getElementById('createBatchForm');
-    createForm.insertAdjacentHTML('afterend', formHTML);
-}
-
-// Update batch function
-async function updateBatch() {
-    const batchId = document.getElementById('edit_batch_id').value;
-    
-    // Validate inputs
-    const batchName = document.getElementById('edit_batch_name').value.trim();
-    if (!batchName) {
-        showNotification('Batch name is required', 'error');
-        return;
-    }
-    
-    const batchData = {
-        batch_name: batchName,
-        departure_date: document.getElementById('edit_departure_date').value || null,
-        return_date: document.getElementById('edit_return_date').value || null,
-        price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
-        total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
-        status: document.getElementById('edit_status').value
-    };
-    
-    // Show loading
-    const updateBtn = document.querySelector('#batchEditForm button[type="submit"]');
-    const originalText = updateBtn.innerHTML;
-    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-    updateBtn.disabled = true;
-    
-    try {
-        const response = await fetch(`/api/batches/${batchId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(batchData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Batch updated successfully!', 'success');
-            document.getElementById('editBatchForm').style.display = 'none';
-            loadBatches(); // Reload the batches list
-        } else {
-            showNotification('Error updating batch: ' + (data.error || 'Unknown error'), 'error');
-        }
-    } catch (error) {
-        console.error('Update error:', error);
-        showNotification('Error updating batch. Please try again.', 'error');
-    } finally {
-        updateBtn.innerHTML = originalText;
-        updateBtn.disabled = false;
-    }
-}
 
         // ============ ADD TRAVELER FUNCTIONS ============
         function showAddTravelerForm() {
