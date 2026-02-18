@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Alhudha Haj Travel</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-area i {
+            color: #ffd700;
+        }
+        
+        .logo-area h1 {
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .role-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin: 2px;
+        }
+        
+        .role-super_admin { background: #8e44ad; color: white; }
+        .role-admin { background: #3498db; color: white; }
+        .role-manager { background: #f39c12; color: white; }
+        .role-staff { background: #27ae60; color: white; }
+        .role-viewer { background: #7f8c8d; color: white; }
+        
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .tabs-container {
+            background: white;
+            padding: 15px 0;
+            border-bottom: 2px solid #ecf0f1;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            min-width: max-content;
+        }
+        
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .tab-btn i {
+            font-size: 1rem;
+        }
+        
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #3498db;
+            color: white;
+        }
+        
+        .content-frame {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            min-height: 600px;
+            padding: 20px;
+        }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
+        
+        .loading {
+            text-align: center;
+            padding: 100px;
+            color: #7f8c8d;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .tabs-container {
+                padding: 10px 0;
+            }
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-area">
+                    <i class="fas fa-kaaba fa-2x"></i>
+                    <h1>Alhudha Haj Admin</h1>
+                    <span class="role-badge" id="roleBadge">Loading...</span>
+                </div>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <div class="container">
+            <div class="tabs" id="tabsContainer">
+                <button class="tab-btn active" onclick="loadSection('dashboard')" id="tabDashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </button>
+                <button class="tab-btn" onclick="loadSection('batches')" id="tabBatches">
+                    <i class="fas fa-layer-group"></i> Batches
+                </button>
+                <button class="tab-btn" onclick="loadSection('travelers')" id="tabTravelers">
+                    <i class="fas fa-users"></i> Travelers
+                </button>
+                <button class="tab-btn" onclick="loadSection('payments')" id="tabPayments">
+                    <i class="fas fa-credit-card"></i> Payments
+                </button>
+                <button class="tab-btn" onclick="loadSection('users')" id="tabUsers">
+                    <i class="fas fa-user-cog"></i> User Management
+                </button>
+                <button class="tab-btn" onclick="loadSection('reports')" id="tabReports">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </button>
+                <button class="tab-btn" onclick="loadSection('invoices')" id="tabInvoices">
+                    <i class="fas fa-file-invoice"></i> GST/TCS Invoice
+                </button>
+                <button class="tab-btn" onclick="loadSection('backup')" id="tabBackup">
+                    <i class="fas fa-database"></i> System Backup
+                </button>
+                <button class="tab-btn" onclick="loadSection('frontpage')" id="tabFrontpage">
+                    <i class="fas fa-edit"></i> Front Page Update
+                </button>
+                <button class="tab-btn" onclick="loadSection('whatsapp')" id="tabWhatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp Config
+                </button>
+                <button class="tab-btn" onclick="loadSection('email')" id="tabEmail">
+                    <i class="fas fa-envelope"></i> Email Config
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-card" id="welcomeCard">
+            <h2><i class="fas fa-hand-peace"></i> Welcome back, <span id="userName">Admin</span>!</h2>
+            <p>Role: <span id="userRole">Loading...</span></p>
+        </div>
+
+        <div id="contentArea" class="content-frame">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p style="margin-top: 20px;">Loading dashboard...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentSection = 'dashboard';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadSection('dashboard');
+        });
+
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = '/admin.login.html';
+                return;
+            }
+            
+            const userName = sessionStorage.getItem('adminName') || 'Admin';
+            const userRole = sessionStorage.getItem('adminRole') || 'Admin';
+            
+            document.getElementById('userName').textContent = userName;
+            document.getElementById('userRole').textContent = userRole;
+            
+            const roleBadge = document.getElementById('roleBadge');
+            roleBadge.textContent = userRole;
+            roleBadge.className = 'role-badge role-' + userRole.toLowerCase().replace(' ', '_');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        async function loadSection(section) {
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`tab${section.charAt(0).toUpperCase() + section.slice(1)}`).classList.add('active');
+            
+            currentSection = section;
+            
+            // Show loading
+            document.getElementById('contentArea').innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                    <p style="margin-top: 20px;">Loading ${section}...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`/admin/${section}.html`);
+                if (response.ok) {
+                    const html = await response.text();
+                    document.getElementById('contentArea').innerHTML = html;
+                    
+                    // Execute any scripts in the loaded content
+                    const scripts = document.getElementById('contentArea').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerText);
+                    }
+                } else {
+                    document.getElementById('contentArea').innerHTML = `
+                        <div style="text-align: center; padding: 100px;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #e74c3c;"></i>
+                            <h3 style="margin-top: 20px;">Error loading ${section}</h3>
+                            <p style="color: #7f8c8d;">Please try again later</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading section:', error);
+                document.getElementById('contentArea').innerHTML = `
+                    <div style="text-align: center; padding: 100px;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #e74c3c;"></i>
+                        <h3 style="margin-top: 20px;">Failed to load ${section}</h3>
+                        <p style="color: #7f8c8d;">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+            } catch (error) {}
+            sessionStorage.clear();
+            window.location.href = '/admin.login.html';
+        }
+    </script>
+</body>
+</html>
