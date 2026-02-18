@@ -801,7 +801,7 @@
                         </div>
                         <div class="form-group">
                             <label for="price"><i class="fas fa-rupee-sign"></i> Price (₹)</label>
-                            <input type="number" id="price" name="price" step="1000" placeholder="350000">
+                            <input type="number" id="price" name="price" step="1" placeholder="58555">
                         </div>
                         <div class="form-group">
                             <label for="departure_date"><i class="fas fa-plane-departure"></i> Departure Date</label>
@@ -1366,7 +1366,7 @@
                         </div>
                         <div class="form-group">
                             <label for="amount">Amount (₹) *</label>
-                            <input type="number" id="amount" step="100" min="1" required>
+                            <input type="number" id="amount" step="1" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="payment_date">Payment Date *</label>
@@ -1634,12 +1634,13 @@
         function displayBatches(batches) {
             let html = '';
             batches.forEach(b => {
+                const price = b.price ? parseFloat(b.price).toFixed(2) : '0';
                 html += `<tr>
                     <td>${b.id}</td>
                     <td><strong>${b.batch_name}</strong></td>
                     <td>${b.departure_date}</td>
                     <td>${b.return_date}</td>
-                    <td>₹${b.price?.toLocaleString() || '0'}</td>
+                    <td>₹${price}</td>
                     <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
                     <td><span class="status-badge ${b.status === 'Open' ? 'status-active' : 'status-pending'}">${b.status}</span></td>
                     <td>
@@ -1727,7 +1728,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="edit_price">Price (₹)</label>
-                                <input type="number" id="edit_price" step="1000">
+                                <input type="number" id="edit_price" step="1">
                             </div>
                             <div class="form-group">
                                 <label for="edit_total_seats">Total Seats</label>
@@ -1782,8 +1783,17 @@
                 const response = await fetch(`/api/batches/${batchId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(batchData)
                 });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
                 
                 const data = await response.json();
                 
@@ -1805,10 +1815,17 @@
         document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const priceInput = document.getElementById('price').value;
+            let price = null;
+            
+            if (priceInput) {
+                price = parseFloat(priceInput);
+            }
+            
             const batchData = {
                 batch_name: document.getElementById('batch_name').value,
                 total_seats: parseInt(document.getElementById('total_seats').value) || 150,
-                price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
+                price: price,
                 departure_date: document.getElementById('departure_date').value || null,
                 return_date: document.getElementById('return_date').value || null,
                 status: document.getElementById('status').value,
@@ -1829,13 +1846,22 @@
                 const response = await fetch('/api/batches/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(batchData)
                 });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Batch created successfully!', 'success');
+                    showNotification(`Batch created successfully with price ₹${price}`, 'success');
                     hideCreateBatchForm();
                     loadBatches();
                 } else {
@@ -1887,10 +1913,11 @@
             document.getElementById('add_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
         });
 
-        // Load real travelers from database
         async function loadTravelers() {
             try {
-                const response = await fetch('/api/travelers/');
+                const response = await fetch('/api/travelers/', {
+                    credentials: 'include'
+                });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.travelers && data.travelers.length > 0) {
@@ -1932,13 +1959,29 @@
 
         async function editTraveler(id) {
             try {
-                const response = await fetch(`/api/travelers/${id}`);
+                if (!sessionStorage.getItem('adminLoggedIn')) {
+                    showNotification('Please login again', 'error');
+                    window.location.href = '/admin.login.html';
+                    return;
+                }
+                
+                const response = await fetch(`/api/travelers/${id}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.success) {
                     const t = data.traveler;
                     
-                    // Populate edit form with all 33 fields
                     document.getElementById('edit_first_name').value = t.first_name || '';
                     document.getElementById('edit_last_name').value = t.last_name || '';
                     document.getElementById('edit_passport_name').value = t.passport_name || '';
@@ -1963,7 +2006,6 @@
                     document.getElementById('edit_mother_name').value = t.mother_name || '';
                     document.getElementById('edit_spouse_name').value = t.spouse_name || '';
                     
-                    // Handle extra_fields properly
                     let extraFields = t.extra_fields;
                     if (typeof extraFields === 'string') {
                         try {
@@ -1975,7 +2017,6 @@
                     document.getElementById('edit_extra_fields').value = JSON.stringify(extraFields || {}, null, 2);
                     document.getElementById('edit_pin').value = t.pin || '0000';
                     
-                    // Handle document upload text
                     document.getElementById('edit_passport_scan_text').textContent = t.passport_scan || 'Click to upload';
                     document.getElementById('edit_aadhaar_scan_text').textContent = t.aadhaar_scan || 'Click to upload';
                     document.getElementById('edit_pan_scan_text').textContent = t.pan_scan || 'Click to upload';
@@ -1985,7 +2026,6 @@
                     document.getElementById('edit_traveler_id').value = id;
                     currentEditId = id;
                     
-                    // Scroll to form
                     document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
                 } else {
                     showNotification('Error loading traveler details', 'error');
@@ -2032,7 +2072,6 @@
         document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Collect all 33 fields
             const travelerData = {
                 first_name: document.getElementById('add_first_name').value,
                 last_name: document.getElementById('add_last_name').value,
@@ -2064,7 +2103,6 @@
                 pin: document.getElementById('add_pin').value || '0000'
             };
             
-            // Validate required fields
             if (!travelerData.first_name || !travelerData.last_name || !travelerData.passport_no || !travelerData.mobile) {
                 showNotification('Please fill all required fields (*)', 'error');
                 return;
@@ -2079,16 +2117,25 @@
                 const response = await fetch('/api/travelers/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(travelerData)
                 });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
                 
                 const data = await response.json();
                 
                 if (data.success) {
                     showNotification('Traveler created successfully with all 33 fields!', 'success');
                     hideAddTravelerForm();
-                    loadTravelers(); // Reload the list
-                    loadDashboardStats(); // Update stats
+                    loadTravelers();
+                    loadDashboardStats();
                 } else {
                     showNotification('Error: ' + (data.error || 'Could not create traveler'), 'error');
                 }
@@ -2109,7 +2156,12 @@
                 return;
             }
             
-            // Parse extra fields JSON
+            if (!sessionStorage.getItem('adminLoggedIn')) {
+                showNotification('Please login again', 'error');
+                window.location.href = '/admin.login.html';
+                return;
+            }
+            
             let extraFieldsValue = document.getElementById('edit_extra_fields').value.trim();
             if (!extraFieldsValue) {
                 extraFieldsValue = '{}';
@@ -2158,8 +2210,17 @@
                 const response = await fetch(`/api/travelers/${currentEditId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(travelerData)
                 });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
                 
                 const data = await response.json();
                 
@@ -2181,7 +2242,9 @@
         });
 
         function viewTravelerDetails(id) {
-            fetch(`/api/travelers/${id}`)
+            fetch(`/api/travelers/${id}`, {
+                credentials: 'include'
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -2239,7 +2302,6 @@
                             </div>
                         `;
                         
-                        // Create or update modal
                         let modal = document.getElementById('travelerModal');
                         if (!modal) {
                             modal = document.createElement('div');
@@ -2327,13 +2389,107 @@
             document.getElementById('paymentForm').style.display = 'block';
         }
 
-        document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
+        document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            showNotification('Payment recorded successfully! (Demo)', 'success');
-            hideAddPaymentForm();
+            
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            if (amount <= 0) {
+                showNotification('Please enter a valid amount greater than 0', 'error');
+                return;
+            }
+            
+            const paymentData = {
+                traveler_id: document.getElementById('payment_traveler_id').value,
+                installment: document.getElementById('installment').value,
+                amount: amount,
+                payment_date: document.getElementById('payment_date').value,
+                payment_method: document.getElementById('payment_method').value,
+                transaction_id: document.getElementById('transaction_id').value,
+                remarks: document.getElementById('remarks').value,
+                status: 'Paid'
+            };
+            
+            if (!paymentData.traveler_id || !paymentData.amount || !paymentData.payment_date || !paymentData.payment_method) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/payments/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(paymentData)
+                });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`Payment of ₹${amount} recorded successfully!`, 'success');
+                    hideAddPaymentForm();
+                    loadPayments();
+                    loadPaymentStats();
+                    loadDashboardStats();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not record payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Error recording payment:', error);
+                showNotification('Error recording payment', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         });
 
         async function loadPayments() {
+            try {
+                const response = await fetch('/api/payments/', {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.payments && data.payments.length > 0) {
+                        let html = '';
+                        data.payments.forEach(p => {
+                            html += `<tr>
+                                <td>${p.id}</td>
+                                <td><strong>${p.traveler_name}</strong></td>
+                                <td>${p.installment}</td>
+                                <td>₹${p.amount.toLocaleString()}</td>
+                                <td>${p.due_date || '-'}</td>
+                                <td>${p.payment_date || '-'}</td>
+                                <td>${p.payment_method || '-'}</td>
+                                <td><span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">${p.status}</span></td>
+                            </tr>`;
+                        });
+                        document.getElementById('paymentsTable').innerHTML = html;
+                    } else {
+                        document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="8" style="text-align: center;">No payments found</td></tr>';
+                    }
+                } else {
+                    useDemoPayments();
+                }
+            } catch (error) {
+                useDemoPayments();
+            }
+        }
+
+        function useDemoPayments() {
             const demoPayments = [
                 { id: 1, traveler_name: 'Ahmed Khan', installment: 'Booking Amount', amount: 85000, payment_date: '2026-01-15', payment_method: 'Bank Transfer', status: 'Paid' },
                 { id: 2, traveler_name: 'Fatima Begum', installment: '1st Installment', amount: 110000, payment_date: '2026-01-20', payment_method: 'UPI', status: 'Paid' }
@@ -2356,10 +2512,30 @@
         }
 
         async function loadPaymentStats() {
-            document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
-            document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
-            document.getElementById('paidCount').innerHTML = '22';
-            document.getElementById('pendingCount').innerHTML = '9';
+            try {
+                const response = await fetch('/api/payments/stats', {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString()}`;
+                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString()}`;
+                        document.getElementById('paidCount').innerHTML = data.stats.status_counts?.Paid || '0';
+                        document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.Pending || '0';
+                        return;
+                    }
+                }
+                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
+                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
+                document.getElementById('paidCount').innerHTML = '22';
+                document.getElementById('pendingCount').innerHTML = '9';
+            } catch (error) {
+                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
+                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
+                document.getElementById('paidCount').innerHTML = '22';
+                document.getElementById('pendingCount').innerHTML = '9';
+            }
         }
 
         function showAddUserForm() {
@@ -2373,7 +2549,9 @@
 
         async function loadSimpleUsers() {
             try {
-                const response = await fetch('/api/admin/users');
+                const response = await fetch('/api/admin/users', {
+                    credentials: 'include'
+                });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.users && data.users.length > 0) {
@@ -2455,8 +2633,17 @@
                 const response = await fetch('/api/admin/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(userData)
                 });
+                
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin.login.html';
+                    }, 2000);
+                    return;
+                }
                 
                 const data = await response.json();
                 
