@@ -1,0 +1,46 @@
+Folder PATH listing for volume Windows OS
+Volume serial number is F895-93EC
+C:.
+³   .env.example
+³   .gitignore
+³   del
+³   my_structure.txt
+³   Procfile
+³   railway.json
+³   README.md
+³   requirements.txt
+³   runtime.txt
+³   start.sh
+³   structure.txt
+³   
+ÃÄÄÄ-p
+ÃÄÄÄapp
+³   ³   database.py
+³   ³   server.py
+³   ³   __init__.py
+³   ³   
+³   ÀÄÄÄroutes
+³           admin.py
+³           auth.py
+³           batches.py
+³           company.py
+³           payments.py
+³           travelers.py
+³           uploads.py
+³           
+ÃÄÄÄbackups
+ÃÄÄÄpublic
+³       admin.login.html
+³       admin_dashboard.html
+³       index.html
+³       style.css
+³       traveler_dashboard.html
+³       traveler_login.html
+³       
+ÃÄÄÄsql
+³       init.sql
+³       seed.sql
+³       
+ÀÄÄÄuploads
+        .gitkeep
+        
