@@ -1583,30 +1583,48 @@
             loadTravelers();
         });
 
-        async function loadTravelers() {
-            const demoTravelers = [
-                { id: 1, first_name: 'Ahmed', last_name: 'Khan', passport_no: 'A1234567', mobile: '9876543210', batch_name: 'Haj Platinum 2026', passport_status: 'Active', pin: '1234' },
-                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', mobile: '8765432109', batch_name: 'Haj Gold 2026', passport_status: 'Active', pin: '5678' }
-            ];
-            
-            let html = '';
-            demoTravelers.forEach(t => {
-                html += `<tr>
-                    <td>${t.id}</td>
-                    <td><strong>${t.first_name} ${t.last_name}</strong></td>
-                    <td>${t.passport_no}</td>
-                    <td>${t.mobile}</td>
-                    <td>${t.batch_name}</td>
-                    <td><span class="status-badge status-active">${t.passport_status}</span></td>
-                    <td>${t.pin}</td>
-                    <td>
-                        <button class="icon-btn" onclick="showNotification('View feature coming soon', 'info')" title="View"><i class="fas fa-eye"></i></button>
-                        <button class="icon-btn" onclick="showNotification('Edit feature coming soon', 'info')" title="Edit"><i class="fas fa-edit"></i></button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('travelersTable').innerHTML = html;
+        // Load real travelers from database
+async function loadTravelers() {
+    try {
+        const response = await fetch('/api/travelers/');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.travelers && data.travelers.length > 0) {
+                displayTravelers(data.travelers);
+            } else {
+                showNotification('No travelers found', 'info');
+                document.getElementById('travelersTable').innerHTML = `
+                    <tr><td colspan="8" style="text-align: center;">No travelers found</td></tr>
+                `;
+            }
+        } else {
+            showNotification('Failed to load travelers', 'error');
         }
+    } catch (error) {
+        console.error('Error loading travelers:', error);
+        showNotification('Error connecting to database', 'error');
+    }
+}
+
+function displayTravelers(travelers) {
+    let html = '';
+    travelers.forEach(t => {
+        html += `<tr>
+            <td>${t.id}</td>
+            <td><strong>${t.first_name || ''} ${t.last_name || ''}</strong></td>
+            <td>${t.passport_no || '-'}</td>
+            <td>${t.mobile || '-'}</td>
+            <td>${t.batch_name || 'Not Assigned'}</td>
+            <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
+            <td>${t.pin || '0000'}</td>
+            <td>
+                <button class="icon-btn" onclick="viewTravelerDetails(${t.id})" title="View"><i class="fas fa-eye"></i></button>
+                <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('travelersTable').innerHTML = html;
+}
 
         function showAddPaymentForm() {
             showTab('payments');
