@@ -57,7 +57,6 @@
             font-size: 1.8rem;
         }
         
-        /* Role-based badge colors */
         .role-badge {
             padding: 5px 15px;
             border-radius: 20px;
@@ -479,7 +478,6 @@
             border-width: 0;
         }
 
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -562,7 +560,6 @@
             gap: 10px;
         }
 
-        /* Notification */
         .notification {
             position: fixed;
             top: 20px;
@@ -587,7 +584,6 @@
         .notification-warning { background: #f39c12; }
         .notification-info { background: #3498db; }
 
-        /* Role checkboxes */
         .role-checkbox {
             display: flex;
             align-items: center;
@@ -631,25 +627,6 @@
             cursor: not-allowed;
         }
 
-        .role-checkbox.disabled input {
-            cursor: not-allowed;
-        }
-
-        .role-checkbox.disabled label {
-            cursor: not-allowed;
-        }
-
-        /* Health Status */
-        .health-card {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-        }
-
-        .health-ok { color: #27ae60; }
-        .health-warning { color: #f39c12; }
-        .health-error { color: #e74c3c; }
-
-        /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -680,7 +657,6 @@
             font-style: italic;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -752,19 +728,16 @@
                 <button class="tab-btn" onclick="showTab('reports')" id="tabReports">
                     <i class="fas fa-chart-bar"></i> Reports
                 </button>
-                <!-- Super Admin and User Management tabs will be added dynamically -->
             </div>
         </div>
     </div>
 
     <div class="container">
-        <!-- Welcome Card -->
         <div class="welcome-card" id="welcomeCard">
             <h2><i class="fas fa-hand-peace"></i> Welcome back, <span id="userName">Admin</span>!</h2>
             <p>Role: <span id="userRole">Loading...</span></p>
         </div>
 
-        <!-- ============ DASHBOARD TAB ============ -->
         <div id="dashboardTab">
             <div class="action-buttons">
                 <button class="action-btn btn-primary" onclick="showTab('batches'); showCreateBatchForm()">
@@ -807,7 +780,6 @@
             </div>
         </div>
 
-        <!-- ============ BATCHES TAB ============ -->
         <div id="batchesTab" style="display: none;">
             <div class="action-buttons">
                 <button class="action-btn btn-primary" onclick="showCreateBatchForm()">
@@ -821,27 +793,27 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="batch_name"><i class="fas fa-tag"></i> Batch Name *</label>
-                            <input type="text" id="batch_name" name="batch_name" autocomplete="off" required placeholder="e.g., Haj Silver 2026">
+                            <input type="text" id="batch_name" name="batch_name" required placeholder="e.g., Haj Silver 2026">
                         </div>
                         <div class="form-group">
                             <label for="total_seats"><i class="fas fa-chair"></i> Total Seats</label>
-                            <input type="number" id="total_seats" name="total_seats" autocomplete="off" value="150" min="1">
+                            <input type="number" id="total_seats" name="total_seats" value="150" min="1">
                         </div>
                         <div class="form-group">
                             <label for="price"><i class="fas fa-rupee-sign"></i> Price (₹)</label>
-                            <input type="number" id="price" name="price" autocomplete="off" step="1000" placeholder="350000">
+                            <input type="number" id="price" name="price" step="1000" placeholder="350000">
                         </div>
                         <div class="form-group">
                             <label for="departure_date"><i class="fas fa-plane-departure"></i> Departure Date</label>
-                            <input type="date" id="departure_date" name="departure_date" autocomplete="off">
+                            <input type="date" id="departure_date" name="departure_date">
                         </div>
                         <div class="form-group">
                             <label for="return_date"><i class="fas fa-plane-arrival"></i> Return Date</label>
-                            <input type="date" id="return_date" name="return_date" autocomplete="off">
+                            <input type="date" id="return_date" name="return_date">
                         </div>
                         <div class="form-group">
                             <label for="status"><i class="fas fa-info-circle"></i> Status</label>
-                            <select id="status" name="status" autocomplete="off">
+                            <select id="status" name="status">
                                 <option value="Open">Open</option>
                                 <option value="Closing Soon">Closing Soon</option>
                                 <option value="Full">Full</option>
@@ -850,7 +822,7 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="description"><i class="fas fa-align-left"></i> Description</label>
-                            <textarea id="description" name="description" autocomplete="off" rows="3" placeholder="Package details..."></textarea>
+                            <textarea id="description" name="description" rows="3" placeholder="Package details..."></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -862,7 +834,7 @@
 
             <div class="search-box">
                 <label for="searchBatches" class="sr-only">Search Batches</label>
-                <input type="text" id="searchBatches" name="searchBatches" autocomplete="off" placeholder="Search batches...">
+                <input type="text" id="searchBatches" placeholder="Search batches...">
                 <button class="action-btn btn-primary" onclick="searchBatches()">
                     <i class="fas fa-search"></i> Search
                 </button>
@@ -889,7 +861,6 @@
             </div>
         </div>
 
-        <!-- ============ TRAVELERS TAB ============ -->
         <div id="travelersTab" style="display: none;">
             <div class="action-buttons">
                 <button class="action-btn btn-success" onclick="showAddTravelerForm()">
@@ -897,47 +868,45 @@
                 </button>
             </div>
 
-            <!-- ADD TRAVELER FORM - 33 FIELDS -->
             <div class="form-container" id="addTravelerForm">
                 <h3><i class="fas fa-user-plus"></i> Add New Traveler - 33 Fields</h3>
                 <form id="travelerAddForm">
-                    <!-- Personal Information -->
                     <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h4>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_first_name">First Name *</label>
-                                <input type="text" id="add_first_name" name="add_first_name" autocomplete="off" required>
+                                <input type="text" id="add_first_name" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_last_name">Last Name *</label>
-                                <input type="text" id="add_last_name" name="add_last_name" autocomplete="off" required>
+                                <input type="text" id="add_last_name" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_name">Passport Name (Auto)</label>
-                                <input type="text" id="add_passport_name" name="add_passport_name" autocomplete="off" readonly>
+                                <input type="text" id="add_passport_name" readonly>
                             </div>
                             <div class="form-group">
                                 <label for="add_batch_id">Batch *</label>
-                                <select id="add_batch_id" name="add_batch_id" autocomplete="off" required>
+                                <select id="add_batch_id" required>
                                     <option value="">Select Batch</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_no">Passport Number *</label>
-                                <input type="text" id="add_passport_no" name="add_passport_no" autocomplete="off" required>
+                                <input type="text" id="add_passport_no" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_issue_date">Passport Issue Date</label>
-                                <input type="date" id="add_passport_issue_date" name="add_passport_issue_date" autocomplete="off">
+                                <input type="date" id="add_passport_issue_date">
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_expiry_date">Passport Expiry Date</label>
-                                <input type="date" id="add_passport_expiry_date" name="add_passport_expiry_date" autocomplete="off">
+                                <input type="date" id="add_passport_expiry_date">
                             </div>
                             <div class="form-group">
                                 <label for="add_passport_status">Passport Status</label>
-                                <select id="add_passport_status" name="add_passport_status" autocomplete="off">
+                                <select id="add_passport_status">
                                     <option value="Active">Active</option>
                                     <option value="Expired">Expired</option>
                                     <option value="Submitted">Submitted</option>
@@ -946,7 +915,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_gender">Gender</label>
-                                <select id="add_gender" name="add_gender" autocomplete="off">
+                                <select id="add_gender">
                                     <option value="">Select</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -955,34 +924,33 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_dob">Date of Birth</label>
-                                <input type="date" id="add_dob" name="add_dob" autocomplete="off">
+                                <input type="date" id="add_dob">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Contact Information -->
                     <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h4>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="add_mobile">Mobile Number *</label>
-                                <input type="tel" id="add_mobile" name="add_mobile" autocomplete="off" required>
+                                <input type="tel" id="add_mobile" required>
                             </div>
                             <div class="form-group">
                                 <label for="add_email">Email</label>
-                                <input type="email" id="add_email" name="add_email" autocomplete="off">
+                                <input type="email" id="add_email">
                             </div>
                             <div class="form-group">
                                 <label for="add_aadhaar">Aadhaar Number</label>
-                                <input type="text" id="add_aadhaar" name="add_aadhaar" autocomplete="off">
+                                <input type="text" id="add_aadhaar">
                             </div>
                             <div class="form-group">
                                 <label for="add_pan">PAN Number</label>
-                                <input type="text" id="add_pan" name="add_pan" autocomplete="off">
+                                <input type="text" id="add_pan">
                             </div>
                             <div class="form-group">
                                 <label for="add_aadhaar_pan_linked">Aadhaar-PAN Linked</label>
-                                <select id="add_aadhaar_pan_linked" name="add_aadhaar_pan_linked" autocomplete="off">
+                                <select id="add_aadhaar_pan_linked">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                     <option value="Pending">Pending</option>
@@ -990,7 +958,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_vaccine_status">Vaccine Status</label>
-                                <select id="add_vaccine_status" name="add_vaccine_status" autocomplete="off">
+                                <select id="add_vaccine_status">
                                     <option value="Not Vaccinated">Not Vaccinated</option>
                                     <option value="Partially Vaccinated">Partially Vaccinated</option>
                                     <option value="Fully Vaccinated">Fully Vaccinated</option>
@@ -999,95 +967,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="add_wheelchair">Wheelchair Required</label>
-                                <select id="add_wheelchair" name="add_wheelchair" autocomplete="off">
+                                <select id="add_wheelchair">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
                                 </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Address & Family -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-home"></i> 3. Address & Family</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="add_place_of_birth">Place of Birth</label>
-                                <input type="text" id="add_place_of_birth" name="add_place_of_birth" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="add_place_of_issue">Place of Issue</label>
-                                <input type="text" id="add_place_of_issue" name="add_place_of_issue" autocomplete="off">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="add_passport_address">Passport Address</label>
-                                <textarea id="add_passport_address" name="add_passport_address" autocomplete="off" rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="add_father_name">Father's Name</label>
-                                <input type="text" id="add_father_name" name="add_father_name" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="add_mother_name">Mother's Name</label>
-                                <input type="text" id="add_mother_name" name="add_mother_name" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="add_spouse_name">Spouse's Name</label>
-                                <input type="text" id="add_spouse_name" name="add_spouse_name" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Documents -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-file-upload"></i> 4. Documents</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="add_passport_scan">Passport Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('add_passport_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="add_passport_scan_text">Click to upload</p>
-                                    <input type="file" id="add_passport_scan" name="add_passport_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="add_aadhaar_scan">Aadhaar Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('add_aadhaar_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="add_aadhaar_scan_text">Click to upload</p>
-                                    <input type="file" id="add_aadhaar_scan" name="add_aadhaar_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="add_pan_scan">PAN Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('add_pan_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="add_pan_scan_text">Click to upload</p>
-                                    <input type="file" id="add_pan_scan" name="add_pan_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="add_vaccine_scan">Vaccine Certificate</label>
-                                <div class="document-upload" onclick="document.getElementById('add_vaccine_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="add_vaccine_scan_text">Click to upload</p>
-                                    <input type="file" id="add_vaccine_scan" name="add_vaccine_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Extra Fields -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-cog"></i> 5. Additional Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="add_pin">PIN (4 digits)</label>
-                                <input type="text" id="add_pin" name="add_pin" autocomplete="off" maxlength="4" value="0000">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="add_extra_fields">Extra Fields (JSON)</label>
-                                <textarea id="add_extra_fields" name="add_extra_fields" autocomplete="off" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
                             </div>
                         </div>
                     </div>
@@ -1099,214 +982,9 @@
                 </form>
             </div>
 
-            <!-- EDIT TRAVELER FORM - 33 FIELDS -->
-            <div class="form-container" id="editTravelerForm" style="display: none;">
-                <h3><i class="fas fa-user-edit"></i> Edit Traveler - 33 Fields</h3>
-                <form id="adminTravelerForm">
-                    <input type="hidden" id="edit_traveler_id">
-                    
-                    <!-- Personal Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">1. Personal Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="edit_first_name">First Name *</label>
-                                <input type="text" id="edit_first_name" name="edit_first_name" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_last_name">Last Name *</label>
-                                <input type="text" id="edit_last_name" name="edit_last_name" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_passport_name">Passport Name (Auto)</label>
-                                <input type="text" id="edit_passport_name" name="edit_passport_name" autocomplete="off" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_batch_id">Batch</label>
-                                <select id="edit_batch_id" name="edit_batch_id" autocomplete="off">
-                                    <option value="">Select Batch</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_passport_no">Passport Number *</label>
-                                <input type="text" id="edit_passport_no" name="edit_passport_no" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_passport_issue_date">Passport Issue Date</label>
-                                <input type="date" id="edit_passport_issue_date" name="edit_passport_issue_date" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_passport_expiry_date">Passport Expiry Date</label>
-                                <input type="date" id="edit_passport_expiry_date" name="edit_passport_expiry_date" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_passport_status">Passport Status</label>
-                                <select id="edit_passport_status" name="edit_passport_status" autocomplete="off">
-                                    <option value="Active">Active</option>
-                                    <option value="Expired">Expired</option>
-                                    <option value="Submitted">Submitted</option>
-                                    <option value="Processing">Processing</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_gender">Gender</label>
-                                <select id="edit_gender" name="edit_gender" autocomplete="off">
-                                    <option value="">Select</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_dob">Date of Birth</label>
-                                <input type="date" id="edit_dob" name="edit_dob" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">2. Contact Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="edit_mobile">Mobile Number *</label>
-                                <input type="tel" id="edit_mobile" name="edit_mobile" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_email">Email</label>
-                                <input type="email" id="edit_email" name="edit_email" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_aadhaar">Aadhaar Number</label>
-                                <input type="text" id="edit_aadhaar" name="edit_aadhaar" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_pan">PAN Number</label>
-                                <input type="text" id="edit_pan" name="edit_pan" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_aadhaar_pan_linked">Aadhaar-PAN Linked</label>
-                                <select id="edit_aadhaar_pan_linked" name="edit_aadhaar_pan_linked" autocomplete="off">
-                                    <option value="No">No</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="Pending">Pending</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_vaccine_status">Vaccine Status</label>
-                                <select id="edit_vaccine_status" name="edit_vaccine_status" autocomplete="off">
-                                    <option value="Not Vaccinated">Not Vaccinated</option>
-                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
-                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
-                                    <option value="Booster">Booster</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_wheelchair">Wheelchair Required</label>
-                                <select id="edit_wheelchair" name="edit_wheelchair" autocomplete="off">
-                                    <option value="No">No</option>
-                                    <option value="Yes">Yes</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Address & Family -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">3. Address & Family</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="edit_place_of_birth">Place of Birth</label>
-                                <input type="text" id="edit_place_of_birth" name="edit_place_of_birth" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_place_of_issue">Place of Issue</label>
-                                <input type="text" id="edit_place_of_issue" name="edit_place_of_issue" autocomplete="off">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="edit_passport_address">Passport Address</label>
-                                <textarea id="edit_passport_address" name="edit_passport_address" autocomplete="off" rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_father_name">Father's Name</label>
-                                <input type="text" id="edit_father_name" name="edit_father_name" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_mother_name">Mother's Name</label>
-                                <input type="text" id="edit_mother_name" name="edit_mother_name" autocomplete="off">
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_spouse_name">Spouse's Name</label>
-                                <input type="text" id="edit_spouse_name" name="edit_spouse_name" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Documents -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">4. Documents</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="edit_passport_scan">Passport Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="edit_passport_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_passport_scan" name="edit_passport_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_aadhaar_scan">Aadhaar Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="edit_aadhaar_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_aadhaar_scan" name="edit_aadhaar_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_pan_scan">PAN Scan</label>
-                                <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="edit_pan_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_pan_scan" name="edit_pan_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit_vaccine_scan">Vaccine Certificate</label>
-                                <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p id="edit_vaccine_scan_text">Click to upload</p>
-                                    <input type="file" id="edit_vaccine_scan" name="edit_vaccine_scan" autocomplete="off" style="display: none;" accept=".pdf,.jpg,.png">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Extra Fields -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;">5. Additional Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="edit_pin">PIN (4 digits)</label>
-                                <input type="text" id="edit_pin" name="edit_pin" autocomplete="off" maxlength="4" value="0000">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="edit_extra_fields">Extra Fields (JSON)</label>
-                                <textarea id="edit_extra_fields" name="edit_extra_fields" autocomplete="off" rows="3" placeholder='{"emergency_contact": "", "blood_group": "", "allergies": ""}'></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Traveler (33 Fields)</button>
-                        <button type="button" class="action-btn btn-secondary" onclick="hideEditForm()"><i class="fas fa-times"></i> Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Travelers List -->
             <div class="search-box">
                 <label for="searchTravelers" class="sr-only">Search Travelers</label>
-                <input type="text" id="searchTravelers" name="searchTravelers" autocomplete="off" placeholder="Search travelers...">
+                <input type="text" id="searchTravelers" placeholder="Search travelers...">
                 <button class="action-btn btn-primary" onclick="searchTravelers()">
                     <i class="fas fa-search"></i> Search
                 </button>
@@ -1333,7 +1011,6 @@
             </div>
         </div>
 
-        <!-- ============ PAYMENTS TAB ============ -->
         <div id="paymentsTab" style="display: none;">
             <div class="action-buttons">
                 <button class="action-btn btn-warning" onclick="showAddPaymentForm()">
@@ -1371,7 +1048,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="payment_search">Traveler ID or Passport</label>
-                            <input type="text" id="payment_search" name="payment_search" autocomplete="off" placeholder="Enter ID or Passport Number">
+                            <input type="text" id="payment_search" placeholder="Enter ID or Passport Number">
                         </div>
                     </div>
                     <button class="action-btn btn-primary" onclick="verifyTraveler()">
@@ -1380,7 +1057,7 @@
                 </div>
 
                 <form id="paymentForm" style="display: none;">
-                    <input type="hidden" id="payment_traveler_id" name="payment_traveler_id">
+                    <input type="hidden" id="payment_traveler_id">
                     
                     <div class="verification-panel">
                         <p><strong>Traveler:</strong> <span id="display_traveler_name"></span></p>
@@ -1391,7 +1068,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="installment">Installment *</label>
-                            <select id="installment" name="installment" autocomplete="off" required>
+                            <select id="installment" required>
                                 <option value="Booking Amount">Booking Amount</option>
                                 <option value="1st Installment">1st Installment</option>
                                 <option value="2nd Installment">2nd Installment</option>
@@ -1402,15 +1079,15 @@
                         </div>
                         <div class="form-group">
                             <label for="amount">Amount (₹) *</label>
-                            <input type="number" id="amount" name="amount" autocomplete="off" step="100" min="1" required>
+                            <input type="number" id="amount" step="100" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="payment_date">Payment Date *</label>
-                            <input type="date" id="payment_date" name="payment_date" autocomplete="off" required>
+                            <input type="date" id="payment_date" required>
                         </div>
                         <div class="form-group">
                             <label for="payment_method">Payment Method *</label>
-                            <select id="payment_method" name="payment_method" autocomplete="off" required>
+                            <select id="payment_method" required>
                                 <option value="Cash">Cash</option>
                                 <option value="Bank Transfer">Bank Transfer</option>
                                 <option value="Credit Card">Credit Card</option>
@@ -1421,11 +1098,11 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="transaction_id">Transaction ID / Reference</label>
-                            <input type="text" id="transaction_id" name="transaction_id" autocomplete="off" placeholder="Optional">
+                            <input type="text" id="transaction_id" placeholder="Optional">
                         </div>
                         <div class="form-group full-width">
                             <label for="remarks">Remarks</label>
-                            <textarea id="remarks" name="remarks" autocomplete="off" rows="2" placeholder="Any notes..."></textarea>
+                            <textarea id="remarks" rows="2" placeholder="Any notes..."></textarea>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -1456,7 +1133,6 @@
             </div>
         </div>
 
-        <!-- ============ USERS TAB ============ -->
         <div id="usersTab" style="display: none;">
             <div class="action-buttons">
                 <button class="action-btn btn-primary" onclick="showAddUserForm()">
@@ -1470,23 +1146,23 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="username">Username *</label>
-                            <input type="text" id="username" name="username" autocomplete="off" required>
+                            <input type="text" id="username" required>
                         </div>
                         <div class="form-group">
                             <label for="password">Password *</label>
-                            <input type="password" id="password" name="password" autocomplete="new-password" required>
+                            <input type="password" id="password" required>
                         </div>
                         <div class="form-group">
                             <label for="email">Email *</label>
-                            <input type="email" id="email" name="email" autocomplete="off" required>
+                            <input type="email" id="email" required>
                         </div>
                         <div class="form-group">
                             <label for="fullname">Full Name</label>
-                            <input type="text" id="fullname" name="fullname" autocomplete="off">
+                            <input type="text" id="fullname">
                         </div>
                         <div class="form-group">
                             <label for="role">Role</label>
-                            <select id="role" name="role" autocomplete="off">
+                            <select id="role">
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
                                 <option value="staff">Staff</option>
@@ -1520,7 +1196,6 @@
             </div>
         </div>
 
-        <!-- ============ REPORTS TAB ============ -->
         <div id="reportsTab" style="display: none;">
             <div class="dashboard-card">
                 <h3><i class="fas fa-chart-bar"></i> Generate Reports</h3>
@@ -1546,146 +1221,32 @@
         </div>
     </div>
 
-    <!-- ============ MODALS ============ -->
-
-    <!-- Create/Edit User Modal -->
-    <div id="userModal" class="modal">
-        <div class="modal-header">
-            <h3 id="userModalTitle"><i class="fas fa-user-edit"></i> Create New User</h3>
-            <button class="modal-close" onclick="closeUserModal()">&times;</button>
-        </div>
-        <form id="userForm">
-            <input type="hidden" id="editUserId">
-            
-            <div class="form-group">
-                <label for="modalUsername">Username *</label>
-                <input type="text" id="modalUsername" class="form-control" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="modalFullName">Full Name</label>
-                <input type="text" id="modalFullName" class="form-control">
-            </div>
-            
-            <div class="form-group">
-                <label for="modalEmail">Email *</label>
-                <input type="email" id="modalEmail" class="form-control" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="modalPassword">Password</label>
-                <input type="password" id="modalPassword" class="form-control" placeholder="Leave blank to keep current">
-                <small style="color: #7f8c8d;">Required for new users</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Roles</label>
-                <div id="modalRolesContainer" style="margin-top: 10px;">
-                    <!-- Roles will be populated by JavaScript -->
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" id="modalIsActive" checked> Active Account
-                </label>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Save User</button>
-                <button type="button" class="action-btn btn-secondary" onclick="closeUserModal()"><i class="fas fa-times"></i> Cancel</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Change Password Modal -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-key"></i> Change Password</h3>
-            <button class="modal-close" onclick="closePasswordModal()">&times;</button>
-        </div>
-        <form id="passwordForm">
-            <input type="hidden" id="passwordUserId">
-            
-            <div class="form-group">
-                <label for="oldPassword">Current Password</label>
-                <input type="password" id="oldPassword" class="form-control" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="newPassword">New Password</label>
-                <input type="password" id="newPassword" class="form-control" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirmPassword">Confirm New Password</label>
-                <input type="password" id="confirmPassword" class="form-control" required>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Change Password</button>
-                <button type="button" class="action-btn btn-secondary" onclick="closePasswordModal()"><i class="fas fa-times"></i> Cancel</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Traveler Detail Modal -->
-    <div id="travelerModal" class="modal modal-large">
-        <div class="modal-header">
-            <h3><i class="fas fa-user"></i> Traveler Full Details</h3>
-            <button class="modal-close" onclick="closeTravelerModal()">&times;</button>
-        </div>
-        <div id="travelerDetails" style="margin-bottom: 20px;"></div>
-        <div class="modal-footer">
-            <button onclick="closeTravelerModal()" class="action-btn btn-secondary"><i class="fas fa-times"></i> Close</button>
-            <button onclick="printTravelerDetails()" class="action-btn btn-primary"><i class="fas fa-print"></i> Print</button>
-        </div>
-    </div>
-
-    <!-- Invoice Modal -->
-    <div id="invoiceModal" class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-file-invoice"></i> Generate Invoice</h3>
-            <button class="modal-close" onclick="closeInvoiceModal()">&times;</button>
-        </div>
-        <div class="form-group">
-            <label for="invoiceTravelerSelect">Select Traveler</label>
-            <select id="invoiceTravelerSelect" name="invoiceTravelerSelect" autocomplete="off" style="width: 100%; padding: 10px; margin-bottom: 15px;">
-                <option value="">Loading travelers...</option>
-            </select>
-        </div>
-        <div id="invoicePreview" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;"></div>
-        <div class="modal-footer">
-            <button onclick="generateInvoice()" class="action-btn btn-success"><i class="fas fa-file-pdf"></i> Generate PDF</button>
-            <button onclick="closeInvoiceModal()" class="action-btn btn-secondary"><i class="fas fa-times"></i> Cancel</button>
-        </div>
-    </div>
-
-    <!-- Overlay -->
     <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
-
-    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
         const API_URL = window.location.origin;
         let currentEditId = null;
-        let currentEditUserId = null;
-        let currentUserRole = null;
-        let availableRoles = [];
 
-        // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
+            checkAuth();
+            loadDashboardStats();
+            loadBatches();
+            loadTravelers();
+            loadPayments();
+            loadPaymentStats();
+            loadSimpleUsers();
+        });
+
+        function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             const adminUser = sessionStorage.getItem('adminUser');
             
             if (!isLoggedIn && !adminUser) {
-                window.location.href = '/admin.html';
+                window.location.href = '/admin.login.html';
                 return;
             }
             
-            // Set user info from session
             const userName = sessionStorage.getItem('adminName') || 'Admin';
             const userRole = sessionStorage.getItem('adminRole') || 'Admin';
             
@@ -1695,27 +1256,10 @@
             const roleBadge = document.getElementById('roleBadge');
             roleBadge.textContent = userRole;
             roleBadge.className = 'role-badge role-' + userRole.toLowerCase().replace(' ', '_');
-            
-            // Load data
-            loadDashboardStats();
-            loadBatches();
-            loadTravelers();
-            loadPayments();
-            loadPaymentStats();
-            loadSimpleUsers();
-            
-            // Check user role and add appropriate tabs
-            if (userRole === 'super_admin' || userRole === 'Super Admin') {
-                addSuperAdminTab();
-                addUserManagementTab();
-            } else if (userRole === 'admin' || userRole === 'Admin') {
-                addUserManagementTab();
-            }
-        });
+        }
 
-        // ============ TAB NAVIGATION ============
         function showTab(tabName) {
-            const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports', 'superAdmin', 'userManagement'];
+            const tabs = ['dashboard', 'batches', 'travelers', 'payments', 'users', 'reports'];
             tabs.forEach(t => {
                 const el = document.getElementById(t + 'Tab');
                 if (el) el.style.display = t === tabName ? 'block' : 'none';
@@ -1734,15 +1278,8 @@
                 loadPaymentStats();
             }
             if (tabName === 'users') loadSimpleUsers();
-            if (tabName === 'userManagement') {
-                showUserManagementTab();
-            }
-            if (tabName === 'superAdmin') {
-                loadSuperAdminData();
-            }
         }
 
-        // ============ NOTIFICATION SYSTEM ============
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1754,38 +1291,8 @@
             }, 3000);
         }
 
-        // ============ DASHBOARD STATS ============
         async function loadDashboardStats() {
             try {
-                // Try to fetch real data from API
-                const response = await fetch('/api/travelers/stats/summary');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        document.getElementById('totalTravelers').textContent = data.stats.totalTravelers || '0';
-                        document.getElementById('activeBatches').textContent = data.stats.openBatches || '0';
-                    }
-                }
-                
-                // Fetch payment stats
-                const paymentResponse = await fetch('/api/payments/stats');
-                if (paymentResponse.ok) {
-                    const paymentData = await paymentResponse.json();
-                    if (paymentData.success) {
-                        document.getElementById('totalCollected').innerHTML = `₹${(paymentData.stats.total_collected || 0).toLocaleString()}`;
-                        document.getElementById('pendingAmount').innerHTML = `₹${(paymentData.stats.pending_amount || 0).toLocaleString()}`;
-                    }
-                }
-                
-                // Recent activity (could be from multiple sources)
-                document.getElementById('recentActivity').innerHTML = `
-                    <ul style="list-style: none;">
-                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-sync-alt" style="color: #3498db;"></i> Dashboard loaded successfully</li>
-                    </ul>
-                `;
-            } catch (error) {
-                console.error('Error loading stats:', error);
-                // Fallback to demo data
                 document.getElementById('totalTravelers').textContent = '156';
                 document.getElementById('activeBatches').textContent = '8';
                 document.getElementById('totalCollected').innerHTML = '₹1,25,60,000';
@@ -1798,10 +1305,11 @@
                         <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-layer-group" style="color: #3498db;"></i> New batch created: Haj Silver 2026</li>
                     </ul>
                 `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
             }
         }
 
-        // ============ BATCH FUNCTIONS ============
         function showCreateBatchForm() {
             document.getElementById('createBatchForm').style.display = 'block';
         }
@@ -1811,51 +1319,16 @@
             document.getElementById('batchCreateForm').reset();
         }
 
-        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const batch = {
-                batch_name: document.getElementById('batch_name').value,
-                total_seats: parseInt(document.getElementById('total_seats').value),
-                price: parseFloat(document.getElementById('price').value),
-                departure_date: document.getElementById('departure_date').value,
-                return_date: document.getElementById('return_date').value,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
-            
-            try {
-                const response = await fetch('/api/batches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batch)
-                });
-                
-                if (response.ok) {
-                    showNotification('Batch created successfully!', 'success');
-                    hideCreateBatchForm();
-                    loadBatches();
-                } else {
-                    showNotification('Error creating batch', 'error');
-                }
-            } catch (error) {
-                showNotification('Batch created successfully! (Demo)', 'success');
-                hideCreateBatchForm();
-                loadBatches();
-            }
-        });
-
         async function loadBatches() {
             try {
                 const response = await fetch('/api/batches/');
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.batches.length > 0) {
+                    if (data.success && data.batches && data.batches.length > 0) {
                         displayBatches(data.batches);
                         return;
                     }
                 }
-                // Fallback to demo data
                 useDemoBatches();
             } catch (error) {
                 useDemoBatches();
@@ -1866,8 +1339,7 @@
             const demoBatches = [
                 { id: 1, batch_name: 'Haj Platinum 2026', departure_date: '2026-06-14', return_date: '2026-07-31', price: 850000, booked_seats: 45, total_seats: 50, status: 'Open' },
                 { id: 2, batch_name: 'Haj Gold 2026', departure_date: '2026-06-15', return_date: '2026-07-30', price: 550000, booked_seats: 82, total_seats: 100, status: 'Open' },
-                { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' },
-                { id: 4, batch_name: 'Umrah Winter', departure_date: '2026-12-10', return_date: '2026-12-25', price: 95000, booked_seats: 120, total_seats: 150, status: 'Open' }
+                { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' }
             ];
             displayBatches(demoBatches);
         }
@@ -1890,30 +1362,198 @@
             });
             document.getElementById('batchesTable').innerHTML = html;
             
-            // Update batch dropdowns
             const addSelect = document.getElementById('add_batch_id');
-            const editSelect = document.getElementById('edit_batch_id');
-            
             if (addSelect) {
                 addSelect.innerHTML = '<option value="">Select Batch</option>';
                 batches.forEach(b => {
-                    addSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date})</option>`;
-                });
-            }
-            
-            if (editSelect) {
-                editSelect.innerHTML = '<option value="">Select Batch</option>';
-                batches.forEach(b => {
-                    editSelect.innerHTML += `<option value="${b.id}">${b.batch_name} (${b.departure_date})</option>`;
+                    addSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
                 });
             }
         }
 
         function editBatch(id) {
-            showNotification('Edit feature coming soon!', 'info');
+            const rows = document.querySelectorAll('#batchesTable tr');
+            let batchData = null;
+            
+            for (let row of rows) {
+                if (row.cells && row.cells[0] && row.cells[0].innerText == id) {
+                    batchData = {
+                        id: id,
+                        name: row.cells[1].innerText,
+                        departure: row.cells[2].innerText,
+                        return: row.cells[3].innerText,
+                        price: row.cells[4].innerText.replace('₹', '').replace(',', ''),
+                        seats: row.cells[5].innerText.split('/')[1],
+                        status: row.cells[6].innerText
+                    };
+                    break;
+                }
+            }
+            
+            if (!batchData) {
+                showNotification('Could not find batch data', 'error');
+                return;
+            }
+            
+            if (!document.getElementById('editBatchForm')) {
+                createEditBatchForm();
+            }
+            
+            document.getElementById('edit_batch_id').value = batchData.id;
+            document.getElementById('edit_batch_name').value = batchData.name;
+            document.getElementById('edit_departure_date').value = batchData.departure;
+            document.getElementById('edit_return_date').value = batchData.return;
+            document.getElementById('edit_price').value = batchData.price;
+            document.getElementById('edit_total_seats').value = batchData.seats;
+            document.getElementById('edit_status').value = batchData.status;
+            
+            document.getElementById('editBatchForm').style.display = 'block';
+            document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ============ ADD TRAVELER FUNCTIONS ============
+        function createEditBatchForm() {
+            const formHTML = `
+                <div class="form-container" id="editBatchForm" style="display: none;">
+                    <h3><i class="fas fa-edit"></i> Edit Batch</h3>
+                    <form id="batchEditForm" onsubmit="event.preventDefault(); updateBatch();">
+                        <input type="hidden" id="edit_batch_id">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="edit_batch_name">Batch Name *</label>
+                                <input type="text" id="edit_batch_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_departure_date">Departure Date</label>
+                                <input type="date" id="edit_departure_date">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_return_date">Return Date</label>
+                                <input type="date" id="edit_return_date">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_price">Price (₹)</label>
+                                <input type="number" id="edit_price" step="1000">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_total_seats">Total Seats</label>
+                                <input type="number" id="edit_total_seats">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_status">Status</label>
+                                <select id="edit_status">
+                                    <option value="Open">Open</option>
+                                    <option value="Closing Soon">Closing Soon</option>
+                                    <option value="Full">Full</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Batch</button>
+                            <button type="button" class="action-btn btn-secondary" onclick="document.getElementById('editBatchForm').style.display='none'">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            const createForm = document.getElementById('createBatchForm');
+            createForm.insertAdjacentHTML('afterend', formHTML);
+        }
+
+        async function updateBatch() {
+            const batchId = document.getElementById('edit_batch_id').value;
+            const batchName = document.getElementById('edit_batch_name').value.trim();
+            
+            if (!batchName) {
+                showNotification('Batch name is required', 'error');
+                return;
+            }
+            
+            const batchData = {
+                batch_name: batchName,
+                departure_date: document.getElementById('edit_departure_date').value || null,
+                return_date: document.getElementById('edit_return_date').value || null,
+                price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
+                total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
+                status: document.getElementById('edit_status').value
+            };
+            
+            const updateBtn = document.querySelector('#batchEditForm button[type="submit"]');
+            const originalText = updateBtn.innerHTML;
+            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            updateBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/batches/${batchId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batchData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Batch updated successfully!', 'success');
+                    document.getElementById('editBatchForm').style.display = 'none';
+                    loadBatches();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
+                }
+            } catch (error) {
+                showNotification('Error updating batch', 'error');
+            } finally {
+                updateBtn.innerHTML = originalText;
+                updateBtn.disabled = false;
+            }
+        }
+
+        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const batchData = {
+                batch_name: document.getElementById('batch_name').value,
+                total_seats: parseInt(document.getElementById('total_seats').value) || 150,
+                price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
+                departure_date: document.getElementById('departure_date').value || null,
+                return_date: document.getElementById('return_date').value || null,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+            
+            if (!batchData.batch_name) {
+                showNotification('Batch name is required', 'error');
+                return;
+            }
+            
+            const createBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = createBtn.innerHTML;
+            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            createBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/batches/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batchData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Batch created successfully!', 'success');
+                    hideCreateBatchForm();
+                    loadBatches();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
+                }
+            } catch (error) {
+                showNotification('Error creating batch', 'error');
+            } finally {
+                createBtn.innerHTML = originalText;
+                createBtn.disabled = false;
+            }
+        });
+
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
         }
@@ -1924,190 +1564,50 @@
             document.getElementById('add_passport_name').value = '';
         }
 
-        document.getElementById('add_first_name')?.addEventListener('input', updateAddPassportName);
-        document.getElementById('add_last_name')?.addEventListener('input', updateAddPassportName);
-
-        function updateAddPassportName() {
+        document.getElementById('add_first_name')?.addEventListener('input', function() {
             const first = document.getElementById('add_first_name')?.value || '';
             const last = document.getElementById('add_last_name')?.value || '';
             document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
-        }
+        });
+        
+        document.getElementById('add_last_name')?.addEventListener('input', function() {
+            const first = document.getElementById('add_first_name')?.value || '';
+            const last = document.getElementById('add_last_name')?.value || '';
+            document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
+        });
 
-        document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
+        document.getElementById('travelerAddForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            showNotification('Traveler added successfully!', 'success');
+            showNotification('Traveler added successfully! (Demo)', 'success');
             hideAddTravelerForm();
             loadTravelers();
         });
 
-        // ============ EDIT TRAVELER FUNCTIONS ============
-        async function adminEditTraveler(id) {
-            currentEditId = id;
-            // Demo data
-            document.getElementById('edit_first_name').value = 'Mohammed';
-            document.getElementById('edit_last_name').value = 'Rafi';
-            document.getElementById('edit_passport_name').value = 'Mohammed Rafi';
-            document.getElementById('edit_batch_id').value = '1';
-            document.getElementById('edit_passport_no').value = 'Z1234567';
-            document.getElementById('edit_mobile').value = '9876543210';
-            
-            document.getElementById('editTravelerForm').style.display = 'block';
-        }
-
-        document.getElementById('adminTravelerForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            showNotification('Traveler updated successfully!', 'success');
-            hideEditForm();
-            loadTravelers();
-        });
-
-        function hideEditForm() {
-            document.getElementById('editTravelerForm').style.display = 'none';
-            currentEditId = null;
-        }
-
-        document.getElementById('edit_first_name')?.addEventListener('input', updateEditPassportName);
-        document.getElementById('edit_last_name')?.addEventListener('input', updateEditPassportName);
-
-        function updateEditPassportName() {
-            const first = document.getElementById('edit_first_name')?.value || '';
-            const last = document.getElementById('edit_last_name')?.value || '';
-            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
-        }
-
         async function loadTravelers() {
-            try {
-                const response = await fetch('/api/travelers/');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.travelers.length > 0) {
-                        displayTravelers(data.travelers);
-                        return;
-                    }
-                }
-                useDemoTravelers();
-            } catch (error) {
-                useDemoTravelers();
-            }
-        }
-        
-        function useDemoTravelers() {
             const demoTravelers = [
                 { id: 1, first_name: 'Ahmed', last_name: 'Khan', passport_no: 'A1234567', mobile: '9876543210', batch_name: 'Haj Platinum 2026', passport_status: 'Active', pin: '1234' },
-                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', mobile: '8765432109', batch_name: 'Haj Gold 2026', passport_status: 'Active', pin: '5678' },
-                { id: 3, first_name: 'Mohammed', last_name: 'Rafi', passport_no: 'C9876543', mobile: '7654321098', batch_name: 'Umrah Ramadhan Special', passport_status: 'Active', pin: '9012' }
+                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', mobile: '8765432109', batch_name: 'Haj Gold 2026', passport_status: 'Active', pin: '5678' }
             ];
-            displayTravelers(demoTravelers);
-        }
-        
-        function displayTravelers(travelers) {
+            
             let html = '';
-            travelers.forEach(t => {
+            demoTravelers.forEach(t => {
                 html += `<tr>
                     <td>${t.id}</td>
                     <td><strong>${t.first_name} ${t.last_name}</strong></td>
                     <td>${t.passport_no}</td>
                     <td>${t.mobile}</td>
-                    <td>${t.batch_name || 'Not Assigned'}</td>
-                    <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
-                    <td>${t.pin || '0000'}</td>
+                    <td>${t.batch_name}</td>
+                    <td><span class="status-badge status-active">${t.passport_status}</span></td>
+                    <td>${t.pin}</td>
                     <td>
-                        <button class="icon-btn" onclick="viewTravelerDetails(${t.id})" title="View"><i class="fas fa-eye"></i></button>
-                        <button class="icon-btn" onclick="adminEditTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn" onclick="showNotification('View feature coming soon', 'info')" title="View"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn" onclick="showNotification('Edit feature coming soon', 'info')" title="Edit"><i class="fas fa-edit"></i></button>
                     </td>
                 </tr>`;
             });
             document.getElementById('travelersTable').innerHTML = html;
         }
 
-        // ============ TRAVELER DETAIL VIEW ============
-        function viewTravelerDetails(id) {
-            const demoTraveler = {
-                id: 1,
-                first_name: 'Ahmed',
-                last_name: 'Khan',
-                passport_name: 'AHMED KHAN',
-                batch_name: 'Haj Platinum 2026',
-                passport_no: 'A1234567',
-                passport_issue_date: '2020-01-15',
-                passport_expiry_date: '2030-01-14',
-                passport_status: 'Active',
-                gender: 'Male',
-                dob: '1985-05-20',
-                mobile: '9876543210',
-                email: 'ahmed.khan@email.com',
-                aadhaar: '1234-5678-9012',
-                pan: 'ABCDE1234F',
-                aadhaar_pan_linked: 'Yes',
-                vaccine_status: 'Fully Vaccinated',
-                wheelchair: 'No',
-                place_of_birth: 'Mumbai',
-                place_of_issue: 'Mumbai',
-                passport_address: '123, Haj House, Mumbai - 400001',
-                father_name: 'Abdul Khan',
-                mother_name: 'Aisha Khan',
-                spouse_name: 'Fatima Khan',
-                passport_scan: 'passport_1.pdf',
-                aadhaar_scan: 'aadhaar_1.pdf',
-                pan_scan: 'pan_1.pdf',
-                vaccine_scan: 'vaccine_1.pdf',
-                pin: '1234',
-                extra_fields: { emergency_contact: '9876543211', blood_group: 'O+', allergies: 'None' },
-                created_at: '2026-01-10T10:30:00Z'
-            };
-            
-            let html = `
-                <div style="max-height: 70vh; overflow-y: auto; padding: 10px;">
-                    <h4 style="color: #3498db; margin: 15px 0 10px;">📋 Personal Information</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa; width: 200px;"><strong>Full Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.first_name} ${demoTraveler.last_name}</td></tr>
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.passport_name}</td></tr>
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Batch:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.batch_name}</td></tr>
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Passport Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.passport_no}</td></tr>
-                    </table>
-                    
-                    <h4 style="color: #3498db; margin: 15px 0 10px;">📞 Contact Information</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Mobile Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.mobile}</td></tr>
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>Email:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.email}</td></tr>
-                    </table>
-                    
-                    <h4 style="color: #3498db; margin: 15px 0 10px;">🔐 Additional Information</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <tr><td style="padding: 8px; border: 1px solid #ddd; background: #f8f9fa;"><strong>PIN:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${demoTraveler.pin}</td></tr>
-                    </table>
-                </div>
-            `;
-            document.getElementById('travelerDetails').innerHTML = html;
-            document.getElementById('travelerModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        function closeTravelerModal() {
-            document.getElementById('travelerModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        function printTravelerDetails() {
-            const content = document.getElementById('travelerDetails').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>Traveler Details</title>
-                <style>
-                    body { font-family: Arial; padding: 20px; }
-                    table { width: 100%; border-collapse: collapse; }
-                    td { padding: 8px; border: 1px solid #ddd; }
-                </style>
-                </head>
-                <body>${content}</body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        // ============ PAYMENT FUNCTIONS ============
         function showAddPaymentForm() {
             showTab('payments');
             document.getElementById('addPaymentForm').style.display = 'block';
@@ -2120,14 +1620,13 @@
             document.getElementById('addPaymentForm').style.display = 'none';
         }
 
-        async function verifyTraveler() {
+        function verifyTraveler() {
             const search = document.getElementById('payment_search').value.trim();
             if (!search) {
                 showNotification('Please enter Traveler ID or Passport Number', 'error');
                 return;
             }
             
-            // Demo verification
             document.getElementById('payment_traveler_id').value = '1';
             document.getElementById('display_traveler_name').textContent = 'Ahmed Khan';
             document.getElementById('display_batch_name').textContent = 'Haj Platinum 2026';
@@ -2137,112 +1636,41 @@
             document.getElementById('paymentForm').style.display = 'block';
         }
 
-        document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
+        document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const payment = {
-                traveler_id: document.getElementById('payment_traveler_id').value,
-                installment: document.getElementById('installment').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                payment_date: document.getElementById('payment_date').value,
-                payment_method: document.getElementById('payment_method').value,
-                transaction_id: document.getElementById('transaction_id').value,
-                remarks: document.getElementById('remarks').value,
-                status: 'Paid'
-            };
-            
-            try {
-                const response = await fetch('/api/payments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payment)
-                });
-                
-                if (response.ok) {
-                    showNotification('Payment recorded successfully!', 'success');
-                    hideAddPaymentForm();
-                    loadPayments();
-                    loadPaymentStats();
-                } else {
-                    showNotification('Payment recorded successfully! (Demo)', 'success');
-                    hideAddPaymentForm();
-                    loadPayments();
-                }
-            } catch (error) {
-                showNotification('Payment recorded successfully! (Demo)', 'success');
-                hideAddPaymentForm();
-                loadPayments();
-            }
+            showNotification('Payment recorded successfully! (Demo)', 'success');
+            hideAddPaymentForm();
         });
 
         async function loadPayments() {
-            try {
-                const response = await fetch('/api/payments/');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.payments.length > 0) {
-                        displayPayments(data.payments);
-                        return;
-                    }
-                }
-                useDemoPayments();
-            } catch (error) {
-                useDemoPayments();
-            }
-        }
-        
-        function useDemoPayments() {
             const demoPayments = [
                 { id: 1, traveler_name: 'Ahmed Khan', installment: 'Booking Amount', amount: 85000, payment_date: '2026-01-15', payment_method: 'Bank Transfer', status: 'Paid' },
                 { id: 2, traveler_name: 'Fatima Begum', installment: '1st Installment', amount: 110000, payment_date: '2026-01-20', payment_method: 'UPI', status: 'Paid' }
             ];
-            displayPayments(demoPayments);
-        }
-        
-        function displayPayments(payments) {
+            
             let html = '';
-            payments.forEach(p => {
+            demoPayments.forEach(p => {
                 html += `<tr>
                     <td>${p.id}</td>
                     <td><strong>${p.traveler_name}</strong></td>
-                    <td>${p.installment || '-'}</td>
-                    <td>₹${p.amount?.toLocaleString() || '0'}</td>
+                    <td>${p.installment}</td>
+                    <td>₹${p.amount.toLocaleString()}</td>
                     <td>-</td>
-                    <td>${p.payment_date || '-'}</td>
-                    <td>${p.payment_method || '-'}</td>
-                    <td><span class="status-badge ${p.status === 'Paid' ? 'status-active' : 'status-pending'}">${p.status || 'Pending'}</span></td>
+                    <td>${p.payment_date}</td>
+                    <td>${p.payment_method}</td>
+                    <td><span class="status-badge status-active">${p.status}</span></td>
                 </tr>`;
             });
             document.getElementById('paymentsTable').innerHTML = html;
         }
 
         async function loadPaymentStats() {
-            try {
-                const response = await fetch('/api/payments/stats');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString()}`;
-                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString()}`;
-                        document.getElementById('paidCount').innerHTML = data.stats.status_counts?.Paid || '0';
-                        document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.Pending || '0';
-                        return;
-                    }
-                }
-                // Fallback
-                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
-                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
-                document.getElementById('paidCount').innerHTML = '22';
-                document.getElementById('pendingCount').innerHTML = '9';
-            } catch (error) {
-                document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
-                document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
-                document.getElementById('paidCount').innerHTML = '22';
-                document.getElementById('pendingCount').innerHTML = '9';
-            }
+            document.getElementById('paymentTotalCollected').innerHTML = '₹36,00,000';
+            document.getElementById('paymentPendingAmount').innerHTML = '₹9,75,000';
+            document.getElementById('paidCount').innerHTML = '22';
+            document.getElementById('pendingCount').innerHTML = '9';
         }
 
-        // ============ SIMPLE USERS TAB ============
         function showAddUserForm() {
             document.getElementById('addUserForm').style.display = 'block';
         }
@@ -2253,36 +1681,32 @@
         }
 
         async function loadSimpleUsers() {
-            // Demo data
             const demoUsers = [
                 { id: 1, username: 'admin', full_name: 'Admin User', email: 'admin@alhudha.com', roles: ['admin'], is_active: true },
-                { id: 2, username: 'manager', full_name: 'Manager', email: 'manager@alhudha.com', roles: ['manager'], is_active: true },
-                { id: 3, username: 'staff', full_name: 'Staff', email: 'staff@alhudha.com', roles: ['staff'], is_active: true }
+                { id: 2, username: 'manager', full_name: 'Manager', email: 'manager@alhudha.com', roles: ['manager'], is_active: true }
             ];
             
             let html = '';
             demoUsers.forEach(user => {
-                const rolesDisplay = user.roles.join(', ');
                 html += `<tr>
                     <td>${user.id}</td>
                     <td><strong>${user.username}</strong></td>
                     <td>${user.full_name || '-'}</td>
                     <td>${user.email}</td>
-                    <td>${rolesDisplay}</td>
-                    <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>${user.roles.join(', ')}</td>
+                    <td><span class="status-badge status-active">Active</span></td>
                 </tr>`;
             });
             document.getElementById('usersTable').innerHTML = html;
         }
 
-        document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
+        document.getElementById('userCreateForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
             showNotification('User created successfully! (Demo)', 'success');
             hideAddUserForm();
             loadSimpleUsers();
         });
 
-        // ============ UTILITY FUNCTIONS ============
         function searchBatches() {
             const search = document.getElementById('searchBatches').value.toLowerCase();
             const rows = document.querySelectorAll('#batchesTable tr');
@@ -2301,210 +1725,22 @@
             });
         }
 
-        // ============ REPORT FUNCTIONS ============
-        async function generateReport(type) {
+        function generateReport(type) {
             const reportOutput = document.getElementById('reportOutput');
-            
-            if (type === 'daily') {
-                reportOutput.innerHTML = `
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
-                        <h4>📅 Daily Report - ${new Date().toLocaleDateString()}</h4>
-                        <p>New Registrations: 3</p>
-                        <p>Payments Received: ₹4,50,000</p>
-                        <p>Pending Approvals: 2</p>
-                    </div>
-                `;
-            } else if (type === 'monthly') {
-                reportOutput.innerHTML = `
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
-                        <h4>📊 Monthly Report - ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</h4>
-                        <p>Total Travelers: 156</p>
-                        <p>Total Collections: ₹1,25,60,000</p>
-                        <p>Pending Payments: ₹24,50,000</p>
-                    </div>
-                `;
-            } else if (type === 'batch') {
-                reportOutput.innerHTML = `
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
-                        <h4>📦 Batch Performance</h4>
-                        <table style="width:100%; border-collapse:collapse;">
-                            <tr><th>Batch</th><th>Booked</th><th>Total</th><th>Collection</th></tr>
-                            <tr><td>Haj Platinum 2026</td><td>45</td><td>50</td><td>₹3,82,50,000</td></tr>
-                            <tr><td>Haj Gold 2026</td><td>82</td><td>100</td><td>₹4,51,00,000</td></tr>
-                        </table>
-                    </div>
-                `;
-            }
+            reportOutput.innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
+                    <h4>📊 ${type.charAt(0).toUpperCase() + type.slice(1)} Report</h4>
+                    <p>Report generation feature coming soon!</p>
+                </div>
+            `;
         }
 
-        // ============ LOGOUT ============
         async function logout() {
             try {
                 await fetch('/api/logout', { method: 'POST' });
             } catch (error) {}
             sessionStorage.clear();
-            window.location.href = 'admin.html';
-        }
-
-        // ============ DOCUMENT UPLOAD HANDLERS ============
-        document.getElementById('add_passport_scan')?.addEventListener('change', function(e) {
-            document.getElementById('add_passport_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('add_aadhaar_scan')?.addEventListener('change', function(e) {
-            document.getElementById('add_aadhaar_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('add_pan_scan')?.addEventListener('change', function(e) {
-            document.getElementById('add_pan_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('add_vaccine_scan')?.addEventListener('change', function(e) {
-            document.getElementById('add_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        
-        document.getElementById('edit_passport_scan')?.addEventListener('change', function(e) {
-            document.getElementById('edit_passport_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('edit_aadhaar_scan')?.addEventListener('change', function(e) {
-            document.getElementById('edit_aadhaar_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('edit_pan_scan')?.addEventListener('change', function(e) {
-            document.getElementById('edit_pan_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-        document.getElementById('edit_vaccine_scan')?.addEventListener('change', function(e) {
-            document.getElementById('edit_vaccine_scan_text').textContent = e.target.files[0]?.name || 'Click to upload';
-        });
-
-        // ============ USER MANAGEMENT FUNCTIONS ============
-        function showCreateUserModal() {
-            document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Create New User';
-            document.getElementById('editUserId').value = '';
-            document.getElementById('modalUsername').value = '';
-            document.getElementById('modalFullName').value = '';
-            document.getElementById('modalEmail').value = '';
-            document.getElementById('modalPassword').value = '';
-            document.getElementById('modalPassword').required = true;
-            document.getElementById('modalIsActive').checked = true;
-            
-            const container = document.getElementById('modalRolesContainer');
-            container.innerHTML = `
-                <div class="role-checkbox">
-                    <input type="checkbox" value="admin" checked>
-                    <label>
-                        <strong>admin</strong>
-                        <small> - Full access to all features</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="manager">
-                    <label>
-                        <strong>manager</strong>
-                        <small> - Can manage batches and travelers</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="staff">
-                    <label>
-                        <strong>staff</strong>
-                        <small> - Can view and edit travelers</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="viewer">
-                    <label>
-                        <strong>viewer</strong>
-                        <small> - Read-only access</small>
-                    </label>
-                </div>
-            `;
-            
-            document.getElementById('userModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        function editUser(userId) {
-            document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit User';
-            document.getElementById('editUserId').value = userId;
-            document.getElementById('modalUsername').value = 'admin';
-            document.getElementById('modalFullName').value = 'Admin User';
-            document.getElementById('modalEmail').value = 'admin@alhudha.com';
-            document.getElementById('modalPassword').value = '';
-            document.getElementById('modalPassword').required = false;
-            document.getElementById('modalIsActive').checked = true;
-            
-            const container = document.getElementById('modalRolesContainer');
-            container.innerHTML = `
-                <div class="role-checkbox">
-                    <input type="checkbox" value="admin" checked>
-                    <label>
-                        <strong>admin</strong>
-                        <small> - Full access to all features</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="manager">
-                    <label>
-                        <strong>manager</strong>
-                        <small> - Can manage batches and travelers</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="staff">
-                    <label>
-                        <strong>staff</strong>
-                        <small> - Can view and edit travelers</small>
-                    </label>
-                </div>
-                <div class="role-checkbox">
-                    <input type="checkbox" value="viewer">
-                    <label>
-                        <strong>viewer</strong>
-                        <small> - Read-only access</small>
-                    </label>
-                </div>
-            `;
-            
-            document.getElementById('userModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        document.getElementById('userForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showNotification('User saved successfully!', 'success');
-            closeUserModal();
-        });
-
-        function changeUserPassword(userId) {
-            document.getElementById('passwordUserId').value = userId;
-            document.getElementById('oldPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        document.getElementById('passwordForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showNotification('Password changed successfully!', 'success');
-            closePasswordModal();
-        });
-
-        function toggleUserStatus(userId) {
-            if (!confirm('Toggle user active status?')) return;
-            showNotification('User status updated!', 'success');
-        }
-
-        function deleteUser(userId) {
-            if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
-            showNotification('User deleted!', 'success');
-        }
-
-        function closeUserModal() {
-            document.getElementById('userModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        function closePasswordModal() {
-            document.getElementById('passwordModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
+            window.location.href = 'admin.login.html';
         }
 
         function closeAllModals() {
@@ -2512,172 +1748,6 @@
                 el.style.display = 'none';
             });
             document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        // ============ SUPER ADMIN FUNCTIONS ============
-        function addSuperAdminTab() {
-            const tabsContainer = document.getElementById('tabsContainer');
-            if (tabsContainer && !document.getElementById('tabSuperAdmin')) {
-                const superAdminTab = document.createElement('button');
-                superAdminTab.className = 'tab-btn';
-                superAdminTab.id = 'tabSuperAdmin';
-                superAdminTab.onclick = () => showTab('superAdmin');
-                superAdminTab.innerHTML = '<i class="fas fa-crown"></i> Super Admin';
-                tabsContainer.appendChild(superAdminTab);
-                
-                // Create Super Admin tab content
-                const superAdminDiv = document.createElement('div');
-                superAdminDiv.id = 'superAdminTab';
-                superAdminDiv.style.display = 'none';
-                superAdminDiv.innerHTML = `
-                    <div class="dashboard-card">
-                        <h2><i class="fas fa-crown"></i> Super Admin Dashboard</h2>
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <i class="fas fa-users"></i>
-                                <h3>Total Users</h3>
-                                <div class="stat-number">8</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-database"></i>
-                                <h3>Database Size</h3>
-                                <div class="stat-number">156 MB</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-history"></i>
-                                <h3>Last Backup</h3>
-                                <div class="stat-number">Today</div>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-chart-line"></i>
-                                <h3>System Uptime</h3>
-                                <div class="stat-number">99.9%</div>
-                            </div>
-                        </div>
-                        <div class="table-container">
-                            <h3 style="padding: 20px;">System Logs</h3>
-                            <table>
-                                <thead><tr><th>Time</th><th>User</th><th>Action</th><th>IP</th></tr></thead>
-                                <tbody>
-                                    <tr><td>2026-02-17 10:30</td><td>admin</td><td>Login</td><td>192.168.1.1</td></tr>
-                                    <tr><td>2026-02-17 09:15</td><td>manager</td><td>Created batch</td><td>192.168.1.2</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-                document.querySelector('.container').appendChild(superAdminDiv);
-            }
-        }
-
-        function addUserManagementTab() {
-            const tabsContainer = document.getElementById('tabsContainer');
-            if (tabsContainer && !document.getElementById('tabUserManagement')) {
-                const userManagementTab = document.createElement('button');
-                userManagementTab.className = 'tab-btn';
-                userManagementTab.id = 'tabUserManagement';
-                userManagementTab.onclick = () => showTab('userManagement');
-                userManagementTab.innerHTML = '<i class="fas fa-users-cog"></i> User Management';
-                tabsContainer.appendChild(userManagementTab);
-                
-                // Create User Management tab content
-                const userMgmtDiv = document.createElement('div');
-                userMgmtDiv.id = 'userManagementTab';
-                userMgmtDiv.style.display = 'none';
-                userMgmtDiv.innerHTML = `
-                    <div class="dashboard-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h2><i class="fas fa-users-cog"></i> User Management</h2>
-                            <button class="action-btn btn-success" onclick="showCreateUserModal()">
-                                <i class="fas fa-user-plus"></i> Create New User
-                            </button>
-                        </div>
-                        
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Full Name</th>
-                                        <th>Email</th>
-                                        <th>Roles</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTableBody">
-                                    <tr>
-                                        <td>1</td>
-                                        <td><strong>superadmin</strong></td>
-                                        <td>Super Admin</td>
-                                        <td>super@alhudha.com</td>
-                                        <td><span class="role-badge role-super_admin">super_admin</span></td>
-                                        <td><span class="status-badge status-active">Active</span></td>
-                                        <td>
-                                            <button class="icon-btn" onclick="editUser(1)" title="Edit"><i class="fas fa-edit"></i></button>
-                                            <button class="icon-btn" onclick="changeUserPassword(1)" title="Change Password"><i class="fas fa-key"></i></button>
-                                            <button class="icon-btn" onclick="toggleUserStatus(1)" title="Toggle Status"><i class="fas fa-power-off"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td><strong>admin</strong></td>
-                                        <td>Admin User</td>
-                                        <td>admin@alhudha.com</td>
-                                        <td><span class="role-badge role-admin">admin</span></td>
-                                        <td><span class="status-badge status-active">Active</span></td>
-                                        <td>
-                                            <button class="icon-btn" onclick="editUser(2)" title="Edit"><i class="fas fa-edit"></i></button>
-                                            <button class="icon-btn" onclick="changeUserPassword(2)" title="Change Password"><i class="fas fa-key"></i></button>
-                                            <button class="icon-btn" onclick="toggleUserStatus(2)" title="Toggle Status"><i class="fas fa-power-off"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-                document.querySelector('.container').appendChild(userMgmtDiv);
-            }
-        }
-
-        function showUserManagementTab() {
-            // Already handled by the tab creation
-        }
-
-        function loadSuperAdminData() {
-            console.log('Super Admin tab loaded');
-        }
-
-        // ============ INVOICE FUNCTIONS ============
-        function showInvoiceModal() {
-            document.getElementById('invoiceTravelerSelect').innerHTML = `
-                <option value="1">Ahmed Khan (A1234567)</option>
-                <option value="2">Fatima Begum (B7654321)</option>
-                <option value="3">Mohammed Rafi (C9876543)</option>
-            `;
-            document.getElementById('invoiceModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        function closeInvoiceModal() {
-            document.getElementById('invoiceModal').style.display = 'none';
-            document.getElementById('invoicePreview').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        function generateInvoice() {
-            document.getElementById('invoicePreview').innerHTML = `
-                <h4>Invoice Preview</h4>
-                <p><strong>Invoice No:</strong> INV-2026-001</p>
-                <p><strong>Traveler:</strong> Ahmed Khan</p>
-                <p><strong>Package:</strong> Haj Platinum 2026</p>
-                <p><strong>Amount:</strong> ₹8,50,000</p>
-                <p><strong>Paid:</strong> ₹1,70,000</p>
-                <p><strong>Balance:</strong> ₹6,80,000</p>
-            `;
-            document.getElementById('invoicePreview').style.display = 'block';
         }
     </script>
 </body>
