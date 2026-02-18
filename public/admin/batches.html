@@ -1,0 +1,359 @@
+<div class="action-buttons">
+    <button class="action-btn btn-primary" onclick="showCreateBatchForm()">
+        <i class="fas fa-plus"></i> Create New Batch
+    </button>
+</div>
+
+<div class="form-container" id="createBatchForm" style="display: none;">
+    <h3><i class="fas fa-plus-circle"></i> Create New Haj/Umrah Package</h3>
+    <form id="batchCreateForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="batch_name"><i class="fas fa-tag"></i> Batch Name *</label>
+                <input type="text" id="batch_name" required placeholder="e.g., Haj Silver 2026">
+            </div>
+            <div class="form-group">
+                <label for="total_seats"><i class="fas fa-chair"></i> Total Seats</label>
+                <input type="number" id="total_seats" value="150" min="1">
+            </div>
+            <div class="form-group">
+                <label for="price"><i class="fas fa-rupee-sign"></i> Price (₹)</label>
+                <input type="number" id="price" step="1" placeholder="58555">
+            </div>
+            <div class="form-group">
+                <label for="departure_date"><i class="fas fa-plane-departure"></i> Departure Date</label>
+                <input type="date" id="departure_date">
+            </div>
+            <div class="form-group">
+                <label for="return_date"><i class="fas fa-plane-arrival"></i> Return Date</label>
+                <input type="date" id="return_date">
+            </div>
+            <div class="form-group">
+                <label for="status"><i class="fas fa-info-circle"></i> Status</label>
+                <select id="status">
+                    <option value="Open">Open</option>
+                    <option value="Closing Soon">Closing Soon</option>
+                    <option value="Full">Full</option>
+                    <option value="Closed">Closed</option>
+                </select>
+            </div>
+            <div class="form-group full-width">
+                <label for="description"><i class="fas fa-align-left"></i> Description</label>
+                <textarea id="description" rows="3" placeholder="Package details..."></textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Create Batch</button>
+            <button type="button" class="action-btn btn-secondary" onclick="hideCreateBatchForm()"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+    </form>
+</div>
+
+<div class="form-container" id="editBatchForm" style="display: none;">
+    <h3><i class="fas fa-edit"></i> Edit Batch</h3>
+    <form id="batchEditForm" onsubmit="event.preventDefault(); updateBatch();">
+        <input type="hidden" id="edit_batch_id">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="edit_batch_name">Batch Name *</label>
+                <input type="text" id="edit_batch_name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_departure_date">Departure Date</label>
+                <input type="date" id="edit_departure_date">
+            </div>
+            <div class="form-group">
+                <label for="edit_return_date">Return Date</label>
+                <input type="date" id="edit_return_date">
+            </div>
+            <div class="form-group">
+                <label for="edit_price">Price (₹)</label>
+                <input type="number" id="edit_price" step="1">
+            </div>
+            <div class="form-group">
+                <label for="edit_total_seats">Total Seats</label>
+                <input type="number" id="edit_total_seats">
+            </div>
+            <div class="form-group">
+                <label for="edit_status">Status</label>
+                <select id="edit_status">
+                    <option value="Open">Open</option>
+                    <option value="Closing Soon">Closing Soon</option>
+                    <option value="Full">Full</option>
+                    <option value="Closed">Closed</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Batch</button>
+            <button type="button" class="action-btn btn-secondary" onclick="document.getElementById('editBatchForm').style.display='none'">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<div class="search-box">
+    <input type="text" id="searchBatches" placeholder="Search batches...">
+    <button class="action-btn btn-primary" onclick="searchBatches()">
+        <i class="fas fa-search"></i> Search
+    </button>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Package Name</th>
+                <th>Departure</th>
+                <th>Return</th>
+                <th>Price</th>
+                <th>Seats</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="batchesTable">
+            <tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    loadBatches();
+
+    function showCreateBatchForm() {
+        document.getElementById('createBatchForm').style.display = 'block';
+    }
+
+    function hideCreateBatchForm() {
+        document.getElementById('createBatchForm').style.display = 'none';
+        document.getElementById('batchCreateForm').reset();
+    }
+
+    async function loadBatches() {
+        try {
+            const response = await fetch('/api/batches/', {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.batches && data.batches.length > 0) {
+                    displayBatches(data.batches);
+                    return;
+                }
+            }
+            useDemoBatches();
+        } catch (error) {
+            useDemoBatches();
+        }
+    }
+    
+    function useDemoBatches() {
+        const demoBatches = [
+            { id: 1, batch_name: 'Haj Platinum 2026', departure_date: '2026-06-14', return_date: '2026-07-31', price: 850000, booked_seats: 45, total_seats: 50, status: 'Open' },
+            { id: 2, batch_name: 'Haj Gold 2026', departure_date: '2026-06-15', return_date: '2026-07-30', price: 550000, booked_seats: 82, total_seats: 100, status: 'Open' },
+            { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' }
+        ];
+        displayBatches(demoBatches);
+    }
+    
+    function displayBatches(batches) {
+        let html = '';
+        batches.forEach(b => {
+            const price = b.price ? parseFloat(b.price).toFixed(2) : '0';
+            html += `<tr>
+                <td>${b.id}</td>
+                <td><strong>${b.batch_name}</strong></td>
+                <td>${b.departure_date}</td>
+                <td>${b.return_date}</td>
+                <td>₹${price}</td>
+                <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
+                <td><span class="status-badge ${b.status === 'Open' ? 'status-active' : 'status-pending'}">${b.status}</span></td>
+                <td>
+                    <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                </td>
+            </tr>`;
+        });
+        document.getElementById('batchesTable').innerHTML = html;
+        
+        const addSelect = document.getElementById('add_batch_id');
+        if (addSelect) {
+            addSelect.innerHTML = '<option value="">Select Batch</option>';
+            batches.forEach(b => {
+                addSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+            });
+        }
+        
+        const editSelect = document.getElementById('edit_batch_id');
+        if (editSelect) {
+            editSelect.innerHTML = '<option value="">Select Batch</option>';
+            batches.forEach(b => {
+                editSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+            });
+        }
+    }
+
+    function editBatch(id) {
+        const rows = document.querySelectorAll('#batchesTable tr');
+        let batchData = null;
+        
+        for (let row of rows) {
+            if (row.cells && row.cells[0] && row.cells[0].innerText == id) {
+                batchData = {
+                    id: id,
+                    name: row.cells[1].innerText,
+                    departure: row.cells[2].innerText,
+                    return: row.cells[3].innerText,
+                    price: row.cells[4].innerText.replace('₹', '').replace(',', ''),
+                    seats: row.cells[5].innerText.split('/')[1],
+                    status: row.cells[6].innerText
+                };
+                break;
+            }
+        }
+        
+        if (!batchData) {
+            showNotification('Could not find batch data', 'error');
+            return;
+        }
+        
+        document.getElementById('edit_batch_id').value = batchData.id;
+        document.getElementById('edit_batch_name').value = batchData.name;
+        document.getElementById('edit_departure_date').value = batchData.departure;
+        document.getElementById('edit_return_date').value = batchData.return;
+        document.getElementById('edit_price').value = batchData.price;
+        document.getElementById('edit_total_seats').value = batchData.seats;
+        document.getElementById('edit_status').value = batchData.status;
+        
+        document.getElementById('editBatchForm').style.display = 'block';
+        document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function updateBatch() {
+        const batchId = document.getElementById('edit_batch_id').value;
+        const batchName = document.getElementById('edit_batch_name').value.trim();
+        
+        if (!batchName) {
+            showNotification('Batch name is required', 'error');
+            return;
+        }
+        
+        const batchData = {
+            batch_name: batchName,
+            departure_date: document.getElementById('edit_departure_date').value || null,
+            return_date: document.getElementById('edit_return_date').value || null,
+            price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
+            total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
+            status: document.getElementById('edit_status').value
+        };
+        
+        const updateBtn = document.querySelector('#batchEditForm button[type="submit"]');
+        const originalText = updateBtn.innerHTML;
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        updateBtn.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/batches/${batchId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(batchData)
+            });
+            
+            if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('Batch updated successfully!', 'success');
+                document.getElementById('editBatchForm').style.display = 'none';
+                loadBatches();
+            } else {
+                showNotification('Error: ' + (data.error || 'Update failed'), 'error');
+            }
+        } catch (error) {
+            showNotification('Error updating batch', 'error');
+        } finally {
+            updateBtn.innerHTML = originalText;
+            updateBtn.disabled = false;
+        }
+    }
+
+    document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const priceInput = document.getElementById('price').value;
+        let price = null;
+        
+        if (priceInput) {
+            price = parseFloat(priceInput);
+        }
+        
+        const batchData = {
+            batch_name: document.getElementById('batch_name').value,
+            total_seats: parseInt(document.getElementById('total_seats').value) || 150,
+            price: price,
+            departure_date: document.getElementById('departure_date').value || null,
+            return_date: document.getElementById('return_date').value || null,
+            status: document.getElementById('status').value,
+            description: document.getElementById('description').value
+        };
+        
+        if (!batchData.batch_name) {
+            showNotification('Batch name is required', 'error');
+            return;
+        }
+        
+        const createBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = createBtn.innerHTML;
+        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        createBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/batches/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(batchData)
+            });
+            
+            if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification(`Batch created successfully with price ₹${price}`, 'success');
+                hideCreateBatchForm();
+                loadBatches();
+            } else {
+                showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
+            }
+        } catch (error) {
+            showNotification('Error creating batch', 'error');
+        } finally {
+            createBtn.innerHTML = originalText;
+            createBtn.disabled = false;
+        }
+    });
+
+    function searchBatches() {
+        const search = document.getElementById('searchBatches').value.toLowerCase();
+        const rows = document.querySelectorAll('#batchesTable tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? '' : 'none';
+        });
+    }
+</script>
