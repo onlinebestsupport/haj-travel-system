@@ -1666,7 +1666,51 @@ function displayTravelers(travelers) {
     });
     document.getElementById('travelersTable').innerHTML = html;
 }
-
+async function editTraveler(id) {
+    try {
+        const response = await fetch(`/api/travelers/${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const t = data.traveler;
+            
+            // Populate edit form with all 33 fields
+            document.getElementById('edit_first_name').value = t.first_name || '';
+            document.getElementById('edit_last_name').value = t.last_name || '';
+            document.getElementById('edit_passport_name').value = t.passport_name || '';
+            document.getElementById('edit_batch_id').value = t.batch_id || '';
+            document.getElementById('edit_passport_no').value = t.passport_no || '';
+            document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
+            document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
+            document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
+            document.getElementById('edit_gender').value = t.gender || '';
+            document.getElementById('edit_dob').value = t.dob || '';
+            document.getElementById('edit_mobile').value = t.mobile || '';
+            document.getElementById('edit_email').value = t.email || '';
+            document.getElementById('edit_aadhaar').value = t.aadhaar || '';
+            document.getElementById('edit_pan').value = t.pan || '';
+            document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
+            document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
+            document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
+            document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
+            document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
+            document.getElementById('edit_passport_address').value = t.passport_address || '';
+            document.getElementById('edit_father_name').value = t.father_name || '';
+            document.getElementById('edit_mother_name').value = t.mother_name || '';
+            document.getElementById('edit_spouse_name').value = t.spouse_name || '';
+            document.getElementById('edit_extra_fields').value = JSON.stringify(t.extra_fields || {}, null, 2);
+            document.getElementById('edit_pin').value = t.pin || '0000';
+            
+            document.getElementById('editTravelerForm').style.display = 'block';
+            document.getElementById('edit_traveler_id').value = id;
+        } else {
+            showNotification('Error loading traveler details', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error loading traveler', 'error');
+    }
+}
         function showAddPaymentForm() {
             showTab('payments');
             document.getElementById('addPaymentForm').style.display = 'block';
