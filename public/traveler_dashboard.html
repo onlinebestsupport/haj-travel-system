@@ -92,6 +92,7 @@
             padding: 40px 0;
         }
         
+        /* Loading State */
         .loading-container {
             text-align: center;
             padding: 80px 20px;
@@ -118,6 +119,229 @@
         .loading-text {
             color: #7f8c8d;
             font-size: 1.1rem;
+        }
+        
+        /* Dashboard Cards */
+        .welcome-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(30, 60, 114, 0.3);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .welcome-card h2 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-card h2 i {
+            color: #ffd700;
+        }
+        
+        .welcome-card p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+        
+        .batch-card {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 30px rgba(30, 60, 114, 0.3);
+            animation: fadeIn 0.5s ease 0.1s both;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease 0.2s both;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+        
+        .info-card h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+        }
+        
+        .info-card h3 i {
+            color: #ffd700;
+            font-size: 1.5rem;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ecf0f1;
+        }
+        
+        .info-label {
+            flex: 0 0 120px;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .document-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .document-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .document-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .document-item i {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .document-item span {
+            display: block;
+            font-size: 1rem;
+            color: #1e3c72;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .document-uploaded {
+            background: #d4edda;
+            border-color: #27ae60;
+        }
+        
+        .document-uploaded i {
+            color: #27ae60;
+        }
+        
+        .document-missing {
+            background: #f8d7da;
+            border-color: #e74c3c;
+        }
+        
+        .document-missing i {
+            color: #e74c3c;
+        }
+        
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .payment-table th {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        
+        .payment-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            background: white;
+        }
+        
+        .payment-paid {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .payment-pending {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        .print-btn {
+            background: #ffd700;
+            color: #1e3c72;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+        
+        .print-btn:hover {
+            background: #ffed4a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255,215,0,0.4);
         }
         
         .error-container {
@@ -180,12 +404,33 @@
         
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0%); opacity: 1; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         .notification-success { background: #27ae60; }
         .notification-error { background: #e74c3c; }
         .notification-info { background: #3498db; }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .info-label {
+                flex: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -229,22 +474,221 @@
 
         <!-- Traveler Dashboard Content -->
         <div id="dashboardContent" style="display: none;">
-            <!-- Dashboard content will be loaded here -->
-            <h2>Welcome to your dashboard!</h2>
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <h2><i class="fas fa-hand-peace"></i> Welcome, <span id="travelerFullName">Traveler</span>!</h2>
+                <p>Your spiritual journey is our priority. Here are your Haj/Umrah details.</p>
+            </div>
+
+            <!-- Batch Information -->
+            <div class="batch-card">
+                <h2 style="color: white; margin-bottom: 20px;"><i class="fas fa-layer-group"></i> Your Package Details</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="opacity: 0.9; margin-bottom: 5px;">Package Name</p>
+                        <h3 style="color: #ffd700; margin: 0; font-size: 1.4rem;" id="batchName">-</h3>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.9; margin-bottom: 5px;">Departure Date</p>
+                        <h3 style="color: white; margin: 0;" id="departureDate">-</h3>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.9; margin-bottom: 5px;">Return Date</p>
+                        <h3 style="color: white; margin: 0;" id="returnDate">-</h3>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.9; margin-bottom: 5px;">Status</p>
+                        <h3 style="color: white; margin: 0;" id="batchStatus">-</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Grid -->
+            <div class="info-grid">
+                <!-- Personal Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" id="fullName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Passport Name</span>
+                        <span class="info-value" id="passportName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Passport Number</span>
+                        <span class="info-value" id="passportNo">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value" id="gender">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date of Birth</span>
+                        <span class="info-value" id="dob">-</span>
+                    </div>
+                </div>
+
+                <!-- Contact Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-address-book"></i> Contact Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Mobile</span>
+                        <span class="info-value" id="mobile">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" id="email">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Aadhaar</span>
+                        <span class="info-value" id="aadhaar">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">PAN</span>
+                        <span class="info-value" id="pan">-</span>
+                    </div>
+                </div>
+
+                <!-- Passport Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-passport"></i> Passport Details</h3>
+                    <div class="info-row">
+                        <span class="info-label">Issue Date</span>
+                        <span class="info-value" id="passportIssueDate">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Expiry Date</span>
+                        <span class="info-value" id="passportExpiryDate">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Place of Issue</span>
+                        <span class="info-value" id="placeOfIssue">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Passport Status</span>
+                        <span class="info-value" id="passportStatus">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row -->
+            <div class="info-grid">
+                <!-- Health Information -->
+                <div class="info-card">
+                    <h3><i class="fas fa-heartbeat"></i> Health Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Vaccine Status</span>
+                        <span class="info-value" id="vaccineStatus">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Wheelchair</span>
+                        <span class="info-value" id="wheelchair">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Blood Group</span>
+                        <span class="info-value" id="bloodGroup">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Allergies</span>
+                        <span class="info-value" id="allergies">-</span>
+                    </div>
+                </div>
+
+                <!-- Family Details -->
+                <div class="info-card">
+                    <h3><i class="fas fa-family"></i> Family Details</h3>
+                    <div class="info-row">
+                        <span class="info-label">Father's Name</span>
+                        <span class="info-value" id="fatherName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Mother's Name</span>
+                        <span class="info-value" id="motherName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Spouse's Name</span>
+                        <span class="info-value" id="spouseName">-</span>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="info-card">
+                    <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                    <div class="info-row">
+                        <span class="info-label">Place of Birth</span>
+                        <span class="info-value" id="placeOfBirth">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Passport Address</span>
+                        <span class="info-value" id="passportAddress">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="info-card">
+                <h3><i class="fas fa-file-alt"></i> Documents</h3>
+                <div class="document-grid">
+                    <div class="document-item" id="passportDoc">
+                        <i class="fas fa-passport"></i>
+                        <span>Passport</span>
+                        <small id="passportStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="aadhaarDoc">
+                        <i class="fas fa-id-card"></i>
+                        <span>Aadhaar</span>
+                        <small id="aadhaarStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="panDoc">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>PAN Card</span>
+                        <small id="panStatus">Not uploaded</small>
+                    </div>
+                    <div class="document-item" id="vaccineDoc">
+                        <i class="fas fa-syringe"></i>
+                        <span>Vaccine</span>
+                        <small id="vaccineStatus">Not uploaded</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="info-card">
+                <h3><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Contact Person</p>
+                        <p style="font-weight: 600; color: #1e3c72;" id="emergencyContact">-</p>
+                    </div>
+                    <div>
+                        <p style="color: #7f8c8d; margin-bottom: 5px;">Emergency Phone</p>
+                        <p style="font-weight: 600; color: #1e3c72;" id="emergencyPhone">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px; flex-wrap: wrap;">
+                <button onclick="refreshData()" class="print-btn" style="background: #3498db; color: white;">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+                <button onclick="printDashboard()" class="print-btn">
+                    <i class="fas fa-print"></i> Print My Details
+                </button>
+            </div>
         </div>
     </main>
 
     <script>
         // Check if traveler is logged in
         function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('travelerLoggedIn');
             const travelerId = sessionStorage.getItem('travelerId');
+            const travelerLoggedIn = sessionStorage.getItem('travelerLoggedIn');
             
-            console.log('Auth check:', { isLoggedIn, travelerId });
-            
-            if (!isLoggedIn || !travelerId) {
-                console.log('Not logged in, redirecting to login page');
-                window.location.replace('/traveler_login.html');
+            if (!travelerId || travelerLoggedIn !== 'true') {
+                window.location.href = '/traveler_login.html';
                 return false;
             }
             return true;
@@ -265,92 +709,119 @@
         // Logout function
         async function logout() {
             try {
-                // Call logout API
                 await fetch('/api/travelers/logout', { method: 'POST' });
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
+            } catch (error) {}
             
-            // Clear session
-            sessionStorage.removeItem('travelerLoggedIn');
-            sessionStorage.removeItem('travelerId');
-            sessionStorage.removeItem('travelerName');
-            sessionStorage.removeItem('travelerPassport');
-            
+            sessionStorage.clear();
             showNotification('Logged out successfully', 'success');
-            
-            // Redirect to login page
             setTimeout(() => {
-                window.location.replace('/traveler_login.html');
+                window.location.href = '/traveler_login.html';
             }, 1500);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                return new Date(dateString).toLocaleDateString('en-IN', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+            } catch {
+                return dateString;
+            }
         }
 
         // Load traveler data
         async function loadTravelerData() {
+            if (!checkAuth()) return;
+            
             const travelerId = sessionStorage.getItem('travelerId');
             const travelerPassport = sessionStorage.getItem('travelerPassport');
+            const travelerName = sessionStorage.getItem('travelerName');
             
-            console.log('Loading data for:', { travelerId, travelerPassport });
-            
-            if (!checkAuth()) return;
+            document.getElementById('travelerNameDisplay').textContent = travelerName || 'Traveler';
             
             try {
                 document.getElementById('loading').style.display = 'block';
                 document.getElementById('error').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'none';
                 
-                // Update welcome name
-                const travelerName = sessionStorage.getItem('travelerName');
-                if (travelerName) {
-                    document.getElementById('travelerNameDisplay').textContent = travelerName;
-                }
+                // Fetch traveler details from API
+                const response = await fetch(`/api/travelers/passport/${travelerPassport}`);
+                const data = await response.json();
                 
-                // For demo purposes, just show success after 2 seconds
-                setTimeout(() => {
+                if (data.success) {
+                    const t = data.traveler;
+                    
+                    document.getElementById('travelerFullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim();
+                    document.getElementById('fullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim() || '-';
+                    document.getElementById('passportName').textContent = t.passport_name || '-';
+                    document.getElementById('passportNo').textContent = t.passport_no || '-';
+                    document.getElementById('gender').textContent = t.gender || '-';
+                    document.getElementById('dob').textContent = formatDate(t.dob);
+                    document.getElementById('mobile').textContent = t.mobile || '-';
+                    document.getElementById('email').textContent = t.email || '-';
+                    document.getElementById('aadhaar').textContent = t.aadhaar || '-';
+                    document.getElementById('pan').textContent = t.pan || '-';
+                    document.getElementById('passportIssueDate').textContent = formatDate(t.passport_issue_date);
+                    document.getElementById('passportExpiryDate').textContent = formatDate(t.passport_expiry_date);
+                    document.getElementById('placeOfIssue').textContent = t.place_of_issue || '-';
+                    document.getElementById('passportStatus').textContent = t.passport_status || '-';
+                    document.getElementById('vaccineStatus').textContent = t.vaccine_status || '-';
+                    document.getElementById('wheelchair').textContent = t.wheelchair || '-';
+                    
+                    // Parse extra fields
+                    let extra = {};
+                    if (t.extra_fields) {
+                        try {
+                            extra = typeof t.extra_fields === 'string' ? JSON.parse(t.extra_fields) : t.extra_fields;
+                        } catch {}
+                    }
+                    document.getElementById('bloodGroup').textContent = extra.blood_group || '-';
+                    document.getElementById('allergies').textContent = extra.allergies || '-';
+                    document.getElementById('emergencyContact').textContent = extra.emergency_contact || '-';
+                    document.getElementById('emergencyPhone').textContent = extra.emergency_phone || '-';
+                    
+                    document.getElementById('fatherName').textContent = t.father_name || '-';
+                    document.getElementById('motherName').textContent = t.mother_name || '-';
+                    document.getElementById('spouseName').textContent = t.spouse_name || '-';
+                    document.getElementById('placeOfBirth').textContent = t.place_of_birth || '-';
+                    document.getElementById('passportAddress').textContent = t.passport_address || '-';
+                    
+                    // Document status
+                    document.getElementById('passportStatus').innerHTML = t.passport_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('aadhaarStatus').innerHTML = t.aadhaar_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('panStatus').innerHTML = t.pan_scan ? '✓ Uploaded' : '✗ Missing';
+                    document.getElementById('vaccineStatus').innerHTML = t.vaccine_scan ? '✓ Uploaded' : '✗ Missing';
+                    
+                    // Batch info
+                    document.getElementById('batchName').textContent = t.batch_name || 'Not Assigned';
+                    document.getElementById('departureDate').textContent = formatDate(t.departure_date);
+                    document.getElementById('returnDate').textContent = formatDate(t.return_date);
+                    document.getElementById('batchStatus').textContent = t.batch_status || 'Open';
+                    
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('dashboardContent').style.display = 'block';
-                    document.getElementById('dashboardContent').innerHTML = `
-                        <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-                            <h2 style="color: #1e3c72; margin-bottom: 20px;">Welcome, ${travelerName || 'Traveler'}!</h2>
-                            <p style="color: #666; margin-bottom: 30px;">Your dashboard is being prepared. Full features coming soon!</p>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-                                    <i class="fas fa-passport" style="color: #ffd700; font-size: 2rem; margin-bottom: 10px;"></i>
-                                    <h3>Passport</h3>
-                                    <p>${travelerPassport || 'N/A'}</p>
-                                </div>
-                                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-                                    <i class="fas fa-calendar" style="color: #ffd700; font-size: 2rem; margin-bottom: 10px;"></i>
-                                    <h3>Journey Status</h3>
-                                    <p>Active</p>
-                                </div>
-                                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-                                    <i class="fas fa-file-alt" style="color: #ffd700; font-size: 2rem; margin-bottom: 10px;"></i>
-                                    <h3>Documents</h3>
-                                    <p>3 Uploaded</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }, 2000);
-                
+                } else {
+                    throw new Error('Failed to load data');
+                }
             } catch (error) {
-                console.error('Error loading traveler data:', error);
+                console.error('Error:', error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
             }
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard page loaded');
-            
-            // Check authentication
-            if (!checkAuth()) return;
-            
-            // Load data
+        function refreshData() {
             loadTravelerData();
-        });
+        }
+
+        function printDashboard() {
+            window.print();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadTravelerData);
     </script>
 </body>
 </html>
