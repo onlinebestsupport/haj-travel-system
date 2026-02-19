@@ -4,6 +4,7 @@
     </button>
 </div>
 
+<!-- CREATE BATCH FORM -->
 <div class="form-container" id="createBatchForm" style="display: none;">
     <h3><i class="fas fa-plus-circle"></i> Create New Haj/Umrah Package</h3>
     <form id="batchCreateForm">
@@ -49,9 +50,10 @@
     </form>
 </div>
 
+<!-- EDIT BATCH FORM -->
 <div class="form-container" id="editBatchForm" style="display: none;">
     <h3><i class="fas fa-edit"></i> Edit Batch</h3>
-    <form id="batchEditForm">
+    <form id="batchEditForm" onsubmit="event.preventDefault(); updateBatch();">
         <input type="hidden" id="edit_batch_id">
         <div class="form-grid">
             <div class="form-group">
@@ -91,6 +93,7 @@
     </form>
 </div>
 
+<!-- SEARCH -->
 <div class="search-box">
     <input type="text" id="searchBatches" placeholder="Search batches...">
     <button class="action-btn btn-primary" onclick="searchBatches()">
@@ -98,6 +101,7 @@
     </button>
 </div>
 
+<!-- BATCHES TABLE -->
 <div class="table-container">
     <table>
         <thead>
@@ -118,396 +122,397 @@
     </table>
 </div>
 
-<!-- Notification container -->
-<div id="notification" class="notification" style="display: none;"></div>
-
 <style>
 .notification {
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 15px 20px;
+    padding: 15px 25px;
     border-radius: 5px;
     color: white;
-    font-weight: 500;
-    z-index: 1000;
+    z-index: 9999;
     animation: slideIn 0.3s ease;
 }
 
-.notification.success {
-    background-color: #4CAF50;
-}
-
-.notification.error {
-    background-color: #f44336;
-}
-
 @keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
+
+.notification-success { background: #27ae60; }
+.notification-error { background: #e74c3c; }
+.notification-info { background: #3498db; }
 </style>
 
 <script>
-// Show notification function
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-// Form visibility functions
-function showCreateBatchForm() {
-    document.getElementById('createBatchForm').style.display = 'block';
-    document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
-}
-
-function hideCreateBatchForm() {
-    document.getElementById('createBatchForm').style.display = 'none';
-    document.getElementById('batchCreateForm').reset();
-}
-
-function hideEditBatchForm() {
-    document.getElementById('editBatchForm').style.display = 'none';
-    document.getElementById('batchEditForm').reset();
-}
-
-// Load batches on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadBatches();
-    
-    // Add form submit handlers
-    document.getElementById('batchCreateForm').addEventListener('submit', createBatch);
-    document.getElementById('batchEditForm').addEventListener('submit', updateBatch);
-});
-
-async function loadBatches() {
-    try {
-        const response = await fetch('/api/batches', {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.batches) {
-                displayBatches(data.batches);
-                return;
-            }
-        }
-        
-        // If API fails or returns no data, show empty state
-        if (response.status === 404) {
-            showNotification('API endpoint not found. Using demo data.', 'error');
-            useDemoBatches();
-        } else {
-            showNotification('No batches found', 'error');
-            displayBatches([]);
-        }
-    } catch (error) {
-        console.error('Error loading batches:', error);
-        showNotification('Using demo data due to connection error', 'error');
-        useDemoBatches();
-    }
-}
-
-function useDemoBatches() {
-    const demoBatches = [
-        { id: 1, batch_name: 'Haj Platinum 2026', departure_date: '2026-06-14', return_date: '2026-07-31', price: 850000, booked_seats: 45, total_seats: 50, status: 'Open' },
-        { id: 2, batch_name: 'Haj Gold 2026', departure_date: '2026-06-15', return_date: '2026-07-30', price: 550000, booked_seats: 82, total_seats: 100, status: 'Open' },
-        { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' }
-    ];
-    displayBatches(demoBatches);
-}
-
-function displayBatches(batches) {
-    const tbody = document.getElementById('batchesTable');
-    
-    if (!batches || batches.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="loading">No batches found</td></tr>';
-        return;
-    }
-    
-    let html = '';
-    batches.forEach(b => {
-        const price = b.price ? parseFloat(b.price).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
-        const bookedSeats = b.booked_seats || 0;
-        const totalSeats = b.total_seats || 150;
-        
-        let statusClass = '';
-        if (b.status === 'Open') statusClass = 'status-active';
-        else if (b.status === 'Closing Soon') statusClass = 'status-warning';
-        else if (b.status === 'Full') statusClass = 'status-full';
-        else if (b.status === 'Closed') statusClass = 'status-closed';
-        
-        html += `<tr>
-            <td>${b.id}</td>
-            <td><strong>${escapeHtml(b.batch_name)}</strong></td>
-            <td>${b.departure_date || '-'}</td>
-            <td>${b.return_date || '-'}</td>
-            <td>₹${price}</td>
-            <td>${bookedSeats}/${totalSeats}</td>
-            <td><span class="status-badge ${statusClass}">${b.status}</span></td>
-            <td>
-                <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
-            </td>
-        </tr>`;
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ Batches page loaded');
+        loadBatches();
     });
-    
-    tbody.innerHTML = html;
-}
 
-// Helper function to escape HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-async function createBatch(e) {
-    e.preventDefault();
-    
-    const batchName = document.getElementById('batch_name').value.trim();
-    if (!batchName) {
-        showNotification('Batch name is required', 'error');
-        return;
+    // ============ NOTIFICATION FUNCTION ============
+    function showNotification(message, type) {
+        console.log(`🔔 ${type}: ${message}`);
+        
+        // Remove any existing notification
+        const existing = document.querySelector('.notification');
+        if (existing) existing.remove();
+        
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
-    
-    const batchData = {
-        batch_name: batchName,
-        total_seats: parseInt(document.getElementById('total_seats').value) || 150,
-        price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
-        departure_date: document.getElementById('departure_date').value || null,
-        return_date: document.getElementById('return_date').value || null,
-        status: document.getElementById('status').value,
-        description: document.getElementById('description').value || ''
-    };
-    
-    const createBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = createBtn.innerHTML;
-    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-    createBtn.disabled = true;
-    
-    try {
-        const response = await fetch('/api/batches', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(batchData)
-        });
+
+    // ============ BATCH FORM FUNCTIONS ============
+    function showCreateBatchForm() {
+        document.getElementById('createBatchForm').style.display = 'block';
+        document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideCreateBatchForm() {
+        document.getElementById('createBatchForm').style.display = 'none';
+        document.getElementById('batchCreateForm').reset();
+    }
+
+    function hideEditBatchForm() {
+        document.getElementById('editBatchForm').style.display = 'none';
+    }
+
+    // ============ LOAD BATCHES ============
+    async function loadBatches() {
+        console.log('📡 Loading batches...');
+        const tableBody = document.getElementById('batchesTable');
         
-        if (response.status === 401) {
-            showNotification('Session expired. Please login again', 'error');
-            setTimeout(() => {
-                window.location.href = '/admin.login.html';
-            }, 2000);
-            return;
-        }
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            showNotification('Batch created successfully!', 'success');
-            hideCreateBatchForm();
-            loadBatches();
-        } else {
-            showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
-        }
-    } catch (error) {
-        console.error('Error creating batch:', error);
-        
-        // For demo purposes - simulate successful creation
-        if (!navigator.onLine || error.message.includes('Failed to fetch')) {
-            showNotification('Demo mode: Batch created successfully (offline mode)', 'success');
-            hideCreateBatchForm();
+        try {
+            const response = await fetch('/api/batches/', {
+                credentials: 'include'
+            });
             
-            // Add to demo data
-            const newBatch = {
-                id: Date.now(),
-                ...batchData,
-                booked_seats: 0
-            };
+            console.log('Batches API response status:', response.status);
             
-            // Update display with new batch
-            const currentRows = document.querySelectorAll('#batchesTable tr');
-            if (currentRows.length === 1 && currentRows[0].textContent.includes('No batches')) {
-                displayBatches([newBatch]);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Batches data received:', data);
+                
+                if (data.success && data.batches && data.batches.length > 0) {
+                    console.log(`✅ Found ${data.batches.length} batches`);
+                    displayBatches(data.batches);
+                    return;
+                } else {
+                    console.log('⚠️ No batches found in database');
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No batches found</td></tr>';
+                }
+            } else if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
             } else {
-                // This is more complex - for demo we'll just reload demo data
+                console.log('❌ Failed to load batches, using demo data');
                 useDemoBatches();
             }
-        } else {
-            showNotification('Error creating batch: ' + error.message, 'error');
-        }
-    } finally {
-        createBtn.innerHTML = originalText;
-        createBtn.disabled = false;
-    }
-}
-
-function editBatch(id) {
-    // Try to get batch data from table
-    const rows = document.querySelectorAll('#batchesTable tr');
-    let batchData = null;
-    
-    for (let row of rows) {
-        const cells = row.cells;
-        if (cells && cells.length >= 8 && cells[0].innerText == id) {
-            // Parse price (remove ₹ and commas)
-            let priceText = cells[4].innerText.replace('₹', '').replace(/,/g, '');
-            
-            batchData = {
-                id: id,
-                name: cells[1].innerText.replace(/<\/?strong>/g, ''), // Remove strong tags
-                departure: cells[2].innerText !== '-' ? cells[2].innerText : '',
-                return: cells[3].innerText !== '-' ? cells[3].innerText : '',
-                price: priceText,
-                seats: cells[5].innerText.split('/')[1],
-                status: cells[6].innerText
-            };
-            break;
+        } catch (error) {
+            console.error('❌ Error loading batches:', error);
+            useDemoBatches();
         }
     }
     
-    if (!batchData) {
-        // Try using demo data as fallback
+    // ============ USE DEMO BATCHES (FALLBACK) ============
+    function useDemoBatches() {
+        console.log('📋 Using demo batch data');
         const demoBatches = [
-            { id: 1, name: 'Haj Platinum 2026', departure: '2026-06-14', return: '2026-07-31', price: '850000', seats: '50', status: 'Open' },
-            { id: 2, name: 'Haj Gold 2026', departure: '2026-06-15', return: '2026-07-30', price: '550000', seats: '100', status: 'Open' },
-            { id: 3, name: 'Umrah Ramadhan Special', departure: '2026-03-01', return: '2026-03-20', price: '125000', seats: '200', status: 'Closing Soon' }
+            { id: 1, batch_name: 'Haj Platinum 2026', departure_date: '2026-06-14', return_date: '2026-07-31', price: 850000, booked_seats: 45, total_seats: 50, status: 'Open' },
+            { id: 2, batch_name: 'Haj Gold 2026', departure_date: '2026-06-15', return_date: '2026-07-30', price: 550000, booked_seats: 82, total_seats: 100, status: 'Open' },
+            { id: 3, batch_name: 'Umrah Ramadhan Special', departure_date: '2026-03-01', return_date: '2026-03-20', price: 125000, booked_seats: 170, total_seats: 200, status: 'Closing Soon' }
         ];
+        displayBatches(demoBatches);
+    }
+    
+    // ============ DISPLAY BATCHES ============
+    function displayBatches(batches) {
+        console.log('📋 Displaying batches...');
+        let html = '';
+        batches.forEach(b => {
+            const price = b.price ? parseFloat(b.price).toLocaleString('en-IN', {maximumFractionDigits: 0}) : '0';
+            const statusClass = b.status === 'Open' ? 'status-active' : 
+                               (b.status === 'Closing Soon' ? 'status-pending' : 
+                               (b.status === 'Full' ? 'status-inactive' : 'status-inactive'));
+            
+            html += `<tr>
+                <td>${b.id}</td>
+                <td><strong>${b.batch_name}</strong></td>
+                <td>${b.departure_date || 'TBD'}</td>
+                <td>${b.return_date || 'TBD'}</td>
+                <td>₹${price}</td>
+                <td>${b.booked_seats || 0}/${b.total_seats || 150}</td>
+                <td><span class="status-badge ${statusClass}">${b.status || 'Open'}</span></td>
+                <td>
+                    <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn" onclick="deleteBatch(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+        document.getElementById('batchesTable').innerHTML = html;
+        console.log('✅ Batches displayed');
         
-        batchData = demoBatches.find(b => b.id == id);
+        // Update batch dropdowns if they exist (for travelers page)
+        const addSelect = document.getElementById('add_batch_id');
+        if (addSelect) {
+            addSelect.innerHTML = '<option value="">Select Batch</option>';
+            batches.forEach(b => {
+                addSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+            });
+        }
+        
+        const editSelect = document.getElementById('edit_batch_id');
+        if (editSelect) {
+            editSelect.innerHTML = '<option value="">Select Batch</option>';
+            batches.forEach(b => {
+                editSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+            });
+        }
+    }
+
+    // ============ EDIT BATCH ============
+    function editBatch(id) {
+        console.log(`📝 Editing batch ID: ${id}`);
+        const rows = document.querySelectorAll('#batchesTable tr');
+        let batchData = null;
+        
+        for (let row of rows) {
+            if (row.cells && row.cells[0] && row.cells[0].innerText == id) {
+                // Parse price - remove ₹ and commas
+                const priceText = row.cells[4].innerText.replace('₹', '').replace(/,/g, '');
+                // Parse seats - get total from "X/Y" format
+                const seatsText = row.cells[5].innerText.split('/')[1];
+                
+                batchData = {
+                    id: id,
+                    name: row.cells[1].innerText,
+                    departure: row.cells[2].innerText,
+                    return: row.cells[3].innerText,
+                    price: priceText,
+                    seats: seatsText,
+                    status: row.cells[6].innerText
+                };
+                break;
+            }
+        }
         
         if (!batchData) {
             showNotification('Could not find batch data', 'error');
             return;
         }
-    }
-    
-    // Populate edit form
-    document.getElementById('edit_batch_id').value = batchData.id;
-    document.getElementById('edit_batch_name').value = batchData.name;
-    document.getElementById('edit_departure_date').value = batchData.departure;
-    document.getElementById('edit_return_date').value = batchData.return;
-    document.getElementById('edit_price').value = batchData.price;
-    document.getElementById('edit_total_seats').value = batchData.seats;
-    document.getElementById('edit_status').value = batchData.status;
-    
-    // Show form
-    document.getElementById('editBatchForm').style.display = 'block';
-    document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
-}
-
-async function updateBatch(e) {
-    e.preventDefault();
-    
-    const batchId = document.getElementById('edit_batch_id').value;
-    const batchName = document.getElementById('edit_batch_name').value.trim();
-    
-    if (!batchName) {
-        showNotification('Batch name is required', 'error');
-        return;
-    }
-    
-    const batchData = {
-        batch_name: batchName,
-        departure_date: document.getElementById('edit_departure_date').value || null,
-        return_date: document.getElementById('edit_return_date').value || null,
-        price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
-        total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
-        status: document.getElementById('edit_status').value
-    };
-    
-    const updateBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = updateBtn.innerHTML;
-    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-    updateBtn.disabled = true;
-    
-    try {
-        const response = await fetch(`/api/batches/${batchId}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(batchData)
-        });
         
-        if (response.status === 401) {
-            showNotification('Session expired. Please login again', 'error');
-            setTimeout(() => {
-                window.location.href = '/admin.login.html';
-            }, 2000);
+        console.log('Batch data for edit:', batchData);
+        
+        document.getElementById('edit_batch_id').value = batchData.id;
+        document.getElementById('edit_batch_name').value = batchData.name;
+        document.getElementById('edit_departure_date').value = batchData.departure !== 'TBD' ? batchData.departure : '';
+        document.getElementById('edit_return_date').value = batchData.return !== 'TBD' ? batchData.return : '';
+        document.getElementById('edit_price').value = batchData.price;
+        document.getElementById('edit_total_seats').value = batchData.seats;
+        document.getElementById('edit_status').value = batchData.status;
+        
+        document.getElementById('editBatchForm').style.display = 'block';
+        document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ============ UPDATE BATCH ============
+    async function updateBatch() {
+        console.log('📝 Updating batch...');
+        const batchId = document.getElementById('edit_batch_id').value;
+        const batchName = document.getElementById('edit_batch_name').value.trim();
+        
+        if (!batchName) {
+            showNotification('Batch name is required', 'error');
             return;
         }
         
-        const data = await response.json();
+        const batchData = {
+            batch_name: batchName,
+            departure_date: document.getElementById('edit_departure_date').value || null,
+            return_date: document.getElementById('edit_return_date').value || null,
+            price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
+            total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
+            status: document.getElementById('edit_status').value
+        };
         
-        if (response.ok && data.success) {
-            showNotification('Batch updated successfully!', 'success');
-            hideEditBatchForm();
-            loadBatches();
-        } else {
-            showNotification('Error: ' + (data.error || 'Update failed'), 'error');
-        }
-    } catch (error) {
-        console.error('Error updating batch:', error);
+        console.log('Update data:', batchData);
         
-        // For demo purposes - simulate successful update
-        if (!navigator.onLine || error.message.includes('Failed to fetch')) {
-            showNotification('Demo mode: Batch updated successfully (offline mode)', 'success');
-            hideEditBatchForm();
+        const updateBtn = document.querySelector('#batchEditForm button[type="submit"]');
+        const originalText = updateBtn.innerHTML;
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        updateBtn.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/batches/${batchId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(batchData)
+            });
             
-            // Update table row manually for demo
-            const rows = document.querySelectorAll('#batchesTable tr');
-            for (let row of rows) {
-                const cells = row.cells;
-                if (cells && cells.length >= 8 && cells[0].innerText == batchId) {
-                    cells[1].innerHTML = `<strong>${escapeHtml(batchData.batch_name)}</strong>`;
-                    cells[2].innerText = batchData.departure_date || '-';
-                    cells[3].innerText = batchData.return_date || '-';
-                    cells[4].innerText = batchData.price ? `₹${parseFloat(batchData.price).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '₹0.00';
-                    cells[5].innerText = cells[5].innerText.split('/')[0] + '/' + batchData.total_seats;
-                    cells[6].innerHTML = `<span class="status-badge">${batchData.status}</span>`;
-                    break;
-                }
+            console.log('Update API response status:', response.status);
+            
+            if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
+                return;
             }
-        } else {
-            showNotification('Error updating batch: ' + error.message, 'error');
+            
+            const data = await response.json();
+            console.log('Update API response:', data);
+            
+            if (data.success) {
+                showNotification('Batch updated successfully!', 'success');
+                hideEditBatchForm();
+                loadBatches();
+            } else {
+                showNotification('Error: ' + (data.error || 'Update failed'), 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error updating batch:', error);
+            showNotification('Error updating batch', 'error');
+        } finally {
+            updateBtn.innerHTML = originalText;
+            updateBtn.disabled = false;
         }
-    } finally {
-        updateBtn.innerHTML = originalText;
-        updateBtn.disabled = false;
     }
-}
 
-function searchBatches() {
-    const search = document.getElementById('searchBatches').value.toLowerCase();
-    const rows = document.querySelectorAll('#batchesTable tr');
-    
-    rows.forEach(row => {
-        if (row.cells && row.cells.length > 1) {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(search) ? '' : 'none';
+    // ============ DELETE BATCH ============
+    async function deleteBatch(id) {
+        console.log(`🗑️ Deleting batch ID: ${id}`);
+        if (!confirm('⚠️ Are you sure you want to delete this batch? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/batches/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            
+            console.log('Delete API response status:', response.status);
+            
+            if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
+                return;
+            }
+            
+            const data = await response.json();
+            console.log('Delete API response:', data);
+            
+            if (data.success) {
+                showNotification('Batch deleted successfully!', 'success');
+                loadBatches();
+            } else {
+                showNotification('Error: ' + (data.error || 'Could not delete batch'), 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error deleting batch:', error);
+            showNotification('Error deleting batch', 'error');
+        }
+    }
+
+    // ============ CREATE BATCH ============
+    document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('📝 Creating new batch...');
+        
+        const priceInput = document.getElementById('price').value;
+        let price = null;
+        
+        if (priceInput) {
+            price = parseFloat(priceInput);
+        }
+        
+        const batchData = {
+            batch_name: document.getElementById('batch_name').value,
+            total_seats: parseInt(document.getElementById('total_seats').value) || 150,
+            price: price,
+            departure_date: document.getElementById('departure_date').value || null,
+            return_date: document.getElementById('return_date').value || null,
+            status: document.getElementById('status').value,
+            description: document.getElementById('description').value
+        };
+        
+        console.log('Create data:', batchData);
+        
+        if (!batchData.batch_name) {
+            showNotification('Batch name is required', 'error');
+            return;
+        }
+        
+        const createBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = createBtn.innerHTML;
+        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        createBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/batches/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(batchData)
+            });
+            
+            console.log('Create API response status:', response.status);
+            
+            if (response.status === 401) {
+                showNotification('Session expired. Please login again', 'error');
+                setTimeout(() => {
+                    window.location.href = '/admin.login.html';
+                }, 2000);
+                return;
+            }
+            
+            const data = await response.json();
+            console.log('Create API response:', data);
+            
+            if (data.success) {
+                showNotification(`Batch created successfully with price ₹${price || 'N/A'}`, 'success');
+                hideCreateBatchForm();
+                loadBatches();
+            } else {
+                showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error creating batch:', error);
+            showNotification('Error creating batch', 'error');
+        } finally {
+            createBtn.innerHTML = originalText;
+            createBtn.disabled = false;
         }
     });
-}
+
+    // ============ SEARCH BATCHES ============
+    function searchBatches() {
+        const search = document.getElementById('searchBatches').value.toLowerCase();
+        console.log('🔍 Searching for:', search);
+        
+        const rows = document.querySelectorAll('#batchesTable tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const isVisible = text.includes(search);
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
+        });
+        
+        console.log(`Search found ${visibleCount} results`);
+    }
 </script>
