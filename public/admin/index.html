@@ -236,26 +236,29 @@
                 <button class="tab-btn" onclick="loadSection('payments')" id="tabPayments">
                     <i class="fas fa-credit-card"></i> Payments
                 </button>
+                <button class="tab-btn" onclick="loadSection('receipts')" id="tabReceipts">
+                    <i class="fas fa-file-invoice"></i> Receipts
+                </button>
                 <button class="tab-btn" onclick="loadSection('users')" id="tabUsers">
-                    <i class="fas fa-user-cog"></i> User Management
+                    <i class="fas fa-user-cog"></i> Users
                 </button>
                 <button class="tab-btn" onclick="loadSection('reports')" id="tabReports">
                     <i class="fas fa-chart-bar"></i> Reports
                 </button>
                 <button class="tab-btn" onclick="loadSection('invoices')" id="tabInvoices">
-                    <i class="fas fa-file-invoice"></i> GST/TCS Invoice
+                    <i class="fas fa-file-invoice"></i> GST/TCS
                 </button>
                 <button class="tab-btn" onclick="loadSection('backup')" id="tabBackup">
-                    <i class="fas fa-database"></i> System Backup
+                    <i class="fas fa-database"></i> Backup
                 </button>
                 <button class="tab-btn" onclick="loadSection('frontpage')" id="tabFrontpage">
-                    <i class="fas fa-edit"></i> Front Page Update
+                    <i class="fas fa-edit"></i> Front Page
                 </button>
                 <button class="tab-btn" onclick="loadSection('whatsapp')" id="tabWhatsapp">
-                    <i class="fab fa-whatsapp"></i> WhatsApp Config
+                    <i class="fab fa-whatsapp"></i> WhatsApp
                 </button>
                 <button class="tab-btn" onclick="loadSection('email')" id="tabEmail">
-                    <i class="fas fa-envelope"></i> Email Config
+                    <i class="fas fa-envelope"></i> Email
                 </button>
             </div>
         </div>
@@ -316,7 +319,6 @@
         }
 
         async function loadSection(section) {
-            // Update active tab
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -324,7 +326,6 @@
             
             currentSection = section;
             
-            // Show loading
             document.getElementById('contentArea').innerHTML = `
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin fa-3x"></i>
@@ -338,7 +339,6 @@
                     const html = await response.text();
                     document.getElementById('contentArea').innerHTML = html;
                     
-                    // Execute any scripts in the loaded content
                     const scripts = document.getElementById('contentArea').getElementsByTagName('script');
                     for (let script of scripts) {
                         eval(script.innerText);
