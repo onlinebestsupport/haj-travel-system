@@ -979,4 +979,55 @@
             row.style.display = text.includes(search) ? '' : 'none';
         });
     }
+    async function deleteTraveler(id) {
+    if (!confirm('Are you sure you want to delete this traveler? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`/api/travelers/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.status === 401) {
+            showNotification('Session expired. Please login again', 'error');
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Traveler deleted successfully!', 'success');
+            loadTravelers(); // Reload the list
+        } else {
+            showNotification('Error: ' + (data.error || 'Could not delete traveler'), 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting traveler:', error);
+        showNotification('Error deleting traveler', 'error');
+    }
+}
+    function showNotification(message, type) {
+    // You can implement a simple alert for now
+    alert(message);
+    
+    // Or if you want a better notification system, add this:
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 5px;
+        color: white;
+        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+        z-index: 9999;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
 </script>
