@@ -4,7 +4,6 @@ company_bp = Blueprint('company', __name__)
 
 @company_bp.route('/profile', methods=['GET'])
 def get_company_profile():
-    """Get company profile information"""
     return jsonify({
         'success': True,
         'name': 'Alhudha Haj Travel',
