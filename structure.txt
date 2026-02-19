@@ -1,13 +1,4 @@
-haj-travel-system-main/
-├── .env.example
-├── .gitignore
-├── Procfile
-├── README.md
-├── railway.json
-├── requirements.txt
-├── runtime.txt
-├── start.sh
-├── structure.txt
+haj-travel-system/
 ├── app/
 │   ├── __init__.py
 │   ├── database.py
@@ -21,12 +12,26 @@ haj-travel-system-main/
 │       ├── travelers.py
 │       └── uploads.py
 ├── public/
-│   ├── admin.login.html
-│   ├── admin_dashboard.html
+│   ├── admin/
+│   │   ├── index.html
+│   │   ├── dashboard.html
+│   │   ├── batches.html
+│   │   ├── travelers.html
+│   │   ├── payments.html
+│   │   ├── receipts.html
+│   │   ├── users.html
+│   │   ├── reports.html
+│   │   ├── invoices.html
+│   │   ├── backup.html
+│   │   ├── frontpage.html
+│   │   ├── whatsapp.html
+│   │   ├── email.html
+│   │   └── style.css
 │   ├── index.html
-│   ├── style.css
+│   ├── admin.login.html
+│   ├── traveler_login.html
 │   ├── traveler_dashboard.html
-│   └── traveler_login.html
+│   └── style.css
 ├── sql/
 │   ├── init.sql
 │   └── seed.sql
