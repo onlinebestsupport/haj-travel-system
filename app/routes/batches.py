@@ -1,194 +1,124 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db, get_db_cursor
-import psycopg2
-import psycopg2.extras
-from functools import wraps
+from app.database import get_db
 from datetime import datetime
 
-batches_bp = Blueprint('batches', __name__)
+bp = Blueprint('batches', __name__, url_prefix='/api/batches')
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('admin_logged_in'):
-            return jsonify({'success': False, 'error': 'Authentication required'}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+@bp.route('', methods=['GET'])
+def get_batches():
+    """Get all batches"""
+    db = get_db()
+    batches = db.execute('''
+        SELECT b.*, 
+               (SELECT COUNT(*) FROM travelers WHERE batch_id = b.id) as booked_seats
+        FROM batches b
+        ORDER BY b.created_at DESC
+    ''').fetchall()
+    
+    return jsonify({
+        'success': True,
+        'batches': [dict(batch) for batch in batches]
+    })
 
-def convert_decimal_to_float(data):
-    if isinstance(data, list):
-        for item in data:
-            for key, value in item.items():
-                if hasattr(value, 'scale'):
-                    item[key] = float(value)
-    elif isinstance(data, dict):
-        for key, value in data.items():
-            if hasattr(value, 'scale'):
-                data[key] = float(value)
-    return data
-
-@batches_bp.route('/', methods=['GET'])
-def get_all_batches():
-    try:
-        conn, cur = get_db_cursor(dictionary=True)
-        if not conn:
-            return jsonify({'success': False, 'error': 'Database not available'}), 503
-        
-        cur.execute("""
-            SELECT * FROM batches 
-            ORDER BY 
-                CASE 
-                    WHEN status = 'Open' THEN 1
-                    WHEN status = 'Closing Soon' THEN 2
-                    ELSE 3
-                END,
-                departure_date ASC
-        """)
-        
-        batches = cur.fetchall()
-        cur.close()
-        conn.close()
-        
-        batches = convert_decimal_to_float(batches)
-        
-        return jsonify({'success': True, 'batches': batches})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@batches_bp.route('/<int:batch_id>', methods=['GET'])
+@bp.route('/<int:batch_id>', methods=['GET'])
 def get_batch(batch_id):
-    try:
-        conn, cur = get_db_cursor(dictionary=True)
-        if not conn:
-            return jsonify({'success': False, 'error': 'Database not available'}), 503
-        
-        cur.execute("SELECT * FROM batches WHERE id = %s", (batch_id,))
-        batch = cur.fetchone()
-        cur.close()
-        conn.close()
-        
-        if batch:
-            batch = convert_decimal_to_float(batch)
-            return jsonify({'success': True, 'batch': batch})
-        return jsonify({'success': False, 'error': 'Batch not found'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    """Get single batch"""
+    db = get_db()
+    batch = db.execute(
+        'SELECT * FROM batches WHERE id = ?',
+        (batch_id,)
+    ).fetchone()
+    
+    if batch:
+        return jsonify({'success': True, 'batch': dict(batch)})
+    return jsonify({'success': False, 'error': 'Batch not found'}), 404
 
-@batches_bp.route('/', methods=['POST'])
-@login_required
+@bp.route('', methods=['POST'])
 def create_batch():
-    try:
-        data = request.json
-        required_fields = ['batch_name']
-        for field in required_fields:
-            if not data.get(field):
-                return jsonify({'success': False, 'error': f'{field} is required'}), 400
-        
-        conn, cur = get_db_cursor()
-        if not conn:
-            return jsonify({'success': False, 'error': 'Database not available'}), 503
-        
-        cur.execute("""
-            INSERT INTO batches (
-                batch_name, departure_date, return_date, 
-                total_seats, price, status, description
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
-        """, (
-            data.get('batch_name'),
-            data.get('departure_date'),
-            data.get('return_date'),
-            data.get('total_seats', 150),
-            data.get('price'),
-            data.get('status', 'Open'),
-            data.get('description')
-        ))
-        
-        batch_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Batch created successfully',
-            'batch_id': batch_id
-        }), 201
-        
-    except psycopg2.IntegrityError:
-        return jsonify({'success': False, 'error': 'Batch name already exists'}), 400
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    """Create new batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    db = get_db()
+    cursor = db.execute('''
+        INSERT INTO batches (
+            batch_name, total_seats, price, departure_date, 
+            return_date, status, description, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        data['batch_name'],
+        data.get('total_seats', 150),
+        data.get('price'),
+        data.get('departure_date'),
+        data.get('return_date'),
+        data.get('status', 'Open'),
+        data.get('description', ''),
+        datetime.now().isoformat(),
+        datetime.now().isoformat()
+    ))
+    
+    db.commit()
+    
+    return jsonify({
+        'success': True,
+        'batch_id': cursor.lastrowid,
+        'message': 'Batch created successfully'
+    })
 
-@batches_bp.route('/<int:batch_id>', methods=['PUT'])
-@login_required
+@bp.route('/<int:batch_id>', methods=['PUT'])
 def update_batch(batch_id):
-    try:
-        data = request.json
-        conn, cur = get_db_cursor()
-        if not conn:
-            return jsonify({'success': False, 'error': 'Database not available'}), 503
-        
-        cur.execute("""
-            UPDATE batches SET
-                batch_name = COALESCE(%s, batch_name),
-                departure_date = COALESCE(%s, departure_date),
-                return_date = COALESCE(%s, return_date),
-                total_seats = COALESCE(%s, total_seats),
-                price = COALESCE(%s, price),
-                status = COALESCE(%s, status),
-                description = COALESCE(%s, description)
-            WHERE id = %s
-            RETURNING id
-        """, (
-            data.get('batch_name'),
-            data.get('departure_date'),
-            data.get('return_date'),
-            data.get('total_seats'),
-            data.get('price'),
-            data.get('status'),
-            data.get('description'),
-            batch_id
-        ))
-        
-        updated = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        if updated:
-            return jsonify({'success': True, 'message': 'Batch updated successfully'})
-        return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    """Update batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    db = get_db()
+    db.execute('''
+        UPDATE batches SET
+            batch_name = ?, total_seats = ?, price = ?,
+            departure_date = ?, return_date = ?, status = ?,
+            description = ?, updated_at = ?
+        WHERE id = ?
+    ''', (
+        data['batch_name'],
+        data.get('total_seats', 150),
+        data.get('price'),
+        data.get('departure_date'),
+        data.get('return_date'),
+        data.get('status', 'Open'),
+        data.get('description', ''),
+        datetime.now().isoformat(),
+        batch_id
+    ))
+    
+    db.commit()
+    
+    return jsonify({'success': True, 'message': 'Batch updated successfully'})
 
-@batches_bp.route('/<int:batch_id>', methods=['DELETE'])
-@login_required
+@bp.route('/<int:batch_id>', methods=['DELETE'])
 def delete_batch(batch_id):
-    try:
-        conn, cur = get_db_cursor()
-        if not conn:
-            return jsonify({'success': False, 'error': 'Database not available'}), 503
-        
-        cur.execute("SELECT COUNT(*) FROM travelers WHERE batch_id = %s", (batch_id,))
-        traveler_count = cur.fetchone()[0]
-        
-        if traveler_count > 0:
-            return jsonify({
-                'success': False, 
-                'error': f'Cannot delete batch with {traveler_count} travelers assigned'
-            }), 400
-        
-        cur.execute("DELETE FROM batches WHERE id = %s", (batch_id,))
-        deleted = cur.rowcount
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        if deleted:
-            return jsonify({'success': True, 'message': 'Batch deleted successfully'})
-        return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    """Delete batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    db = get_db()
+    
+    # Check if batch has travelers
+    travelers = db.execute(
+        'SELECT COUNT(*) as count FROM travelers WHERE batch_id = ?',
+        (batch_id,)
+    ).fetchone()
+    
+    if travelers['count'] > 0:
+        return jsonify({
+            'success': False, 
+            'error': 'Cannot delete batch with assigned travelers'
+        }), 400
+    
+    db.execute('DELETE FROM batches WHERE id = ?', (batch_id,))
+    db.commit()
+    
+    return jsonify({'success': True, 'message': 'Batch deleted successfully'})
