@@ -1,17 +1,39 @@
 from flask import Blueprint, request, jsonify, session
+from app.database import get_db
 
-auth_bp = Blueprint('auth', __name__)
+bp = Blueprint('auth', __name__, url_prefix='/api')
 
-@auth_bp.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
     
-    # This is handled in main app.py
-    return jsonify({'success': False, 'message': 'Use main login endpoint'}), 400
+    db = get_db()
+    user = db.execute(
+        'SELECT * FROM users WHERE username = ? AND password = ?',
+        (username, password)
+    ).fetchone()
+    
+    if user:
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        return jsonify({'success': True, 'user': dict(user)})
+    
+    return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
-@auth_bp.route('/logout', methods=['POST'])
+@bp.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({'success': True, 'message': 'Logged out'})
+    return jsonify({'success': True})
+
+@bp.route('/check-session', methods=['GET'])
+def check_session():
+    if 'user_id' in session:
+        return jsonify({'success': True, 'user': {
+            'id': session['user_id'],
+            'username': session['username'],
+            'role': session['role']
+        }})
+    return jsonify({'success': False}), 401
