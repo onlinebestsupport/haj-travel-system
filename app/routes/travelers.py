@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from app.database import get_db
 from datetime import datetime
-import json
 
 bp = Blueprint('travelers', __name__, url_prefix='/api/travelers')
 
@@ -39,13 +38,10 @@ def get_traveler(traveler_id):
 @bp.route('', methods=['POST'])
 def create_traveler():
     """Create new traveler"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     data = request.json
     
     # Validate required fields
-    required = ['first_name', 'last_name', 'passport_no', 'mobile']
+    required = ['first_name', 'last_name', 'passport_no', 'mobile', 'batch_id']
     for field in required:
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} is required'}), 400
@@ -65,7 +61,7 @@ def create_traveler():
             extra_fields, pin, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        data['first_name'], data['last_name'], passport_name, data.get('batch_id'),
+        data['first_name'], data['last_name'], passport_name, data['batch_id'],
         data['passport_no'], data.get('passport_issue_date'), data.get('passport_expiry_date'),
         data.get('passport_status', 'Active'), data.get('gender'), data.get('dob'),
         data['mobile'], data.get('email'), data.get('aadhaar'), data.get('pan'),
@@ -76,6 +72,11 @@ def create_traveler():
         data.get('pan_scan'), data.get('vaccine_scan'), data.get('extra_fields', '{}'),
         data.get('pin', '0000'), datetime.now().isoformat(), datetime.now().isoformat()
     ))
+    
+    # Update batch booked seats
+    db.execute('''
+        UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?
+    ''', (data['batch_id'],))
     
     db.commit()
     
@@ -88,9 +89,6 @@ def create_traveler():
 @bp.route('/<int:traveler_id>', methods=['PUT'])
 def update_traveler(traveler_id):
     """Update traveler"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     data = request.json
     
     db = get_db()
@@ -126,24 +124,18 @@ def update_traveler(traveler_id):
 @bp.route('/<int:traveler_id>', methods=['DELETE'])
 def delete_traveler(traveler_id):
     """Delete traveler"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     db = get_db()
     
-    # Check if traveler has payments
-    payments = db.execute(
-        'SELECT COUNT(*) as count FROM payments WHERE traveler_id = ?',
+    # Get batch_id before deleting
+    traveler = db.execute(
+        'SELECT batch_id FROM travelers WHERE id = ?',
         (traveler_id,)
     ).fetchone()
     
-    if payments['count'] > 0:
-        return jsonify({
-            'success': False,
-            'error': 'Cannot delete traveler with payment records'
-        }), 400
+    if traveler:
+        db.execute('DELETE FROM travelers WHERE id = ?', (traveler_id,))
+        db.commit()
+        
+        return jsonify({'success': True, 'message': 'Traveler deleted successfully'})
     
-    db.execute('DELETE FROM travelers WHERE id = ?', (traveler_id,))
-    db.commit()
-    
-    return jsonify({'success': True, 'message': 'Traveler deleted successfully'})
+    return jsonify({'success': False, 'error': 'Traveler not found'}), 404
