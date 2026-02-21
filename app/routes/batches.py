@@ -20,25 +20,9 @@ def get_batches():
         'batches': [dict(batch) for batch in batches]
     })
 
-@bp.route('/<int:batch_id>', methods=['GET'])
-def get_batch(batch_id):
-    """Get single batch"""
-    db = get_db()
-    batch = db.execute(
-        'SELECT * FROM batches WHERE id = ?',
-        (batch_id,)
-    ).fetchone()
-    
-    if batch:
-        return jsonify({'success': True, 'batch': dict(batch)})
-    return jsonify({'success': False, 'error': 'Batch not found'}), 404
-
 @bp.route('', methods=['POST'])
 def create_batch():
     """Create new batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     data = request.json
     
     db = get_db()
@@ -70,9 +54,6 @@ def create_batch():
 @bp.route('/<int:batch_id>', methods=['PUT'])
 def update_batch(batch_id):
     """Update batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     data = request.json
     
     db = get_db()
@@ -101,9 +82,6 @@ def update_batch(batch_id):
 @bp.route('/<int:batch_id>', methods=['DELETE'])
 def delete_batch(batch_id):
     """Delete batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
     db = get_db()
     
     # Check if batch has travelers
