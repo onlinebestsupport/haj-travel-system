@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Alhudha Haj Travel System</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -14,7 +15,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #2c3e50, #3498db);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -24,278 +25,153 @@
         
         .login-container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             width: 100%;
-            max-width: 450px;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-        
-        .header i {
-            font-size: 4rem;
-            color: #ffd700;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 50%;
-        }
-        
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-        }
-        
-        .badge {
-            display: inline-block;
-            background: #ffd700;
-            color: #1e3c72;
-            padding: 8px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-        
-        .form-wrapper {
+            max-width: 400px;
             padding: 40px;
         }
         
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header i {
+            font-size: 4rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        
+        .login-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #7f8c8d;
+        }
+        
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 10px;
-            color: #1e3c72;
+            margin-bottom: 5px;
+            color: #2c3e50;
             font-weight: 600;
         }
         
-        .form-group label i {
-            margin-right: 10px;
-            color: #ffd700;
-        }
-        
-        .input-wrapper {
-            position: relative;
-        }
-        
-        .input-wrapper i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #95a5a6;
-        }
-        
-        .input-wrapper input {
+        .form-group input {
             width: 100%;
-            padding: 15px 15px 15px 45px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 5px;
             font-size: 1rem;
             transition: all 0.3s;
         }
         
-        .input-wrapper input:focus {
-            border-color: #ffd700;
+        .form-group input:focus {
+            border-color: #3498db;
             outline: none;
         }
         
-        .input-wrapper .toggle-password {
-            left: auto;
-            right: 15px;
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
         }
         
-        .demo-box {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .demo-box p {
-            color: #856404;
-            margin-bottom: 8px;
-        }
-        
-        .demo-box small {
-            color: #856404;
-            display: block;
-            margin-left: 25px;
-            font-size: 0.85rem;
+        .login-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
         }
         
         .error-message {
             background: #fee;
             color: #e74c3c;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
             display: none;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.4);
         }
         
         .footer {
             text-align: center;
-            padding: 20px 40px 30px;
-            border-top: 1px solid #ecf0f1;
+            margin-top: 20px;
+            color: #7f8c8d;
         }
         
         .footer a {
-            color: #1e3c72;
+            color: #3498db;
             text-decoration: none;
-            margin: 0 10px;
         }
         
-        .footer a:hover {
-            color: #ffd700;
+        .demo-credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
         }
         
-        .footer p {
-            color: #95a5a6;
-            font-size: 0.85rem;
-            margin-top: 15px;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .demo-credentials p {
+            color: #2c3e50;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="header">
+        <div class="login-header">
             <i class="fas fa-user-shield"></i>
             <h1>Admin Login</h1>
             <p>Alhudha Haj Travel System</p>
-            <div class="badge">
-                <i class="fas fa-lock"></i> Secure Access
-            </div>
         </div>
         
-        <div class="form-wrapper">
-            <div class="demo-box">
-                <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials:</strong></p>
-                <small>• superadmin / admin123</small>
-                <small>• admin1 / admin123</small>
-                <small>• manager1 / admin123</small>
-            </div>
-            
-            <div id="errorMessage" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span id="errorText">Invalid username or password</span>
-            </div>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Username</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="username" placeholder="Enter username" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="Enter password" required>
-                        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
-                    </div>
-                </div>
-                
-                <button type="submit" id="loginBtn" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
-                </button>
-            </form>
+        <div class="demo-credentials">
+            <p><i class="fas fa-info-circle"></i> Demo Credentials:</p>
+            <p>superadmin / admin123</p>
+            <p>admin1 / admin123</p>
+            <p>manager1 / admin123</p>
         </div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Login</button>
+        </form>
         
         <div class="footer">
-            <a href="/"><i class="fas fa-home"></i> Home</a>
-            <a href="/traveler_login.html"><i class="fas fa-user"></i> Traveler Login</a>
-            <p>© 2026 Alhudha Haj Travel System</p>
+            <p><a href="/">← Back to Home</a></p>
         </div>
     </div>
 
     <script>
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
-        
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
-        });
-        
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value.trim();
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            const loginBtn = document.getElementById('loginBtn');
-            
-            errorDiv.style.display = 'none';
-            
-            if (!username || !password) {
-                errorText.textContent = 'Please enter both username and password';
-                errorDiv.style.display = 'flex';
-                return;
-            }
-            
-            const originalBtnText = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Authenticating...';
-            loginBtn.disabled = true;
             
             try {
                 const response = await fetch('/api/login', {
@@ -308,38 +184,18 @@
                 
                 if (data.success) {
                     sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', data.user?.name || username);
-                    sessionStorage.setItem('adminRole', data.user?.role || 'Admin');
-                    
+                    sessionStorage.setItem('adminName', data.user.name);
+                    sessionStorage.setItem('adminRole', data.user.role);
                     window.location.href = '/admin/dashboard.html';
                 } else {
-                    errorText.textContent = data.error || 'Invalid username or password';
-                    errorDiv.style.display = 'flex';
-                    loginBtn.innerHTML = originalBtnText;
-                    loginBtn.disabled = false;
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').style.display = 'block';
                 }
             } catch (error) {
-                console.error('Login error:', error);
-                
-                // Demo mode - allow login even if API fails
-                const demoUsers = ['superadmin', 'admin1', 'manager1'];
-                if (demoUsers.includes(username) && password === 'admin123') {
-                    sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', username);
-                    sessionStorage.setItem('adminRole', 'Admin');
-                    window.location.href = '/admin/dashboard.html';
-                } else {
-                    errorText.textContent = 'Connection error. Use demo credentials.';
-                    errorDiv.style.display = 'flex';
-                    loginBtn.innerHTML = originalBtnText;
-                    loginBtn.disabled = false;
-                }
+                document.getElementById('errorMessage').textContent = 'Connection error';
+                document.getElementById('errorMessage').style.display = 'block';
             }
         });
-        
-        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-            window.location.href = '/admin/dashboard.html';
-        }
     </script>
 </body>
 </html>

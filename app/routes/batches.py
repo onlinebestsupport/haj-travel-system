@@ -8,29 +8,50 @@ bp = Blueprint('batches', __name__, url_prefix='/api/batches')
 def get_batches():
     """Get all batches"""
     db = get_db()
-    batches = db.execute('''
-        SELECT b.*, 
-               (SELECT COUNT(*) FROM travelers WHERE batch_id = b.id) as booked_seats
-        FROM batches b
-        ORDER BY b.created_at DESC
-    ''').fetchall()
+    cursor = db.cursor()
+    cursor.execute('''
+        SELECT *, 
+               (SELECT COUNT(*) FROM travelers WHERE batch_id = batches.id) as booked_seats
+        FROM batches
+        ORDER BY created_at DESC
+    ''')
+    batches = cursor.fetchall()
+    db.close()
+    return jsonify({'success': True, 'batches': [dict(b) for b in batches]})
+
+@bp.route('/<int:batch_id>', methods=['GET'])
+def get_batch(batch_id):
+    """Get single batch"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('''
+        SELECT *, 
+               (SELECT COUNT(*) FROM travelers WHERE batch_id = batches.id) as booked_seats
+        FROM batches WHERE id = ?
+    ''', (batch_id,))
+    batch = cursor.fetchone()
+    db.close()
     
-    return jsonify({
-        'success': True,
-        'batches': [dict(batch) for batch in batches]
-    })
+    if batch:
+        return jsonify({'success': True, 'batch': dict(batch)})
+    return jsonify({'success': False, 'error': 'Batch not found'}), 404
 
 @bp.route('', methods=['POST'])
 def create_batch():
     """Create new batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     data = request.json
     
+    if not data.get('batch_name'):
+        return jsonify({'success': False, 'error': 'Batch name is required'}), 400
+    
     db = get_db()
-    cursor = db.execute('''
-        INSERT INTO batches (
-            batch_name, total_seats, price, departure_date, 
-            return_date, status, description, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    cursor = db.cursor()
+    cursor.execute('''
+        INSERT INTO batches (batch_name, total_seats, price, departure_date, return_date, status, description, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         data['batch_name'],
         data.get('total_seats', 150),
@@ -42,22 +63,23 @@ def create_batch():
         datetime.now().isoformat(),
         datetime.now().isoformat()
     ))
-    
+    batch_id = cursor.lastrowid
     db.commit()
+    db.close()
     
-    return jsonify({
-        'success': True,
-        'batch_id': cursor.lastrowid,
-        'message': 'Batch created successfully'
-    })
+    return jsonify({'success': True, 'batch_id': batch_id})
 
 @bp.route('/<int:batch_id>', methods=['PUT'])
 def update_batch(batch_id):
     """Update batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     data = request.json
     
     db = get_db()
-    db.execute('''
+    cursor = db.cursor()
+    cursor.execute('''
         UPDATE batches SET
             batch_name = ?, total_seats = ?, price = ?,
             departure_date = ?, return_date = ?, status = ?,
@@ -74,29 +96,21 @@ def update_batch(batch_id):
         datetime.now().isoformat(),
         batch_id
     ))
-    
     db.commit()
+    db.close()
     
     return jsonify({'success': True, 'message': 'Batch updated successfully'})
 
 @bp.route('/<int:batch_id>', methods=['DELETE'])
 def delete_batch(batch_id):
     """Delete batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     db = get_db()
-    
-    # Check if batch has travelers
-    travelers = db.execute(
-        'SELECT COUNT(*) as count FROM travelers WHERE batch_id = ?',
-        (batch_id,)
-    ).fetchone()
-    
-    if travelers['count'] > 0:
-        return jsonify({
-            'success': False, 
-            'error': 'Cannot delete batch with assigned travelers'
-        }), 400
-    
-    db.execute('DELETE FROM batches WHERE id = ?', (batch_id,))
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM batches WHERE id = ?', (batch_id,))
     db.commit()
+    db.close()
     
     return jsonify({'success': True, 'message': 'Batch deleted successfully'})

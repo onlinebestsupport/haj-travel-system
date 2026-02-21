@@ -1,19 +1,54 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, request, jsonify, session
+from app.database import get_db
+from datetime import datetime
 
-company_bp = Blueprint('company', __name__)
+bp = Blueprint('company', __name__, url_prefix='/api/company')
 
-@company_bp.route('/profile', methods=['GET'])
-def get_company_profile():
-    return jsonify({
-        'success': True,
-        'name': 'Alhudha Haj Travel',
-        'tagline': 'Your Trusted Partner for Spiritual Journey to the Holy Land',
-        'description': 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. 25+ years of trusted service guiding pilgrims to Makkah and Madinah.',
-        'badge': 'Est. 1998',
-        'features': [
-            {'icon': 'fas fa-calendar-alt', 'title': '25+ Years', 'description': 'Experience in Haj & Umrah services'},
-            {'icon': 'fas fa-users', 'title': '5000+', 'description': 'Happy Pilgrims Served'},
-            {'icon': 'fas fa-hotel', 'title': 'Premium', 'description': 'Hotels near Haram'},
-            {'icon': 'fas fa-bus', 'title': 'VIP Transport', 'description': 'Comfortable travel'}
-        ]
-    })
+@bp.route('/settings', methods=['GET'])
+def get_settings():
+    """Get company settings"""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM company_settings WHERE id = 1')
+    settings = cursor.fetchone()
+    db.close()
+    
+    return jsonify({'success': True, 'settings': dict(settings) if settings else {}})
+
+@bp.route('/settings', methods=['PUT'])
+def update_settings():
+    """Update company settings"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE company_settings SET
+                company_name = ?, address = ?, phone = ?,
+                email = ?, website = ?, gst_no = ?,
+                pan_no = ?, logo = ?, updated_at = ?
+            WHERE id = 1
+        ''', (
+            data.get('company_name'),
+            data.get('address'),
+            data.get('phone'),
+            data.get('email'),
+            data.get('website'),
+            data.get('gst_no'),
+            data.get('pan_no'),
+            data.get('logo'),
+            datetime.now().isoformat()
+        ))
+        db.commit()
+        db.close()
+        
+        return jsonify({'success': True, 'message': 'Settings updated successfully'})
+    except Exception as e:
+        db.rollback()
+        db.close()
+        return jsonify({'success': False, 'error': str(e)}), 400

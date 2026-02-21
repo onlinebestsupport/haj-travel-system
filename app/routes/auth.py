@@ -1,19 +1,24 @@
 from flask import Blueprint, request, jsonify, session
 from app.database import get_db
+from datetime import datetime
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
 
 @bp.route('/login', methods=['POST'])
 def login():
+    """Admin login"""
     data = request.json
     username = data.get('username')
     password = data.get('password')
     
     db = get_db()
-    user = db.execute(
-        'SELECT * FROM users WHERE username = ? AND password = ?',
+    cursor = db.cursor()
+    cursor.execute(
+        'SELECT * FROM users WHERE username = ? AND password = ? AND is_active = 1',
         (username, password)
-    ).fetchone()
+    )
+    user = cursor.fetchone()
+    db.close()
     
     if user:
         session['user_id'] = user['id']
@@ -26,19 +31,49 @@ def login():
                 'id': user['id'],
                 'username': user['username'],
                 'name': user['name'],
+                'email': user['email'],
                 'role': user['role']
-            }
+            },
+            'redirect': '/admin/dashboard.html'
         })
     
     return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
+@bp.route('/traveler/login', methods=['POST'])
+def traveler_login():
+    """Traveler login using passport number and PIN"""
+    data = request.json
+    passport_no = data.get('passport_no')
+    pin = data.get('pin')
+    
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        'SELECT * FROM travelers WHERE passport_no = ? AND pin = ?',
+        (passport_no, pin)
+    )
+    traveler = cursor.fetchone()
+    db.close()
+    
+    if traveler:
+        return jsonify({
+            'success': True,
+            'traveler_id': traveler['id'],
+            'name': f"{traveler['first_name']} {traveler['last_name']}",
+            'message': 'Login successful'
+        })
+    
+    return jsonify({'success': False, 'error': 'Invalid passport number or PIN'}), 401
+
 @bp.route('/logout', methods=['POST'])
 def logout():
+    """User logout"""
     session.clear()
     return jsonify({'success': True})
 
 @bp.route('/check-session', methods=['GET'])
 def check_session():
+    """Check if admin is logged in"""
     if 'user_id' in session:
         return jsonify({
             'success': True,
