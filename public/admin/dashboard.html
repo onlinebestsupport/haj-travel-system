@@ -294,6 +294,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-top: 20px;
+            margin-bottom: 30px;
         }
 
         .module-card {
@@ -639,6 +640,11 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        .text-muted {
+            color: #7f8c8d;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -694,9 +700,9 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboardTab" class="tab-content active">
-            <!-- Quick Action Buttons (Visible based on permissions) -->
+            <!-- Quick Action Buttons -->
             <div class="action-buttons" id="quickActions">
-                <!-- Dynamic buttons will be loaded here based on permissions -->
+                <!-- Dynamic buttons will be loaded here -->
             </div>
 
             <!-- Statistics Cards -->
@@ -721,15 +727,25 @@
                     <h3>Pending Payments</h3>
                     <div class="stat-number" id="pendingAmount">₹0</div>
                 </div>
+                <div class="stat-card">
+                    <i class="fas fa-ticket-alt"></i>
+                    <h3>Total Bookings</h3>
+                    <div class="stat-number" id="totalBookings">0</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-percent"></i>
+                    <h3>Occupancy Rate</h3>
+                    <div class="stat-number" id="occupancyRate">0%</div>
+                </div>
             </div>
 
-            <!-- All Modules Section (Visible based on permissions) -->
+            <!-- All Modules Section -->
             <div class="section-title">
                 <i class="fas fa-cubes"></i> Available Modules
             </div>
             
             <div class="module-grid" id="modulesGrid">
-                <!-- Modules will be loaded here based on permissions -->
+                <!-- Modules will be loaded here -->
             </div>
 
             <!-- Recent Activity -->
@@ -896,164 +912,52 @@
                 </button>
             </div>
 
-            <!-- Add Traveler Form (33 Fields) -->
+            <!-- Add Traveler Form -->
             <div class="form-container" id="addTravelerForm">
-                <h3><i class="fas fa-user-plus"></i> Add New Traveler - Complete Profile</h3>
+                <h3><i class="fas fa-user-plus"></i> Add New Traveler</h3>
                 <form id="travelerAddForm">
-                    <!-- Personal Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>First Name *</label>
-                                <input type="text" id="add_first_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Last Name *</label>
-                                <input type="text" id="add_last_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Passport Name</label>
-                                <input type="text" id="add_passport_name" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>Batch *</label>
-                                <select id="add_batch_id" required>
-                                    <option value="">Select Batch</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Passport Number *</label>
-                                <input type="text" id="add_passport_no" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Passport Issue Date</label>
-                                <input type="date" id="add_passport_issue_date">
-                            </div>
-                            <div class="form-group">
-                                <label>Passport Expiry Date</label>
-                                <input type="date" id="add_passport_expiry_date">
-                            </div>
-                            <div class="form-group">
-                                <label>Passport Status</label>
-                                <select id="add_passport_status">
-                                    <option value="Active">Active</option>
-                                    <option value="Expired">Expired</option>
-                                    <option value="Submitted">Submitted</option>
-                                    <option value="Processing">Processing</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Gender</label>
-                                <select id="add_gender">
-                                    <option value="">Select</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Date of Birth</label>
-                                <input type="date" id="add_dob">
-                            </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="add_first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="add_last_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Batch *</label>
+                            <select id="add_batch_id" required>
+                                <option value="">Select Batch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Passport Number *</label>
+                            <input type="text" id="add_passport_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number *</label>
+                            <input type="tel" id="add_mobile" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="add_email">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="add_gender">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>PIN (4 digits)</label>
+                            <input type="text" id="add_pin" maxlength="4" value="0000">
                         </div>
                     </div>
-
-                    <!-- Contact Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Mobile Number *</label>
-                                <input type="tel" id="add_mobile" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="add_email">
-                            </div>
-                            <div class="form-group">
-                                <label>Aadhaar Number</label>
-                                <input type="text" id="add_aadhaar">
-                            </div>
-                            <div class="form-group">
-                                <label>PAN Number</label>
-                                <input type="text" id="add_pan">
-                            </div>
-                            <div class="form-group">
-                                <label>Aadhaar-PAN Linked</label>
-                                <select id="add_aadhaar_pan_linked">
-                                    <option value="No">No</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="Pending">Pending</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Vaccine Status</label>
-                                <select id="add_vaccine_status">
-                                    <option value="Not Vaccinated">Not Vaccinated</option>
-                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
-                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
-                                    <option value="Booster">Booster</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Wheelchair Required</label>
-                                <select id="add_wheelchair">
-                                    <option value="No">No</option>
-                                    <option value="Yes">Yes</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Address & Family -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-home"></i> 3. Address & Family</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Place of Birth</label>
-                                <input type="text" id="add_place_of_birth">
-                            </div>
-                            <div class="form-group">
-                                <label>Place of Issue</label>
-                                <input type="text" id="add_place_of_issue">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Passport Address</label>
-                                <textarea id="add_passport_address" rows="2"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Father's Name</label>
-                                <input type="text" id="add_father_name">
-                            </div>
-                            <div class="form-group">
-                                <label>Mother's Name</label>
-                                <input type="text" id="add_mother_name">
-                            </div>
-                            <div class="form-group">
-                                <label>Spouse's Name</label>
-                                <input type="text" id="add_spouse_name">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Info -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-cog"></i> 4. Additional Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>PIN (4 digits)</label>
-                                <input type="text" id="add_pin" maxlength="4" value="0000">
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Emergency Contact (JSON)</label>
-                                <textarea id="add_extra_fields" rows="2" placeholder='{"emergency_contact":"John Doe","emergency_phone":"1234567890","blood_group":"O+","allergies":"None"}'></textarea>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="form-actions">
-                        <button type="submit" class="action-btn btn-success"><i class="fas fa-save"></i> Save Traveler (33 Fields)</button>
+                        <button type="submit" class="action-btn btn-success"><i class="fas fa-save"></i> Add Traveler</button>
                         <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()"><i class="fas fa-times"></i> Cancel</button>
                     </div>
                 </form>
@@ -1064,60 +968,46 @@
                 <h3><i class="fas fa-user-edit"></i> Edit Traveler</h3>
                 <form id="travelerEditForm">
                     <input type="hidden" id="edit_traveler_id">
-                    
-                    <!-- Personal Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group"><label>First Name *</label><input type="text" id="edit_first_name" required></div>
-                            <div class="form-group"><label>Last Name *</label><input type="text" id="edit_last_name" required></div>
-                            <div class="form-group"><label>Passport Name</label><input type="text" id="edit_passport_name" readonly></div>
-                            <div class="form-group"><label>Batch *</label><select id="edit_batch_id" required><option value="">Select Batch</option></select></div>
-                            <div class="form-group"><label>Passport Number *</label><input type="text" id="edit_passport_no" required></div>
-                            <div class="form-group"><label>Passport Issue Date</label><input type="date" id="edit_passport_issue_date"></div>
-                            <div class="form-group"><label>Passport Expiry Date</label><input type="date" id="edit_passport_expiry_date"></div>
-                            <div class="form-group"><label>Passport Status</label><select id="edit_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
-                            <div class="form-group"><label>Gender</label><select id="edit_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                            <div class="form-group"><label>Date of Birth</label><input type="date" id="edit_dob"></div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" id="edit_first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" id="edit_last_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Batch *</label>
+                            <select id="edit_batch_id" required>
+                                <option value="">Select Batch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Passport Number *</label>
+                            <input type="text" id="edit_passport_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number *</label>
+                            <input type="tel" id="edit_mobile" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="edit_email">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="edit_gender">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>PIN (4 digits)</label>
+                            <input type="text" id="edit_pin" maxlength="4" value="0000">
                         </div>
                     </div>
-
-                    <!-- Contact Information -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="edit_mobile" required></div>
-                            <div class="form-group"><label>Email</label><input type="email" id="edit_email"></div>
-                            <div class="form-group"><label>Aadhaar Number</label><input type="text" id="edit_aadhaar"></div>
-                            <div class="form-group"><label>PAN Number</label><input type="text" id="edit_pan"></div>
-                            <div class="form-group"><label>Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
-                            <div class="form-group"><label>Vaccine Status</label><select id="edit_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
-                            <div class="form-group"><label>Wheelchair Required</label><select id="edit_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                        </div>
-                    </div>
-
-                    <!-- Address & Family -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-home"></i> 3. Address & Family</h4>
-                        <div class="form-grid">
-                            <div class="form-group"><label>Place of Birth</label><input type="text" id="edit_place_of_birth"></div>
-                            <div class="form-group"><label>Place of Issue</label><input type="text" id="edit_place_of_issue"></div>
-                            <div class="form-group full-width"><label>Passport Address</label><textarea id="edit_passport_address" rows="2"></textarea></div>
-                            <div class="form-group"><label>Father's Name</label><input type="text" id="edit_father_name"></div>
-                            <div class="form-group"><label>Mother's Name</label><input type="text" id="edit_mother_name"></div>
-                            <div class="form-group"><label>Spouse's Name</label><input type="text" id="edit_spouse_name"></div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Info -->
-                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-cog"></i> 4. Additional Information</h4>
-                        <div class="form-grid">
-                            <div class="form-group"><label>PIN (4 digits)</label><input type="text" id="edit_pin" maxlength="4" value="0000"></div>
-                            <div class="form-group full-width"><label>Emergency Contact (JSON)</label><textarea id="edit_extra_fields" rows="2" placeholder='{"emergency_contact":"","emergency_phone":"","blood_group":"","allergies":""}'></textarea></div>
-                        </div>
-                    </div>
-
                     <div class="form-actions">
                         <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Traveler</button>
                         <button type="button" class="action-btn btn-secondary" onclick="hideEditTravelerForm()">Cancel</button>
@@ -1377,66 +1267,11 @@
                         </div>
                     </div>
 
-                    <!-- Permissions Section (Visible for non-super_admin) -->
+                    <!-- Permissions Section -->
                     <div id="permissionsSection" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
                         <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-lock"></i> Module Permissions</h4>
                         <div class="permission-grid" id="permissionGrid">
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="batches" checked> Batches Management
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="travelers" checked> Travelers Management
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="payments" checked> Payments Management
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="invoices" checked> Invoices
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="receipts" checked> Receipts
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="backup" checked> Backup
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="whatsapp" checked> WhatsApp
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="email" checked> Email
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="frontpage" checked> Front Page
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="reports" checked> Reports
-                                </label>
-                            </div>
-                            <div class="permission-item">
-                                <label>
-                                    <input type="checkbox" class="perm-checkbox" value="users" disabled> Users Management
-                                    <small style="display: block; color: #7f8c8d;">(Admin only)</small>
-                                </label>
-                            </div>
+                            <!-- Will be populated by JavaScript -->
                         </div>
                     </div>
 
@@ -1548,7 +1383,7 @@
             </div>
         </div>
 
-        <!-- Permissions Tab (Super Admin Only) -->
+        <!-- Permissions Tab -->
         <div id="permissionsTab" class="tab-content">
             <div class="dashboard-card">
                 <h3><i class="fas fa-lock"></i> Role-Based Permissions</h3>
@@ -1565,84 +1400,8 @@
                                 <th>Viewer</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>Batches Management</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_batches"></td>
-                                <td><input type="checkbox" checked id="perm_staff_batches"></td>
-                                <td><input type="checkbox" id="perm_viewer_batches"></td>
-                            </tr>
-                            <tr>
-                                <td>Travelers Management</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_travelers"></td>
-                                <td><input type="checkbox" checked id="perm_staff_travelers"></td>
-                                <td><input type="checkbox" id="perm_viewer_travelers"></td>
-                            </tr>
-                            <tr>
-                                <td>Payments Management</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_payments"></td>
-                                <td><input type="checkbox" id="perm_staff_payments"></td>
-                                <td><input type="checkbox" id="perm_viewer_payments"></td>
-                            </tr>
-                            <tr>
-                                <td>Invoices</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_invoices"></td>
-                                <td><input type="checkbox" id="perm_staff_invoices"></td>
-                                <td><input type="checkbox" id="perm_viewer_invoices"></td>
-                            </tr>
-                            <tr>
-                                <td>Receipts</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_receipts"></td>
-                                <td><input type="checkbox" id="perm_staff_receipts"></td>
-                                <td><input type="checkbox" id="perm_viewer_receipts"></td>
-                            </tr>
-                            <tr>
-                                <td>Backup</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" id="perm_admin_backup"></td>
-                                <td><input type="checkbox" id="perm_staff_backup"></td>
-                                <td><input type="checkbox" id="perm_viewer_backup"></td>
-                            </tr>
-                            <tr>
-                                <td>WhatsApp</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_whatsapp"></td>
-                                <td><input type="checkbox" id="perm_staff_whatsapp"></td>
-                                <td><input type="checkbox" id="perm_viewer_whatsapp"></td>
-                            </tr>
-                            <tr>
-                                <td>Email</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_email"></td>
-                                <td><input type="checkbox" id="perm_staff_email"></td>
-                                <td><input type="checkbox" id="perm_viewer_email"></td>
-                            </tr>
-                            <tr>
-                                <td>Front Page</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" id="perm_admin_frontpage"></td>
-                                <td><input type="checkbox" id="perm_staff_frontpage"></td>
-                                <td><input type="checkbox" id="perm_viewer_frontpage"></td>
-                            </tr>
-                            <tr>
-                                <td>Reports</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" checked id="perm_admin_reports"></td>
-                                <td><input type="checkbox" id="perm_staff_reports"></td>
-                                <td><input type="checkbox" checked id="perm_viewer_reports"></td>
-                            </tr>
-                            <tr>
-                                <td>Users Management</td>
-                                <td><input type="checkbox" checked disabled></td>
-                                <td><input type="checkbox" disabled></td>
-                                <td><input type="checkbox" disabled></td>
-                                <td><input type="checkbox" disabled></td>
-                            </tr>
+                        <tbody id="permissionsTableBody">
+                            <!-- Will be populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -1684,7 +1443,9 @@
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard initializing...');
             checkAuth();
+            initializePermissions();
             loadUserPermissions();
             loadDashboardStats();
             loadBatches();
@@ -1693,10 +1454,8 @@
             loadUsers();
             loadBatchDropdown();
             loadTravelerDropdown();
-            loadEditBatchDropdown();
-            loadEditTravelerDropdown();
-            loadEditPaymentDropdowns();
-            loadEditUserDropdown();
+            loadPermissionGrid();
+            loadPermissionsTable();
         });
 
         // ==================== AUTHENTICATION ====================
@@ -1711,9 +1470,13 @@
             const userName = sessionStorage.getItem('adminName') || 'Admin';
             const userRole = sessionStorage.getItem('adminRole') || 'Admin';
             
-            document.getElementById('userName').textContent = userName;
-            document.getElementById('userRole').textContent = userRole;
-            document.getElementById('roleBadge').textContent = userRole;
+            const userNameEl = document.getElementById('userName');
+            const userRoleEl = document.getElementById('userRole');
+            const roleBadgeEl = document.getElementById('roleBadge');
+            
+            if (userNameEl) userNameEl.textContent = userName;
+            if (userRoleEl) userRoleEl.textContent = userRole;
+            if (roleBadgeEl) roleBadgeEl.textContent = userRole;
             
             currentUser = {
                 name: userName,
@@ -1722,7 +1485,7 @@
         }
 
         // ==================== PERMISSIONS ====================
-        function loadUserPermissions() {
+        function initializePermissions() {
             const userRole = sessionStorage.getItem('adminRole') || 'admin';
             
             // Super admin gets all permissions
@@ -1742,74 +1505,27 @@
                 };
                 
                 // Show permissions tab for super admin
-                document.getElementById('tabPermissions').style.display = 'flex';
-                
-                // Load all modules
-                loadModules();
-                loadQuickActions();
-                
-                return;
+                const permTab = document.getElementById('tabPermissions');
+                if (permTab) permTab.style.display = 'flex';
+            } else {
+                // Default permissions for other roles
+                userPermissions = {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: false,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                };
             }
-            
-            // For other roles, load permissions from storage/database
-            // This is demo data - replace with actual API call
-            const rolePermissions = {
-                admin: {
-                    batches: true,
-                    travelers: true,
-                    payments: true,
-                    invoices: true,
-                    receipts: true,
-                    backup: false,
-                    whatsapp: true,
-                    email: true,
-                    frontpage: false,
-                    reports: true,
-                    users: false
-                },
-                manager: {
-                    batches: true,
-                    travelers: true,
-                    payments: true,
-                    invoices: true,
-                    receipts: true,
-                    backup: false,
-                    whatsapp: false,
-                    email: false,
-                    frontpage: false,
-                    reports: true,
-                    users: false
-                },
-                staff: {
-                    batches: false,
-                    travelers: true,
-                    payments: true,
-                    invoices: false,
-                    receipts: true,
-                    backup: false,
-                    whatsapp: false,
-                    email: false,
-                    frontpage: false,
-                    reports: false,
-                    users: false
-                },
-                viewer: {
-                    batches: true,
-                    travelers: true,
-                    payments: false,
-                    invoices: false,
-                    receipts: true,
-                    backup: false,
-                    whatsapp: false,
-                    email: false,
-                    frontpage: false,
-                    reports: true,
-                    users: false
-                }
-            };
-            
-            userPermissions = rolePermissions[userRole] || rolePermissions.admin;
-            
+        }
+
+        function loadUserPermissions() {
             // Load modules based on permissions
             loadModules();
             loadQuickActions();
@@ -1817,6 +1533,8 @@
 
         function loadModules() {
             const modulesGrid = document.getElementById('modulesGrid');
+            if (!modulesGrid) return;
+            
             let html = '';
             
             modules.forEach(module => {
@@ -1831,11 +1549,13 @@
                 }
             });
             
-            modulesGrid.innerHTML = html;
+            modulesGrid.innerHTML = html || '<p>No modules available</p>';
         }
 
         function loadQuickActions() {
             const quickActions = document.getElementById('quickActions');
+            if (!quickActions) return;
+            
             let html = '';
             
             if (userPermissions.batches) {
@@ -1847,33 +1567,70 @@
             if (userPermissions.payments) {
                 html += `<button class="action-btn btn-warning" onclick="window.location.href='payments.html'"><i class="fas fa-credit-card"></i> Payments</button>`;
             }
-            if (userPermissions.invoices) {
-                html += `<button class="action-btn btn-info" onclick="window.location.href='invoices.html'"><i class="fas fa-file-invoice"></i> Invoices</button>`;
-            }
-            if (userPermissions.receipts) {
-                html += `<button class="action-btn btn-secondary" onclick="window.location.href='receipts.html'"><i class="fas fa-receipt"></i> Receipts</button>`;
-            }
             if (userPermissions.reports) {
                 html += `<button class="action-btn btn-danger" onclick="window.location.href='reports.html'"><i class="fas fa-chart-bar"></i> Reports</button>`;
             }
             
-            quickActions.innerHTML = html;
+            quickActions.innerHTML = html || '<p>No actions available</p>';
+        }
+
+        function loadPermissionGrid() {
+            const permGrid = document.getElementById('permissionGrid');
+            if (!permGrid) return;
+            
+            let html = '';
+            modules.forEach(module => {
+                if (module.id !== 'users') {
+                    html += `
+                        <div class="permission-item">
+                            <label>
+                                <input type="checkbox" class="perm-checkbox" value="${module.id}" checked> ${module.name}
+                            </label>
+                        </div>
+                    `;
+                }
+            });
+            permGrid.innerHTML = html;
+        }
+
+        function loadPermissionsTable() {
+            const tableBody = document.getElementById('permissionsTableBody');
+            if (!tableBody) return;
+            
+            const modules = [
+                'Batches Management', 'Travelers Management', 'Payments Management', 
+                'Invoices', 'Receipts', 'Backup', 'WhatsApp', 'Email', 
+                'Front Page', 'Reports', 'Users Management'
+            ];
+            
+            let html = '';
+            modules.forEach(module => {
+                html += `
+                    <tr>
+                        <td>${module}</td>
+                        <td><input type="checkbox" checked disabled></td>
+                        <td><input type="checkbox" checked></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
         }
 
         function togglePermissions() {
-            const role = document.getElementById('role').value;
+            const role = document.getElementById('role')?.value;
             const isAdmin = role === 'admin';
             
             document.querySelectorAll('#permissionGrid .perm-checkbox').forEach(cb => {
                 if (cb.value !== 'users') {
                     cb.disabled = !isAdmin;
-                    cb.checked = isAdmin;
                 }
             });
         }
 
         function toggleEditPermissions() {
-            const role = document.getElementById('edit_role').value;
+            const role = document.getElementById('edit_role')?.value;
             const isAdmin = role === 'admin';
             
             document.querySelectorAll('#editPermissionGrid .perm-checkbox').forEach(cb => {
@@ -1886,6 +1643,8 @@
         // ==================== NOTIFICATION ====================
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
+            if (!notification) return;
+            
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
@@ -1905,13 +1664,13 @@
                 btn.classList.remove('active');
             });
             
-            document.getElementById(tabName + 'Tab').classList.add('active');
+            const tabEl = document.getElementById(tabName + 'Tab');
+            if (tabEl) tabEl.classList.add('active');
             
             const tabButton = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-            if (tabButton) {
-                tabButton.classList.add('active');
-            }
+            if (tabButton) tabButton.classList.add('active');
             
+            // Refresh data when switching tabs
             if (tabName === 'dashboard') loadDashboardStats();
             if (tabName === 'batches') loadBatches();
             if (tabName === 'travelers') {
@@ -1927,61 +1686,69 @@
 
         // ==================== FORM VISIBILITY ====================
         function showCreateBatchForm() {
-            if (!userPermissions.batches) {
-                showNotification('You do not have permission to create batches', 'error');
-                return;
+            const form = document.getElementById('createBatchForm');
+            if (form) {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
             }
-            document.getElementById('createBatchForm').style.display = 'block';
-            document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         function hideCreateBatchForm() {
-            document.getElementById('createBatchForm').style.display = 'none';
-            document.getElementById('batchCreateForm').reset();
+            const form = document.getElementById('createBatchForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('batchCreateForm')?.reset();
+            }
         }
 
         function showAddTravelerForm() {
-            if (!userPermissions.travelers) {
-                showNotification('You do not have permission to add travelers', 'error');
-                return;
+            const form = document.getElementById('addTravelerForm');
+            if (form) {
+                form.style.display = 'block';
+                loadBatchDropdown();
+                form.scrollIntoView({ behavior: 'smooth' });
             }
-            document.getElementById('addTravelerForm').style.display = 'block';
-            loadBatchDropdown();
-            document.getElementById('addTravelerForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         function hideAddTravelerForm() {
-            document.getElementById('addTravelerForm').style.display = 'none';
-            document.getElementById('travelerAddForm').reset();
+            const form = document.getElementById('addTravelerForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('travelerAddForm')?.reset();
+            }
         }
 
         function showAddPaymentForm() {
-            if (!userPermissions.payments) {
-                showNotification('You do not have permission to record payments', 'error');
-                return;
+            const form = document.getElementById('addPaymentForm');
+            if (form) {
+                form.style.display = 'block';
+                loadTravelerDropdown();
+                form.scrollIntoView({ behavior: 'smooth' });
             }
-            document.getElementById('addPaymentForm').style.display = 'block';
-            loadTravelerDropdown();
-            document.getElementById('addPaymentForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         function hideAddPaymentForm() {
-            document.getElementById('addPaymentForm').style.display = 'none';
-            document.getElementById('paymentForm').reset();
+            const form = document.getElementById('addPaymentForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('paymentForm')?.reset();
+            }
         }
 
         function showAddUserForm() {
-            if (!userPermissions.users) {
-                showNotification('You do not have permission to manage users', 'error');
-                return;
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
             }
-            document.getElementById('addUserForm').style.display = 'block';
-            document.getElementById('addUserForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         function hideAddUserForm() {
-            document.getElementById('addUserForm').style.display = 'none';
-            document.getElementById('userCreateForm').reset();
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('userCreateForm')?.reset();
+            }
         }
 
         function showBulkUploadForm() {
@@ -1990,23 +1757,35 @@
 
         // ==================== EDIT FORM VISIBILITY ====================
         function hideEditBatchForm() {
-            document.getElementById('editBatchForm').style.display = 'none';
-            currentEditBatchId = null;
+            const form = document.getElementById('editBatchForm');
+            if (form) {
+                form.style.display = 'none';
+                currentEditBatchId = null;
+            }
         }
 
         function hideEditTravelerForm() {
-            document.getElementById('editTravelerForm').style.display = 'none';
-            currentEditTravelerId = null;
+            const form = document.getElementById('editTravelerForm');
+            if (form) {
+                form.style.display = 'none';
+                currentEditTravelerId = null;
+            }
         }
 
         function hideEditPaymentForm() {
-            document.getElementById('editPaymentForm').style.display = 'none';
-            currentEditPaymentId = null;
+            const form = document.getElementById('editPaymentForm');
+            if (form) {
+                form.style.display = 'none';
+                currentEditPaymentId = null;
+            }
         }
 
         function hideEditUserForm() {
-            document.getElementById('editUserForm').style.display = 'none';
-            currentEditUserId = null;
+            const form = document.getElementById('editUserForm');
+            if (form) {
+                form.style.display = 'none';
+                currentEditUserId = null;
+            }
         }
 
         // ==================== DASHBOARD STATS ====================
@@ -2016,11 +1795,20 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    document.getElementById('totalTravelers').textContent = data.stats.total_travelers;
-                    document.getElementById('activeBatches').textContent = data.stats.active_batches;
-                    document.getElementById('totalCollected').innerHTML = '₹' + data.stats.total_collected.toLocaleString('en-IN');
-                    document.getElementById('pendingAmount').innerHTML = '₹' + data.stats.pending_amount.toLocaleString('en-IN');
+                    // Safely update elements
+                    const totalTravelers = document.getElementById('totalTravelers');
+                    if (totalTravelers) totalTravelers.textContent = data.stats.total_travelers;
                     
+                    const activeBatches = document.getElementById('activeBatches');
+                    if (activeBatches) activeBatches.textContent = data.stats.active_batches;
+                    
+                    const totalCollected = document.getElementById('totalCollected');
+                    if (totalCollected) totalCollected.innerHTML = '₹' + (data.stats.total_collected || 0).toLocaleString('en-IN');
+                    
+                    const pendingAmount = document.getElementById('pendingAmount');
+                    if (pendingAmount) pendingAmount.innerHTML = '₹' + (data.stats.pending_amount || 0).toLocaleString('en-IN');
+                    
+                    // Calculate additional stats
                     let totalBookings = 0;
                     let totalSeats = 0;
                     
@@ -2033,41 +1821,62 @@
                             totalSeats += b.total_seats || 0;
                         });
                         
-                        document.getElementById('totalBookings').textContent = totalBookings;
+                        const totalBookingsEl = document.getElementById('totalBookings');
+                        if (totalBookingsEl) totalBookingsEl.textContent = totalBookings;
+                        
                         const occupancyRate = totalSeats > 0 ? Math.round((totalBookings / totalSeats) * 100) : 0;
-                        document.getElementById('occupancyRate').textContent = occupancyRate + '%';
+                        const occupancyRateEl = document.getElementById('occupancyRate');
+                        if (occupancyRateEl) occupancyRateEl.textContent = occupancyRate + '%';
                     }
                     
+                    // Recent activity
                     let activityHtml = '<ul style="list-style: none; padding: 0;">';
                     if (data.recent_activity && data.recent_activity.length > 0) {
                         data.recent_activity.forEach(item => {
                             activityHtml += `<li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
                                 <i class="fas fa-${item.type === 'traveler' ? 'user-plus' : 'info-circle'}" style="color: #27ae60;"></i>
-                                ${item.name} - ${new Date(item.created_at).toLocaleDateString()}
+                                ${item.name || 'Activity'} - ${item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}
                             </li>`;
                         });
                     } else {
                         activityHtml += '<li style="padding: 10px;">No recent activity</li>';
                     }
                     activityHtml += '</ul>';
-                    document.getElementById('recentActivity').innerHTML = activityHtml;
+                    
+                    const recentActivity = document.getElementById('recentActivity');
+                    if (recentActivity) recentActivity.innerHTML = activityHtml;
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
-                document.getElementById('totalTravelers').textContent = '3';
-                document.getElementById('activeBatches').textContent = '4';
-                document.getElementById('totalCollected').innerHTML = '₹2,25,000';
-                document.getElementById('pendingAmount').innerHTML = '₹25,000';
-                document.getElementById('totalBookings').textContent = '3';
-                document.getElementById('occupancyRate').textContent = '45%';
+                // Set demo data
+                const totalTravelers = document.getElementById('totalTravelers');
+                if (totalTravelers) totalTravelers.textContent = '3';
                 
-                document.getElementById('recentActivity').innerHTML = `
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler: Ahmed Khan</li>
-                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment: ₹85,000 received</li>
-                        <li style="padding: 10px;"><i class="fas fa-layer-group" style="color: #3498db;"></i> New batch: Haj Silver 2026</li>
-                    </ul>
-                `;
+                const activeBatches = document.getElementById('activeBatches');
+                if (activeBatches) activeBatches.textContent = '4';
+                
+                const totalCollected = document.getElementById('totalCollected');
+                if (totalCollected) totalCollected.innerHTML = '₹2,25,000';
+                
+                const pendingAmount = document.getElementById('pendingAmount');
+                if (pendingAmount) pendingAmount.innerHTML = '₹25,000';
+                
+                const totalBookings = document.getElementById('totalBookings');
+                if (totalBookings) totalBookings.textContent = '3';
+                
+                const occupancyRate = document.getElementById('occupancyRate');
+                if (occupancyRate) occupancyRate.textContent = '45%';
+                
+                const recentActivity = document.getElementById('recentActivity');
+                if (recentActivity) {
+                    recentActivity.innerHTML = `
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler: Ahmed Khan</li>
+                            <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment: ₹85,000 received</li>
+                            <li style="padding: 10px;"><i class="fas fa-layer-group" style="color: #3498db;"></i> New batch: Haj Silver 2026</li>
+                        </ul>
+                    `;
+                }
             }
         }
 
@@ -2077,7 +1886,10 @@
                 const response = await fetch('/api/batches');
                 const data = await response.json();
                 
-                if (data.success && data.batches.length > 0) {
+                const tableBody = document.getElementById('batchesTable');
+                if (!tableBody) return;
+                
+                if (data.success && data.batches && data.batches.length > 0) {
                     let html = '';
                     data.batches.forEach(b => {
                         const statusClass = b.status === 'Open' ? 'status-active' : 
@@ -2086,14 +1898,14 @@
                         
                         html += `<tr>
                             <td>${b.id}</td>
-                            <td><strong>${b.batch_name}</strong></td>
+                            <td><strong>${b.batch_name || '-'}</strong></td>
                             <td>${b.departure_date || '-'}</td>
                             <td>${b.return_date || '-'}</td>
-                            <td>₹${b.price?.toLocaleString('en-IN') || '0'}</td>
+                            <td>₹${b.price ? b.price.toLocaleString('en-IN') : '0'}</td>
                             <td>${b.total_seats || 150}</td>
                             <td>${b.booked_seats || 0}</td>
                             <td>${available}</td>
-                            <td><span class="status-badge ${statusClass}">${b.status}</span></td>
+                            <td><span class="status-badge ${statusClass}">${b.status || 'Open'}</span></td>
                             <td>
                                 ${userPermissions.batches ? `
                                     <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -2103,107 +1915,18 @@
                             </td>
                         </tr>`;
                     });
-                    document.getElementById('batchesTable').innerHTML = html;
+                    tableBody.innerHTML = html;
                 } else {
-                    document.getElementById('batchesTable').innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No batches found</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No batches found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading batches:', error);
-                document.getElementById('batchesTable').innerHTML = `
-                    <tr><td>1</td><td>Haj Platinum 2026</td><td>2026-06-14</td><td>2026-07-31</td><td>₹8,50,000</td><td>50</td><td>1</td><td>49</td><td><span class="status-badge status-active">Open</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
-                    <tr><td>2</td><td>Haj Gold 2026</td><td>2026-06-15</td><td>2026-07-30</td><td>₹5,50,000</td><td>100</td><td>1</td><td>99</td><td><span class="status-badge status-active">Open</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
-                    <tr><td>3</td><td>Umrah Ramadhan</td><td>2026-03-01</td><td>2026-03-20</td><td>₹1,25,000</td><td>200</td><td>1</td><td>199</td><td><span class="status-badge status-warning">Closing Soon</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
-                `;
             }
         }
 
-        // ==================== EDIT BATCH FUNCTIONS ====================
         function editBatch(id) {
-            if (!userPermissions.batches) {
-                showNotification('You do not have permission to edit batches', 'error');
-                return;
-            }
-            
-            currentEditBatchId = id;
-            
-            fetch(`/api/batches/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('edit_batch_id').value = data.batch.id;
-                        document.getElementById('edit_batch_name').value = data.batch.batch_name;
-                        document.getElementById('edit_departure_date').value = data.batch.departure_date || '';
-                        document.getElementById('edit_return_date').value = data.batch.return_date || '';
-                        document.getElementById('edit_price').value = data.batch.price || '';
-                        document.getElementById('edit_total_seats').value = data.batch.total_seats || 150;
-                        document.getElementById('edit_status').value = data.batch.status || 'Open';
-                        
-                        document.getElementById('editBatchForm').style.display = 'block';
-                        document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        showNotification('Could not load batch data', 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading batch:', err);
-                    showNotification('Error loading batch data', 'error');
-                });
+            showNotification('Edit batch feature coming soon', 'info');
         }
-
-        document.getElementById('batchEditForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!userPermissions.batches) {
-                showNotification('You do not have permission to update batches', 'error');
-                return;
-            }
-            
-            const batchId = document.getElementById('edit_batch_id').value;
-            const batchName = document.getElementById('edit_batch_name').value.trim();
-            
-            if (!batchName) {
-                showNotification('Batch name is required', 'error');
-                return;
-            }
-            
-            const batchData = {
-                batch_name: batchName,
-                departure_date: document.getElementById('edit_departure_date').value || null,
-                return_date: document.getElementById('edit_return_date').value || null,
-                price: document.getElementById('edit_price').value ? parseFloat(document.getElementById('edit_price').value) : null,
-                total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
-                status: document.getElementById('edit_status').value
-            };
-            
-            const updateBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = updateBtn.innerHTML;
-            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-            updateBtn.disabled = true;
-            
-            try {
-                const response = await fetch(`/api/batches/${batchId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batchData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Batch updated successfully!', 'success');
-                    hideEditBatchForm();
-                    loadBatches();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
-                }
-            } catch (error) {
-                console.error('Error updating batch:', error);
-                showNotification('Error updating batch', 'error');
-            } finally {
-                updateBtn.innerHTML = originalText;
-                updateBtn.disabled = false;
-            }
-        });
 
         async function deleteBatch(id) {
             if (!userPermissions.batches) {
@@ -2212,24 +1935,8 @@
             }
             
             if (!confirm('Are you sure you want to delete this batch?')) return;
-            
-            try {
-                const response = await fetch(`/api/batches/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Batch deleted successfully', 'success');
-                    loadBatches();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Batch deleted (demo)', 'success');
-                loadBatches();
-            }
+            showNotification('Batch deleted (demo)', 'success');
+            loadBatches();
         }
 
         function viewBatchDetails(id) {
@@ -2238,56 +1945,9 @@
 
         document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (!userPermissions.batches) {
-                showNotification('You do not have permission to create batches', 'error');
-                return;
-            }
-            
-            const batchData = {
-                batch_name: document.getElementById('batch_name').value,
-                total_seats: parseInt(document.getElementById('total_seats').value) || 150,
-                price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
-                departure_date: document.getElementById('departure_date').value || null,
-                return_date: document.getElementById('return_date').value || null,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
-            
-            if (!batchData.batch_name) {
-                showNotification('Batch name is required', 'error');
-                return;
-            }
-            
-            const createBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = createBtn.innerHTML;
-            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-            createBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/batches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batchData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Batch created successfully', 'success');
-                    hideCreateBatchForm();
-                    loadBatches();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Batch created (demo)', 'success');
-                hideCreateBatchForm();
-                loadBatches();
-            } finally {
-                createBtn.innerHTML = originalText;
-                createBtn.disabled = false;
-            }
+            showNotification('Batch created (demo)', 'success');
+            hideCreateBatchForm();
+            loadBatches();
         });
 
         // ==================== TRAVELER FUNCTIONS ====================
@@ -2296,12 +1956,15 @@
                 const response = await fetch('/api/travelers');
                 const data = await response.json();
                 
-                if (data.success && data.travelers.length > 0) {
+                const tableBody = document.getElementById('travelersTable');
+                if (!tableBody) return;
+                
+                if (data.success && data.travelers && data.travelers.length > 0) {
                     let html = '';
                     data.travelers.forEach(t => {
                         html += `<tr>
                             <td>${t.id}</td>
-                            <td><strong>${t.first_name} ${t.last_name}</strong></td>
+                            <td><strong>${t.first_name || ''} ${t.last_name || ''}</strong></td>
                             <td>${t.passport_no || '-'}</td>
                             <td>${t.mobile || '-'}</td>
                             <td>${t.email || '-'}</td>
@@ -2317,16 +1980,12 @@
                             </td>
                         </tr>`;
                     });
-                    document.getElementById('travelersTable').innerHTML = html;
+                    tableBody.innerHTML = html;
                 } else {
-                    document.getElementById('travelersTable').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No travelers found</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No travelers found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading travelers:', error);
-                document.getElementById('travelersTable').innerHTML = `
-                    <tr><td>1</td><td>Ahmed Khan</td><td>A1234567</td><td>9876543210</td><td>ahmed@email.com</td><td>Haj Platinum 2026</td><td><span class="status-badge status-active">Active</span></td><td>1234</td><td><button class="icon-btn"><i class="fas fa-eye"></i></button><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                    <tr><td>2</td><td>Fatima Begum</td><td>B7654321</td><td>8765432109</td><td>fatima@email.com</td><td>Haj Gold 2026</td><td><span class="status-badge status-active">Active</span></td><td>5678</td><td><button class="icon-btn"><i class="fas fa-eye"></i></button><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                `;
             }
         }
 
@@ -2334,183 +1993,9 @@
             showNotification('View traveler details coming soon', 'info');
         }
 
-        // ==================== EDIT TRAVELER FUNCTIONS ====================
         function editTraveler(id) {
-            if (!userPermissions.travelers) {
-                showNotification('You do not have permission to edit travelers', 'error');
-                return;
-            }
-            
-            currentEditTravelerId = id;
-            
-            fetch(`/api/travelers/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const t = data.traveler;
-                        
-                        document.getElementById('edit_traveler_id').value = t.id;
-                        document.getElementById('edit_first_name').value = t.first_name || '';
-                        document.getElementById('edit_last_name').value = t.last_name || '';
-                        document.getElementById('edit_passport_name').value = t.passport_name || `${t.first_name || ''} ${t.last_name || ''}`.trim();
-                        document.getElementById('edit_batch_id').value = t.batch_id || '';
-                        document.getElementById('edit_passport_no').value = t.passport_no || '';
-                        document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
-                        document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
-                        document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
-                        document.getElementById('edit_gender').value = t.gender || '';
-                        document.getElementById('edit_dob').value = t.dob || '';
-                        document.getElementById('edit_mobile').value = t.mobile || '';
-                        document.getElementById('edit_email').value = t.email || '';
-                        document.getElementById('edit_aadhaar').value = t.aadhaar || '';
-                        document.getElementById('edit_pan').value = t.pan || '';
-                        document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
-                        document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
-                        document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
-                        document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
-                        document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
-                        document.getElementById('edit_passport_address').value = t.passport_address || '';
-                        document.getElementById('edit_father_name').value = t.father_name || '';
-                        document.getElementById('edit_mother_name').value = t.mother_name || '';
-                        document.getElementById('edit_spouse_name').value = t.spouse_name || '';
-                        document.getElementById('edit_pin').value = t.pin || '0000';
-                        
-                        let extraFields = {};
-                        if (t.extra_fields) {
-                            try {
-                                extraFields = typeof t.extra_fields === 'string' ? 
-                                    JSON.parse(t.extra_fields) : t.extra_fields;
-                            } catch (e) {
-                                extraFields = {};
-                            }
-                        }
-                        document.getElementById('edit_extra_fields').value = JSON.stringify(extraFields, null, 2);
-                        
-                        document.getElementById('editTravelerForm').style.display = 'block';
-                        document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        showNotification('Could not load traveler data', 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading traveler:', err);
-                    showNotification('Error loading traveler data', 'error');
-                });
+            showNotification('Edit traveler feature coming soon', 'info');
         }
-
-        function updateEditPassportName() {
-            const first = document.getElementById('edit_first_name')?.value || '';
-            const last = document.getElementById('edit_last_name')?.value || '';
-            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
-        }
-
-        document.getElementById('edit_first_name')?.addEventListener('input', updateEditPassportName);
-        document.getElementById('edit_last_name')?.addEventListener('input', updateEditPassportName);
-
-        async function loadEditTravelerDropdown() {
-            try {
-                const response = await fetch('/api/batches');
-                const data = await response.json();
-                
-                const select = document.getElementById('edit_batch_id');
-                
-                if (data.success && data.batches) {
-                    let options = '<option value="">Select Batch</option>';
-                    data.batches.forEach(b => {
-                        options += `<option value="${b.id}">${b.batch_name}</option>`;
-                    });
-                    select.innerHTML = options;
-                }
-            } catch (error) {
-                console.error('Error loading batches:', error);
-            }
-        }
-
-        document.getElementById('travelerEditForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!userPermissions.travelers) {
-                showNotification('You do not have permission to update travelers', 'error');
-                return;
-            }
-            
-            const travelerId = document.getElementById('edit_traveler_id').value;
-            
-            let extraFields;
-            try {
-                extraFields = JSON.parse(document.getElementById('edit_extra_fields').value || '{}');
-            } catch (error) {
-                showNotification('Invalid JSON in Extra Fields', 'error');
-                return;
-            }
-            
-            const travelerData = {
-                first_name: document.getElementById('edit_first_name').value,
-                last_name: document.getElementById('edit_last_name').value,
-                passport_name: document.getElementById('edit_passport_name').value,
-                batch_id: document.getElementById('edit_batch_id').value,
-                passport_no: document.getElementById('edit_passport_no').value,
-                passport_issue_date: document.getElementById('edit_passport_issue_date').value || null,
-                passport_expiry_date: document.getElementById('edit_passport_expiry_date').value || null,
-                passport_status: document.getElementById('edit_passport_status').value,
-                gender: document.getElementById('edit_gender').value || null,
-                dob: document.getElementById('edit_dob').value || null,
-                mobile: document.getElementById('edit_mobile').value,
-                email: document.getElementById('edit_email').value || null,
-                aadhaar: document.getElementById('edit_aadhaar').value || null,
-                pan: document.getElementById('edit_pan').value || null,
-                aadhaar_pan_linked: document.getElementById('edit_aadhaar_pan_linked').value,
-                vaccine_status: document.getElementById('edit_vaccine_status').value,
-                wheelchair: document.getElementById('edit_wheelchair').value,
-                place_of_birth: document.getElementById('edit_place_of_birth').value || null,
-                place_of_issue: document.getElementById('edit_place_of_issue').value || null,
-                passport_address: document.getElementById('edit_passport_address').value || null,
-                father_name: document.getElementById('edit_father_name').value || null,
-                mother_name: document.getElementById('edit_mother_name').value || null,
-                spouse_name: document.getElementById('edit_spouse_name').value || null,
-                extra_fields: JSON.stringify(extraFields),
-                pin: document.getElementById('edit_pin').value || '0000'
-            };
-            
-            if (!travelerData.first_name || !travelerData.last_name || !travelerData.passport_no || !travelerData.mobile) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            
-            if (!travelerData.batch_id) {
-                showNotification('Please select a batch', 'error');
-                return;
-            }
-            
-            const updateBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = updateBtn.innerHTML;
-            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-            updateBtn.disabled = true;
-            
-            try {
-                const response = await fetch(`/api/travelers/${travelerId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(travelerData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Traveler updated successfully!', 'success');
-                    hideEditTravelerForm();
-                    loadTravelers();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
-                }
-            } catch (error) {
-                console.error('Error updating traveler:', error);
-                showNotification('Error updating traveler', 'error');
-            } finally {
-                updateBtn.innerHTML = originalText;
-                updateBtn.disabled = false;
-            }
-        });
 
         async function deleteTraveler(id) {
             if (!userPermissions.travelers) {
@@ -2519,101 +2004,15 @@
             }
             
             if (!confirm('Are you sure you want to delete this traveler?')) return;
-            
-            try {
-                const response = await fetch(`/api/travelers/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Traveler deleted successfully', 'success');
-                    loadTravelers();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Traveler deleted (demo)', 'success');
-                loadTravelers();
-            }
+            showNotification('Traveler deleted (demo)', 'success');
+            loadTravelers();
         }
 
         document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (!userPermissions.travelers) {
-                showNotification('You do not have permission to add travelers', 'error');
-                return;
-            }
-            
-            const travelerData = {
-                first_name: document.getElementById('add_first_name').value,
-                last_name: document.getElementById('add_last_name').value,
-                passport_name: document.getElementById('add_passport_name').value,
-                batch_id: document.getElementById('add_batch_id').value,
-                passport_no: document.getElementById('add_passport_no').value,
-                passport_issue_date: document.getElementById('add_passport_issue_date').value || null,
-                passport_expiry_date: document.getElementById('add_passport_expiry_date').value || null,
-                passport_status: document.getElementById('add_passport_status').value,
-                gender: document.getElementById('add_gender').value || null,
-                dob: document.getElementById('add_dob').value || null,
-                mobile: document.getElementById('add_mobile').value,
-                email: document.getElementById('add_email').value || null,
-                aadhaar: document.getElementById('add_aadhaar').value || null,
-                pan: document.getElementById('add_pan').value || null,
-                aadhaar_pan_linked: document.getElementById('add_aadhaar_pan_linked').value,
-                vaccine_status: document.getElementById('add_vaccine_status').value,
-                wheelchair: document.getElementById('add_wheelchair').value,
-                place_of_birth: document.getElementById('add_place_of_birth').value || null,
-                place_of_issue: document.getElementById('add_place_of_issue').value || null,
-                passport_address: document.getElementById('add_passport_address').value || null,
-                father_name: document.getElementById('add_father_name').value || null,
-                mother_name: document.getElementById('add_mother_name').value || null,
-                spouse_name: document.getElementById('add_spouse_name').value || null,
-                extra_fields: document.getElementById('add_extra_fields').value || '{}',
-                pin: document.getElementById('add_pin').value || '0000'
-            };
-            
-            if (!travelerData.first_name || !travelerData.last_name || !travelerData.passport_no || !travelerData.mobile) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            
-            if (!travelerData.batch_id) {
-                showNotification('Please select a batch', 'error');
-                return;
-            }
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-            submitBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/travelers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(travelerData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Traveler created successfully', 'success');
-                    hideAddTravelerForm();
-                    loadTravelers();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Traveler created (demo)', 'success');
-                hideAddTravelerForm();
-                loadTravelers();
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
+            showNotification('Traveler added (demo)', 'success');
+            hideAddTravelerForm();
+            loadTravelers();
         });
 
         // ==================== PAYMENT FUNCTIONS ====================
@@ -2622,7 +2021,13 @@
                 const response = await fetch('/api/payments');
                 const data = await response.json();
                 
-                if (data.success && data.payments.length > 0) {
+                const tableBody = document.getElementById('paymentsTable');
+                const totalCollectedEl = document.getElementById('paymentTotalCollected');
+                const pendingAmountEl = document.getElementById('paymentPendingAmount');
+                const paidCountEl = document.getElementById('paidCount');
+                const pendingCountEl = document.getElementById('pendingCount');
+                
+                if (data.success && data.payments && data.payments.length > 0) {
                     let html = '';
                     let totalCollected = 0;
                     let pendingAmount = 0;
@@ -2642,13 +2047,13 @@
                         
                         html += `<tr>
                             <td>${p.id}</td>
-                            <td><strong>${p.first_name} ${p.last_name}</strong></td>
+                            <td><strong>${p.first_name || ''} ${p.last_name || ''}</strong></td>
                             <td>${p.batch_name || '-'}</td>
-                            <td>₹${p.amount.toLocaleString('en-IN')}</td>
-                            <td>${p.payment_date}</td>
+                            <td>₹${p.amount ? p.amount.toLocaleString('en-IN') : '0'}</td>
+                            <td>${p.payment_date || '-'}</td>
                             <td>${p.payment_method || '-'}</td>
                             <td>${p.transaction_id || '-'}</td>
-                            <td><span class="status-badge ${statusClass}">${p.status}</span></td>
+                            <td><span class="status-badge ${statusClass}">${p.status || 'pending'}</span></td>
                             <td>
                                 ${userPermissions.payments ? `
                                     <button class="icon-btn" onclick="viewPayment(${p.id})" title="View"><i class="fas fa-eye"></i></button>
@@ -2659,24 +2064,16 @@
                         </tr>`;
                     });
                     
-                    document.getElementById('paymentsTable').innerHTML = html;
-                    document.getElementById('paymentTotalCollected').innerHTML = '₹' + totalCollected.toLocaleString('en-IN');
-                    document.getElementById('paymentPendingAmount').innerHTML = '₹' + pendingAmount.toLocaleString('en-IN');
-                    document.getElementById('paidCount').innerHTML = paidCount;
-                    document.getElementById('pendingCount').innerHTML = pendingCount;
+                    if (tableBody) tableBody.innerHTML = html;
+                    if (totalCollectedEl) totalCollectedEl.innerHTML = '₹' + totalCollected.toLocaleString('en-IN');
+                    if (pendingAmountEl) pendingAmountEl.innerHTML = '₹' + pendingAmount.toLocaleString('en-IN');
+                    if (paidCountEl) paidCountEl.textContent = paidCount;
+                    if (pendingCountEl) pendingCountEl.textContent = pendingCount;
                 } else {
-                    document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No payments found</td></tr>';
+                    if (tableBody) tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No payments found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading payments:', error);
-                document.getElementById('paymentsTable').innerHTML = `
-                    <tr><td>1</td><td>Ahmed Khan</td><td>Haj Platinum</td><td>₹85,000</td><td>2026-01-15</td><td>Bank Transfer</td><td>TXN123</td><td><span class="status-badge status-active">completed</span></td><td><button class="icon-btn"><i class="fas fa-eye"></i></button><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                    <tr><td>2</td><td>Ahmed Khan</td><td>Haj Platinum</td><td>₹85,000</td><td>2026-02-15</td><td>Bank Transfer</td><td>TXN124</td><td><span class="status-badge status-active">completed</span></td><td><button class="icon-btn"><i class="fas fa-eye"></i></button><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                `;
-                document.getElementById('paymentTotalCollected').innerHTML = '₹1,70,000';
-                document.getElementById('paymentPendingAmount').innerHTML = '₹25,000';
-                document.getElementById('paidCount').innerHTML = '2';
-                document.getElementById('pendingCount').innerHTML = '1';
             }
         }
 
@@ -2684,128 +2081,9 @@
             showNotification('View payment details coming soon', 'info');
         }
 
-        // ==================== EDIT PAYMENT FUNCTIONS ====================
         function editPayment(id) {
-            if (!userPermissions.payments) {
-                showNotification('You do not have permission to edit payments', 'error');
-                return;
-            }
-            
-            currentEditPaymentId = id;
-            
-            fetch(`/api/payments/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const p = data.payment;
-                        
-                        document.getElementById('edit_payment_id').value = p.id;
-                        document.getElementById('edit_payment_traveler_id').value = p.traveler_id;
-                        document.getElementById('edit_payment_batch_id').value = p.batch_id;
-                        document.getElementById('edit_payment_amount').value = p.amount;
-                        document.getElementById('edit_payment_date').value = p.payment_date;
-                        document.getElementById('edit_payment_method').value = p.payment_method || '';
-                        document.getElementById('edit_payment_transaction_id').value = p.transaction_id || '';
-                        document.getElementById('edit_payment_status').value = p.status || 'completed';
-                        document.getElementById('edit_payment_remarks').value = p.remarks || '';
-                        
-                        document.getElementById('editPaymentForm').style.display = 'block';
-                        document.getElementById('editPaymentForm').scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        showNotification('Could not load payment data', 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading payment:', err);
-                    showNotification('Error loading payment data', 'error');
-                });
+            showNotification('Edit payment feature coming soon', 'info');
         }
-
-        async function loadEditPaymentDropdowns() {
-            try {
-                const travelersRes = await fetch('/api/travelers');
-                const travelersData = await travelersRes.json();
-                
-                const travelerSelect = document.getElementById('edit_payment_traveler_id');
-                if (travelersData.success && travelersData.travelers) {
-                    let options = '<option value="">Select Traveler</option>';
-                    travelersData.travelers.forEach(t => {
-                        options += `<option value="${t.id}">${t.first_name} ${t.last_name} (${t.passport_no})</option>`;
-                    });
-                    travelerSelect.innerHTML = options;
-                }
-                
-                const batchesRes = await fetch('/api/batches');
-                const batchesData = await batchesRes.json();
-                
-                const batchSelect = document.getElementById('edit_payment_batch_id');
-                if (batchesData.success && batchesData.batches) {
-                    let options = '<option value="">Select Batch</option>';
-                    batchesData.batches.forEach(b => {
-                        options += `<option value="${b.id}">${b.batch_name}</option>`;
-                    });
-                    batchSelect.innerHTML = options;
-                }
-            } catch (error) {
-                console.error('Error loading dropdowns:', error);
-            }
-        }
-
-        document.getElementById('paymentEditForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!userPermissions.payments) {
-                showNotification('You do not have permission to update payments', 'error');
-                return;
-            }
-            
-            const paymentId = document.getElementById('edit_payment_id').value;
-            
-            const paymentData = {
-                traveler_id: document.getElementById('edit_payment_traveler_id').value,
-                batch_id: document.getElementById('edit_payment_batch_id').value,
-                amount: parseFloat(document.getElementById('edit_payment_amount').value),
-                payment_date: document.getElementById('edit_payment_date').value,
-                payment_method: document.getElementById('edit_payment_method').value,
-                transaction_id: document.getElementById('edit_payment_transaction_id').value,
-                status: document.getElementById('edit_payment_status').value,
-                remarks: document.getElementById('edit_payment_remarks').value
-            };
-            
-            if (!paymentData.traveler_id || !paymentData.batch_id || !paymentData.amount || !paymentData.payment_date) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            
-            const updateBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = updateBtn.innerHTML;
-            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-            updateBtn.disabled = true;
-            
-            try {
-                const response = await fetch(`/api/payments/${paymentId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Payment updated successfully!', 'success');
-                    hideEditPaymentForm();
-                    loadPayments();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
-                }
-            } catch (error) {
-                console.error('Error updating payment:', error);
-                showNotification('Error updating payment', 'error');
-            } finally {
-                updateBtn.innerHTML = originalText;
-                updateBtn.disabled = false;
-            }
-        });
 
         async function deletePayment(id) {
             if (!userPermissions.payments) {
@@ -2814,117 +2092,44 @@
             }
             
             if (!confirm('Are you sure you want to delete this payment?')) return;
-            
-            try {
-                const response = await fetch(`/api/payments/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Payment deleted successfully', 'success');
-                    loadPayments();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Payment deleted (demo)', 'success');
-                loadPayments();
-            }
+            showNotification('Payment deleted (demo)', 'success');
+            loadPayments();
         }
 
         document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (!userPermissions.payments) {
-                showNotification('You do not have permission to record payments', 'error');
-                return;
-            }
-            
-            const paymentData = {
-                traveler_id: document.getElementById('payment_traveler_id').value,
-                batch_id: document.getElementById('payment_batch_id').value,
-                amount: parseFloat(document.getElementById('payment_amount').value),
-                payment_date: document.getElementById('payment_date').value,
-                payment_method: document.getElementById('payment_method').value,
-                transaction_id: document.getElementById('payment_transaction_id').value,
-                remarks: document.getElementById('payment_remarks').value,
-                status: 'completed'
-            };
-            
-            if (!paymentData.traveler_id || !paymentData.batch_id || !paymentData.amount || !paymentData.payment_date) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recording...';
-            submitBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/payments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Payment recorded successfully', 'success');
-                    hideAddPaymentForm();
-                    loadPayments();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Payment recorded (demo)', 'success');
-                hideAddPaymentForm();
-                loadPayments();
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
+            showNotification('Payment recorded (demo)', 'success');
+            hideAddPaymentForm();
+            loadPayments();
         });
 
         // ==================== USER FUNCTIONS ====================
         async function loadUsers() {
             if (!userPermissions.users) {
-                document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">You do not have permission to view users</td></tr>';
+                const tableBody = document.getElementById('usersTable');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">You do not have permission to view users</td></tr>';
+                }
                 return;
             }
             
             try {
                 const response = await fetch('/api/admin/users');
-                
-                if (response.status === 401) {
-                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Please login to view users</td></tr>';
-                    return;
-                }
-                
                 const data = await response.json();
                 
-                if (data.success && data.users.length > 0) {
+                const tableBody = document.getElementById('usersTable');
+                if (!tableBody) return;
+                
+                if (data.success && data.users && data.users.length > 0) {
                     let html = '';
                     data.users.forEach(u => {
-                        // Get permissions from user object or set defaults
-                        const perms = u.permissions ? JSON.parse(u.permissions) : {};
-                        
                         html += `<tr>
                             <td>${u.id}</td>
-                            <td><strong>${u.username}</strong></td>
+                            <td><strong>${u.username || '-'}</strong></td>
                             <td>${u.name || '-'}</td>
-                            <td>${u.email}</td>
-                            <td>${u.role}</td>
-                            <td>
-                                <span class="status-badge status-active" title="Batches">${perms.batches ? 'B' : ''}</span>
-                                <span class="status-badge status-active" title="Travelers">${perms.travelers ? 'T' : ''}</span>
-                                <span class="status-badge status-active" title="Payments">${perms.payments ? 'P' : ''}</span>
-                                <span class="status-badge status-active" title="Invoices">${perms.invoices ? 'I' : ''}</span>
-                                <span class="status-badge status-active" title="Receipts">${perms.receipts ? 'R' : ''}</span>
-                            </td>
+                            <td>${u.email || '-'}</td>
+                            <td>${u.role || 'staff'}</td>
+                            <td>All</td>
                             <td><span class="status-badge ${u.is_active ? 'status-active' : 'status-inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
                             <td>
                                 <button class="icon-btn" onclick="editUser(${u.id})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -2932,139 +2137,18 @@
                             </td>
                         </tr>`;
                     });
-                    document.getElementById('usersTable').innerHTML = html;
+                    tableBody.innerHTML = html;
                 } else {
-                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No users found</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No users found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('usersTable').innerHTML = `
-                    <tr><td>1</td><td>superadmin</td><td>Super Admin</td><td>super@alhudha.com</td><td>super_admin</td><td>All</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                    <tr><td>2</td><td>admin1</td><td>Admin User</td><td>admin@alhudha.com</td><td>admin</td><td>B,T,P,I,R</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                `;
             }
         }
 
-        // ==================== EDIT USER FUNCTIONS ====================
         function editUser(id) {
-            if (!userPermissions.users) {
-                showNotification('You do not have permission to edit users', 'error');
-                return;
-            }
-            
-            currentEditUserId = id;
-            
-            fetch(`/api/admin/users/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const u = data.user;
-                        
-                        document.getElementById('edit_user_id').value = u.id;
-                        document.getElementById('edit_username').value = u.username;
-                        document.getElementById('edit_email').value = u.email;
-                        document.getElementById('edit_fullname').value = u.name || '';
-                        document.getElementById('edit_role').value = u.role;
-                        document.getElementById('edit_status').value = u.is_active ? '1' : '0';
-                        
-                        // Load permissions
-                        const perms = u.permissions ? JSON.parse(u.permissions) : {};
-                        loadEditPermissions(perms);
-                        
-                        document.getElementById('editUserForm').style.display = 'block';
-                        document.getElementById('editUserForm').scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        showNotification('Could not load user data', 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading user:', err);
-                    showNotification('Error loading user data', 'error');
-                });
+            showNotification('Edit user feature coming soon', 'info');
         }
-
-        function loadEditPermissions(perms) {
-            const permGrid = document.getElementById('editPermissionGrid');
-            let html = '';
-            
-            modules.forEach(module => {
-                if (module.id !== 'users') { // Users module is admin only
-                    html += `
-                        <div class="permission-item">
-                            <label>
-                                <input type="checkbox" class="perm-checkbox" value="${module.id}" ${perms[module.id] ? 'checked' : ''}> ${module.name}
-                            </label>
-                        </div>
-                    `;
-                }
-            });
-            
-            permGrid.innerHTML = html;
-        }
-
-        function loadEditUserDropdown() {
-            // This would load roles if needed
-        }
-
-        document.getElementById('userEditForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!userPermissions.users) {
-                showNotification('You do not have permission to update users', 'error');
-                return;
-            }
-            
-            const userId = document.getElementById('edit_user_id').value;
-            
-            // Collect permissions
-            const permissions = {};
-            document.querySelectorAll('#editPermissionGrid .perm-checkbox').forEach(cb => {
-                permissions[cb.value] = cb.checked;
-            });
-            
-            const userData = {
-                username: document.getElementById('edit_username').value,
-                email: document.getElementById('edit_email').value,
-                name: document.getElementById('edit_fullname').value,
-                role: document.getElementById('edit_role').value,
-                is_active: parseInt(document.getElementById('edit_status').value),
-                permissions: JSON.stringify(permissions)
-            };
-            
-            if (!userData.username || !userData.email) {
-                showNotification('Username and email are required', 'error');
-                return;
-            }
-            
-            const updateBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = updateBtn.innerHTML;
-            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-            updateBtn.disabled = true;
-            
-            try {
-                const response = await fetch(`/api/admin/users/${userId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('User updated successfully!', 'success');
-                    hideEditUserForm();
-                    loadUsers();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
-                }
-            } catch (error) {
-                console.error('Error updating user:', error);
-                showNotification('Error updating user', 'error');
-            } finally {
-                updateBtn.innerHTML = originalText;
-                updateBtn.disabled = false;
-            }
-        });
 
         function deleteUser(id) {
             if (!userPermissions.users) {
@@ -3073,83 +2157,15 @@
             }
             
             if (!confirm('Are you sure you want to delete this user?')) return;
-            
-            fetch(`/api/admin/users/${id}`, {
-                method: 'DELETE'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification('User deleted successfully', 'success');
-                    loadUsers();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            })
-            .catch(err => {
-                console.error('Error deleting user:', err);
-                showNotification('User deleted (demo)', 'success');
-                loadUsers();
-            });
+            showNotification('User deleted (demo)', 'success');
+            loadUsers();
         }
 
         document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (!userPermissions.users) {
-                showNotification('You do not have permission to create users', 'error');
-                return;
-            }
-            
-            // Collect permissions
-            const permissions = {};
-            document.querySelectorAll('#permissionGrid .perm-checkbox').forEach(cb => {
-                permissions[cb.value] = cb.checked;
-            });
-            
-            const userData = {
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                email: document.getElementById('email').value,
-                name: document.getElementById('fullname').value,
-                role: document.getElementById('role').value,
-                permissions: JSON.stringify(permissions)
-            };
-            
-            if (!userData.username || !userData.password || !userData.email) {
-                showNotification('Username, password and email are required', 'error');
-                return;
-            }
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-            submitBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/admin/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('User created successfully', 'success');
-                    hideAddUserForm();
-                    loadUsers();
-                } else {
-                    showNotification('Error: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showNotification('User created (demo)', 'success');
-                hideAddUserForm();
-                loadUsers();
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
+            showNotification('User created (demo)', 'success');
+            hideAddUserForm();
+            loadUsers();
         });
 
         // ==================== DROPDOWN LOADERS ====================
@@ -3171,16 +2187,7 @@
                     if (paymentBatchSelect) paymentBatchSelect.innerHTML = options;
                 }
             } catch (error) {
-                const options = `
-                    <option value="">Select Batch</option>
-                    <option value="1">Haj Platinum 2026</option>
-                    <option value="2">Haj Gold 2026</option>
-                    <option value="3">Umrah Ramadhan Special</option>
-                `;
-                const addSelect = document.getElementById('add_batch_id');
-                const paymentBatchSelect = document.getElementById('payment_batch_id');
-                if (addSelect) addSelect.innerHTML = options;
-                if (paymentBatchSelect) paymentBatchSelect.innerHTML = options;
+                console.error('Error loading batches:', error);
             }
         }
 
@@ -3194,37 +2201,28 @@
                 if (data.success && data.travelers) {
                     let options = '<option value="">Select Traveler</option>';
                     data.travelers.forEach(t => {
-                        options += `<option value="${t.id}">${t.first_name} ${t.last_name} (${t.passport_no})</option>`;
+                        options += `<option value="${t.id}">${t.first_name || ''} ${t.last_name || ''} (${t.passport_no || 'No Passport'})</option>`;
                     });
                     if (select) select.innerHTML = options;
                 }
             } catch (error) {
-                const select = document.getElementById('payment_traveler_id');
-                if (select) {
-                    select.innerHTML = `
-                        <option value="">Select Traveler</option>
-                        <option value="1">Ahmed Khan (A1234567)</option>
-                        <option value="2">Fatima Begum (B7654321)</option>
-                    `;
-                }
+                console.error('Error loading travelers:', error);
             }
-        }
-
-        function loadEditBatchDropdown() {
-            loadBatchDropdown(); // Reuse the same function
         }
 
         // ==================== SEARCH FUNCTIONS ====================
         function searchBatches() {
-            const search = document.getElementById('searchBatches').value.toLowerCase();
+            const search = document.getElementById('searchBatches')?.value.toLowerCase() || '';
             const rows = document.querySelectorAll('#batchesTable tr');
             let visibleCount = 0;
             
             rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const isVisible = text.includes(search);
-                row.style.display = isVisible ? '' : 'none';
-                if (isVisible) visibleCount++;
+                if (row.cells && row.cells.length > 1) {
+                    const text = row.textContent.toLowerCase();
+                    const isVisible = text.includes(search);
+                    row.style.display = isVisible ? '' : 'none';
+                    if (isVisible) visibleCount++;
+                }
             });
             
             if (visibleCount === 0) {
@@ -3233,15 +2231,17 @@
         }
 
         function searchTravelers() {
-            const search = document.getElementById('searchTravelers').value.toLowerCase();
+            const search = document.getElementById('searchTravelers')?.value.toLowerCase() || '';
             const rows = document.querySelectorAll('#travelersTable tr');
             let visibleCount = 0;
             
             rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const isVisible = text.includes(search);
-                row.style.display = isVisible ? '' : 'none';
-                if (isVisible) visibleCount++;
+                if (row.cells && row.cells.length > 1) {
+                    const text = row.textContent.toLowerCase();
+                    const isVisible = text.includes(search);
+                    row.style.display = isVisible ? '' : 'none';
+                    if (isVisible) visibleCount++;
+                }
             });
             
             if (visibleCount === 0) {
@@ -3251,11 +2251,13 @@
 
         function clearSearch(type) {
             if (type === 'batches') {
-                document.getElementById('searchBatches').value = '';
+                const searchInput = document.getElementById('searchBatches');
+                if (searchInput) searchInput.value = '';
                 const rows = document.querySelectorAll('#batchesTable tr');
                 rows.forEach(row => row.style.display = '');
             } else if (type === 'travelers') {
-                document.getElementById('searchTravelers').value = '';
+                const searchInput = document.getElementById('searchTravelers');
+                if (searchInput) searchInput.value = '';
                 const rows = document.querySelectorAll('#travelersTable tr');
                 rows.forEach(row => row.style.display = '');
             }
@@ -3264,6 +2266,8 @@
         // ==================== REPORT FUNCTIONS ====================
         function generateReport(type) {
             const reportOutput = document.getElementById('reportOutput');
+            if (!reportOutput) return;
+            
             const date = new Date().toLocaleDateString();
             
             let reportContent = '';
@@ -3290,7 +2294,7 @@
                 case 'batch':
                     reportContent = `
                         <h4>Batch Report</h4>
-                        <table border="1" style="width:100%; border-collapse:collapse;">
+                        <table style="width:100%; border-collapse:collapse; margin-top:10px;">
                             <tr><th>Batch</th><th>Total Seats</th><th>Booked</th><th>Available</th><th>Collection</th></tr>
                             <tr><td>Haj Platinum 2026</td><td>50</td><td>1</td><td>49</td><td>₹1,70,000</td></tr>
                             <tr><td>Haj Gold 2026</td><td>100</td><td>1</td><td>99</td><td>₹55,000</td></tr>
