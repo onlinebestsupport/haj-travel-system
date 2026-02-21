@@ -82,23 +82,24 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-# ==================== HELPER ROUTES ====================
-
+# ==================== HEALTH CHECK ====================
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({
         'success': True,
         'status': 'healthy',
-        'database': 'sqlite',
         'timestamp': datetime.now().isoformat()
     })
 
+# ==================== PRINT INFO ====================
+print("=" * 60)
+print("🚀 Alhudha Haj Travel System v2.0")
+print("=" * 60)
+print(f"📁 Public directory: {os.path.abspath('../public')}")
+print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
+print(f"📁 Database: SQLite")
+print("=" * 60)
+
 if __name__ == '__main__':
-    print("=" * 60)
-    print("🚀 Alhudha Haj Travel System v2.0")
-    print("=" * 60)
-    print(f"📁 Public directory: {os.path.abspath('../public')}")
-    print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
-    print(f"📁 Database: SQLite")
-    print("=" * 60)
-    app.run(debug=True, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)  # Set debug=False for production
