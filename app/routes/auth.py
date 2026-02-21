@@ -19,7 +19,16 @@ def login():
         session['user_id'] = user['id']
         session['username'] = user['username']
         session['role'] = user['role']
-        return jsonify({'success': True, 'user': dict(user)})
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user['id'],
+                'username': user['username'],
+                'name': user['name'],
+                'role': user['role']
+            }
+        })
     
     return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
@@ -31,9 +40,12 @@ def logout():
 @bp.route('/check-session', methods=['GET'])
 def check_session():
     if 'user_id' in session:
-        return jsonify({'success': True, 'user': {
-            'id': session['user_id'],
-            'username': session['username'],
-            'role': session['role']
-        }})
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': session['user_id'],
+                'username': session['username'],
+                'role': session['role']
+            }
+        })
     return jsonify({'success': False}), 401
