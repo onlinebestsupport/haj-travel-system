@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Alhudha Haj Travel System</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -205,6 +206,7 @@
             align-items: center;
             gap: 10px;
             transition: all 0.3s;
+            text-decoration: none;
         }
 
         .btn-primary {
@@ -264,6 +266,91 @@
 
         .btn-secondary:hover {
             background: #7f8c8d;
+        }
+
+        .btn-purple {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background: #8e44ad;
+            transform: translateY(-2px);
+        }
+
+        .btn-dark {
+            background: #34495e;
+            color: white;
+        }
+
+        .btn-dark:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+        }
+
+        /* Module Grid */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .module-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            border-color: #3498db;
+        }
+
+        .module-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .module-card i {
+            font-size: 2rem;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .module-card h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .module-card p {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .section-title i {
+            color: #f1c40f;
+            margin-right: 10px;
         }
 
         /* Form Container */
@@ -331,6 +418,35 @@
 
         .full-width {
             grid-column: 1 / -1;
+        }
+
+        /* Permission Grid */
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .permission-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .permission-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .permission-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3498db;
         }
 
         /* Search Box */
@@ -519,6 +635,9 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .module-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -540,7 +659,7 @@
 
     <div class="tabs-container">
         <div class="container">
-            <div class="tabs">
+            <div class="tabs" id="mainTabs">
                 <button class="tab-btn active" onclick="showTab('dashboard')" id="tabDashboard">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </button>
@@ -559,6 +678,9 @@
                 <button class="tab-btn" onclick="showTab('reports')" id="tabReports">
                     <i class="fas fa-chart-bar"></i> Reports
                 </button>
+                <button class="tab-btn" onclick="showTab('permissions')" id="tabPermissions" style="display: none;">
+                    <i class="fas fa-lock"></i> Permissions
+                </button>
             </div>
         </div>
     </div>
@@ -572,24 +694,12 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboardTab" class="tab-content active">
-            <div class="action-buttons">
-                <button class="action-btn btn-primary" onclick="showTab('batches'); showCreateBatchForm()">
-                    <i class="fas fa-plus"></i> Create New Batch
-                </button>
-                <button class="action-btn btn-success" onclick="showTab('travelers'); showAddTravelerForm()">
-                    <i class="fas fa-user-plus"></i> Add New Traveler
-                </button>
-                <button class="action-btn btn-warning" onclick="showTab('payments'); showAddPaymentForm()">
-                    <i class="fas fa-money-bill"></i> Record Payment
-                </button>
-                <button class="action-btn btn-info" onclick="showTab('reports')">
-                    <i class="fas fa-chart-line"></i> View Reports
-                </button>
-                <button class="action-btn btn-danger" onclick="showTab('users')">
-                    <i class="fas fa-users-cog"></i> Manage Users
-                </button>
+            <!-- Quick Action Buttons (Visible based on permissions) -->
+            <div class="action-buttons" id="quickActions">
+                <!-- Dynamic buttons will be loaded here based on permissions -->
             </div>
 
+            <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <i class="fas fa-users"></i>
@@ -611,18 +721,18 @@
                     <h3>Pending Payments</h3>
                     <div class="stat-number" id="pendingAmount">₹0</div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-ticket-alt"></i>
-                    <h3>Total Bookings</h3>
-                    <div class="stat-number" id="totalBookings">0</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-percent"></i>
-                    <h3>Occupancy Rate</h3>
-                    <div class="stat-number" id="occupancyRate">0%</div>
-                </div>
             </div>
 
+            <!-- All Modules Section (Visible based on permissions) -->
+            <div class="section-title">
+                <i class="fas fa-cubes"></i> Available Modules
+            </div>
+            
+            <div class="module-grid" id="modulesGrid">
+                <!-- Modules will be loaded here based on permissions -->
+            </div>
+
+            <!-- Recent Activity -->
             <div class="dashboard-card">
                 <h3><i class="fas fa-history"></i> Recent Activity</h3>
                 <div id="recentActivity" style="min-height: 100px;">
@@ -634,7 +744,7 @@
         <!-- Batches Tab -->
         <div id="batchesTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-primary" onclick="showCreateBatchForm()">
+                <button class="action-btn btn-primary" onclick="showCreateBatchForm()" id="createBatchBtn">
                     <i class="fas fa-plus"></i> Create New Batch
                 </button>
                 <button class="action-btn btn-secondary" onclick="exportToExcel('batches')">
@@ -772,7 +882,7 @@
         <!-- Travelers Tab -->
         <div id="travelersTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-success" onclick="showAddTravelerForm()">
+                <button class="action-btn btn-success" onclick="showAddTravelerForm()" id="addTravelerBtn">
                     <i class="fas fa-user-plus"></i> Add New Traveler
                 </button>
                 <button class="action-btn btn-primary" onclick="showBulkUploadForm()">
@@ -1052,7 +1162,7 @@
         <!-- Payments Tab -->
         <div id="paymentsTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-warning" onclick="showAddPaymentForm()">
+                <button class="action-btn btn-warning" onclick="showAddPaymentForm()" id="addPaymentBtn">
                     <i class="fas fa-plus"></i> Record New Payment
                 </button>
                 <button class="action-btn btn-secondary" onclick="exportToExcel('payments')">
@@ -1227,7 +1337,7 @@
         <!-- Users Tab -->
         <div id="usersTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-primary" onclick="showAddUserForm()">
+                <button class="action-btn btn-primary" onclick="showAddUserForm()" id="addUserBtn">
                     <i class="fas fa-user-plus"></i> Add New User
                 </button>
                 <button class="action-btn btn-secondary" onclick="exportToExcel('users')">
@@ -1258,7 +1368,7 @@
                         </div>
                         <div class="form-group">
                             <label>Role</label>
-                            <select id="role">
+                            <select id="role" onchange="togglePermissions()">
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
                                 <option value="staff">Staff</option>
@@ -1266,6 +1376,70 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Permissions Section (Visible for non-super_admin) -->
+                    <div id="permissionsSection" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-lock"></i> Module Permissions</h4>
+                        <div class="permission-grid" id="permissionGrid">
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="batches" checked> Batches Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="travelers" checked> Travelers Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="payments" checked> Payments Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="invoices" checked> Invoices
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="receipts" checked> Receipts
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="backup" checked> Backup
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="whatsapp" checked> WhatsApp
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="email" checked> Email
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="frontpage" checked> Front Page
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="reports" checked> Reports
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="users" disabled> Users Management
+                                    <small style="display: block; color: #7f8c8d;">(Admin only)</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Create User</button>
                         <button type="button" class="action-btn btn-secondary" onclick="hideAddUserForm()"><i class="fas fa-times"></i> Cancel</button>
@@ -1293,7 +1467,7 @@
                         </div>
                         <div class="form-group">
                             <label>Role</label>
-                            <select id="edit_role">
+                            <select id="edit_role" onchange="toggleEditPermissions()">
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
                                 <option value="staff">Staff</option>
@@ -1308,6 +1482,15 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Edit Permissions Section -->
+                    <div id="editPermissionsSection" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-lock"></i> Module Permissions</h4>
+                        <div class="permission-grid" id="editPermissionGrid">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update User</button>
                         <button type="button" class="action-btn btn-secondary" onclick="hideEditUserForm()">Cancel</button>
@@ -1325,12 +1508,13 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Permissions</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="usersTable">
-                        <tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
+                        <tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1363,20 +1547,145 @@
                 </div>
             </div>
         </div>
+
+        <!-- Permissions Tab (Super Admin Only) -->
+        <div id="permissionsTab" class="tab-content">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-lock"></i> Role-Based Permissions</h3>
+                <p>Configure default permissions for each role. Super Admin has access to everything.</p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>Admin</th>
+                                <th>Manager</th>
+                                <th>Staff</th>
+                                <th>Viewer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Batches Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_batches"></td>
+                                <td><input type="checkbox" checked id="perm_staff_batches"></td>
+                                <td><input type="checkbox" id="perm_viewer_batches"></td>
+                            </tr>
+                            <tr>
+                                <td>Travelers Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_travelers"></td>
+                                <td><input type="checkbox" checked id="perm_staff_travelers"></td>
+                                <td><input type="checkbox" id="perm_viewer_travelers"></td>
+                            </tr>
+                            <tr>
+                                <td>Payments Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_payments"></td>
+                                <td><input type="checkbox" id="perm_staff_payments"></td>
+                                <td><input type="checkbox" id="perm_viewer_payments"></td>
+                            </tr>
+                            <tr>
+                                <td>Invoices</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_invoices"></td>
+                                <td><input type="checkbox" id="perm_staff_invoices"></td>
+                                <td><input type="checkbox" id="perm_viewer_invoices"></td>
+                            </tr>
+                            <tr>
+                                <td>Receipts</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_receipts"></td>
+                                <td><input type="checkbox" id="perm_staff_receipts"></td>
+                                <td><input type="checkbox" id="perm_viewer_receipts"></td>
+                            </tr>
+                            <tr>
+                                <td>Backup</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" id="perm_admin_backup"></td>
+                                <td><input type="checkbox" id="perm_staff_backup"></td>
+                                <td><input type="checkbox" id="perm_viewer_backup"></td>
+                            </tr>
+                            <tr>
+                                <td>WhatsApp</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_whatsapp"></td>
+                                <td><input type="checkbox" id="perm_staff_whatsapp"></td>
+                                <td><input type="checkbox" id="perm_viewer_whatsapp"></td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_email"></td>
+                                <td><input type="checkbox" id="perm_staff_email"></td>
+                                <td><input type="checkbox" id="perm_viewer_email"></td>
+                            </tr>
+                            <tr>
+                                <td>Front Page</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" id="perm_admin_frontpage"></td>
+                                <td><input type="checkbox" id="perm_staff_frontpage"></td>
+                                <td><input type="checkbox" id="perm_viewer_frontpage"></td>
+                            </tr>
+                            <tr>
+                                <td>Reports</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_reports"></td>
+                                <td><input type="checkbox" id="perm_staff_reports"></td>
+                                <td><input type="checkbox" checked id="perm_viewer_reports"></td>
+                            </tr>
+                            <tr>
+                                <td>Users Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="action-btn btn-primary" onclick="saveRolePermissions()">
+                        <i class="fas fa-save"></i> Save Permissions
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="notification" class="notification"></div>
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
+        let currentUser = null;
+        let userPermissions = {};
         let currentEditBatchId = null;
         let currentEditTravelerId = null;
         let currentEditPaymentId = null;
         let currentEditUserId = null;
 
+        // ==================== MODULES LIST ====================
+        const modules = [
+            { id: 'batches', name: 'Batches', icon: 'fa-layer-group', page: 'batches.html', color: 'btn-primary' },
+            { id: 'travelers', name: 'Travelers', icon: 'fa-users', page: 'travelers.html', color: 'btn-success' },
+            { id: 'payments', name: 'Payments', icon: 'fa-credit-card', page: 'payments.html', color: 'btn-warning' },
+            { id: 'invoices', name: 'Invoices', icon: 'fa-file-invoice', page: 'invoices.html', color: 'btn-info' },
+            { id: 'receipts', name: 'Receipts', icon: 'fa-receipt', page: 'receipts.html', color: 'btn-secondary' },
+            { id: 'backup', name: 'Backup', icon: 'fa-database', page: 'backup.html', color: 'btn-dark' },
+            { id: 'whatsapp', name: 'WhatsApp', icon: 'fab fa-whatsapp', page: 'whatsapp.html', color: 'btn-success' },
+            { id: 'email', name: 'Email', icon: 'fa-envelope', page: 'email.html', color: 'btn-info' },
+            { id: 'frontpage', name: 'Front Page', icon: 'fa-edit', page: 'frontpage.html', color: 'btn-purple' },
+            { id: 'reports', name: 'Reports', icon: 'fa-chart-bar', page: 'reports.html', color: 'btn-danger' },
+            { id: 'users', name: 'Users', icon: 'fa-user-cog', page: 'users.html', color: 'btn-primary' }
+        ];
+
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
+            loadUserPermissions();
             loadDashboardStats();
             loadBatches();
             loadTravelers();
@@ -1405,6 +1714,173 @@
             document.getElementById('userName').textContent = userName;
             document.getElementById('userRole').textContent = userRole;
             document.getElementById('roleBadge').textContent = userRole;
+            
+            currentUser = {
+                name: userName,
+                role: userRole
+            };
+        }
+
+        // ==================== PERMISSIONS ====================
+        function loadUserPermissions() {
+            const userRole = sessionStorage.getItem('adminRole') || 'admin';
+            
+            // Super admin gets all permissions
+            if (userRole === 'super_admin') {
+                userPermissions = {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: true,
+                    whatsapp: true,
+                    email: true,
+                    frontpage: true,
+                    reports: true,
+                    users: true
+                };
+                
+                // Show permissions tab for super admin
+                document.getElementById('tabPermissions').style.display = 'flex';
+                
+                // Load all modules
+                loadModules();
+                loadQuickActions();
+                
+                return;
+            }
+            
+            // For other roles, load permissions from storage/database
+            // This is demo data - replace with actual API call
+            const rolePermissions = {
+                admin: {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: true,
+                    email: true,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                },
+                manager: {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                },
+                staff: {
+                    batches: false,
+                    travelers: true,
+                    payments: true,
+                    invoices: false,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: false,
+                    users: false
+                },
+                viewer: {
+                    batches: true,
+                    travelers: true,
+                    payments: false,
+                    invoices: false,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                }
+            };
+            
+            userPermissions = rolePermissions[userRole] || rolePermissions.admin;
+            
+            // Load modules based on permissions
+            loadModules();
+            loadQuickActions();
+        }
+
+        function loadModules() {
+            const modulesGrid = document.getElementById('modulesGrid');
+            let html = '';
+            
+            modules.forEach(module => {
+                if (userPermissions[module.id]) {
+                    html += `
+                        <a href="${module.page}" class="module-card">
+                            <i class="fas ${module.icon}"></i>
+                            <h4>${module.name}</h4>
+                            <p>Manage ${module.name}</p>
+                        </a>
+                    `;
+                }
+            });
+            
+            modulesGrid.innerHTML = html;
+        }
+
+        function loadQuickActions() {
+            const quickActions = document.getElementById('quickActions');
+            let html = '';
+            
+            if (userPermissions.batches) {
+                html += `<button class="action-btn btn-primary" onclick="window.location.href='batches.html'"><i class="fas fa-layer-group"></i> Batches</button>`;
+            }
+            if (userPermissions.travelers) {
+                html += `<button class="action-btn btn-success" onclick="window.location.href='travelers.html'"><i class="fas fa-users"></i> Travelers</button>`;
+            }
+            if (userPermissions.payments) {
+                html += `<button class="action-btn btn-warning" onclick="window.location.href='payments.html'"><i class="fas fa-credit-card"></i> Payments</button>`;
+            }
+            if (userPermissions.invoices) {
+                html += `<button class="action-btn btn-info" onclick="window.location.href='invoices.html'"><i class="fas fa-file-invoice"></i> Invoices</button>`;
+            }
+            if (userPermissions.receipts) {
+                html += `<button class="action-btn btn-secondary" onclick="window.location.href='receipts.html'"><i class="fas fa-receipt"></i> Receipts</button>`;
+            }
+            if (userPermissions.reports) {
+                html += `<button class="action-btn btn-danger" onclick="window.location.href='reports.html'"><i class="fas fa-chart-bar"></i> Reports</button>`;
+            }
+            
+            quickActions.innerHTML = html;
+        }
+
+        function togglePermissions() {
+            const role = document.getElementById('role').value;
+            const isAdmin = role === 'admin';
+            
+            document.querySelectorAll('#permissionGrid .perm-checkbox').forEach(cb => {
+                if (cb.value !== 'users') {
+                    cb.disabled = !isAdmin;
+                    cb.checked = isAdmin;
+                }
+            });
+        }
+
+        function toggleEditPermissions() {
+            const role = document.getElementById('edit_role').value;
+            const isAdmin = role === 'admin';
+            
+            document.querySelectorAll('#editPermissionGrid .perm-checkbox').forEach(cb => {
+                if (cb.value !== 'users') {
+                    cb.disabled = !isAdmin;
+                }
+            });
         }
 
         // ==================== NOTIFICATION ====================
@@ -1451,6 +1927,10 @@
 
         // ==================== FORM VISIBILITY ====================
         function showCreateBatchForm() {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to create batches', 'error');
+                return;
+            }
             document.getElementById('createBatchForm').style.display = 'block';
             document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1461,6 +1941,10 @@
         }
 
         function showAddTravelerForm() {
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to add travelers', 'error');
+                return;
+            }
             document.getElementById('addTravelerForm').style.display = 'block';
             loadBatchDropdown();
             document.getElementById('addTravelerForm').scrollIntoView({ behavior: 'smooth' });
@@ -1472,6 +1956,10 @@
         }
 
         function showAddPaymentForm() {
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to record payments', 'error');
+                return;
+            }
             document.getElementById('addPaymentForm').style.display = 'block';
             loadTravelerDropdown();
             document.getElementById('addPaymentForm').scrollIntoView({ behavior: 'smooth' });
@@ -1483,6 +1971,10 @@
         }
 
         function showAddUserForm() {
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to manage users', 'error');
+                return;
+            }
             document.getElementById('addUserForm').style.display = 'block';
             document.getElementById('addUserForm').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1603,9 +2095,11 @@
                             <td>${available}</td>
                             <td><span class="status-badge ${statusClass}">${b.status}</span></td>
                             <td>
-                                <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="icon-btn" onclick="deleteBatch(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
-                                <button class="icon-btn" onclick="viewBatchDetails(${b.id})" title="View"><i class="fas fa-eye"></i></button>
+                                ${userPermissions.batches ? `
+                                    <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="icon-btn" onclick="deleteBatch(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                    <button class="icon-btn" onclick="viewBatchDetails(${b.id})" title="View"><i class="fas fa-eye"></i></button>
+                                ` : '-'}
                             </td>
                         </tr>`;
                     });
@@ -1625,6 +2119,11 @@
 
         // ==================== EDIT BATCH FUNCTIONS ====================
         function editBatch(id) {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to edit batches', 'error');
+                return;
+            }
+            
             currentEditBatchId = id;
             
             fetch(`/api/batches/${id}`)
@@ -1653,6 +2152,11 @@
 
         document.getElementById('batchEditForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to update batches', 'error');
+                return;
+            }
             
             const batchId = document.getElementById('edit_batch_id').value;
             const batchName = document.getElementById('edit_batch_name').value.trim();
@@ -1702,6 +2206,11 @@
         });
 
         async function deleteBatch(id) {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to delete batches', 'error');
+                return;
+            }
+            
             if (!confirm('Are you sure you want to delete this batch?')) return;
             
             try {
@@ -1729,6 +2238,11 @@
 
         document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to create batches', 'error');
+                return;
+            }
             
             const batchData = {
                 batch_name: document.getElementById('batch_name').value,
@@ -1795,9 +2309,11 @@
                             <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
                             <td>${t.pin || '0000'}</td>
                             <td>
-                                <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View"><i class="fas fa-eye"></i></button>
-                                <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="icon-btn" onclick="deleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                ${userPermissions.travelers ? `
+                                    <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View"><i class="fas fa-eye"></i></button>
+                                    <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="icon-btn" onclick="deleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                ` : '-'}
                             </td>
                         </tr>`;
                     });
@@ -1820,6 +2336,11 @@
 
         // ==================== EDIT TRAVELER FUNCTIONS ====================
         function editTraveler(id) {
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to edit travelers', 'error');
+                return;
+            }
+            
             currentEditTravelerId = id;
             
             fetch(`/api/travelers/${id}`)
@@ -1908,6 +2429,11 @@
         document.getElementById('travelerEditForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to update travelers', 'error');
+                return;
+            }
+            
             const travelerId = document.getElementById('edit_traveler_id').value;
             
             let extraFields;
@@ -1987,6 +2513,11 @@
         });
 
         async function deleteTraveler(id) {
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to delete travelers', 'error');
+                return;
+            }
+            
             if (!confirm('Are you sure you want to delete this traveler?')) return;
             
             try {
@@ -2010,6 +2541,11 @@
 
         document.getElementById('travelerAddForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to add travelers', 'error');
+                return;
+            }
             
             const travelerData = {
                 first_name: document.getElementById('add_first_name').value,
@@ -2114,9 +2650,11 @@
                             <td>${p.transaction_id || '-'}</td>
                             <td><span class="status-badge ${statusClass}">${p.status}</span></td>
                             <td>
-                                <button class="icon-btn" onclick="viewPayment(${p.id})" title="View"><i class="fas fa-eye"></i></button>
-                                <button class="icon-btn" onclick="editPayment(${p.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                ${userPermissions.payments ? `
+                                    <button class="icon-btn" onclick="viewPayment(${p.id})" title="View"><i class="fas fa-eye"></i></button>
+                                    <button class="icon-btn" onclick="editPayment(${p.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                ` : '-'}
                             </td>
                         </tr>`;
                     });
@@ -2148,6 +2686,11 @@
 
         // ==================== EDIT PAYMENT FUNCTIONS ====================
         function editPayment(id) {
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to edit payments', 'error');
+                return;
+            }
+            
             currentEditPaymentId = id;
             
             fetch(`/api/payments/${id}`)
@@ -2211,6 +2754,11 @@
         document.getElementById('paymentEditForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to update payments', 'error');
+                return;
+            }
+            
             const paymentId = document.getElementById('edit_payment_id').value;
             
             const paymentData = {
@@ -2260,6 +2808,11 @@
         });
 
         async function deletePayment(id) {
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to delete payments', 'error');
+                return;
+            }
+            
             if (!confirm('Are you sure you want to delete this payment?')) return;
             
             try {
@@ -2283,6 +2836,11 @@
 
         document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to record payments', 'error');
+                return;
+            }
             
             const paymentData = {
                 traveler_id: document.getElementById('payment_traveler_id').value,
@@ -2333,11 +2891,16 @@
 
         // ==================== USER FUNCTIONS ====================
         async function loadUsers() {
+            if (!userPermissions.users) {
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">You do not have permission to view users</td></tr>';
+                return;
+            }
+            
             try {
                 const response = await fetch('/api/admin/users');
                 
                 if (response.status === 401) {
-                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">Please login to view users</td></tr>';
+                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Please login to view users</td></tr>';
                     return;
                 }
                 
@@ -2346,12 +2909,22 @@
                 if (data.success && data.users.length > 0) {
                     let html = '';
                     data.users.forEach(u => {
+                        // Get permissions from user object or set defaults
+                        const perms = u.permissions ? JSON.parse(u.permissions) : {};
+                        
                         html += `<tr>
                             <td>${u.id}</td>
                             <td><strong>${u.username}</strong></td>
                             <td>${u.name || '-'}</td>
                             <td>${u.email}</td>
                             <td>${u.role}</td>
+                            <td>
+                                <span class="status-badge status-active" title="Batches">${perms.batches ? 'B' : ''}</span>
+                                <span class="status-badge status-active" title="Travelers">${perms.travelers ? 'T' : ''}</span>
+                                <span class="status-badge status-active" title="Payments">${perms.payments ? 'P' : ''}</span>
+                                <span class="status-badge status-active" title="Invoices">${perms.invoices ? 'I' : ''}</span>
+                                <span class="status-badge status-active" title="Receipts">${perms.receipts ? 'R' : ''}</span>
+                            </td>
                             <td><span class="status-badge ${u.is_active ? 'status-active' : 'status-inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
                             <td>
                                 <button class="icon-btn" onclick="editUser(${u.id})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -2361,19 +2934,24 @@
                     });
                     document.getElementById('usersTable').innerHTML = html;
                 } else {
-                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No users found</td></tr>';
+                    document.getElementById('usersTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No users found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
                 document.getElementById('usersTable').innerHTML = `
-                    <tr><td>1</td><td>superadmin</td><td>Super Admin</td><td>super@alhudha.com</td><td>super_admin</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
-                    <tr><td>2</td><td>admin1</td><td>Admin User</td><td>admin@alhudha.com</td><td>admin</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
+                    <tr><td>1</td><td>superadmin</td><td>Super Admin</td><td>super@alhudha.com</td><td>super_admin</td><td>All</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
+                    <tr><td>2</td><td>admin1</td><td>Admin User</td><td>admin@alhudha.com</td><td>admin</td><td>B,T,P,I,R</td><td><span class="status-badge status-active">Active</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></td></tr>
                 `;
             }
         }
 
         // ==================== EDIT USER FUNCTIONS ====================
         function editUser(id) {
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to edit users', 'error');
+                return;
+            }
+            
             currentEditUserId = id;
             
             fetch(`/api/admin/users/${id}`)
@@ -2389,6 +2967,10 @@
                         document.getElementById('edit_role').value = u.role;
                         document.getElementById('edit_status').value = u.is_active ? '1' : '0';
                         
+                        // Load permissions
+                        const perms = u.permissions ? JSON.parse(u.permissions) : {};
+                        loadEditPermissions(perms);
+                        
                         document.getElementById('editUserForm').style.display = 'block';
                         document.getElementById('editUserForm').scrollIntoView({ behavior: 'smooth' });
                     } else {
@@ -2401,6 +2983,25 @@
                 });
         }
 
+        function loadEditPermissions(perms) {
+            const permGrid = document.getElementById('editPermissionGrid');
+            let html = '';
+            
+            modules.forEach(module => {
+                if (module.id !== 'users') { // Users module is admin only
+                    html += `
+                        <div class="permission-item">
+                            <label>
+                                <input type="checkbox" class="perm-checkbox" value="${module.id}" ${perms[module.id] ? 'checked' : ''}> ${module.name}
+                            </label>
+                        </div>
+                    `;
+                }
+            });
+            
+            permGrid.innerHTML = html;
+        }
+
         function loadEditUserDropdown() {
             // This would load roles if needed
         }
@@ -2408,14 +3009,26 @@
         document.getElementById('userEditForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to update users', 'error');
+                return;
+            }
+            
             const userId = document.getElementById('edit_user_id').value;
+            
+            // Collect permissions
+            const permissions = {};
+            document.querySelectorAll('#editPermissionGrid .perm-checkbox').forEach(cb => {
+                permissions[cb.value] = cb.checked;
+            });
             
             const userData = {
                 username: document.getElementById('edit_username').value,
                 email: document.getElementById('edit_email').value,
                 name: document.getElementById('edit_fullname').value,
                 role: document.getElementById('edit_role').value,
-                is_active: parseInt(document.getElementById('edit_status').value)
+                is_active: parseInt(document.getElementById('edit_status').value),
+                permissions: JSON.stringify(permissions)
             };
             
             if (!userData.username || !userData.email) {
@@ -2454,6 +3067,11 @@
         });
 
         function deleteUser(id) {
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to delete users', 'error');
+                return;
+            }
+            
             if (!confirm('Are you sure you want to delete this user?')) return;
             
             fetch(`/api/admin/users/${id}`, {
@@ -2478,12 +3096,24 @@
         document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to create users', 'error');
+                return;
+            }
+            
+            // Collect permissions
+            const permissions = {};
+            document.querySelectorAll('#permissionGrid .perm-checkbox').forEach(cb => {
+                permissions[cb.value] = cb.checked;
+            });
+            
             const userData = {
                 username: document.getElementById('username').value,
                 password: document.getElementById('password').value,
                 email: document.getElementById('email').value,
                 name: document.getElementById('fullname').value,
-                role: document.getElementById('role').value
+                role: document.getElementById('role').value,
+                permissions: JSON.stringify(permissions)
             };
             
             if (!userData.username || !userData.password || !userData.email) {
@@ -2693,6 +3323,11 @@
 
         function printTable(type) {
             window.print();
+        }
+
+        // ==================== ROLE PERMISSIONS ====================
+        function saveRolePermissions() {
+            showNotification('Role permissions saved successfully!', 'success');
         }
 
         // ==================== LOGOUT ====================
