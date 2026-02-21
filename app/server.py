@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import init_db
-from app.routes import admin, auth, batches, travelers, payments, company, uploads
+from app.routes import auth, batches, travelers
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -18,19 +18,15 @@ app = Flask(__name__,
 CORS(app, supports_credentials=True)
 
 # Secret key for sessions
-app.secret_key = 'haj-travel-secret-key-2026'
+app.secret_key = 'alhudha-haj-secret-key-2026'
 
 # Initialize database
 init_db()
 
 # Register blueprints
 app.register_blueprint(auth.bp)
-app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
 app.register_blueprint(travelers.bp)
-app.register_blueprint(payments.bp)
-app.register_blueprint(company.bp)
-app.register_blueprint(uploads.bp)
 
 # Serve static files
 @app.route('/')
@@ -40,6 +36,10 @@ def serve_index():
 @app.route('/<path:path>')
 def serve_static(path):
     return send_from_directory('../public', path)
+
+@app.route('/admin/<path:path>')
+def serve_admin(path):
+    return send_from_directory('../public/admin', path)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
