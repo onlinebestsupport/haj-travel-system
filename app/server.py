@@ -18,15 +18,27 @@ from app.database import get_db, init_db
 from app.routes import auth, admin, batches, travelers, payments, company, uploads
 
 # Initialize Flask app
-app = Flask(__name__, 
-            static_folder='../public',
-            static_url_path='')
+app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+
+# Define paths
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
+ADMIN_DIR = os.path.join(PUBLIC_DIR, 'admin')
+
+print(f"📁 Base directory: {BASE_DIR}")
+print(f"📁 Public directory: {PUBLIC_DIR}")
+print(f"📁 Admin directory: {ADMIN_DIR}")
+print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
+
+# Check if directories exist
+print(f"📁 Public exists: {os.path.exists(PUBLIC_DIR)}")
+print(f"📁 Admin exists: {os.path.exists(ADMIN_DIR)}")
 
 # Enable CORS
 CORS(app, supports_credentials=True)
@@ -54,23 +66,130 @@ app.register_blueprint(uploads.bp)
 
 @app.route('/')
 def serve_index():
-    return send_from_directory('../public', 'index.html')
+    """Serve homepage"""
+    return send_from_directory(PUBLIC_DIR, 'index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('../public', path)
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """Serve static files from public directory"""
+    try:
+        return send_from_directory(PUBLIC_DIR, filename)
+    except:
+        return jsonify({'success': False, 'error': 'File not found'}), 404
 
-@app.route('/admin/<path:path>')
-def serve_admin(path):
-    return send_from_directory('../public/admin', path)
+@app.route('/admin/<path:filename>')
+def serve_admin(filename):
+    """Serve admin files - handles both with and without .html"""
+    try:
+        # Try with the filename as-is
+        return send_from_directory(ADMIN_DIR, filename)
+    except:
+        try:
+            # Try adding .html extension
+            return send_from_directory(ADMIN_DIR, filename + '.html')
+        except:
+            return jsonify({'success': False, 'error': 'Admin file not found'}), 404
+
+# Specific routes for admin pages (for better reliability)
+@app.route('/admin/dashboard')
+@app.route('/admin/dashboard.html')
+def serve_admin_dashboard():
+    return send_from_directory(ADMIN_DIR, 'dashboard.html')
+
+@app.route('/admin/batches')
+@app.route('/admin/batches.html')
+def serve_admin_batches():
+    return send_from_directory(ADMIN_DIR, 'batches.html')
+
+@app.route('/admin/travelers')
+@app.route('/admin/travelers.html')
+def serve_admin_travelers():
+    return send_from_directory(ADMIN_DIR, 'travelers.html')
+
+@app.route('/admin/payments')
+@app.route('/admin/payments.html')
+def serve_admin_payments():
+    return send_from_directory(ADMIN_DIR, 'payments.html')
+
+@app.route('/admin/users')
+@app.route('/admin/users.html')
+def serve_admin_users():
+    return send_from_directory(ADMIN_DIR, 'users.html')
+
+@app.route('/admin/reports')
+@app.route('/admin/reports.html')
+def serve_admin_reports():
+    return send_from_directory(ADMIN_DIR, 'reports.html')
+
+@app.route('/admin/invoices')
+@app.route('/admin/invoices.html')
+def serve_admin_invoices():
+    return send_from_directory(ADMIN_DIR, 'invoices.html')
+
+@app.route('/admin/receipts')
+@app.route('/admin/receipts.html')
+def serve_admin_receipts():
+    return send_from_directory(ADMIN_DIR, 'receipts.html')
+
+@app.route('/admin/backup')
+@app.route('/admin/backup.html')
+def serve_admin_backup():
+    return send_from_directory(ADMIN_DIR, 'backup.html')
+
+@app.route('/admin/whatsapp')
+@app.route('/admin/whatsapp.html')
+def serve_admin_whatsapp():
+    return send_from_directory(ADMIN_DIR, 'whatsapp.html')
+
+@app.route('/admin/email')
+@app.route('/admin/email.html')
+def serve_admin_email():
+    return send_from_directory(ADMIN_DIR, 'email.html')
+
+@app.route('/admin/frontpage')
+@app.route('/admin/frontpage.html')
+def serve_admin_frontpage():
+    return send_from_directory(ADMIN_DIR, 'frontpage.html')
+
+@app.route('/admin/index')
+@app.route('/admin/index.html')
+def serve_admin_index():
+    return send_from_directory(ADMIN_DIR, 'index.html')
+
+@app.route('/admin/style.css')
+def serve_admin_css():
+    return send_from_directory(ADMIN_DIR, 'style.css')
 
 @app.route('/traveler/dashboard')
 def serve_traveler_dashboard():
-    return send_from_directory('../public', 'traveler_dashboard.html')
+    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
 
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# ==================== DEBUG ROUTES ====================
+
+@app.route('/debug/paths')
+def debug_paths():
+    """Debug route to check all paths"""
+    import os
+    return {
+        'base_dir': BASE_DIR,
+        'public_dir': PUBLIC_DIR,
+        'admin_dir': ADMIN_DIR,
+        'public_exists': os.path.exists(PUBLIC_DIR),
+        'admin_exists': os.path.exists(ADMIN_DIR),
+        'files_in_public': os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else [],
+        'files_in_admin': os.listdir(ADMIN_DIR) if os.path.exists(ADMIN_DIR) else [],
+        'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
+        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0
+    }
+
+@app.route('/debug/test')
+def debug_test():
+    """Simple test route"""
+    return jsonify({'success': True, 'message': 'Debug route working!'})
 
 # ==================== ERROR HANDLERS ====================
 
@@ -91,15 +210,13 @@ def health_check():
         'timestamp': datetime.now().isoformat()
     })
 
-# ==================== PRINT INFO ====================
-print("=" * 60)
-print("🚀 Alhudha Haj Travel System v2.0")
-print("=" * 60)
-print(f"📁 Public directory: {os.path.abspath('../public')}")
-print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
-print(f"📁 Database: SQLite")
-print("=" * 60)
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)  # Set debug=False for production
+    print("=" * 60)
+    print("🚀 Alhudha Haj Travel System v2.0")
+    print("=" * 60)
+    print(f"📁 Server starting on port {port}")
+    print(f"📁 Public directory: {PUBLIC_DIR}")
+    print(f"📁 Admin directory: {ADMIN_DIR}")
+    print("=" * 60)
+    app.run(host='0.0.0.0', port=port, debug=True)
