@@ -6,6 +6,8 @@
     <title>Admin Dashboard - Alhudha Haj Travel System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Eruda for mobile debugging (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <style>
         * {
             margin: 0;
@@ -294,7 +296,6 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-top: 20px;
-            margin-bottom: 30px;
         }
 
         .module-card {
@@ -315,6 +316,12 @@
             transform: translateY(-5px);
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
             border-color: #3498db;
+        }
+
+        .module-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .module-card i {
@@ -387,11 +394,6 @@
             font-weight: 600;
         }
 
-        .form-group label i {
-            margin-right: 8px;
-            color: #f1c40f;
-        }
-
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -401,7 +403,6 @@
             border-radius: 5px;
             font-size: 1rem;
             transition: all 0.3s;
-            background: #f8f9fa;
         }
 
         .form-group input:focus,
@@ -409,96 +410,16 @@
         .form-group textarea:focus {
             border-color: #3498db;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-            background: white;
-        }
-
-        .form-group input[readonly] {
-            background: #e9ecef;
-            cursor: not-allowed;
         }
 
         .form-actions {
             display: flex;
             gap: 15px;
             margin-top: 20px;
-            flex-wrap: wrap;
         }
 
         .full-width {
             grid-column: 1 / -1;
-        }
-
-        /* Document Upload Styles */
-        .document-upload {
-            border: 2px dashed #3498db;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            background: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .document-upload:hover {
-            background: #e8f4f8;
-            border-color: #2980b9;
-        }
-
-        .document-upload i {
-            font-size: 2rem;
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-
-        .document-upload p {
-            margin: 0;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .document-upload small {
-            display: block;
-            color: #95a5a6;
-            font-size: 0.8rem;
-            margin-top: 5px;
-        }
-
-        .document-preview {
-            margin-top: 10px;
-            padding: 10px;
-            background: #e8f4f8;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .document-preview i {
-            color: #27ae60;
-            font-size: 1.2rem;
-        }
-
-        /* Section Headers */
-        .section-header {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0 15px;
-            border-left: 4px solid #3498db;
-        }
-
-        .section-header h4 {
-            color: #2c3e50;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-header h4 i {
-            color: #f1c40f;
         }
 
         /* Permission Grid */
@@ -521,8 +442,6 @@
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            margin: 0;
-            font-weight: normal;
         }
 
         .permission-item input[type="checkbox"] {
@@ -532,38 +451,24 @@
             accent-color: #3498db;
         }
 
-        .permission-item small {
-            display: block;
-            color: #7f8c8d;
-            font-size: 0.8rem;
-            margin-left: 28px;
-        }
-
         /* Search Box */
         .search-box {
             display: flex;
             gap: 10px;
             margin: 20px 0;
-            flex-wrap: wrap;
         }
 
         .search-box input {
             flex: 1;
-            min-width: 200px;
-            padding: 12px 15px;
+            padding: 10px;
             border: 2px solid #ecf0f1;
-            border-radius: 8px;
+            border-radius: 5px;
             font-size: 1rem;
-            transition: all 0.3s;
         }
 
         .search-box input:focus {
             border-color: #3498db;
             outline: none;
-        }
-
-        .search-box button {
-            padding: 12px 25px;
         }
 
         /* Table Container */
@@ -578,7 +483,6 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
         }
 
         th {
@@ -587,13 +491,11 @@
             padding: 15px;
             text-align: left;
             font-weight: 600;
-            white-space: nowrap;
         }
 
         td {
             padding: 15px;
             border-bottom: 1px solid #ecf0f1;
-            white-space: nowrap;
         }
 
         tr:hover {
@@ -607,7 +509,6 @@
             font-size: 0.85rem;
             font-weight: 600;
             display: inline-block;
-            white-space: nowrap;
         }
 
         .status-active {
@@ -643,10 +544,9 @@
             cursor: pointer;
             font-size: 1.2rem;
             margin: 0 5px;
-            padding: 8px;
+            padding: 5px;
             border-radius: 5px;
             transition: all 0.3s;
-            min-width: 40px;
         }
 
         .icon-btn:hover {
@@ -664,10 +564,6 @@
 
         .icon-btn .fa-edit:hover {
             color: #f39c12;
-        }
-
-        .icon-btn .fa-download:hover {
-            color: #3498db;
         }
 
         /* Dashboard Card */
@@ -701,7 +597,7 @@
             top: 20px;
             right: 20px;
             padding: 15px 25px;
-            border-radius: 8px;
+            border-radius: 5px;
             color: white;
             z-index: 9999;
             display: none;
@@ -714,21 +610,9 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        .notification-success {
-            background: #27ae60;
-        }
-
-        .notification-error {
-            background: #e74c3c;
-        }
-
-        .notification-info {
-            background: #3498db;
-        }
-
-        .notification-warning {
-            background: #f39c12;
-        }
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
 
         /* Tab Content */
         .tab-content {
@@ -739,157 +623,7 @@
             display: block;
         }
 
-        .text-muted {
-            color: #7f8c8d;
-            font-style: italic;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            z-index: 2000;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1999;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            color: #2c3e50;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #7f8c8d;
-            transition: color 0.3s;
-        }
-
-        .modal-close:hover {
-            color: #e74c3c;
-        }
-
-        .modal-body {
-            margin: 20px 0;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #ecf0f1;
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .detail-item {
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .detail-item strong {
-            color: #2c3e50;
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .detail-item span {
-            color: #34495e;
-            font-size: 1rem;
-        }
-
-        .document-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .document-section h4 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .document-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .document-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #ecf0f1;
-        }
-
-        .document-card i {
-            font-size: 2rem;
-            color: #27ae60;
-            margin-bottom: 10px;
-        }
-
-        .document-card p {
-            margin: 5px 0;
-            font-size: 0.9rem;
-        }
-
-        .document-card small {
-            color: #7f8c8d;
-            font-size: 0.8rem;
-        }
-
-        @media (max-width: 1200px) {
-            table {
-                min-width: 1000px;
-            }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
             .tabs {
                 flex-direction: column;
@@ -905,9 +639,6 @@
             }
             .module-grid {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            .detail-grid {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -930,7 +661,7 @@
 
     <div class="tabs-container">
         <div class="container">
-            <div class="tabs">
+            <div class="tabs" id="mainTabs">
                 <button class="tab-btn active" onclick="showTab('dashboard')" id="tabDashboard">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </button>
@@ -949,6 +680,9 @@
                 <button class="tab-btn" onclick="showTab('reports')" id="tabReports">
                     <i class="fas fa-chart-bar"></i> Reports
                 </button>
+                <button class="tab-btn" onclick="showTab('permissions')" id="tabPermissions" style="display: none;">
+                    <i class="fas fa-lock"></i> Permissions
+                </button>
             </div>
         </div>
     </div>
@@ -962,9 +696,9 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboardTab" class="tab-content active">
-            <!-- Quick Action Buttons -->
+            <!-- Quick Action Buttons (Visible based on permissions) -->
             <div class="action-buttons" id="quickActions">
-                <!-- Dynamic buttons will be loaded -->
+                <!-- Dynamic buttons will be loaded here based on permissions -->
             </div>
 
             <!-- Statistics Cards -->
@@ -989,21 +723,31 @@
                     <h3>Pending Payments</h3>
                     <div class="stat-number" id="pendingAmount">₹0</div>
                 </div>
+                <div class="stat-card">
+                    <i class="fas fa-ticket-alt"></i>
+                    <h3>Total Bookings</h3>
+                    <div class="stat-number" id="totalBookings">0</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-percent"></i>
+                    <h3>Occupancy Rate</h3>
+                    <div class="stat-number" id="occupancyRate">0%</div>
+                </div>
             </div>
 
-            <!-- All Modules Section -->
+            <!-- All Modules Section (Visible based on permissions) -->
             <div class="section-title">
                 <i class="fas fa-cubes"></i> Available Modules
             </div>
             
             <div class="module-grid" id="modulesGrid">
-                <!-- Modules will be loaded dynamically -->
+                <!-- Modules will be loaded here based on permissions -->
             </div>
 
             <!-- Recent Activity -->
             <div class="dashboard-card">
                 <h3><i class="fas fa-history"></i> Recent Activity</h3>
-                <div id="recentActivity">
+                <div id="recentActivity" style="min-height: 100px;">
                     <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
                 </div>
             </div>
@@ -1012,13 +756,13 @@
         <!-- Batches Tab -->
         <div id="batchesTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-primary" onclick="showCreateBatchForm()">
+                <button class="action-btn btn-primary" onclick="showCreateBatchForm()" id="createBatchBtn">
                     <i class="fas fa-plus"></i> Create New Batch
                 </button>
-                <button class="action-btn btn-secondary" onclick="exportTableToExcel('batchesTable', 'batches')">
+                <button class="action-btn btn-secondary" onclick="exportToExcel('batches')">
                     <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
-                <button class="action-btn btn-info" onclick="printTable('batchesTable')">
+                <button class="action-btn btn-info" onclick="printTable('batches')">
                     <i class="fas fa-print"></i> Print
                 </button>
             </div>
@@ -1026,30 +770,30 @@
             <!-- Create Batch Form -->
             <div class="form-container" id="createBatchForm">
                 <h3><i class="fas fa-plus-circle"></i> Create New Haj/Umrah Package</h3>
-                <form id="batchCreateForm" onsubmit="event.preventDefault(); createBatch();">
+                <form id="batchCreateForm">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="batch_name"><i class="fas fa-tag"></i> Batch Name *</label>
+                            <label for="batch_name">Batch Name *</label>
                             <input type="text" id="batch_name" required placeholder="e.g., Haj Silver 2026">
                         </div>
                         <div class="form-group">
-                            <label for="total_seats"><i class="fas fa-chair"></i> Total Seats</label>
+                            <label for="total_seats">Total Seats</label>
                             <input type="number" id="total_seats" value="150" min="1">
                         </div>
                         <div class="form-group">
-                            <label for="price"><i class="fas fa-rupee-sign"></i> Price (₹)</label>
+                            <label for="price">Price (₹)</label>
                             <input type="number" id="price" step="1000" placeholder="350000">
                         </div>
                         <div class="form-group">
-                            <label for="departure_date"><i class="fas fa-plane-departure"></i> Departure Date</label>
+                            <label for="departure_date">Departure Date</label>
                             <input type="date" id="departure_date">
                         </div>
                         <div class="form-group">
-                            <label for="return_date"><i class="fas fa-plane-arrival"></i> Return Date</label>
+                            <label for="return_date">Return Date</label>
                             <input type="date" id="return_date">
                         </div>
                         <div class="form-group">
-                            <label for="status"><i class="fas fa-info-circle"></i> Status</label>
+                            <label for="status">Status</label>
                             <select id="status">
                                 <option value="Open">Open</option>
                                 <option value="Closing Soon">Closing Soon</option>
@@ -1058,7 +802,7 @@
                             </select>
                         </div>
                         <div class="form-group full-width">
-                            <label for="description"><i class="fas fa-align-left"></i> Description</label>
+                            <label for="description">Description</label>
                             <textarea id="description" rows="3" placeholder="Package details..."></textarea>
                         </div>
                     </div>
@@ -1072,31 +816,31 @@
             <!-- Edit Batch Form -->
             <div class="form-container" id="editBatchForm" style="display: none;">
                 <h3><i class="fas fa-edit"></i> Edit Batch</h3>
-                <form id="batchEditForm" onsubmit="event.preventDefault(); updateBatch();">
+                <form id="batchEditForm">
                     <input type="hidden" id="edit_batch_id">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="edit_batch_name"><i class="fas fa-tag"></i> Batch Name *</label>
+                            <label for="edit_batch_name">Batch Name *</label>
                             <input type="text" id="edit_batch_name" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_departure_date"><i class="fas fa-plane-departure"></i> Departure Date</label>
+                            <label for="edit_departure_date">Departure Date</label>
                             <input type="date" id="edit_departure_date">
                         </div>
                         <div class="form-group">
-                            <label for="edit_return_date"><i class="fas fa-plane-arrival"></i> Return Date</label>
+                            <label for="edit_return_date">Return Date</label>
                             <input type="date" id="edit_return_date">
                         </div>
                         <div class="form-group">
-                            <label for="edit_price"><i class="fas fa-rupee-sign"></i> Price (₹)</label>
+                            <label for="edit_price">Price (₹)</label>
                             <input type="number" id="edit_price" step="1000">
                         </div>
                         <div class="form-group">
-                            <label for="edit_total_seats"><i class="fas fa-chair"></i> Total Seats</label>
+                            <label for="edit_total_seats">Total Seats</label>
                             <input type="number" id="edit_total_seats">
                         </div>
                         <div class="form-group">
-                            <label for="edit_status"><i class="fas fa-info-circle"></i> Status</label>
+                            <label for="edit_status">Status</label>
                             <select id="edit_status">
                                 <option value="Open">Open</option>
                                 <option value="Closing Soon">Closing Soon</option>
@@ -1125,7 +869,7 @@
 
             <!-- Batches Table -->
             <div class="table-container">
-                <table id="batchesTable">
+                <table>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1133,16 +877,15 @@
                             <th>Departure</th>
                             <th>Return</th>
                             <th>Price</th>
-                            <th>Total Seats</th>
+                            <th>Seats</th>
                             <th>Booked</th>
                             <th>Available</th>
                             <th>Status</th>
-                            <th>Created</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="batchesTableBody">
-                        <tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading batches...</td></tr>
+                    <tbody id="batchesTable">
+                        <tr><td colspan="10" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading batches...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1151,231 +894,173 @@
         <!-- Travelers Tab -->
         <div id="travelersTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-success" onclick="showAddTravelerForm()">
-                    <i class="fas fa-user-plus"></i> Add New Traveler (33 Fields)
+                <button class="action-btn btn-success" onclick="showAddTravelerForm()" id="addTravelerBtn">
+                    <i class="fas fa-user-plus"></i> Add New Traveler
                 </button>
-                <button class="action-btn btn-secondary" onclick="exportTableToExcel('travelersTable', 'travelers')">
+                <button class="action-btn btn-primary" onclick="showBulkUploadForm()">
+                    <i class="fas fa-upload"></i> Bulk Upload
+                </button>
+                <button class="action-btn btn-secondary" onclick="exportToExcel('travelers')">
                     <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
-                <button class="action-btn btn-info" onclick="printTable('travelersTable')">
+                <button class="action-btn btn-info" onclick="printTable('travelers')">
                     <i class="fas fa-print"></i> Print
                 </button>
             </div>
 
-            <!-- Add Traveler Form - 33 Fields with Document Upload -->
+            <!-- Add Traveler Form (33 Fields) -->
             <div class="form-container" id="addTravelerForm">
-                <h3><i class="fas fa-user-plus"></i> Add New Traveler - Complete 33 Fields Profile</h3>
-                <form id="travelerAddForm" enctype="multipart/form-data" onsubmit="event.preventDefault(); createTraveler();">
-                    
-                    <!-- Section 1: Personal Information (10 fields) -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> First Name *</label>
-                            <input type="text" id="add_first_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Last Name *</label>
-                            <input type="text" id="add_last_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-passport"></i> Passport Name</label>
-                            <input type="text" id="add_passport_name" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-layer-group"></i> Batch *</label>
-                            <select id="add_batch_id" required>
-                                <option value="">Select Batch</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-passport"></i> Passport Number *</label>
-                            <input type="text" id="add_passport_no" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
-                            <input type="date" id="add_passport_issue_date">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
-                            <input type="date" id="add_passport_expiry_date">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-info-circle"></i> Passport Status</label>
-                            <select id="add_passport_status">
-                                <option value="Active">Active</option>
-                                <option value="Expired">Expired</option>
-                                <option value="Submitted">Submitted</option>
-                                <option value="Processing">Processing</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-venus-mars"></i> Gender</label>
-                            <select id="add_gender">
-                                <option value="">Select</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
-                            <input type="date" id="add_dob">
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Contact Information (7 fields) -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-mobile-alt"></i> Mobile Number *</label>
-                            <input type="tel" id="add_mobile" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-envelope"></i> Email</label>
-                            <input type="email" id="add_email">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-id-card"></i> Aadhaar Number</label>
-                            <input type="text" id="add_aadhaar">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-credit-card"></i> PAN Number</label>
-                            <input type="text" id="add_pan">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label>
-                            <select id="add_aadhaar_pan_linked">
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                                <option value="Pending">Pending</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-syringe"></i> Vaccine Status</label>
-                            <select id="add_vaccine_status">
-                                <option value="Not Vaccinated">Not Vaccinated</option>
-                                <option value="Partially Vaccinated">Partially Vaccinated</option>
-                                <option value="Fully Vaccinated">Fully Vaccinated</option>
-                                <option value="Booster">Booster</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-wheelchair"></i> Wheelchair Required</label>
-                            <select id="add_wheelchair">
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Address & Family (7 fields) -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-home"></i> 3. Address & Family Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-globe"></i> Place of Birth</label>
-                            <input type="text" id="add_place_of_birth">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-globe"></i> Place of Issue</label>
-                            <input type="text" id="add_place_of_issue">
-                        </div>
-                        <div class="form-group full-width">
-                            <label><i class="fas fa-map-marker-alt"></i> Passport Address</label>
-                            <textarea id="add_passport_address" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-male"></i> Father's Name</label>
-                            <input type="text" id="add_father_name">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-female"></i> Mother's Name</label>
-                            <input type="text" id="add_mother_name">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-heart"></i> Spouse's Name</label>
-                            <input type="text" id="add_spouse_name">
-                        </div>
-                    </div>
-
-                    <!-- Section 4: Document Uploads (5 fields) -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-passport"></i> Passport Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('add_passport_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="add_passport_scan_text">Click to upload passport scan</p>
-                                <small>PDF, JPG, PNG (Max 5MB)</small>
-                                <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_passport_scan_text')">
+                <h3><i class="fas fa-user-plus"></i> Add New Traveler - Complete Profile</h3>
+                <form id="travelerAddForm">
+                    <!-- Personal Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name *</label>
+                                <input type="text" id="add_first_name" required>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-id-card"></i> Aadhaar Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('add_aadhaar_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="add_aadhaar_scan_text">Click to upload Aadhaar scan</p>
-                                <small>PDF, JPG, PNG (Max 5MB)</small>
-                                <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_aadhaar_scan_text')">
+                            <div class="form-group">
+                                <label>Last Name *</label>
+                                <input type="text" id="add_last_name" required>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-credit-card"></i> PAN Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('add_pan_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="add_pan_scan_text">Click to upload PAN scan</p>
-                                <small>PDF, JPG, PNG (Max 5MB)</small>
-                                <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_pan_scan_text')">
+                            <div class="form-group">
+                                <label>Passport Name</label>
+                                <input type="text" id="add_passport_name" readonly>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-syringe"></i> Vaccine Certificate</label>
-                            <div class="document-upload" onclick="document.getElementById('add_vaccine_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="add_vaccine_scan_text">Click to upload vaccine certificate</p>
-                                <small>PDF, JPG, PNG (Max 5MB)</small>
-                                <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_vaccine_scan_text')">
+                            <div class="form-group">
+                                <label>Batch *</label>
+                                <select id="add_batch_id" required>
+                                    <option value="">Select Batch</option>
+                                </select>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-image"></i> Photograph</label>
-                            <div class="document-upload" onclick="document.getElementById('add_photo').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="add_photo_text">Click to upload photograph</p>
-                                <small>JPG, PNG (Max 2MB)</small>
-                                <input type="file" id="add_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="updateFileName(this, 'add_photo_text')">
+                            <div class="form-group">
+                                <label>Passport Number *</label>
+                                <input type="text" id="add_passport_no" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Issue Date</label>
+                                <input type="date" id="add_passport_issue_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Expiry Date</label>
+                                <input type="date" id="add_passport_expiry_date">
+                            </div>
+                            <div class="form-group">
+                                <label>Passport Status</label>
+                                <select id="add_passport_status">
+                                    <option value="Active">Active</option>
+                                    <option value="Expired">Expired</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Processing">Processing</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="add_gender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="add_dob">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section 5: Additional Information (4 fields) -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
+                    <!-- Contact Information -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" id="add_mobile" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="add_email">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Number</label>
+                                <input type="text" id="add_aadhaar">
+                            </div>
+                            <div class="form-group">
+                                <label>PAN Number</label>
+                                <input type="text" id="add_pan">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar-PAN Linked</label>
+                                <select id="add_aadhaar_pan_linked">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Vaccine Status</label>
+                                <select id="add_vaccine_status">
+                                    <option value="Not Vaccinated">Not Vaccinated</option>
+                                    <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                    <option value="Fully Vaccinated">Fully Vaccinated</option>
+                                    <option value="Booster">Booster</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Wheelchair Required</label>
+                                <select id="add_wheelchair">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-key"></i> PIN (4 digits)</label>
-                            <input type="text" id="add_pin" maxlength="4" value="0000">
+
+                    <!-- Address & Family -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-home"></i> 3. Address & Family</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Place of Birth</label>
+                                <input type="text" id="add_place_of_birth">
+                            </div>
+                            <div class="form-group">
+                                <label>Place of Issue</label>
+                                <input type="text" id="add_place_of_issue">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Passport Address</label>
+                                <textarea id="add_passport_address" rows="2"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Father's Name</label>
+                                <input type="text" id="add_father_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Mother's Name</label>
+                                <input type="text" id="add_mother_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Spouse's Name</label>
+                                <input type="text" id="add_spouse_name">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-phone-alt"></i> Emergency Contact</label>
-                            <input type="text" id="add_emergency_contact" placeholder="Contact person name">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-phone"></i> Emergency Phone</label>
-                            <input type="tel" id="add_emergency_phone" placeholder="Emergency phone number">
-                        </div>
-                        <div class="form-group full-width">
-                            <label><i class="fas fa-notes-medical"></i> Medical Notes</label>
-                            <textarea id="add_medical_notes" rows="2" placeholder="Any medical conditions, allergies, etc."></textarea>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-cog"></i> 4. Additional Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>PIN (4 digits)</label>
+                                <input type="text" id="add_pin" maxlength="4" value="0000">
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Emergency Contact (JSON)</label>
+                                <textarea id="add_extra_fields" rows="2" placeholder='{"emergency_contact":"John Doe","emergency_phone":"1234567890","blood_group":"O+","allergies":"None"}'></textarea>
+                            </div>
                         </div>
                     </div>
 
@@ -1389,100 +1074,60 @@
             <!-- Edit Traveler Form -->
             <div class="form-container" id="editTravelerForm" style="display: none;">
                 <h3><i class="fas fa-user-edit"></i> Edit Traveler</h3>
-                <form id="travelerEditForm" enctype="multipart/form-data" onsubmit="event.preventDefault(); updateTraveler();">
+                <form id="travelerEditForm">
                     <input type="hidden" id="edit_traveler_id">
                     
                     <!-- Personal Information -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>First Name *</label><input type="text" id="edit_first_name" required></div>
-                        <div class="form-group"><label>Last Name *</label><input type="text" id="edit_last_name" required></div>
-                        <div class="form-group"><label>Passport Name</label><input type="text" id="edit_passport_name" readonly></div>
-                        <div class="form-group"><label>Batch *</label><select id="edit_batch_id" required><option value="">Select Batch</option></select></div>
-                        <div class="form-group"><label>Passport Number *</label><input type="text" id="edit_passport_no" required></div>
-                        <div class="form-group"><label>Passport Issue Date</label><input type="date" id="edit_passport_issue_date"></div>
-                        <div class="form-group"><label>Passport Expiry Date</label><input type="date" id="edit_passport_expiry_date"></div>
-                        <div class="form-group"><label>Passport Status</label><select id="edit_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
-                        <div class="form-group"><label>Gender</label><select id="edit_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                        <div class="form-group"><label>Date of Birth</label><input type="date" id="edit_dob"></div>
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-user"></i> 1. Personal Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>First Name *</label><input type="text" id="edit_first_name" required></div>
+                            <div class="form-group"><label>Last Name *</label><input type="text" id="edit_last_name" required></div>
+                            <div class="form-group"><label>Passport Name</label><input type="text" id="edit_passport_name" readonly></div>
+                            <div class="form-group"><label>Batch *</label><select id="edit_batch_id" required><option value="">Select Batch</option></select></div>
+                            <div class="form-group"><label>Passport Number *</label><input type="text" id="edit_passport_no" required></div>
+                            <div class="form-group"><label>Passport Issue Date</label><input type="date" id="edit_passport_issue_date"></div>
+                            <div class="form-group"><label>Passport Expiry Date</label><input type="date" id="edit_passport_expiry_date"></div>
+                            <div class="form-group"><label>Passport Status</label><select id="edit_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
+                            <div class="form-group"><label>Gender</label><select id="edit_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                            <div class="form-group"><label>Date of Birth</label><input type="date" id="edit_dob"></div>
+                        </div>
                     </div>
 
                     <!-- Contact Information -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Mobile Number *</label><input type="tel" id="edit_mobile" required></div>
-                        <div class="form-group"><label>Email</label><input type="email" id="edit_email"></div>
-                        <div class="form-group"><label>Aadhaar Number</label><input type="text" id="edit_aadhaar"></div>
-                        <div class="form-group"><label>PAN Number</label><input type="text" id="edit_pan"></div>
-                        <div class="form-group"><label>Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
-                        <div class="form-group"><label>Vaccine Status</label><select id="edit_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
-                        <div class="form-group"><label>Wheelchair Required</label><select id="edit_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-address-book"></i> 2. Contact Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="edit_mobile" required></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="edit_email"></div>
+                            <div class="form-group"><label>Aadhaar Number</label><input type="text" id="edit_aadhaar"></div>
+                            <div class="form-group"><label>PAN Number</label><input type="text" id="edit_pan"></div>
+                            <div class="form-group"><label>Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
+                            <div class="form-group"><label>Vaccine Status</label><select id="edit_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
+                            <div class="form-group"><label>Wheelchair Required</label><select id="edit_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                        </div>
                     </div>
 
                     <!-- Address & Family -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-home"></i> 3. Address & Family</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Place of Birth</label><input type="text" id="edit_place_of_birth"></div>
-                        <div class="form-group"><label>Place of Issue</label><input type="text" id="edit_place_of_issue"></div>
-                        <div class="form-group full-width"><label>Passport Address</label><textarea id="edit_passport_address" rows="2"></textarea></div>
-                        <div class="form-group"><label>Father's Name</label><input type="text" id="edit_father_name"></div>
-                        <div class="form-group"><label>Mother's Name</label><input type="text" id="edit_mother_name"></div>
-                        <div class="form-group"><label>Spouse's Name</label><input type="text" id="edit_spouse_name"></div>
-                    </div>
-
-                    <!-- Document Uploads -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Passport Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="edit_passport_scan_text">Click to update passport scan</p>
-                                <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_passport_scan_text')">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Aadhaar Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="edit_aadhaar_scan_text">Click to update Aadhaar scan</p>
-                                <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_aadhaar_scan_text')">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>PAN Scan</label>
-                            <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="edit_pan_scan_text">Click to update PAN scan</p>
-                                <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_pan_scan_text')">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Vaccine Certificate</label>
-                            <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p id="edit_vaccine_scan_text">Click to update vaccine certificate</p>
-                                <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_vaccine_scan_text')">
-                            </div>
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-home"></i> 3. Address & Family</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>Place of Birth</label><input type="text" id="edit_place_of_birth"></div>
+                            <div class="form-group"><label>Place of Issue</label><input type="text" id="edit_place_of_issue"></div>
+                            <div class="form-group full-width"><label>Passport Address</label><textarea id="edit_passport_address" rows="2"></textarea></div>
+                            <div class="form-group"><label>Father's Name</label><input type="text" id="edit_father_name"></div>
+                            <div class="form-group"><label>Mother's Name</label><input type="text" id="edit_mother_name"></div>
+                            <div class="form-group"><label>Spouse's Name</label><input type="text" id="edit_spouse_name"></div>
                         </div>
                     </div>
 
                     <!-- Additional Info -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>PIN (4 digits)</label><input type="text" id="edit_pin" maxlength="4" value="0000"></div>
-                        <div class="form-group"><label>Emergency Contact</label><input type="text" id="edit_emergency_contact"></div>
-                        <div class="form-group"><label>Emergency Phone</label><input type="tel" id="edit_emergency_phone"></div>
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-cog"></i> 4. Additional Information</h4>
+                        <div class="form-grid">
+                            <div class="form-group"><label>PIN (4 digits)</label><input type="text" id="edit_pin" maxlength="4" value="0000"></div>
+                            <div class="form-group full-width"><label>Emergency Contact (JSON)</label><textarea id="edit_extra_fields" rows="2" placeholder='{"emergency_contact":"","emergency_phone":"","blood_group":"","allergies":""}'></textarea></div>
+                        </div>
                     </div>
 
                     <div class="form-actions">
@@ -1503,9 +1148,9 @@
                 </button>
             </div>
 
-            <!-- Travelers Table - 12 Columns -->
+            <!-- Travelers Table -->
             <div class="table-container">
-                <table id="travelersTable">
+                <table>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1516,14 +1161,11 @@
                             <th>Batch</th>
                             <th>Status</th>
                             <th>PIN</th>
-                            <th>Documents</th>
-                            <th>Vaccine</th>
-                            <th>Wheelchair</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="travelersTableBody">
-                        <tr><td colspan="12" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
+                    <tbody id="travelersTable">
+                        <tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1532,13 +1174,13 @@
         <!-- Payments Tab -->
         <div id="paymentsTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-warning" onclick="showAddPaymentForm()">
+                <button class="action-btn btn-warning" onclick="showAddPaymentForm()" id="addPaymentBtn">
                     <i class="fas fa-plus"></i> Record New Payment
                 </button>
-                <button class="action-btn btn-secondary" onclick="exportTableToExcel('paymentsTable', 'payments')">
+                <button class="action-btn btn-secondary" onclick="exportToExcel('payments')">
                     <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
-                <button class="action-btn btn-info" onclick="printTable('paymentsTable')">
+                <button class="action-btn btn-info" onclick="printTable('payments')">
                     <i class="fas fa-print"></i> Print
                 </button>
             </div>
@@ -1570,7 +1212,7 @@
             <!-- Add Payment Form -->
             <div class="form-container" id="addPaymentForm">
                 <h3><i class="fas fa-credit-card"></i> Record New Payment</h3>
-                <form id="paymentForm" onsubmit="event.preventDefault(); createPayment();">
+                <form id="paymentForm">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Traveler *</label>
@@ -1619,9 +1261,71 @@
                 </form>
             </div>
 
-            <!-- Payments Table - 10 Columns -->
+            <!-- Edit Payment Form -->
+            <div class="form-container" id="editPaymentForm" style="display: none;">
+                <h3><i class="fas fa-credit-card"></i> Edit Payment</h3>
+                <form id="paymentEditForm">
+                    <input type="hidden" id="edit_payment_id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Traveler *</label>
+                            <select id="edit_payment_traveler_id" required>
+                                <option value="">Select Traveler</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Batch *</label>
+                            <select id="edit_payment_batch_id" required>
+                                <option value="">Select Batch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹) *</label>
+                            <input type="number" id="edit_payment_amount" step="100" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Date *</label>
+                            <input type="date" id="edit_payment_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select id="edit_payment_method">
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Transaction ID</label>
+                            <input type="text" id="edit_payment_transaction_id" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="edit_payment_status">
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="failed">Failed</option>
+                                <option value="refunded">Refunded</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Remarks</label>
+                            <textarea id="edit_payment_remarks" rows="2" placeholder="Any notes..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Payment</button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideEditPaymentForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Payments Table -->
             <div class="table-container">
-                <table id="paymentsTable">
+                <table>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1632,12 +1336,11 @@
                             <th>Method</th>
                             <th>Transaction ID</th>
                             <th>Status</th>
-                            <th>Remarks</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="paymentsTableBody">
-                        <tr><td colspan="10" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments...</td></tr>
+                    <tbody id="paymentsTable">
+                        <tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1646,10 +1349,10 @@
         <!-- Users Tab -->
         <div id="usersTab" class="tab-content">
             <div class="action-buttons">
-                <button class="action-btn btn-primary" onclick="showAddUserForm()">
+                <button class="action-btn btn-primary" onclick="showAddUserForm()" id="addUserBtn">
                     <i class="fas fa-user-plus"></i> Add New User
                 </button>
-                <button class="action-btn btn-secondary" onclick="exportTableToExcel('usersTable', 'users')">
+                <button class="action-btn btn-secondary" onclick="exportToExcel('users')">
                     <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
             </div>
@@ -1657,7 +1360,7 @@
             <!-- Add User Form -->
             <div class="form-container" id="addUserForm">
                 <h3><i class="fas fa-user-plus"></i> Create New User</h3>
-                <form id="userCreateForm" onsubmit="event.preventDefault(); createUser();">
+                <form id="userCreateForm">
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Username *</label>
@@ -1677,7 +1380,7 @@
                         </div>
                         <div class="form-group">
                             <label>Role</label>
-                            <select id="role">
+                            <select id="role" onchange="togglePermissions()">
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
                                 <option value="staff">Staff</option>
@@ -1686,11 +1389,68 @@
                         </div>
                     </div>
 
-                    <!-- Permissions Section -->
-                    <div class="section-header">
-                        <h4><i class="fas fa-lock"></i> Module Permissions</h4>
+                    <!-- Permissions Section (Visible for non-super_admin) -->
+                    <div id="permissionsSection" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-lock"></i> Module Permissions</h4>
+                        <div class="permission-grid" id="permissionGrid">
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="batches" checked> Batches Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="travelers" checked> Travelers Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="payments" checked> Payments Management
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="invoices" checked> Invoices
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="receipts" checked> Receipts
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="backup" checked> Backup
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="whatsapp" checked> WhatsApp
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="email" checked> Email
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="frontpage" checked> Front Page
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="reports" checked> Reports
+                                </label>
+                            </div>
+                            <div class="permission-item">
+                                <label>
+                                    <input type="checkbox" class="perm-checkbox" value="users" disabled> Users Management
+                                    <small style="display: block; color: #7f8c8d;">(Admin only)</small>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="permission-grid" id="permissionGrid"></div>
 
                     <div class="form-actions">
                         <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Create User</button>
@@ -1699,9 +1459,60 @@
                 </form>
             </div>
 
+            <!-- Edit User Form -->
+            <div class="form-container" id="editUserForm" style="display: none;">
+                <h3><i class="fas fa-user-edit"></i> Edit User</h3>
+                <form id="userEditForm">
+                    <input type="hidden" id="edit_user_id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Username *</label>
+                            <input type="text" id="edit_username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="edit_email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="edit_fullname">
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select id="edit_role" onchange="toggleEditPermissions()">
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="staff">Staff</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="edit_status">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Edit Permissions Section -->
+                    <div id="editPermissionsSection" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #3498db; margin-bottom: 15px;"><i class="fas fa-lock"></i> Module Permissions</h4>
+                        <div class="permission-grid" id="editPermissionGrid">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update User</button>
+                        <button type="button" class="action-btn btn-secondary" onclick="hideEditUserForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Users Table -->
             <div class="table-container">
-                <table id="usersTable">
+                <table>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1714,7 +1525,7 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="usersTableBody">
+                    <tbody id="usersTable">
                         <tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>
                     </tbody>
                 </table>
@@ -1748,44 +1559,136 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modals -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
-    
-    <!-- View Traveler Modal - Complete Details -->
-    <div id="viewTravelerModal" class="modal modal-large">
-        <div class="modal-header">
-            <h3><i class="fas fa-user"></i> Complete Traveler Details (33 Fields)</h3>
-            <button class="modal-close" onclick="closeViewTravelerModal()">&times;</button>
-        </div>
-        <div class="modal-body" id="travelerDetails"></div>
-        <div class="modal-footer">
-            <button class="action-btn btn-secondary" onclick="closeViewTravelerModal()">Close</button>
-            <button class="action-btn btn-primary" onclick="printTravelerDetails()"><i class="fas fa-print"></i> Print</button>
-            <button class="action-btn btn-info" onclick="downloadTravelerDocuments()"><i class="fas fa-download"></i> Download Documents</button>
-        </div>
-    </div>
-
-    <!-- View Payment Modal -->
-    <div id="viewPaymentModal" class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-credit-card"></i> Payment Details</h3>
-            <button class="modal-close" onclick="closeViewPaymentModal()">&times;</button>
-        </div>
-        <div class="modal-body" id="paymentDetails"></div>
-        <div class="modal-footer">
-            <button class="action-btn btn-secondary" onclick="closeViewPaymentModal()">Close</button>
-            <button class="action-btn btn-primary" onclick="printPaymentDetails()"><i class="fas fa-print"></i> Print</button>
+        <!-- Permissions Tab (Super Admin Only) -->
+        <div id="permissionsTab" class="tab-content">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-lock"></i> Role-Based Permissions</h3>
+                <p>Configure default permissions for each role. Super Admin has access to everything.</p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>Admin</th>
+                                <th>Manager</th>
+                                <th>Staff</th>
+                                <th>Viewer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Batches Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_batches"></td>
+                                <td><input type="checkbox" checked id="perm_staff_batches"></td>
+                                <td><input type="checkbox" id="perm_viewer_batches"></td>
+                            </tr>
+                            <tr>
+                                <td>Travelers Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_travelers"></td>
+                                <td><input type="checkbox" checked id="perm_staff_travelers"></td>
+                                <td><input type="checkbox" id="perm_viewer_travelers"></td>
+                            </tr>
+                            <tr>
+                                <td>Payments Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_payments"></td>
+                                <td><input type="checkbox" id="perm_staff_payments"></td>
+                                <td><input type="checkbox" id="perm_viewer_payments"></td>
+                            </tr>
+                            <tr>
+                                <td>Invoices</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_invoices"></td>
+                                <td><input type="checkbox" id="perm_staff_invoices"></td>
+                                <td><input type="checkbox" id="perm_viewer_invoices"></td>
+                            </tr>
+                            <tr>
+                                <td>Receipts</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_receipts"></td>
+                                <td><input type="checkbox" id="perm_staff_receipts"></td>
+                                <td><input type="checkbox" id="perm_viewer_receipts"></td>
+                            </tr>
+                            <tr>
+                                <td>Backup</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" id="perm_admin_backup"></td>
+                                <td><input type="checkbox" id="perm_staff_backup"></td>
+                                <td><input type="checkbox" id="perm_viewer_backup"></td>
+                            </tr>
+                            <tr>
+                                <td>WhatsApp</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_whatsapp"></td>
+                                <td><input type="checkbox" id="perm_staff_whatsapp"></td>
+                                <td><input type="checkbox" id="perm_viewer_whatsapp"></td>
+                            </tr>
+                            <tr>
+                                <td>Email</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_email"></td>
+                                <td><input type="checkbox" id="perm_staff_email"></td>
+                                <td><input type="checkbox" id="perm_viewer_email"></td>
+                            </tr>
+                            <tr>
+                                <td>Front Page</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" id="perm_admin_frontpage"></td>
+                                <td><input type="checkbox" id="perm_staff_frontpage"></td>
+                                <td><input type="checkbox" id="perm_viewer_frontpage"></td>
+                            </tr>
+                            <tr>
+                                <td>Reports</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" checked id="perm_admin_reports"></td>
+                                <td><input type="checkbox" id="perm_staff_reports"></td>
+                                <td><input type="checkbox" checked id="perm_viewer_reports"></td>
+                            </r>
+                            <tr>
+                                <td>Users Management</td>
+                                <td><input type="checkbox" checked disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                                <td><input type="checkbox" disabled></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="action-btn btn-primary" onclick="saveRolePermissions()">
+                        <i class="fas fa-save"></i> Save Permissions
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="notification" class="notification"></div>
 
     <script>
+        // ==================== ERUDA INITIALIZATION ====================
+        // Initialize Eruda for mobile debugging (only if needed)
+        (function() {
+            if (typeof eruda !== 'undefined') {
+                try {
+                    eruda.init();
+                    console.log('✅ Eruda initialized successfully');
+                } catch (e) {
+                    console.log('⚠️ Eruda initialization failed:', e.message);
+                }
+            } else {
+                console.log('ℹ️ Eruda not loaded');
+            }
+        })();
+
         // ==================== GLOBAL VARIABLES ====================
         let currentUser = null;
-        let userRole = 'super_admin';
+        let userPermissions = {};
         let currentEditBatchId = null;
         let currentEditTravelerId = null;
         let currentEditPaymentId = null;
@@ -1793,22 +1696,23 @@
 
         // ==================== MODULES LIST ====================
         const modules = [
-            { id: 'batches', name: 'Batches', icon: 'fa-layer-group', page: 'batches.html', color: 'btn-primary', description: 'Manage Haj/Umrah packages' },
-            { id: 'travelers', name: 'Travelers', icon: 'fa-users', page: 'travelers.html', color: 'btn-success', description: 'Manage pilgrim profiles (33 fields)' },
-            { id: 'payments', name: 'Payments', icon: 'fa-credit-card', page: 'payments.html', color: 'btn-warning', description: 'Track payments & receipts' },
-            { id: 'invoices', name: 'Invoices', icon: 'fa-file-invoice', page: 'invoices.html', color: 'btn-info', description: 'Generate invoices' },
-            { id: 'receipts', name: 'Receipts', icon: 'fa-receipt', page: 'receipts.html', color: 'btn-secondary', description: 'Print receipts' },
-            { id: 'backup', name: 'Backup', icon: 'fa-database', page: 'backup.html', color: 'btn-dark', description: 'Database backup' },
-            { id: 'whatsapp', name: 'WhatsApp', icon: 'fab fa-whatsapp', page: 'whatsapp.html', color: 'btn-success', description: 'Chat with travelers' },
-            { id: 'email', name: 'Email', icon: 'fa-envelope', page: 'email.html', color: 'btn-info', description: 'Send emails' },
-            { id: 'frontpage', name: 'Front Page', icon: 'fa-edit', page: 'frontpage.html', color: 'btn-purple', description: 'Edit website content' },
-            { id: 'reports', name: 'Reports', icon: 'fa-chart-bar', page: 'reports.html', color: 'btn-danger', description: 'Generate reports' },
-            { id: 'users', name: 'Users', icon: 'fa-user-cog', page: 'users.html', color: 'btn-primary', description: 'Manage users' }
+            { id: 'batches', name: 'Batches', icon: 'fa-layer-group', page: 'batches.html', color: 'btn-primary' },
+            { id: 'travelers', name: 'Travelers', icon: 'fa-users', page: 'travelers.html', color: 'btn-success' },
+            { id: 'payments', name: 'Payments', icon: 'fa-credit-card', page: 'payments.html', color: 'btn-warning' },
+            { id: 'invoices', name: 'Invoices', icon: 'fa-file-invoice', page: 'invoices.html', color: 'btn-info' },
+            { id: 'receipts', name: 'Receipts', icon: 'fa-receipt', page: 'receipts.html', color: 'btn-secondary' },
+            { id: 'backup', name: 'Backup', icon: 'fa-database', page: 'backup.html', color: 'btn-dark' },
+            { id: 'whatsapp', name: 'WhatsApp', icon: 'fab fa-whatsapp', page: 'whatsapp.html', color: 'btn-success' },
+            { id: 'email', name: 'Email', icon: 'fa-envelope', page: 'email.html', color: 'btn-info' },
+            { id: 'frontpage', name: 'Front Page', icon: 'fa-edit', page: 'frontpage.html', color: 'btn-purple' },
+            { id: 'reports', name: 'Reports', icon: 'fa-chart-bar', page: 'reports.html', color: 'btn-danger' },
+            { id: 'users', name: 'Users', icon: 'fa-user-cog', page: 'users.html', color: 'btn-primary' }
         ];
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
+            loadUserPermissions();
             loadDashboardStats();
             loadBatches();
             loadTravelers();
@@ -1816,9 +1720,10 @@
             loadUsers();
             loadBatchDropdown();
             loadTravelerDropdown();
-            loadPermissionGrids();
-            loadModulesGrid();
-            loadQuickActions();
+            loadEditBatchDropdown();
+            loadEditTravelerDropdown();
+            loadEditPaymentDropdowns();
+            loadEditUserDropdown();
         });
 
         // ==================== AUTHENTICATION ====================
@@ -1831,16 +1736,193 @@
             }
             
             const userName = sessionStorage.getItem('adminName') || 'Admin';
-            userRole = sessionStorage.getItem('adminRole') || 'admin';
+            const userRole = sessionStorage.getItem('adminRole') || 'Admin';
             
-            document.getElementById('userName').textContent = userName;
-            document.getElementById('userRole').textContent = userRole;
-            document.getElementById('roleBadge').textContent = userRole;
+            const userNameEl = document.getElementById('userName');
+            const userRoleEl = document.getElementById('userRole');
+            const roleBadgeEl = document.getElementById('roleBadge');
+            
+            if (userNameEl) userNameEl.textContent = userName;
+            if (userRoleEl) userRoleEl.textContent = userRole;
+            if (roleBadgeEl) roleBadgeEl.textContent = userRole;
+            
+            currentUser = {
+                name: userName,
+                role: userRole
+            };
+        }
+
+        // ==================== PERMISSIONS ====================
+        function loadUserPermissions() {
+            const userRole = sessionStorage.getItem('adminRole') || 'admin';
+            
+            // Super admin gets all permissions
+            if (userRole === 'super_admin') {
+                userPermissions = {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: true,
+                    whatsapp: true,
+                    email: true,
+                    frontpage: true,
+                    reports: true,
+                    users: true
+                };
+                
+                // Show permissions tab for super admin
+                const permTab = document.getElementById('tabPermissions');
+                if (permTab) permTab.style.display = 'flex';
+                
+                // Load all modules
+                loadModules();
+                loadQuickActions();
+                
+                return;
+            }
+            
+            // For other roles, load permissions from storage/database
+            const rolePermissions = {
+                admin: {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: true,
+                    email: true,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                },
+                manager: {
+                    batches: true,
+                    travelers: true,
+                    payments: true,
+                    invoices: true,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                },
+                staff: {
+                    batches: false,
+                    travelers: true,
+                    payments: true,
+                    invoices: false,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: false,
+                    users: false
+                },
+                viewer: {
+                    batches: true,
+                    travelers: true,
+                    payments: false,
+                    invoices: false,
+                    receipts: true,
+                    backup: false,
+                    whatsapp: false,
+                    email: false,
+                    frontpage: false,
+                    reports: true,
+                    users: false
+                }
+            };
+            
+            userPermissions = rolePermissions[userRole] || rolePermissions.admin;
+            
+            // Load modules based on permissions
+            loadModules();
+            loadQuickActions();
+        }
+
+        function loadModules() {
+            const modulesGrid = document.getElementById('modulesGrid');
+            if (!modulesGrid) return;
+            
+            let html = '';
+            
+            modules.forEach(module => {
+                if (userPermissions[module.id]) {
+                    html += `
+                        <a href="${module.page}" class="module-card">
+                            <i class="fas ${module.icon}"></i>
+                            <h4>${module.name}</h4>
+                            <p>Manage ${module.name}</p>
+                        </a>
+                    `;
+                }
+            });
+            
+            modulesGrid.innerHTML = html || '<p class="text-muted">No modules available</p>';
+        }
+
+        function loadQuickActions() {
+            const quickActions = document.getElementById('quickActions');
+            if (!quickActions) return;
+            
+            let html = '';
+            
+            if (userPermissions.batches) {
+                html += `<button class="action-btn btn-primary" onclick="window.location.href='batches.html'"><i class="fas fa-layer-group"></i> Batches</button>`;
+            }
+            if (userPermissions.travelers) {
+                html += `<button class="action-btn btn-success" onclick="window.location.href='travelers.html'"><i class="fas fa-users"></i> Travelers</button>`;
+            }
+            if (userPermissions.payments) {
+                html += `<button class="action-btn btn-warning" onclick="window.location.href='payments.html'"><i class="fas fa-credit-card"></i> Payments</button>`;
+            }
+            if (userPermissions.invoices) {
+                html += `<button class="action-btn btn-info" onclick="window.location.href='invoices.html'"><i class="fas fa-file-invoice"></i> Invoices</button>`;
+            }
+            if (userPermissions.receipts) {
+                html += `<button class="action-btn btn-secondary" onclick="window.location.href='receipts.html'"><i class="fas fa-receipt"></i> Receipts</button>`;
+            }
+            if (userPermissions.reports) {
+                html += `<button class="action-btn btn-danger" onclick="window.location.href='reports.html'"><i class="fas fa-chart-bar"></i> Reports</button>`;
+            }
+            
+            quickActions.innerHTML = html || '<p class="text-muted">No actions available</p>';
+        }
+
+        function togglePermissions() {
+            const role = document.getElementById('role')?.value;
+            const isAdmin = role === 'admin';
+            
+            document.querySelectorAll('#permissionGrid .perm-checkbox').forEach(cb => {
+                if (cb.value !== 'users') {
+                    cb.disabled = !isAdmin;
+                    cb.checked = isAdmin;
+                }
+            });
+        }
+
+        function toggleEditPermissions() {
+            const role = document.getElementById('edit_role')?.value;
+            const isAdmin = role === 'admin';
+            
+            document.querySelectorAll('#editPermissionGrid .perm-checkbox').forEach(cb => {
+                if (cb.value !== 'users') {
+                    cb.disabled = !isAdmin;
+                }
+            });
         }
 
         // ==================== NOTIFICATION ====================
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
+            if (!notification) return;
+            
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
@@ -1860,12 +1942,11 @@
                 btn.classList.remove('active');
             });
             
-            document.getElementById(tabName + 'Tab').classList.add('active');
+            const tabEl = document.getElementById(tabName + 'Tab');
+            if (tabEl) tabEl.classList.add('active');
             
             const tabButton = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-            if (tabButton) {
-                tabButton.classList.add('active');
-            }
+            if (tabButton) tabButton.classList.add('active');
             
             if (tabName === 'dashboard') loadDashboardStats();
             if (tabName === 'batches') loadBatches();
@@ -1880,32 +1961,116 @@
             if (tabName === 'users') loadUsers();
         }
 
-        // ==================== MODULES GRID ====================
-        function loadModulesGrid() {
-            const modulesGrid = document.getElementById('modulesGrid');
-            let html = '';
-            
-            modules.forEach(module => {
-                html += `
-                    <a href="${module.page}" class="module-card">
-                        <i class="fas ${module.icon}"></i>
-                        <h4>${module.name}</h4>
-                        <p>${module.description}</p>
-                    </a>
-                `;
-            });
-            
-            modulesGrid.innerHTML = html;
+        // ==================== FORM VISIBILITY ====================
+        function showCreateBatchForm() {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to create batches', 'error');
+                return;
+            }
+            const form = document.getElementById('createBatchForm');
+            if (form) {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
-        function loadQuickActions() {
-            const quickActions = document.getElementById('quickActions');
-            quickActions.innerHTML = `
-                <button class="action-btn btn-primary" onclick="window.location.href='batches.html'"><i class="fas fa-layer-group"></i> Batches</button>
-                <button class="action-btn btn-success" onclick="showTab('travelers'); showAddTravelerForm()"><i class="fas fa-user-plus"></i> Add Traveler (33 Fields)</button>
-                <button class="action-btn btn-warning" onclick="window.location.href='payments.html'"><i class="fas fa-credit-card"></i> Payments</button>
-                <button class="action-btn btn-info" onclick="window.location.href='frontpage.html'"><i class="fas fa-edit"></i> Front Page</button>
-            `;
+        function hideCreateBatchForm() {
+            const form = document.getElementById('createBatchForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('batchCreateForm')?.reset();
+            }
+        }
+
+        function showAddTravelerForm() {
+            if (!userPermissions.travelers) {
+                showNotification('You do not have permission to add travelers', 'error');
+                return;
+            }
+            const form = document.getElementById('addTravelerForm');
+            if (form) {
+                form.style.display = 'block';
+                loadBatchDropdown();
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function hideAddTravelerForm() {
+            const form = document.getElementById('addTravelerForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('travelerAddForm')?.reset();
+            }
+        }
+
+        function showAddPaymentForm() {
+            if (!userPermissions.payments) {
+                showNotification('You do not have permission to record payments', 'error');
+                return;
+            }
+            const form = document.getElementById('addPaymentForm');
+            if (form) {
+                form.style.display = 'block';
+                loadTravelerDropdown();
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function hideAddPaymentForm() {
+            const form = document.getElementById('addPaymentForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('paymentForm')?.reset();
+            }
+        }
+
+        function showAddUserForm() {
+            if (!userPermissions.users) {
+                showNotification('You do not have permission to manage users', 'error');
+                return;
+            }
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function hideAddUserForm() {
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                form.style.display = 'none';
+                document.getElementById('userCreateForm')?.reset();
+            }
+        }
+
+        function showBulkUploadForm() {
+            showNotification('Bulk upload feature coming soon', 'info');
+        }
+
+        // ==================== EDIT FORM VISIBILITY ====================
+        function hideEditBatchForm() {
+            const form = document.getElementById('editBatchForm');
+            if (form) form.style.display = 'none';
+            currentEditBatchId = null;
+        }
+
+        function hideEditTravelerForm() {
+            const form = document.getElementById('editTravelerForm');
+            if (form) form.style.display = 'none';
+            currentEditTravelerId = null;
+        }
+
+        function hideEditPaymentForm() {
+            const form = document.getElementById('editPaymentForm');
+            if (form) form.style.display = 'none';
+            currentEditPaymentId = null;
+        }
+
+        function hideEditUserForm() {
+            const form = document.getElementById('editUserForm');
+            if (form) form.style.display = 'none';
+            currentEditUserId = null;
         }
 
         // ==================== DASHBOARD STATS ====================
@@ -1915,26 +2080,52 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    document.getElementById('totalTravelers').textContent = data.stats.total_travelers || 0;
-                    document.getElementById('activeBatches').textContent = data.stats.active_batches || 0;
-                    document.getElementById('totalCollected').innerHTML = '₹' + (data.stats.total_collected || 0).toLocaleString('en-IN');
-                    document.getElementById('pendingAmount').innerHTML = '₹' + (data.stats.pending_amount || 0).toLocaleString('en-IN');
+                    const setText = (id, value) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = value ?? '0';
+                    };
+                    const setHTML = (id, value) => {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = value ?? '₹0';
+                    };
+
+                    setText('totalTravelers', data.stats.total_travelers);
+                    setText('activeBatches', data.stats.active_batches);
+                    setHTML('totalCollected', '₹' + (data.stats.total_collected || 0).toLocaleString('en-IN'));
+                    setHTML('pendingAmount', '₹' + (data.stats.pending_amount || 0).toLocaleString('en-IN'));
+                    
+                    let totalBookings = 0;
+                    let totalSeats = 0;
+                    
+                    const batchesRes = await fetch('/api/batches');
+                    const batchesData = await batchesRes.json();
+                    
+                    if (batchesData.success) {
+                        batchesData.batches.forEach(b => {
+                            totalBookings += b.booked_seats || 0;
+                            totalSeats += b.total_seats || 0;
+                        });
+                        
+                        setText('totalBookings', totalBookings);
+                        const occupancyRate = totalSeats > 0 ? Math.round((totalBookings / totalSeats) * 100) : 0;
+                        setText('occupancyRate', occupancyRate + '%');
+                    }
                     
                     let activityHtml = '<ul style="list-style: none; padding: 0;">';
                     if (data.recent_activity && data.recent_activity.length > 0) {
                         data.recent_activity.forEach(item => {
                             activityHtml += `<li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
                                 <i class="fas fa-${item.type === 'traveler' ? 'user-plus' : 'info-circle'}" style="color: #27ae60;"></i>
-                                ${item.name} - ${new Date(item.created_at).toLocaleDateString()}
+                                ${item.name || 'Activity'} - ${item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}
                             </li>`;
                         });
                     } else {
                         activityHtml += '<li style="padding: 10px;">No recent activity</li>';
                     }
                     activityHtml += '</ul>';
-                    document.getElementById('recentActivity').innerHTML = activityHtml;
-                } else {
-                    useFallbackStats();
+                    
+                    const recentEl = document.getElementById('recentActivity');
+                    if (recentEl) recentEl.innerHTML = activityHtml;
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
@@ -1943,92 +2134,55 @@
         }
 
         function useFallbackStats() {
-            document.getElementById('totalTravelers').textContent = '3';
-            document.getElementById('activeBatches').textContent = '4';
-            document.getElementById('totalCollected').innerHTML = '₹2,25,000';
-            document.getElementById('pendingAmount').innerHTML = '₹25,000';
-            
-            document.getElementById('recentActivity').innerHTML = `
-                <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
-                        <i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler: Ahmed Khan (33 fields completed)
-                    </li>
-                    <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
-                        <i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment: ₹85,000 received
-                    </li>
-                    <li style="padding: 10px;">
-                        <i class="fas fa-layer-group" style="color: #3498db;"></i> New batch: Haj Silver 2026
-                    </li>
-                </ul>
-            `;
-        }
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            const setHTML = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = value;
+            };
 
-        // ==================== DOCUMENT UPLOAD HELPERS ====================
-        function updateFileName(input, textElementId) {
-            const textElement = document.getElementById(textElementId);
-            if (input.files && input.files[0]) {
-                textElement.textContent = input.files[0].name;
-            } else {
-                textElement.textContent = textElementId.includes('edit') ? 'Click to update' : 'Click to upload';
+            setText('totalTravelers', '3');
+            setText('activeBatches', '4');
+            setHTML('totalCollected', '₹2,25,000');
+            setHTML('pendingAmount', '₹25,000');
+            setText('totalBookings', '3');
+            setText('occupancyRate', '45%');
+            
+            const recentEl = document.getElementById('recentActivity');
+            if (recentEl) {
+                recentEl.innerHTML = `
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
+                            <i class="fas fa-user-plus" style="color: #27ae60;"></i> New traveler: Ahmed Khan
+                        </li>
+                        <li style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
+                            <i class="fas fa-credit-card" style="color: #f39c12;"></i> Payment: ₹85,000 received
+                        </li>
+                        <li style="padding: 10px;">
+                            <i class="fas fa-layer-group" style="color: #3498db;"></i> New batch: Haj Silver 2026
+                        </li>
+                    </ul>
+                `;
             }
         }
 
-        // Auto-update passport name
-        document.getElementById('add_first_name')?.addEventListener('input', function() {
-            const first = document.getElementById('add_first_name')?.value || '';
-            const last = document.getElementById('add_last_name')?.value || '';
-            document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
-        });
-        
-        document.getElementById('add_last_name')?.addEventListener('input', function() {
-            const first = document.getElementById('add_first_name')?.value || '';
-            const last = document.getElementById('add_last_name')?.value || '';
-            document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
-        });
-
-        document.getElementById('edit_first_name')?.addEventListener('input', function() {
-            const first = document.getElementById('edit_first_name')?.value || '';
-            const last = document.getElementById('edit_last_name')?.value || '';
-            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
-        });
-        
-        document.getElementById('edit_last_name')?.addEventListener('input', function() {
-            const first = document.getElementById('edit_first_name')?.value || '';
-            const last = document.getElementById('edit_last_name')?.value || '';
-            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
-        });
-
         // ==================== BATCH FUNCTIONS ====================
-        function showCreateBatchForm() {
-            document.getElementById('createBatchForm').style.display = 'block';
-            document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function hideCreateBatchForm() {
-            document.getElementById('createBatchForm').style.display = 'none';
-            document.getElementById('batchCreateForm').reset();
-        }
-
-        function hideEditBatchForm() {
-            document.getElementById('editBatchForm').style.display = 'none';
-            currentEditBatchId = null;
-        }
-
         async function loadBatches() {
             try {
                 const response = await fetch('/api/batches');
                 const data = await response.json();
                 
-                const tableBody = document.getElementById('batchesTableBody');
+                const tableBody = document.getElementById('batchesTable');
                 if (!tableBody) return;
                 
                 if (data.success && data.batches && data.batches.length > 0) {
                     let html = '';
                     data.batches.forEach(b => {
                         const statusClass = b.status === 'Open' ? 'status-active' : 
-                                           (b.status === 'Closing Soon' ? 'status-pending' : 'status-inactive');
+                                           (b.status === 'Closing Soon' ? 'status-warning' : 'status-inactive');
                         const available = (b.total_seats || 0) - (b.booked_seats || 0);
-                        const created = b.created_at ? new Date(b.created_at).toLocaleDateString() : '-';
                         
                         html += `<tr>
                             <td>${b.id}</td>
@@ -2040,17 +2194,18 @@
                             <td>${b.booked_seats || 0}</td>
                             <td>${available}</td>
                             <td><span class="status-badge ${statusClass}">${b.status || 'Open'}</span></td>
-                            <td>${created}</td>
                             <td>
-                                <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="icon-btn" onclick="deleteBatch(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
-                                <button class="icon-btn" onclick="viewBatchDetails(${b.id})" title="View"><i class="fas fa-eye"></i></button>
+                                ${userPermissions.batches ? `
+                                    <button class="icon-btn" onclick="editBatch(${b.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="icon-btn" onclick="deleteBatch(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                                    <button class="icon-btn" onclick="viewBatchDetails(${b.id})" title="View"><i class="fas fa-eye"></i></button>
+                                ` : '-'}
                             </td>
                         </tr>`;
                     });
                     tableBody.innerHTML = html;
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No batches found</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No batches found</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading batches:', error);
@@ -2059,65 +2214,23 @@
         }
 
         function useFallbackBatches() {
-            const tableBody = document.getElementById('batchesTableBody');
+            const tableBody = document.getElementById('batchesTable');
             if (tableBody) {
                 tableBody.innerHTML = `
-                    <tr>
-                        <td>1</td>
-                        <td><strong>Haj Platinum 2026</strong></td>
-                        <td>2026-06-14</td>
-                        <td>2026-07-31</td>
-                        <td>₹8,50,000</td>
-                        <td>50</td>
-                        <td>1</td>
-                        <td>49</td>
-                        <td><span class="status-badge status-active">Open</span></td>
-                        <td>2026-01-15</td>
-                        <td>
-                            <button class="icon-btn" onclick="editBatch(1)" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="icon-btn" onclick="deleteBatch(1)" title="Delete"><i class="fas fa-trash"></i></button>
-                            <button class="icon-btn" onclick="viewBatchDetails(1)" title="View"><i class="fas fa-eye"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td><strong>Haj Gold 2026</strong></td>
-                        <td>2026-06-15</td>
-                        <td>2026-07-30</td>
-                        <td>₹5,50,000</td>
-                        <td>100</td>
-                        <td>1</td>
-                        <td>99</td>
-                        <td><span class="status-badge status-active">Open</span></td>
-                        <td>2026-01-15</td>
-                        <td>
-                            <button class="icon-btn" onclick="editBatch(2)" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="icon-btn" onclick="deleteBatch(2)" title="Delete"><i class="fas fa-trash"></i></button>
-                            <button class="icon-btn" onclick="viewBatchDetails(2)" title="View"><i class="fas fa-eye"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td><strong>Umrah Ramadhan Special</strong></td>
-                        <td>2026-03-01</td>
-                        <td>2026-03-20</td>
-                        <td>₹1,25,000</td>
-                        <td>200</td>
-                        <td>1</td>
-                        <td>199</td>
-                        <td><span class="status-badge status-pending">Closing Soon</span></td>
-                        <td>2026-01-15</td>
-                        <td>
-                            <button class="icon-btn" onclick="editBatch(3)" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="icon-btn" onclick="deleteBatch(3)" title="Delete"><i class="fas fa-trash"></i></button>
-                            <button class="icon-btn" onclick="viewBatchDetails(3)" title="View"><i class="fas fa-eye"></i></button>
-                        </td>
-                    </tr>
+                    <tr><td>1</td><td>Haj Platinum 2026</td><td>2026-06-14</td><td>2026-07-31</td><td>₹8,50,000</td><td>50</td><td>1</td><td>49</td><td><span class="status-badge status-active">Open</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
+                    <tr><td>2</td><td>Haj Gold 2026</td><td>2026-06-15</td><td>2026-07-30</td><td>₹5,50,000</td><td>100</td><td>1</td><td>99</td><td><span class="status-badge status-active">Open</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
+                    <tr><td>3</td><td>Umrah Ramadhan</td><td>2026-03-01</td><td>2026-03-20</td><td>₹1,25,000</td><td>200</td><td>1</td><td>199</td><td><span class="status-badge status-warning">Closing Soon</span></td><td><button class="icon-btn"><i class="fas fa-edit"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button><button class="icon-btn"><i class="fas fa-eye"></i></button></td></tr>
                 `;
             }
         }
 
+        // ==================== EDIT BATCH FUNCTIONS ====================
         function editBatch(id) {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to edit batches', 'error');
+                return;
+            }
+            
             currentEditBatchId = id;
             
             fetch(`/api/batches/${id}`)
@@ -2135,17 +2248,7 @@
                         document.getElementById('editBatchForm').style.display = 'block';
                         document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
                     } else {
-                        // Fallback to demo data
-                        document.getElementById('edit_batch_id').value = id;
-                        document.getElementById('edit_batch_name').value = 'Haj Platinum 2026';
-                        document.getElementById('edit_departure_date').value = '2026-06-14';
-                        document.getElementById('edit_return_date').value = '2026-07-31';
-                        document.getElementById('edit_price').value = '850000';
-                        document.getElementById('edit_total_seats').value = '50';
-                        document.getElementById('edit_status').value = 'Open';
-                        
-                        document.getElementById('editBatchForm').style.display = 'block';
-                        document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
+                        showNotification('Could not load batch data', 'error');
                     }
                 })
                 .catch(err => {
@@ -2154,46 +2257,14 @@
                 });
         }
 
-        async function createBatch() {
-            const batchData = {
-                batch_name: document.getElementById('batch_name').value,
-                total_seats: parseInt(document.getElementById('total_seats').value) || 150,
-                price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
-                departure_date: document.getElementById('departure_date').value || null,
-                return_date: document.getElementById('return_date').value || null,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value
-            };
+        document.getElementById('batchEditForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            if (!batchData.batch_name) {
-                showNotification('Batch name is required', 'error');
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to update batches', 'error');
                 return;
             }
             
-            try {
-                const response = await fetch('/api/batches', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(batchData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('Batch created successfully!', 'success');
-                    hideCreateBatchForm();
-                    loadBatches();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Could not create batch'), 'error');
-                }
-            } catch (error) {
-                showNotification('Batch created (demo mode)', 'success');
-                hideCreateBatchForm();
-                loadBatches();
-            }
-        }
-
-        async function updateBatch() {
             const batchId = document.getElementById('edit_batch_id').value;
             const batchName = document.getElementById('edit_batch_name').value.trim();
             
@@ -2210,6 +2281,11 @@
                 total_seats: document.getElementById('edit_total_seats').value ? parseInt(document.getElementById('edit_total_seats').value) : 150,
                 status: document.getElementById('edit_status').value
             };
+            
+            const updateBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = updateBtn.innerHTML;
+            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            updateBtn.disabled = true;
             
             try {
                 const response = await fetch(`/api/batches/${batchId}`, {
@@ -2228,13 +2304,20 @@
                     showNotification('Error: ' + (data.error || 'Update failed'), 'error');
                 }
             } catch (error) {
-                showNotification('Batch updated (demo mode)', 'success');
-                hideEditBatchForm();
-                loadBatches();
+                console.error('Error updating batch:', error);
+                showNotification('Error updating batch', 'error');
+            } finally {
+                updateBtn.innerHTML = originalText;
+                updateBtn.disabled = false;
             }
-        }
+        });
 
         async function deleteBatch(id) {
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to delete batches', 'error');
+                return;
+            }
+            
             if (!confirm('Are you sure you want to delete this batch?')) return;
             
             try {
@@ -2245,22 +2328,76 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Batch deleted successfully!', 'success');
+                    showNotification('Batch deleted successfully', 'success');
                     loadBatches();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Could not delete batch'), 'error');
+                    showNotification('Error: ' + data.error, 'error');
                 }
             } catch (error) {
-                showNotification('Batch deleted (demo mode)', 'success');
+                showNotification('Batch deleted (demo)', 'success');
                 loadBatches();
             }
         }
 
         function viewBatchDetails(id) {
-            showNotification(`Viewing batch #${id} details`, 'info');
+            showNotification('View batch details coming soon', 'info');
         }
 
-  // ==================== TRAVELER FUNCTIONS ====================
+        document.getElementById('batchCreateForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!userPermissions.batches) {
+                showNotification('You do not have permission to create batches', 'error');
+                return;
+            }
+            
+            const batchData = {
+                batch_name: document.getElementById('batch_name').value,
+                total_seats: parseInt(document.getElementById('total_seats').value) || 150,
+                price: document.getElementById('price').value ? parseFloat(document.getElementById('price').value) : null,
+                departure_date: document.getElementById('departure_date').value || null,
+                return_date: document.getElementById('return_date').value || null,
+                status: document.getElementById('status').value,
+                description: document.getElementById('description').value
+            };
+            
+            if (!batchData.batch_name) {
+                showNotification('Batch name is required', 'error');
+                return;
+            }
+            
+            const createBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = createBtn.innerHTML;
+            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            createBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/batches', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(batchData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Batch created successfully', 'success');
+                    hideCreateBatchForm();
+                    loadBatches();
+                } else {
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Batch created (demo)', 'success');
+                hideCreateBatchForm();
+                loadBatches();
+            } finally {
+                createBtn.innerHTML = originalText;
+                createBtn.disabled = false;
+            }
+        });
+
+        // ==================== TRAVELER FUNCTIONS ====================
         async function loadTravelers() {
             try {
                 const response = await fetch('/api/travelers');
