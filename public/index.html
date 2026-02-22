@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Alhudha Haj Travel - Your Journey to the Holy Land</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style id="dynamicStyles">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        /* Urgent Alert Styles */
+        .urgent-alert {
+            background: #f39c12;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.9; background: #e67e22; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .urgent-alert i {
+            margin-right: 10px;
+        }
+        
+        .urgent-alert a {
+            color: white;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-left: 15px;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-brand i {
+            color: #f1c40f;
+        }
+        
+        .nav-brand img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.9), rgba(52, 73, 94, 0.9)), url('https://images.unsplash.com/photo-1542816417-5cef58c1e8e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+        
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+        
+        .btn-whatsapp:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+        }
+        
+        .btn-email {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-email:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 40px 0;
+        }
+        
+        .package-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .package-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .package-body {
+            padding: 20px;
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .features i {
+            color: #27ae60;
+            margin-right: 10px;
+        }
+        
+        .package-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .package-actions a {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .package-actions a:hover {
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section h3 {
+            color: #f1c40f;
+            margin-bottom: 20px;
+        }
+        
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+        
+        .footer-section a:hover {
+            opacity: 1;
+        }
+        
+        .footer .contact-info {
+            margin-top: 10px;
+        }
+        
+        .footer .contact-info a {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        
+        .footer .social-links {
+            margin-top: 15px;
+        }
+        
+        .footer .social-links a {
+            display: inline-block;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .package-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Urgent Alert - Dynamically loaded -->
+    <div id="urgentAlert" class="urgent-alert" style="display: none;"></div>
+
+    <div class="navbar">
+        <div class="container nav-container">
+            <div class="nav-brand" id="navBrand">
+                <i class="fas fa-kaaba"></i>
+                <span>Alhudha Haj Travel</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="#packages">Packages</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="/admin.login.html">Admin Login</a>
+                <a href="/traveler_login.html">Traveler Login</a>
+            </div>
+        </div>
+    </div>
+
+    <section class="hero" id="heroSection">
+        <div class="container">
+            <div id="heroContent">
+                <h1 id="heroHeading">Your Journey to the Holy Land</h1>
+                <p id="heroSubheading">Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages</p>
+            </div>
+            <a href="#packages" class="btn btn-primary" id="heroButton">View Packages</a>
+        </div>
+    </section>
+
+    <section id="packages" class="container">
+        <h2 style="text-align: center; margin: 40px 0;" id="packagesTitle">Our Haj & Umrah Packages</h2>
+        <div class="packages-grid" id="packagesGrid">
+            <div style="text-align: center; grid-column: 1/-1;">Loading packages...</div>
+        </div>
+    </section>
+
+    <section id="about" class="container" style="padding: 60px 0;">
+        <h2 style="text-align: center; margin-bottom: 30px;" id="aboutTitle">Why Choose Alhudha?</h2>
+        <div class="features-grid" id="featuresGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+            <!-- Features will be loaded dynamically -->
+        </div>
+    </section>
+
+    <section id="contact" class="container" style="padding: 60px 0;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Contact Us</h2>
+        <div class="contact-grid" id="contactGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+            <!-- Contact info will be loaded dynamically -->
+        </div>
+    </section>
+
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section" id="footerAbout">
+                    <h3>Alhudha Haj Travel</h3>
+                    <p>Your trusted partner for Haj and Umrah since 1998</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="/">Home</a>
+                    <a href="#packages">Packages</a>
+                    <a href="#about">About Us</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="footer-section" id="footerConnect">
+                    <h3>Connect With Us</h3>
+                    <a href="/admin.login.html">Admin Login</a>
+                    <a href="/traveler_login.html">Traveler Login</a>
+                    <div class="social-links" id="socialLinks">
+                        <!-- Social links will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerCopyright">© 2026 Alhudha Haj Travel System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ==================== LOAD FRONTPAGE CONFIGURATION ====================
+        async function loadFrontpageConfig() {
+            try {
+                // Try to load from API first
+                const response = await fetch('/api/frontpage/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    applyConfig(config);
+                } else {
+                    // Fallback to localStorage (for demo/development)
+                    loadFromLocalStorage();
+                }
+            } catch (error) {
+                console.log('Using localStorage configuration');
+                loadFromLocalStorage();
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const config = {
+                alert: {
+                    enabled: localStorage.getItem('urgentAlertEnabled') === 'true',
+                    message: localStorage.getItem('urgentAlertMessage') || '⚠️ Important: Visa requirements updated for 2026 Hajj. Please submit documents by March 15th.',
+                    link: localStorage.getItem('urgentAlertLink') || '',
+                    color: localStorage.getItem('urgentAlertColor') || '#f39c12',
+                    style: localStorage.getItem('urgentAlertStyle') || 'pulse'
+                },
+                hero: {
+                    heading: localStorage.getItem('heroHeading') || 'Your Journey to the Holy Land',
+                    subheading: localStorage.getItem('heroSubheading') || 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages',
+                    button: localStorage.getItem('heroButton') || 'View Packages',
+                    color1: localStorage.getItem('heroColor1') || '#2c3e50',
+                    color2: localStorage.getItem('heroColor2') || '#3498db'
+                },
+                packages: JSON.parse(localStorage.getItem('packages') || '[]'),
+                features: JSON.parse(localStorage.getItem('features') || '[]'),
+                contact: {
+                    whatsapp: localStorage.getItem('whatsappNumber') || '919876543210',
+                    email: localStorage.getItem('bookingEmail') || 'bookings@alhudha.com',
+                    phone: localStorage.getItem('footerPhone') || '+91 98765 43210',
+                    facebook: localStorage.getItem('facebookUrl') || '#',
+                    twitter: localStorage.getItem('twitterUrl') || '#',
+                    instagram: localStorage.getItem('instagramUrl') || '#'
+                },
+                footer: {
+                    text: localStorage.getItem('footerText') || '© 2026 Alhudha Haj Travel System. All rights reserved.',
+                    email: localStorage.getItem('footerEmail') || 'info@alhudha.com'
+                },
+                primaryColor: localStorage.getItem('primaryColor') || '#3498db',
+                secondaryColor: localStorage.getItem('secondaryColor') || '#27ae60',
+                fontFamily: localStorage.getItem('fontFamily') || "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+            };
+            
+            applyConfig(config);
+        }
+
+        function applyConfig(config) {
+            // Apply font family
+            if (config.fontFamily) {
+                document.body.style.fontFamily = config.fontFamily;
+            }
+            
+            // Apply colors
+            if (config.primaryColor || config.secondaryColor) {
+                updateStyles(config);
+            }
+            
+            // Apply urgent alert
+            if (config.alert && config.alert.enabled) {
+                showUrgentAlert(config.alert);
+            }
+            
+            // Apply hero section
+            if (config.hero) {
+                document.getElementById('heroHeading').textContent = config.hero.heading || 'Your Journey to the Holy Land';
+                document.getElementById('heroSubheading').textContent = config.hero.subheading || 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages';
+                document.getElementById('heroButton').textContent = config.hero.button || 'View Packages';
+                
+                // Update hero gradient if colors are provided
+                if (config.hero.color1 && config.hero.color2) {
+                    const heroSection = document.getElementById('heroSection');
+                    heroSection.style.background = `linear-gradient(rgba(44, 62, 80, 0.9), rgba(52, 73, 94, 0.9)), url('https://images.unsplash.com/photo-1542816417-5cef58c1e8e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80')`;
+                }
+            }
+            
+            // Apply packages
+            if (config.packages && config.packages.length > 0) {
+                renderPackages(config.packages, config.contact);
+            } else {
+                // Load from API if no packages in config
+                loadPackagesFromAPI(config.contact);
+            }
+            
+            // Apply features
+            if (config.features && config.features.length > 0) {
+                renderFeatures(config.features);
+            }
+            
+            // Apply contact info
+            if (config.contact) {
+                renderContactInfo(config.contact);
+            }
+            
+            // Apply footer
+            if (config.footer) {
+                document.getElementById('footerCopyright').textContent = config.footer.text || '© 2026 Alhudha Haj Travel System. All rights reserved.';
+            }
+            
+            // Apply social links
+            if (config.contact) {
+                renderSocialLinks(config.contact);
+            }
+            
+            // Apply logo if exists
+            const logo = localStorage.getItem('companyLogo');
+            if (logo) {
+                const navBrand = document.getElementById('navBrand');
+                navBrand.innerHTML = `<img src="${logo}" alt="Alhudha Haj Travel" style="height: 40px;">`;
+            }
+        }
+
+        function updateStyles(config) {
+            const styleEl = document.getElementById('dynamicStyles');
+            let css = styleEl.textContent;
+            
+            // Update primary color
+            if (config.primaryColor) {
+                css = css.replace(/background: linear-gradient\(135deg, #3498db, #2980b9\)/g, 
+                    `background: linear-gradient(135deg, ${config.primaryColor}, ${adjustColor(config.primaryColor, -20)})`);
+                css = css.replace(/color: #3498db/g, `color: ${config.primaryColor}`);
+                css = css.replace(/background: #3498db/g, `background: ${config.primaryColor}`);
+            }
+            
+            // Update secondary color
+            if (config.secondaryColor) {
+                css = css.replace(/background: #27ae60/g, `background: ${config.secondaryColor}`);
+                css = css.replace(/color: #27ae60/g, `color: ${config.secondaryColor}`);
+            }
+            
+            styleEl.textContent = css;
+        }
+
+        function adjustColor(hex, percent) {
+            // Simple color adjustment - in production use a proper library
+            return hex;
+        }
+
+        function showUrgentAlert(alert) {
+            const alertDiv = document.getElementById('urgentAlert');
+            
+            // Set animation
+            let animation = '';
+            if (alert.style === 'pulse') {
+                animation = 'pulse 2s infinite';
+            } else if (alert.style === 'blink') {
+                animation = 'blink 1s infinite';
+            }
+            
+            alertDiv.style.background = alert.color || '#f39c12';
+            alertDiv.style.animation = animation;
+            
+            let alertHtml = `<i class="fas fa-exclamation-circle"></i> ${alert.message}`;
+            if (alert.link) {
+                alertHtml += ` <a href="${alert.link}">Learn More</a>`;
+            }
+            
+            alertDiv.innerHTML = alertHtml;
+            alertDiv.style.display = 'block';
+        }
+
+        async function loadPackagesFromAPI(contact) {
+            try {
+                const response = await fetch('/api/batches');
+                const data = await response.json();
+                
+                if (data.success && data.batches.length > 0) {
+                    renderPackages(data.batches, contact);
+                } else {
+                    document.getElementById('packagesGrid').innerHTML = '<div style="text-align: center; grid-column: 1/-1;">No packages available</div>';
+                }
+            } catch (error) {
+                console.error('Error loading packages:', error);
+                document.getElementById('packagesGrid').innerHTML = '<div style="text-align: center; grid-column: 1/-1;">Unable to load packages</div>';
+            }
+        }
+
+        function renderPackages(packages, contact) {
+            const grid = document.getElementById('packagesGrid');
+            
+            if (!packages || packages.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; grid-column: 1/-1;">No packages available</div>';
+                return;
+            }
+            
+            const whatsappNumber = contact?.whatsapp || '919876543210';
+            const bookingEmail = contact?.email || 'bookings@alhudha.com';
+            const whatsappMessage = encodeURIComponent(localStorage.getItem('whatsappMessage') || 'Hi, I\'m interested in your Haj/Umrah packages. Can you please share more details?');
+            
+            grid.innerHTML = packages.map(p => {
+                const packageName = p.batch_name || p.name;
+                const price = p.price ? `₹${p.price.toLocaleString('en-IN')}` : 'Contact for price';
+                const description = p.description || 'Contact us for package details';
+                const departure = p.departure_date || 'TBD';
+                const returnDate = p.return_date || 'TBD';
+                const seats = p.total_seats || 150;
+                const booked = p.booked_seats || 0;
+                const status = p.status || 'Open';
+                
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}%20${encodeURIComponent(packageName)}`;
+                const emailUrl = `mailto:${bookingEmail}?subject=${encodeURIComponent('Package Inquiry: ' + packageName)}&body=${encodeURIComponent('I am interested in ' + packageName + '. Please share more details.')}`;
+                
+                return `
+                    <div class="package-card">
+                        <div class="package-header">
+                            <h3><i class="fas ${p.icon || 'fa-mosque'}"></i> ${packageName}</h3>
+                        </div>
+                        <div class="package-body">
+                            <div class="price">${price}</div>
+                            <ul class="features">
+                                <li><i class="fas fa-calendar"></i> Departure: ${departure}</li>
+                                <li><i class="fas fa-calendar-check"></i> Return: ${returnDate}</li>
+                                <li><i class="fas fa-users"></i> Seats: ${booked}/${seats}</li>
+                                <li><i class="fas fa-tag"></i> Status: ${status}</li>
+                            </ul>
+                            <p>${description}</p>
+                            <div class="package-actions">
+                                <a href="${whatsappUrl}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                                <a href="${emailUrl}" class="btn-email"><i class="far fa-envelope"></i> Email</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFeatures(features) {
+            const grid = document.getElementById('featuresGrid');
+            
+            if (!features || features.length === 0) {
+                // Default features
+                grid.innerHTML = `
+                    <div style="text-align: center;">
+                        <i class="fas fa-mosque" style="font-size: 48px; color: #27ae60;"></i>
+                        <h3>25+ Years Experience</h3>
+                        <p>Trusted by thousands of pilgrims</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-hotel" style="font-size: 48px; color: #27ae60;"></i>
+                        <h3>Premium Accommodation</h3>
+                        <p>Hotels near Haram</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-bus" style="font-size: 48px; color: #27ae60;"></i>
+                        <h3>VIP Transportation</h3>
+                        <p>Comfortable travel between holy sites</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-users" style="font-size: 48px; color: #27ae60;"></i>
+                        <h3>Expert Guides</h3>
+                        <p>Knowledgeable guides throughout</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = features.map(f => `
+                <div style="text-align: center;">
+                    <i class="fas ${f.icon || 'fa-check-circle'}" style="font-size: 48px; color: #27ae60;"></i>
+                    <h3>${f.text}</h3>
+                </div>
+            `).join('');
+        }
+
+        function renderContactInfo(contact) {
+            const grid = document.getElementById('contactGrid');
+            const phone = contact.phone || '+91 98765 43210';
+            const email = contact.email || 'info@alhudha.com';
+            
+            grid.innerHTML = `
+                <div style="text-align: center;">
+                    <i class="fas fa-phone-alt" style="font-size: 36px; color: #27ae60;"></i>
+                    <h3>Phone</h3>
+                    <p>${phone}</p>
+                    <p>${phone.replace('98765', '98766')}</p>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-envelope" style="font-size: 36px; color: #27ae60;"></i>
+                    <h3>Email</h3>
+                    <p>${email}</p>
+                    <p>support@alhudha.com</p>
+                </div>
+                <div style="text-align: center;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 36px; color: #27ae60;"></i>
+                    <h3>Office</h3>
+                    <p>123, Haj House,</p>
+                    <p>Mumbai - 400001, India</p>
+                </div>
+            `;
+        }
+
+        function renderSocialLinks(contact) {
+            const socialDiv = document.getElementById('socialLinks');
+            const facebook = contact.facebook || '#';
+            const twitter = contact.twitter || '#';
+            const instagram = contact.instagram || '#';
+            
+            socialDiv.innerHTML = `
+                <a href="${facebook}" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="${twitter}" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="${instagram}" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/${contact.whatsapp || '919876543210'}" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            `;
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFrontpageConfig();
+            
+            // Check for urgent alert expiry
+            const alertEndDate = localStorage.getItem('alertEndDate');
+            if (alertEndDate && new Date(alertEndDate) < new Date()) {
+                document.getElementById('urgentAlert').style.display = 'none';
+            }
+        });
+
+        // ==================== SMOOTH SCROLLING ====================
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
