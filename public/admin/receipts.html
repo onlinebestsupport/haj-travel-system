@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipts - Alhudha Haj Travel Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .receipt-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s;
+        }
+        
+        .receipt-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .receipt-date {
+            color: #7f8c8d;
+        }
+        
+        .receipt-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .receipt-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .receipt-detail-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .receipt-amount {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .receipt-installment {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #e1f0fa;
+            color: #2980b9;
+            margin-left: 10px;
+        }
+        
+        .receipt-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .btn-view {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-print-receipt {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-email-receipt {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .receipt-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .receipt-badge-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .receipt-badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .receipt-badge-advance {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .receipt-badge-final {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .receipt-search {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .receipt-search input,
+        .receipt-search select {
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 5px;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-range input {
+            width: 150px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .modal-header h3 {
+            color: #2c3e50;
+        }
+        
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .close:hover {
+            color: #e74c3c;
+        }
+
+        /* Create Receipt Form */
+        .create-receipt-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .create-receipt-form h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .form-group label i {
+            margin-right: 8px;
+            color: #f1c40f;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+        }
+        
+        .form-group input[readonly] {
+            background: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .payment-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #3498db;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-row.total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid #3498db;
+        }
+        
+        .installment-info {
+            background: #e1f0fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .installment-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2980b9;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover,
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification-success {
+            background: #27ae60;
+        }
+
+        .notification-error {
+            background: #e74c3c;
+        }
+
+        .notification-info {
+            background: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-area">
+                    <i class="fas fa-kaaba"></i>
+                    <h1>Alhudha Haj Admin - Receipts</h1>
+                    <span class="role-badge" id="roleBadge">Admin</span>
+                </div>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2><i class="fas fa-receipt"></i> Receipt Management</h2>
+            <div>
+                <button class="btn-success" onclick="toggleCreateReceiptForm()" style="margin-right: 10px;">
+                    <i class="fas fa-plus"></i> Create New Receipt
+                </button>
+                <button class="btn-primary" onclick="generateBulkReceipts()">
+                    <i class="fas fa-layer-group"></i> Generate Bulk Receipts
+                </button>
+            </div>
+        </div>
+
+        <!-- Create New Receipt Form -->
+        <div id="createReceiptForm" class="create-receipt-form">
+            <h3><i class="fas fa-plus-circle"></i> Create New Payment Receipt</h3>
+            <form id="receiptCreateForm" onsubmit="event.preventDefault(); generateReceipt();">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Select Traveler *</label>
+                        <select id="receiptTravelerSelect" required onchange="loadTravelerReceiptDetails()">
+                            <option value="">-- Select Traveler --</option>
+                            <option value="1" data-passport="A1234567" data-batch="Haj Platinum 2026" data-batch-id="1" data-total="901425" data-paid="180285" data-pending="721140" data-installments="2">Ahmed Khan (A1234567) - Haj Platinum 2026</option>
+                            <option value="2" data-passport="B7654321" data-batch="Haj Gold 2026" data-batch-id="2" data-total="583275" data-paid="583275" data-pending="0" data-installments="1">Fatima Begum (B7654321) - Haj Gold 2026</option>
+                            <option value="3" data-passport="C9876543" data-batch="Umrah Ramadhan" data-batch-id="3" data-total="132562" data-paid="26512" data-pending="106050" data-installments="1">Mohammed Rafiq (C9876543) - Umrah Ramadhan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-passport"></i> Passport Number</label>
+                        <input type="text" id="receiptPassport" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-layer-group"></i> Batch</label>
+                        <input type="text" id="receiptBatch" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Receipt Type</label>
+                        <select id="receiptType" required onchange="updateInstallmentInfo()">
+                            <option value="advance">Advance Payment</option>
+                            <option value="installment">Installment Payment</option>
+                            <option value="final">Final Settlement</option>
+                            <option value="partial">Partial Payment</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Installment Information -->
+                <div id="installmentInfo" class="installment-info">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span class="installment-number" id="installmentNumber">2nd</span>
+                            <span>Installment Payment</span>
+                        </div>
+                        <div>
+                            <span class="receipt-badge receipt-badge-paid" id="paidInstallments">2 Paid</span>
+                            <span class="receipt-badge receipt-badge-pending" id="pendingInstallments">2 Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Payment Date *</label>
+                        <input type="date" id="receiptDate" required value="2026-02-22">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-money-bill"></i> Payment Method *</label>
+                        <select id="receiptPaymentMethod" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-rupee-sign"></i> Amount (₹) *</label>
+                        <input type="number" id="receiptAmount" required min="1" step="100" value="85000" onchange="updatePaymentSummary()">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-hashtag"></i> Transaction ID / Reference</label>
+                        <input type="text" id="receiptTransactionId" placeholder="Optional">
+                    </div>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="payment-summary" id="paymentSummary">
+                    <h4 style="margin-bottom: 15px; color: #2c3e50;">Payment Summary</h4>
+                    <div class="summary-row">
+                        <span>Total Package Amount (incl. GST/TCS):</span>
+                        <span class="amount-display" id="displayTotalPackage">₹9,01,425</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Paid Till Date:</span>
+                        <span class="amount-display" id="displayTotalPaid">₹1,80,285</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>This Payment Amount:</span>
+                        <span class="amount-display" id="displayThisPayment">₹85,000</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Balance After This Payment:</span>
+                        <span class="amount-display" id="displayBalance">₹7,21,140</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>New Total Paid:</span>
+                        <span class="amount-display" id="displayNewTotalPaid">₹2,65,285</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-sticky-note"></i> Remarks / Notes</label>
+                    <textarea id="receiptRemarks" rows="2" placeholder="Any additional notes..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button type="submit" class="btn-success">
+                        <i class="fas fa-save"></i> Generate Receipt
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="toggleCreateReceiptForm()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Receipt Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-receipt"></i>
+                <h3>Total Receipts</h3>
+                <div class="stat-number" id="totalReceipts">245</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-rupee-sign"></i>
+                <h3>Total Amount</h3>
+                <div class="stat-number" id="totalReceiptAmount">₹2,85,00,000</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-week"></i>
+                <h3>This Week</h3>
+                <div class="stat-number" id="weeklyReceipts">18</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-month"></i>
+                <h3>This Month</h3>
+                <div class="stat-number" id="monthlyReceipts">64</div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="receipt-search">
+            <input type="text" id="searchReceipt" placeholder="Search by receipt #, traveler name, passport...">
+            <select id="receiptTypeFilter">
+                <option value="all">All Types</option>
+                <option value="advance">Advance Payment</option>
+                <option value="installment">Installment</option>
+                <option value="final">Final Settlement</option>
+                <option value="partial">Partial Payment</option>
+            </select>
+            <div class="date-range">
+                <input type="date" id="fromDate" placeholder="From">
+                <span>to</span>
+                <input type="date" id="toDate" placeholder="To">
+            </div>
+            <button class="btn-primary" onclick="searchReceipts()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+
+        <!-- Receipts List -->
+        <div id="receiptsList">
+            <!-- Receipt Card 1 - 1st Installment -->
+            <div class="receipt-card">
+                <div class="receipt-header">
+                    <div>
+                        <span class="receipt-number">REC-2026-02-001</span>
+                        <span class="receipt-installment">1st Installment</span>
+                        <span class="receipt-badge receipt-badge-paid" style="margin-left: 10px;">Paid</span>
+                    </div>
+                    <span class="receipt-date">21 Feb 2026, 10:30 AM</span>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Traveler Name</span>
+                        <span class="receipt-detail-value">Ahmed Khan</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Passport No</span>
+                        <span class="receipt-detail-value">A1234567</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Batch</span>
+                        <span class="receipt-detail-value">Haj Platinum 2026</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Payment Method</span>
+                        <span class="receipt-detail-value">Bank Transfer</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Installment</span>
+                        <span class="receipt-detail-value">1 of 4</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Amount</span>
+                        <span class="receipt-detail-value receipt-amount">₹85,000</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-actions">
+                    <button class="btn-view" onclick="viewReceipt('REC-2026-02-001')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-print-receipt" onclick="printReceipt('REC-2026-02-001')">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-email-receipt" onclick="emailReceipt('REC-2026-02-001')">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button class="icon-btn" onclick="downloadReceiptPDF('REC-2026-02-001')">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Receipt Card 2 - 2nd Installment -->
+            <div class="receipt-card">
+                <div class="receipt-header">
+                    <div>
+                        <span class="receipt-number">REC-2026-02-002</span>
+                        <span class="receipt-installment">2nd Installment</span>
+                        <span class="receipt-badge receipt-badge-paid" style="margin-left: 10px;">Paid</span>
+                    </div>
+                    <span class="receipt-date">20 Feb 2026, 3:45 PM</span>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Traveler Name</span>
+                        <span class="receipt-detail-value">Ahmed Khan</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Passport No</span>
+                        <span class="receipt-detail-value">A1234567</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Batch</span>
+                        <span class="receipt-detail-value">Haj Platinum 2026</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Payment Method</span>
+                        <span class="receipt-detail-value">UPI</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Installment</span>
+                        <span class="receipt-detail-value">2 of 4</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Amount</span>
+                        <span class="receipt-detail-value receipt-amount">₹85,000</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-actions">
+                    <button class="btn-view" onclick="viewReceipt('REC-2026-02-002')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-print-receipt" onclick="printReceipt('REC-2026-02-002')">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-email-receipt" onclick="emailReceipt('REC-2026-02-002')">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button class="icon-btn" onclick="downloadReceiptPDF('REC-2026-02-002')">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Receipt Card 3 - Final Payment -->
+            <div class="receipt-card">
+                <div class="receipt-header">
+                    <div>
+                        <span class="receipt-number">REC-2026-02-003</span>
+                        <span class="receipt-installment">Final Settlement</span>
+                        <span class="receipt-badge receipt-badge-paid" style="margin-left: 10px;">Paid</span>
+                    </div>
+                    <span class="receipt-date">19 Feb 2026, 11:20 AM</span>
+                </div>
+                
+                <div class="receipt-details">
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Traveler Name</span>
+                        <span class="receipt-detail-value">Fatima Begum</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Passport No</span>
+                        <span class="receipt-detail-value">B7654321</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Batch</span>
+                        <span class="receipt-detail-value">Haj Gold 2026</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Payment Method</span>
+                        <span class="receipt-detail-value">Bank Transfer</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Installment</span>
+                        <span class="receipt-detail-value">Final</span>
+                    </div>
+                    <div class="receipt-detail-item">
+                        <span class="receipt-detail-label">Amount</span>
+                        <span class="receipt-detail-value receipt-amount">₹5,83,275</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-actions">
+                    <button class="btn-view" onclick="viewReceipt('REC-2026-02-003')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-print-receipt" onclick="printReceipt('REC-2026-02-003')">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-email-receipt" onclick="emailReceipt('REC-2026-02-003')">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button class="icon-btn" onclick="downloadReceiptPDF('REC-2026-02-003')">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <div>
+                Showing 1 to 3 of 245 receipts
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" onclick="previousPage()"><i class="fas fa-chevron-left"></i> Previous</button>
+                <button class="btn-primary" onclick="nextPage()">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt View Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Receipt Details</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="receiptDetails" class="modal-body">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Check authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!sessionStorage.getItem('adminLoggedIn')) {
+                window.location.href = '/admin.login.html';
+            }
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('receiptDate').value = today;
+        });
+
+        // Notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = '/admin.login.html';
+        }
+
+        // Toggle create receipt form
+        function toggleCreateReceiptForm() {
+            const form = document.getElementById('createReceiptForm');
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                form.style.display = 'none';
+            }
+        }
+
+        // Load traveler details when selected
+        function loadTravelerReceiptDetails() {
+            const select = document.getElementById('receiptTravelerSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value) {
+                const passport = selectedOption.getAttribute('data-passport');
+                const batch = selectedOption.getAttribute('data-batch');
+                const totalPackage = selectedOption.getAttribute('data-total');
+                const paidAmount = selectedOption.getAttribute('data-paid');
+                const pendingAmount = selectedOption.getAttribute('data-pending');
+                const installmentsPaid = selectedOption.getAttribute('data-installments');
+                
+                document.getElementById('receiptPassport').value = passport || '';
+                document.getElementById('receiptBatch').value = batch || '';
+                
+                // Store payment data for calculations
+                document.getElementById('displayTotalPackage').textContent = '₹' + Number(totalPackage).toLocaleString('en-IN');
+                document.getElementById('displayTotalPaid').textContent = '₹' + Number(paidAmount).toLocaleString('en-IN');
+                document.getElementById('displayBalance').textContent = '₹' + Number(pendingAmount).toLocaleString('en-IN');
+                
+                // Update installment info
+                document.getElementById('paidInstallments').textContent = installmentsPaid + ' Paid';
+                const totalInstallments = 4; // Assuming 4 installments total
+                const pendingInstallments = totalInstallments - installmentsPaid;
+                document.getElementById('pendingInstallments').textContent = pendingInstallments + ' Pending';
+                
+                // Set next installment number
+                const nextInstallment = Number(installmentsPaid) + 1;
+                const installmentSuffix = getInstallmentSuffix(nextInstallment);
+                document.getElementById('installmentNumber').textContent = nextInstallment + installmentSuffix;
+                
+                updateInstallmentInfo();
+                updatePaymentSummary();
+            } else {
+                document.getElementById('receiptPassport').value = '';
+                document.getElementById('receiptBatch').value = '';
+            }
+        }
+
+        function getInstallmentSuffix(num) {
+            if (num === 1) return 'st';
+            if (num === 2) return 'nd';
+            if (num === 3) return 'rd';
+            return 'th';
+        }
+
+        function updateInstallmentInfo() {
+            const receiptType = document.getElementById('receiptType').value;
+            const installmentDiv = document.getElementById('installmentInfo');
+            
+            if (receiptType === 'installment') {
+                installmentDiv.style.display = 'block';
+            } else if (receiptType === 'final') {
+                installmentDiv.style.display = 'block';
+                document.getElementById('installmentNumber').textContent = 'Final';
+            } else if (receiptType === 'advance') {
+                installmentDiv.style.display = 'block';
+                document.getElementById('installmentNumber').textContent = 'Advance';
+            } else {
+                installmentDiv.style.display = 'block';
+                document.getElementById('installmentNumber').textContent = 'Partial';
+            }
+        }
+
+        function updatePaymentSummary() {
+            const amount = parseFloat(document.getElementById('receiptAmount').value) || 0;
+            const totalPackageText = document.getElementById('displayTotalPackage').textContent.replace('₹', '').replace(/,/g, '');
+            const totalPaidText = document.getElementById('displayTotalPaid').textContent.replace('₹', '').replace(/,/g, '');
+            
+            const totalPackage = parseFloat(totalPackageText) || 0;
+            const totalPaid = parseFloat(totalPaidText) || 0;
+            
+            const newTotalPaid = totalPaid + amount;
+            const balance = totalPackage - newTotalPaid;
+            
+            document.getElementById('displayThisPayment').textContent = '₹' + amount.toLocaleString('en-IN');
+            document.getElementById('displayNewTotalPaid').textContent = '₹' + newTotalPaid.toLocaleString('en-IN');
+            document.getElementById('displayBalance').textContent = '₹' + Math.max(0, balance).toLocaleString('en-IN');
+        }
+
+        function generateReceipt() {
+            const travelerSelect = document.getElementById('receiptTravelerSelect');
+            if (!travelerSelect.value) {
+                showNotification('Please select a traveler', 'error');
+                return;
+            }
+            
+            const amount = document.getElementById('receiptAmount').value;
+            if (!amount || amount <= 0) {
+                showNotification('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            // Get selected traveler name
+            const travelerName = travelerSelect.options[travelerSelect.selectedIndex].text.split(' - ')[0];
+            const receiptType = document.getElementById('receiptType').value;
+            const receiptDate = document.getElementById('receiptDate').value;
+            const paymentMethod = document.getElementById('receiptPaymentMethod').value;
+            const transactionId = document.getElementById('receiptTransactionId').value || 'N/A';
+            const remarks = document.getElementById('receiptRemarks').value;
+            
+            // Generate receipt number
+            const dateObj = new Date(receiptDate);
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const random = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            const receiptNumber = `REC-${year}-${month}-${random}`;
+            
+            // Determine installment info
+            let installmentText = '';
+            if (receiptType === 'installment') {
+                const installmentNum = document.getElementById('installmentNumber').textContent;
+                installmentText = `${installmentNum} Installment`;
+            } else if (receiptType === 'final') {
+                installmentText = 'Final Settlement';
+            } else if (receiptType === 'advance') {
+                installmentText = 'Advance Payment';
+            } else {
+                installmentText = 'Partial Payment';
+            }
+            
+            // Create receipt object
+            const receiptData = {
+                receiptNumber: receiptNumber,
+                date: receiptDate,
+                travelerName: travelerName,
+                passport: document.getElementById('receiptPassport').value,
+                batch: document.getElementById('receiptBatch').value,
+                amount: amount,
+                paymentMethod: paymentMethod,
+                transactionId: transactionId,
+                receiptType: receiptType,
+                installmentInfo: installmentText,
+                remarks: remarks
+            };
+            
+            console.log('Receipt Generated:', receiptData);
+            showNotification(`Receipt ${receiptNumber} generated successfully!`, 'success');
+            
+            // Reset form and hide
+            document.getElementById('receiptCreateForm').reset();
+            document.getElementById('createReceiptForm').style.display = 'none';
+            
+            // In real implementation, you would send to server
+            // fetch('/api/receipts', { method: 'POST', body: JSON.stringify(receiptData) })
+        }
+
+        function generateBulkReceipts() {
+            showNotification('Bulk receipt generation started', 'info');
+            
+            setTimeout(() => {
+                showNotification('10 receipts generated successfully', 'success');
+            }, 2000);
+        }
+
+        function searchReceipts() {
+            const search = document.getElementById('searchReceipt').value;
+            const type = document.getElementById('receiptTypeFilter').value;
+            const from = document.getElementById('fromDate').value;
+            const to = document.getElementById('toDate').value;
+            
+            showNotification('Searching receipts...', 'info');
+        }
+
+        function viewReceipt(id) {
+            document.getElementById('receiptModal').style.display = 'flex';
+            
+            // Sample receipt details based on ID
+            let details = '';
+            if (id.includes('001')) {
+                details = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-receipt" style="font-size: 4rem; color: #3498db; margin-bottom: 20px;"></i>
+                        <h2 style="margin-bottom: 5px;">Payment Receipt</h2>
+                        <p style="color: #7f8c8d; margin-bottom: 20px;">${id}</p>
+                        
+                        <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <p><strong>Date:</strong> 21 Feb 2026</p>
+                            <p><strong>Traveler Name:</strong> Ahmed Khan</p>
+                            <p><strong>Passport No:</strong> A1234567</p>
+                            <p><strong>Batch:</strong> Haj Platinum 2026</p>
+                            <p><strong>Installment:</strong> 1st Installment (1 of 4)</p>
+                            <p><strong>Amount:</strong> ₹85,000</p>
+                            <p><strong>Payment Method:</strong> Bank Transfer</p>
+                            <p><strong>Transaction ID:</strong> HDFC123456789</p>
+                            <p><strong>Status:</strong> <span class="receipt-badge receipt-badge-paid">Paid</span></p>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button class="btn-print-receipt" onclick="printCurrentReceipt('${id}')">
+                                <i class="fas fa-print"></i> Print Receipt
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (id.includes('002')) {
+                details = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-receipt" style="font-size: 4rem; color: #3498db; margin-bottom: 20px;"></i>
+                        <h2 style="margin-bottom: 5px;">Payment Receipt</h2>
+                        <p style="color: #7f8c8d; margin-bottom: 20px;">${id}</p>
+                        
+                        <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <p><strong>Date:</strong> 20 Feb 2026</p>
+                            <p><strong>Traveler Name:</strong> Ahmed Khan</p>
+                            <p><strong>Passport No:</strong> A1234567</p>
+                            <p><strong>Batch:</strong> Haj Platinum 2026</p>
+                            <p><strong>Installment:</strong> 2nd Installment (2 of 4)</p>
+                            <p><strong>Amount:</strong> ₹85,000</p>
+                            <p><strong>Payment Method:</strong> UPI</p>
+                            <p><strong>Transaction ID:</strong> UPI987654321</p>
+                            <p><strong>Status:</strong> <span class="receipt-badge receipt-badge-paid">Paid</span></p>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button class="btn-print-receipt" onclick="printCurrentReceipt('${id}')">
+                                <i class="fas fa-print"></i> Print Receipt
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                details = `
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-receipt" style="font-size: 4rem; color: #3498db; margin-bottom: 20px;"></i>
+                        <h2 style="margin-bottom: 5px;">Payment Receipt</h2>
+                        <p style="color: #7f8c8d; margin-bottom: 20px;">${id}</p>
+                        
+                        <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <p><strong>Date:</strong> 19 Feb 2026</p>
+                            <p><strong>Traveler Name:</strong> Fatima Begum</p>
+                            <p><strong>Passport No:</strong> B7654321</p>
+                            <p><strong>Batch:</strong> Haj Gold 2026</p>
+                            <p><strong>Installment:</strong> Final Settlement</p>
+                            <p><strong>Amount:</strong> ₹5,83,275</p>
+                            <p><strong>Payment Method:</strong> Bank Transfer</p>
+                            <p><strong>Transaction ID:</strong> HDFC987654321</p>
+                            <p><strong>Status:</strong> <span class="receipt-badge receipt-badge-paid">Paid</span></p>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button class="btn-print-receipt" onclick="printCurrentReceipt('${id}')">
+                                <i class="fas fa-print"></i> Print Receipt
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('receiptDetails').innerHTML = details;
+        }
+
+        function printReceipt(id) {
+            showNotification(`Preparing receipt ${id} for print...`, 'info');
+            
+            setTimeout(() => {
+                showNotification(`Receipt ${id} sent to printer`, 'success');
+            }, 1500);
+        }
+
+        function printCurrentReceipt(id) {
+            showNotification('Printing receipt...', 'info');
+            
+            setTimeout(() => {
+                showNotification('Receipt printed successfully', 'success');
+            }, 1500);
+        }
+
+        function emailReceipt(id) {
+            showNotification(`Sending receipt ${id} via email...`, 'info');
+            
+            setTimeout(() => {
+                showNotification(`Receipt ${id} emailed successfully`, 'success');
+            }, 1500);
+        }
+
+        function downloadReceiptPDF(id) {
+            showNotification(`Generating PDF for receipt ${id}...`, 'info');
+            
+            setTimeout(() => {
+                showNotification(`Receipt ${id} PDF downloaded`, 'success');
+            }, 2000);
+        }
+
+        function closeModal() {
+            document.getElementById('receiptModal').style.display = 'none';
+        }
+
+        function previousPage() {
+            showNotification('Loading previous page...', 'info');
+        }
+
+        function nextPage() {
+            showNotification('Loading next page...', 'info');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('receiptModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
