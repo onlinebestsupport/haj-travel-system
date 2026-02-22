@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alhudha Haj Travel - Your Journey to the Holy Land</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3c72;
+            --primary-dark: #0f2b4f;
+            --primary-light: #2a4d8c;
+            --secondary: #f1c40f;
+            --secondary-dark: #e0b50e;
+            --success: #27ae60;
+            --success-dark: #219a52;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --warning: #f39c12;
+            --warning-dark: #e67e22;
+            --info: #3498db;
+            --info-dark: #2980b9;
+            --dark: #2c3e50;
+            --darker: #1a252f;
+            --light: #ecf0f1;
+            --lighter: #f8f9fa;
+            --gray: #95a5a6;
+            --gray-dark: #7f8c8d;
+            --border-radius: 16px;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            overflow-x: hidden;
+            background: #ffffff;
+        }
+
+        /* Alert Banner Styles */
+        .alert-banner {
+            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+            color: white;
+            padding: 15px 0;
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+
+        .alert-banner.active {
+            display: block;
+        }
+
+        .alert-banner.pulse {
+            animation: alertPulse 2s infinite;
+        }
+
+        .alert-banner.blink {
+            animation: alertBlink 1s infinite;
+        }
+
+        @keyframes alertPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.9; background: linear-gradient(135deg, #e67e22, #d35400); }
+            100% { opacity: 1; }
+        }
+
+        @keyframes alertBlink {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .alert-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .alert-message {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .alert-message i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .alert-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .alert-text strong {
+            font-weight: 700;
+            margin-right: 5px;
+        }
+
+        .alert-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .alert-link:hover {
+            background: white;
+            color: var(--warning-dark);
+            transform: translateY(-2px);
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--primary);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .top-bar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-info i {
+            color: var(--secondary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-brand img {
+            height: 50px;
+            width: auto;
+        }
+
+        .brand-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .brand-text small {
+            font-size: 0.8rem;
+            display: block;
+            color: var(--gray);
+            font-weight: 400;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+        }
+
+        .mobile-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.95), rgba(20, 40, 80, 0.95)), url('https://images.unsplash.com/photo-1542816417-5cef58c1e8e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Amiri', serif;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 0;
+            background: var(--lighter);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-family: 'Amiri', serif;
+        }
+
+        .section-header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Packages Section */
+        .packages-section {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .package-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .package-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .package-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .package-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+
+        .package-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            position: relative;
+            font-family: 'Amiri', serif;
+        }
+
+        .package-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary);
+            position: relative;
+        }
+
+        .package-body {
+            padding: 30px;
+        }
+
+        .package-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .package-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .package-features li i {
+            color: var(--success);
+            width: 20px;
+        }
+
+        .package-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .package-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* About Section */
+        .about-section {
+            padding: 80px 0;
+            background: var(--lighter);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-text h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-family: 'Amiri', serif;
+        }
+
+        .about-text p {
+            color: var(--gray-dark);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .about-image {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--hover-shadow);
+        }
+
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .contact-card {
+            background: var(--lighter);
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .contact-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .contact-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .contact-card p {
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .contact-card a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .contact-card a:hover {
+            color: var(--secondary);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-dark);
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-section p {
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+            transform: translateX(5px);
+        }
+
+        .footer-links i {
+            color: var(--secondary);
+            width: 20px;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-bottom p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Floating WhatsApp Button */
+        .floating-whatsapp {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+            border: none;
+        }
+
+        .floating-whatsapp:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.6);
+        }
+
+        .floating-whatsapp .tooltip {
+            position: absolute;
+            right: 70px;
+            background: var(--dark);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .floating-whatsapp:hover .tooltip {
+            opacity: 1;
+            right: 80px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                height: 100vh;
+                background: white;
+                flex-direction: column;
+                padding: 50px 30px;
+                box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+                transition: right 0.3s ease;
+                z-index: 1001;
+            }
+
+            .nav-menu.active {
+                right: 0;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .alert-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .alert-message {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fadeInUp {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Alert Banner (Dynamic) -->
+    <div id="alertBanner" class="alert-banner">
+        <div class="alert-content">
+            <div class="alert-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <div class="alert-text">
+                    <span id="alertMessage"></span>
+                </div>
+            </div>
+            <a href="#" id="alertLink" class="alert-link">Learn More</a>
+            <button class="alert-close" onclick="closeAlert()">&times;</button>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info" id="topBarContact">
+                <!-- Dynamic contact info will be loaded -->
+            </div>
+            <div class="social-links" id="topBarSocial">
+                <!-- Dynamic social links will be loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div id="navLogo">
+                    <span class="brand-text">Alhudha Haj <small>Travel</small></span>
+                </div>
+            </a>
+
+            <div class="nav-menu" id="navMenu">
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="#packages">Packages</a>
+                    <a href="#about">About</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="nav-buttons">
+                    <a href="/admin.login.html" class="btn btn-outline">
+                        <i class="fas fa-lock"></i> Admin
+                    </a>
+                    <a href="/traveler_login.html" class="btn btn-primary">
+                        <i class="fas fa-user"></i> Traveler Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="mobile-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content" data-aos="fade-up">
+            <h1 id="heroHeading">Your Journey to the Holy Land</h1>
+            <p id="heroSubheading">Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. Book early for best prices!</p>
+            <div class="hero-buttons">
+                <a href="#packages" class="btn btn-primary" id="heroButton">View Packages</a>
+                <a href="#" class="btn btn-whatsapp" id="heroWhatsapp" target="_blank">
+                    <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>Why Choose Alhudha?</h2>
+                <p>We provide the best services to make your spiritual journey comfortable and memorable</p>
+            </div>
+            <div class="features-grid" id="featuresGrid">
+                <!-- Features will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Packages Section -->
+    <section class="packages-section" id="packages">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2 id="packagesTitle">Our Haj & Umrah Packages</h2>
+                <p>Choose from our carefully designed packages for a blessed journey</p>
+            </div>
+            <div class="packages-grid" id="packagesGrid">
+                <!-- Packages will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text" data-aos="fade-right">
+                    <h2>About Alhudha Haj Travel</h2>
+                    <p>With over 25 years of experience, Alhudha Haj Travel has been serving pilgrims with dedication and excellence. We understand the spiritual significance of this journey and strive to provide the best services to make your experience memorable.</p>
+                    <p>Our team of experienced guides ensures that all your religious obligations are fulfilled with ease, while our premium accommodations and transportation services provide comfort throughout your journey.</p>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">25+</div>
+                            <div class="stat-label">Years Experience</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">10k+</div>
+                            <div class="stat-label">Happy Pilgrims</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Expert Guides</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Satisfaction</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image" data-aos="fade-left">
+                    <img src="https://images.unsplash.com/photo-1542816417-5cef58c1e8e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="About Alhudha">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>Contact Us</h2>
+                <p>We're here to help you with any questions about your journey</p>
+            </div>
+            <div class="contact-grid" id="contactGrid">
+                <!-- Contact info will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Alhudha Haj Travel</h3>
+                    <p>Your trusted partner for Haj and Umrah since 1998. We provide comprehensive services for pilgrims.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="#packages"><i class="fas fa-chevron-right"></i> Packages</a></li>
+                        <li><a href="#about"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Info</h3>
+                    <ul class="footer-links" id="footerContact">
+                        <!-- Dynamic footer contact info -->
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <ul class="footer-links" id="footerSocial">
+                        <!-- Dynamic social links -->
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerCopyright">© 2026 Alhudha Haj Travel System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="#" id="floatingWhatsapp" class="floating-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+        <span class="tooltip">Chat with us</span>
+    </a>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize AOS
+            AOS.init({
+                duration: 1000,
+                once: true,
+                offset: 100
+            });
+
+            // Load frontpage configuration
+            loadFrontpageConfig();
+            
+            // Load packages
+            loadPackages();
+            
+            // Check for saved alert state
+            checkAlertState();
+        });
+
+        // ==================== LOAD FRONTPAGE CONFIG ====================
+        function loadFrontpageConfig() {
+            // Load from localStorage (set by admin/frontpage.html)
+            const config = {
+                hero: {
+                    heading: localStorage.getItem('heroHeading') || 'Your Journey to the Holy Land',
+                    subheading: localStorage.getItem('heroSubheading') || 'Experience the spiritual journey of a lifetime with our premium Haj and Umrah packages. Book early for best prices!',
+                    button: localStorage.getItem('heroButton') || 'View Packages',
+                    color1: localStorage.getItem('heroColor1') || '#1e3c72',
+                    color2: localStorage.getItem('heroColor2') || '#3498db'
+                },
+                packages: JSON.parse(localStorage.getItem('packages') || '[]'),
+                features: JSON.parse(localStorage.getItem('features') || '[]'),
+                contact: {
+                    whatsapp: localStorage.getItem('whatsappNumber') || '919876543210',
+                    email: localStorage.getItem('bookingEmail') || 'bookings@alhudha.com',
+                    phone: localStorage.getItem('footerPhone') || '+91 98765 43210',
+                    facebook: localStorage.getItem('facebookUrl') || '#',
+                    twitter: localStorage.getItem('twitterUrl') || '#',
+                    instagram: localStorage.getItem('instagramUrl') || '#'
+                },
+                footer: {
+                    text: localStorage.getItem('footerText') || '© 2026 Alhudha Haj Travel System. All rights reserved.',
+                    email: localStorage.getItem('footerEmail') || 'info@alhudha.com'
+                },
+                alert: {
+                    enabled: localStorage.getItem('urgentAlertEnabled') === 'true',
+                    message: localStorage.getItem('urgentAlertMessage') || '⚠️ Important: Visa requirements updated for 2026 Hajj. Please submit documents by March 15th.',
+                    link: localStorage.getItem('urgentAlertLink') || '/visa-update',
+                    color: localStorage.getItem('urgentAlertColor') || '#f39c12',
+                    style: localStorage.getItem('urgentAlertStyle') || 'pulse'
+                },
+                primaryColor: localStorage.getItem('primaryColor') || '#1e3c72',
+                secondaryColor: localStorage.getItem('secondaryColor') || '#f1c40f'
+            };
+
+            applyConfig(config);
+        }
+
+        function applyConfig(config) {
+            // Apply hero section
+            document.getElementById('heroHeading').textContent = config.hero.heading;
+            document.getElementById('heroSubheading').textContent = config.hero.subheading;
+            document.getElementById('heroButton').textContent = config.hero.button;
+            
+            // Apply alert banner
+            if (config.alert.enabled) {
+                showAlert(config.alert);
+            }
+            
+            // Apply features
+            renderFeatures(config.features);
+            
+            // Apply packages
+            renderPackages(config.packages, config.contact);
+            
+            // Apply contact info
+            renderContactInfo(config.contact);
+            
+            // Apply footer
+            document.getElementById('footerCopyright').textContent = config.footer.text;
+            
+            // Apply WhatsApp buttons
+            setupWhatsApp(config.contact.whatsapp);
+            
+            // Apply social links
+            renderSocialLinks(config.contact);
+            
+            // Apply top bar contact
+            renderTopBar(config.contact);
+            
+            // Apply footer contact
+            renderFooterContact(config.contact, config.footer);
+        }
+
+        // ==================== ALERT FUNCTIONS ====================
+        function showAlert(alert) {
+            const banner = document.getElementById('alertBanner');
+            const messageEl = document.getElementById('alertMessage');
+            const linkEl = document.getElementById('alertLink');
+            
+            messageEl.innerHTML = alert.message;
+            linkEl.href = alert.link || '#';
+            
+            // Apply color
+            banner.style.background = `linear-gradient(135deg, ${alert.color}, ${adjustColor(alert.color, -20)})`;
+            
+            // Apply animation style
+            banner.className = 'alert-banner active ' + alert.style;
+            
+            // Check if user closed it before
+            if (localStorage.getItem('alertClosed') === 'true') {
+                banner.style.display = 'none';
+            }
+        }
+
+        function closeAlert() {
+            document.getElementById('alertBanner').style.display = 'none';
+            localStorage.setItem('alertClosed', 'true');
+            
+            // Auto re-open after 1 hour (for demo)
+            setTimeout(() => {
+                localStorage.removeItem('alertClosed');
+            }, 3600000);
+        }
+
+        function checkAlertState() {
+            const alertClosed = localStorage.getItem('alertClosed');
+            if (alertClosed === 'true') {
+                document.getElementById('alertBanner').style.display = 'none';
+            }
+        }
+
+        function adjustColor(hex, percent) {
+            // Simple color adjustment
+            return hex; // In production, use a proper color library
+        }
+
+        // ==================== FEATURES RENDERING ====================
+        function renderFeatures(features) {
+            const grid = document.getElementById('featuresGrid');
+            
+            if (!features || features.length === 0) {
+                // Default features
+                grid.innerHTML = `
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="feature-icon"><i class="fas fa-mosque"></i></div>
+                        <h3>25+ Years Experience</h3>
+                        <p>Trusted by thousands of pilgrims worldwide</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="feature-icon"><i class="fas fa-hotel"></i></div>
+                        <h3>Premium Accommodation</h3>
+                        <p>Hotels near Haram for your convenience</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="feature-icon"><i class="fas fa-bus"></i></div>
+                        <h3>VIP Transportation</h3>
+                        <p>Comfortable travel between holy sites</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
+                        <h3>Expert Guides</h3>
+                        <p>Knowledgeable guides throughout your journey</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = features.map((feature, index) => `
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="${(index + 1) * 100}">
+                    <div class="feature-icon"><i class="fas ${feature.icon || 'fa-check-circle'}"></i></div>
+                    <h3>${feature.text}</h3>
+                </div>
+            `).join('');
+        }
+
+        // ==================== PACKAGES RENDERING ====================
+        function renderPackages(packages, contact) {
+            const grid = document.getElementById('packagesGrid');
+            
+            if (!packages || packages.length === 0) {
+                // Demo packages
+                packages = [
+                    { id: 1, name: 'Haj Platinum 2026', description: 'Premium package with 5-star accommodation', price: 850000, icon: 'fa-star' },
+                    { id: 2, name: 'Haj Gold 2026', description: 'Standard package with 4-star accommodation', price: 550000, icon: 'fa-mosque' },
+                    { id: 3, name: 'Umrah Ramadhan Special', description: 'Special Umrah package for Ramadhan', price: 125000, icon: 'fa-kaaba' }
+                ];
+            }
+            
+            const whatsappNumber = contact?.whatsapp || '919876543210';
+            const bookingEmail = contact?.email || 'bookings@alhudha.com';
+            const whatsappMessage = encodeURIComponent('Hi, I\'m interested in your Haj/Umrah packages. Can you please share more details?');
+            
+            grid.innerHTML = packages.map((pkg, index) => {
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}%20${encodeURIComponent(pkg.name)}`;
+                const emailUrl = `mailto:${bookingEmail}?subject=${encodeURIComponent('Package Inquiry: ' + pkg.name)}&body=${encodeURIComponent('I am interested in ' + pkg.name + '. Please share more details.')}`;
+                
+                return `
+                    <div class="package-card" data-aos="fade-up" data-aos-delay="${(index + 1) * 100}">
+                        <div class="package-header">
+                            <h3><i class="fas ${pkg.icon || 'fa-mosque'}"></i> ${pkg.name}</h3>
+                            <div class="package-price">₹${(pkg.price || 0).toLocaleString('en-IN')}</div>
+                        </div>
+                        <div class="package-body">
+                            <ul class="package-features">
+                                <li><i class="fas fa-check-circle"></i> ${pkg.description || 'Complete package with all services'}</li>
+                                <li><i class="fas fa-calendar"></i> Departure: ${pkg.departure_date || 'June 2026'}</li>
+                                <li><i class="fas fa-clock"></i} Duration: ${pkg.duration || '15-20 days'}</li>
+                            </ul>
+                            <div class="package-actions">
+                                <a href="${whatsappUrl}" target="_blank" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                                <a href="${emailUrl}" class="btn btn-primary"><i class="far fa-envelope"></i> Email</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== CONTACT RENDERING ====================
+        function renderContactInfo(contact) {
+            const grid = document.getElementById('contactGrid');
+            
+            grid.innerHTML = `
+                <div class="contact-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                    <h3>Phone</h3>
+                    <p><a href="tel:${contact.phone}">${contact.phone}</a></p>
+                    <p><a href="tel:${contact.phone.replace('98765', '98766')}">${contact.phone.replace('98765', '98766')}</a></p>
+                </div>
+                <div class="contact-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="contact-icon"><i class="far fa-envelope"></i></div>
+                    <h3>Email</h3>
+                    <p><a href="mailto:${contact.email}">${contact.email}</a></p>
+                    <p><a href="mailto:support@alhudha.com">support@alhudha.com</a></p>
+                </div>
+                <div class="contact-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h3>Office</h3>
+                    <p>123, Haj House,</p>
+                    <p>Mumbai - 400001, India</p>
+                </div>
+            `;
+        }
+
+        function renderTopBar(contact) {
+            const topBar = document.getElementById('topBarContact');
+            topBar.innerHTML = `
+                <span><i class="fas fa-phone-alt"></i> <a href="tel:${contact.phone}" style="color: white; text-decoration: none;">${contact.phone}</a></span>
+                <span><i class="far fa-envelope"></i> <a href="mailto:${contact.email}" style="color: white; text-decoration: none;">${contact.email}</a></span>
+            `;
+        }
+
+        function renderFooterContact(contact, footer) {
+            const footerContact = document.getElementById('footerContact');
+            footerContact.innerHTML = `
+                <li><a href="tel:${contact.phone}"><i class="fas fa-phone-alt"></i> ${contact.phone}</a></li>
+                <li><a href="mailto:${footer.email}"><i class="far fa-envelope"></i> ${footer.email}</a></li>
+                <li><a href="#"><i class="fas fa-map-marker-alt"></i> Mumbai, India</a></li>
+            `;
+        }
+
+        function renderSocialLinks(contact) {
+            const topBarSocial = document.getElementById('topBarSocial');
+            const footerSocial = document.getElementById('footerSocial');
+            
+            const socialHtml = `
+                <a href="${contact.facebook || '#'}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="${contact.twitter || '#'}" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="${contact.instagram || '#'}" target="_blank"><i class="fab fa-instagram"></i></a>
+            `;
+            
+            topBarSocial.innerHTML = socialHtml;
+            footerSocial.innerHTML = socialHtml;
+        }
+
+        function setupWhatsApp(number) {
+            const whatsappUrl = `https://wa.me/${number.replace(/\D/g, '')}`;
+            document.getElementById('heroWhatsapp').href = whatsappUrl;
+            document.getElementById('floatingWhatsapp').href = whatsappUrl;
+        }
+
+        // ==================== LOAD PACKAGES FROM API ====================
+        async function loadPackages() {
+            try {
+                const response = await fetch('/api/batches');
+                const data = await response.json();
+                
+                if (data.success && data.batches) {
+                    const packages = data.batches.map(b => ({
+                        id: b.id,
+                        name: b.batch_name,
+                        description: b.description || 'Complete Haj/Umrah package',
+                        price: b.price || 0,
+                        icon: 'fa-mosque',
+                        departure_date: b.departure_date,
+                        duration: b.duration
+                    }));
+                    
+                    const contact = {
+                        whatsapp: localStorage.getItem('whatsappNumber') || '919876543210',
+                        email: localStorage.getItem('bookingEmail') || 'bookings@alhudha.com'
+                    };
+                    
+                    renderPackages(packages, contact);
+                }
+            } catch (error) {
+                console.log('Using demo packages');
+            }
+        }
+
+        // ==================== MOBILE MENU ====================
+        function toggleMobileMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('active');
+        }
+
+        // ==================== SCROLL EFFECTS ====================
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // ==================== SMOOTH SCROLLING ====================
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    
+                    // Close mobile menu if open
+                    document.getElementById('navMenu').classList.remove('active');
+                }
+            });
+        });
+
+        // ==================== CLOSE MOBILE MENU ON RESIZE ====================
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
