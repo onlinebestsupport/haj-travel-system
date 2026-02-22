@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveler Login - Alhudha Haj Travel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Islamic Pattern Background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(241, 196, 15, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 70%, rgba(241, 196, 15, 0.1) 0%, transparent 20%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 8px);
+            pointer-events: none;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 480px;
+            padding: 50px 40px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative Elements */
+        .login-container::before {
+            content: '🕋';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            background: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: 4px solid #f1c40f;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+        }
+
+        .login-header h1 {
+            color: #1e3c72;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-family: 'Amiri', serif;
+        }
+
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .login-header p i {
+            color: #f1c40f;
+            margin-right: 5px;
+        }
+
+        /* Info Cards */
+        .info-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            border-left: 4px solid #27ae60;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .info-card i {
+            font-size: 2rem;
+            color: #27ae60;
+            margin-bottom: 8px;
+        }
+
+        .info-card h4 {
+            color: #2c3e50;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: none;
+            border-left: 4px solid #e74c3c;
+            font-size: 0.95rem;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group label i {
+            color: #27ae60;
+            margin-right: 8px;
+            width: 20px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+            font-size: 1.1rem;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 16px 16px 16px 45px;
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #27ae60;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1);
+        }
+
+        .pin-wrapper {
+            position: relative;
+        }
+
+        .pin-wrapper input {
+            letter-spacing: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .pin-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #95a5a6;
+            transition: color 0.3s;
+        }
+
+        .pin-toggle:hover {
+            color: #27ae60;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .login-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(39, 174, 96, 0.3);
+        }
+
+        .login-btn i {
+            font-size: 1.2rem;
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .demo-credentials {
+            background: linear-gradient(135deg, #e8f8f5, #d0f0e8);
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 30px;
+            border: 2px dashed #27ae60;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-credentials::before {
+            content: '🔐';
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            font-size: 4rem;
+            opacity: 0.1;
+        }
+
+        .demo-credentials h4 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .demo-credentials .credential-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(39, 174, 96, 0.2);
+            transition: all 0.3s;
+        }
+
+        .demo-credentials .credential-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .demo-credentials .credential-icon {
+            width: 40px;
+            height: 40px;
+            background: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .demo-credentials .credential-details {
+            flex: 1;
+        }
+
+        .demo-credentials .credential-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .demo-credentials .credential-value {
+            color: #27ae60;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .demo-credentials .copy-btn {
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .demo-credentials .copy-btn:hover {
+            background: #e8f8f5;
+            color: #27ae60;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer a {
+            color: #27ae60;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            color: #219a52;
+            gap: 8px;
+        }
+
+        .footer a i {
+            font-size: 0.9rem;
+        }
+
+        .footer .separator {
+            color: #bdc3c7;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 40px 25px;
+            }
+
+            .login-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .info-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .footer .separator {
+                display: none;
+            }
+
+            .demo-credentials .credential-row {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Traveler Login</h1>
+            <p><i class="fas fa-passport"></i> Enter your passport number and PIN</p>
+        </div>
+
+        <!-- Quick Info Cards -->
+        <div class="info-cards">
+            <div class="info-card">
+                <i class="fas fa-calendar-check"></i>
+                <h4>View Haj Details</h4>
+                <p>Check your package, dates & payments</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-file-alt"></i>
+                <h4>Documents</h4>
+                <p>Upload & track your documents</p>
+            </div>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="passport_no">
+                    <i class="fas fa-passport"></i> Passport Number
+                </label>
+                <div class="input-wrapper">
+                    <i class="fas fa-passport"></i>
+                    <input type="text" id="passport_no" placeholder="Enter your passport number (e.g., A1234567)" required autofocus>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="pin">
+                    <i class="fas fa-lock"></i> PIN (4 digits)
+                </label>
+                <div class="input-wrapper pin-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="pin" maxlength="4" placeholder="****" pattern="[0-9]{4}" inputmode="numeric" required>
+                    <i class="fas fa-eye pin-toggle" id="togglePin" onclick="togglePinVisibility()"></i>
+                </div>
+                <small style="color: #7f8c8d; margin-top: 5px; display: block;">
+                    <i class="fas fa-info-circle"></i> Enter your 4-digit PIN provided during registration
+                </small>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> <span>View My Haj Details</span>
+            </button>
+        </form>
+
+        <!-- Demo Credentials -->
+        <div class="demo-credentials">
+            <h4><i class="fas fa-flask"></i> Demo Credentials</h4>
+            
+            <div class="credential-row">
+                <div class="credential-icon">AK</div>
+                <div class="credential-details">
+                    <div class="credential-name">Ahmed Khan</div>
+                    <div class="credential-value">Passport: A1234567 • PIN: 1234</div>
+                </div>
+                <button class="copy-btn" onclick="copyCredentials('A1234567', '1234')" title="Copy credentials">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+
+            <div class="credential-row">
+                <div class="credential-icon">FB</div>
+                <div class="credential-details">
+                    <div class="credential-name">Fatima Begum</div>
+                    <div class="credential-value">Passport: B7654321 • PIN: 5678</div>
+                </div>
+                <button class="copy-btn" onclick="copyCredentials('B7654321', '5678')" title="Copy credentials">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+
+            <div class="credential-row">
+                <div class="credential-icon">MR</div>
+                <div class="credential-details">
+                    <div class="credential-name">Mohammed Rafiq</div>
+                    <div class="credential-value">Passport: C9876543 • PIN: 9012</div>
+                </div>
+                <button class="copy-btn" onclick="copyCredentials('C9876543', '9012')" title="Copy credentials">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a>
+            <span class="separator">|</span>
+            <a href="/admin.login.html"><i class="fas fa-user-shield"></i> Admin Login</a>
+        </div>
+    </div>
+
+    <script>
+        // PIN visibility toggle
+        function togglePinVisibility() {
+            const pinInput = document.getElementById('pin');
+            const toggleIcon = document.getElementById('togglePin');
+            
+            if (pinInput.type === 'password') {
+                pinInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                pinInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Copy credentials to clipboard
+        function copyCredentials(passport, pin) {
+            const text = `Passport: ${passport} • PIN: ${pin}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Credentials copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Failed to copy credentials', 'error');
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+                color: white;
+                border-radius: 10px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Validate form
+        function validateForm(passport, pin) {
+            if (!passport || !pin) {
+                showError('Please enter both passport number and PIN');
+                return false;
+            }
+            
+            const passportRegex = /^[A-Z0-9]{6,9}$/;
+            if (!passportRegex.test(passport)) {
+                showError('Please enter a valid passport number (6-9 characters, letters and numbers only)');
+                return false;
+            }
+            
+            const pinRegex = /^\d{4}$/;
+            if (!pinRegex.test(pin)) {
+                showError('PIN must be exactly 4 digits');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Handle login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const passport_no = document.getElementById('passport_no').value.trim().toUpperCase();
+            const pin = document.getElementById('pin').value.trim();
+            
+            // Validate form
+            if (!validateForm(passport_no, pin)) {
+                return;
+            }
+            
+            // Show loading state
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = loginBtn.querySelector('span');
+            const originalText = btnText.textContent;
+            loginBtn.disabled = true;
+            btnText.textContent = 'Logging in...';
+            loginBtn.innerHTML = '<span class="spinner"></span> Verifying...';
+            
+            try {
+                // Simulate API call for demo
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Demo credentials check
+                const validTravelers = {
+                    'A1234567': { name: 'Ahmed Khan', id: 1, pin: '1234', batch: 'Haj Platinum 2026' },
+                    'B7654321': { name: 'Fatima Begum', id: 2, pin: '5678', batch: 'Haj Gold 2026' },
+                    'C9876543': { name: 'Mohammed Rafiq', id: 3, pin: '9012', batch: 'Umrah Ramadhan Special' }
+                };
+                
+                if (validTravelers[passport_no] && validTravelers[passport_no].pin === pin) {
+                    // Store traveler session
+                    sessionStorage.setItem('travelerLoggedIn', 'true');
+                    sessionStorage.setItem('travelerId', validTravelers[passport_no].id);
+                    sessionStorage.setItem('travelerName', validTravelers[passport_no].name);
+                    sessionStorage.setItem('travelerPassport', passport_no);
+                    sessionStorage.setItem('travelerBatch', validTravelers[passport_no].batch);
+                    
+                    // Show success message
+                    showError('Login successful! Redirecting...');
+                    
+                    // Redirect to traveler dashboard
+                    setTimeout(() => {
+                        window.location.href = '/traveler/dashboard.html';
+                    }, 1000);
+                } else {
+                    showError('Invalid passport number or PIN');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>View My Haj Details</span>';
+                }
+            } catch (error) {
+                showError('Connection error. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>View My Haj Details</span>';
+            }
+        });
+
+        // Auto-capitalize passport input
+        document.getElementById('passport_no').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+
+        // Restrict PIN to numbers only
+        document.getElementById('pin').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Add animation class to inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Prevent form resubmission on page refresh
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        // Add notification styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
