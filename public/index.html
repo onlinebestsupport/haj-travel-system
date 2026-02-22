@@ -49,14 +49,17 @@
             background: #ffffff;
         }
 
-        /* Alert Banner Styles */
+        /* Alert Banner Styles - TOP OF PAGE */
         .alert-banner {
             background: linear-gradient(135deg, var(--warning), var(--warning-dark));
             color: white;
             padding: 15px 0;
             position: relative;
             overflow: hidden;
+            width: 100%;
+            z-index: 1001;
             display: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .alert-banner.active {
@@ -73,13 +76,13 @@
 
         @keyframes alertPulse {
             0% { opacity: 1; }
-            50% { opacity: 0.9; background: linear-gradient(135deg, #e67e22, #d35400); }
+            50% { opacity: 0.95; background: linear-gradient(135deg, #e67e22, #d35400); }
             100% { opacity: 1; }
         }
 
         @keyframes alertBlink {
             0% { opacity: 1; }
-            50% { opacity: 0.7; }
+            50% { opacity: 0.8; }
             100% { opacity: 1; }
         }
 
@@ -104,6 +107,7 @@
         .alert-message i {
             font-size: 2rem;
             color: white;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
 
         .alert-text {
@@ -125,12 +129,14 @@
             font-weight: 600;
             transition: all 0.3s ease;
             border: 2px solid transparent;
+            backdrop-filter: blur(5px);
         }
 
         .alert-link:hover {
             background: white;
             color: var(--warning-dark);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .alert-close {
@@ -141,10 +147,17 @@
             cursor: pointer;
             opacity: 0.8;
             transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
 
         .alert-close:hover {
             opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
             transform: scale(1.1);
         }
 
@@ -154,6 +167,8 @@
             color: white;
             padding: 8px 0;
             font-size: 0.9rem;
+            position: relative;
+            z-index: 1000;
         }
 
         .top-bar-content {
@@ -182,6 +197,16 @@
             color: var(--secondary);
         }
 
+        .contact-info a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-info a:hover {
+            color: var(--secondary);
+        }
+
         .social-links {
             display: flex;
             gap: 15px;
@@ -204,7 +229,7 @@
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 999;
             transition: all 0.3s ease;
         }
 
@@ -758,6 +783,7 @@
             transition: all 0.3s ease;
             z-index: 999;
             border: none;
+            text-decoration: none;
         }
 
         .floating-whatsapp:hover {
@@ -825,6 +851,11 @@
                 grid-template-columns: 1fr;
             }
 
+            .top-bar-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
             .contact-info {
                 flex-direction: column;
                 align-items: center;
@@ -838,6 +869,10 @@
             .alert-message {
                 flex-direction: column;
                 text-align: center;
+            }
+
+            .alert-message i {
+                font-size: 2.5rem;
             }
         }
 
@@ -859,7 +894,7 @@
     </style>
 </head>
 <body>
-    <!-- Alert Banner (Dynamic) -->
+    <!-- ALERT BANNER - TOP OF PAGE (ABSOLUTELY FIRST ELEMENT) -->
     <div id="alertBanner" class="alert-banner">
         <div class="alert-content">
             <div class="alert-message">
@@ -1256,7 +1291,7 @@
                             <ul class="package-features">
                                 <li><i class="fas fa-check-circle"></i> ${pkg.description || 'Complete package with all services'}</li>
                                 <li><i class="fas fa-calendar"></i> Departure: ${pkg.departure_date || 'June 2026'}</li>
-                                <li><i class="fas fa-clock"></i} Duration: ${pkg.duration || '15-20 days'}</li>
+                                <li><i class="fas fa-clock"></i> Duration: ${pkg.duration || '15-20 days'}</li>
                             </ul>
                             <div class="package-actions">
                                 <a href="${whatsappUrl}" target="_blank" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
@@ -1297,8 +1332,8 @@
         function renderTopBar(contact) {
             const topBar = document.getElementById('topBarContact');
             topBar.innerHTML = `
-                <span><i class="fas fa-phone-alt"></i> <a href="tel:${contact.phone}" style="color: white; text-decoration: none;">${contact.phone}</a></span>
-                <span><i class="far fa-envelope"></i> <a href="mailto:${contact.email}" style="color: white; text-decoration: none;">${contact.email}</a></span>
+                <span><i class="fas fa-phone-alt"></i> <a href="tel:${contact.phone}">${contact.phone}</a></span>
+                <span><i class="far fa-envelope"></i> <a href="mailto:${contact.email}">${contact.email}</a></span>
             `;
         }
 
@@ -1326,7 +1361,8 @@
         }
 
         function setupWhatsApp(number) {
-            const whatsappUrl = `https://wa.me/${number.replace(/\D/g, '')}`;
+            const cleanNumber = number.replace(/\D/g, '');
+            const whatsappUrl = `https://wa.me/${cleanNumber}`;
             document.getElementById('heroWhatsapp').href = whatsappUrl;
             document.getElementById('floatingWhatsapp').href = whatsappUrl;
         }
