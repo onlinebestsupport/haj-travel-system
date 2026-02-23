@@ -1,9 +1,44 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, send_file
 from app.database import get_db
 from datetime import datetime
 import json
+import os
+import uuid
+from werkzeug.utils import secure_filename
+import io
+import base64
 
 bp = Blueprint('travelers', __name__, url_prefix='/api/travelers')
+
+# Configuration for file uploads
+UPLOAD_FOLDER = 'uploads/travelers'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'gif'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_uploaded_file(file, traveler_id, doc_type):
+    """Save uploaded file and return filename"""
+    if not file or not allowed_file(file.filename):
+        return None
+    
+    # Create traveler-specific directory
+    traveler_dir = os.path.join(UPLOAD_FOLDER, str(traveler_id))
+    os.makedirs(traveler_dir, exist_ok=True)
+    
+    # Generate unique filename
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{doc_type}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = os.path.join(traveler_dir, filename)
+    
+    # Save file
+    file.save(filepath)
+    
+    return filename
 
 @bp.route('', methods=['GET'])
 def get_travelers():
@@ -28,9 +63,20 @@ def get_travelers():
     travelers = cursor.fetchall()
     db.close()
     
+    # Convert to list of dicts and parse extra_fields
+    result = []
+    for t in travelers:
+        t_dict = dict(t)
+        if t_dict.get('extra_fields'):
+            try:
+                t_dict['extra_fields'] = json.loads(t_dict['extra_fields'])
+            except:
+                t_dict['extra_fields'] = {}
+        result.append(t_dict)
+    
     return jsonify({
         'success': True, 
-        'travelers': [dict(t) for t in travelers]
+        'travelers': result
     })
 
 @bp.route('/<int:traveler_id>', methods=['GET'])
@@ -157,12 +203,24 @@ def create_traveler():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    data = request.json
+    # Handle multipart/form-data for file uploads
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        data = request.form.to_dict()
+        files = request.files
+    else:
+        data = request.json
+        files = {}
     
     required = ['first_name', 'last_name', 'passport_no', 'mobile', 'batch_id']
     for field in required:
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} is required'}), 400
+    
+    # Validate batch_id is integer
+    try:
+        batch_id = int(data['batch_id'])
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid batch_id'}), 400
     
     passport_name = data.get('passport_name') or f"{data['first_name']} {data['last_name']}".strip()
     
@@ -174,11 +232,13 @@ def create_traveler():
     cursor = db.cursor()
     
     try:
+        # Check for duplicate passport
         cursor.execute('SELECT id FROM travelers WHERE passport_no = ?', (data['passport_no'].upper(),))
         if cursor.fetchone():
             db.close()
             return jsonify({'success': False, 'error': 'Passport number already exists'}), 400
         
+        # Insert traveler first to get ID
         cursor.execute('''
             INSERT INTO travelers (
                 first_name, last_name, passport_name, batch_id,
@@ -188,15 +248,14 @@ def create_traveler():
                 vaccine_status, wheelchair,
                 place_of_birth, place_of_issue, passport_address,
                 father_name, mother_name, spouse_name,
-                passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo,
                 pin, emergency_contact, emergency_phone, medical_notes,
                 extra_fields, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data['first_name'],
             data['last_name'],
             passport_name,
-            data['batch_id'],
+            batch_id,
             data['passport_no'].upper(),
             data.get('passport_issue_date'),
             data.get('passport_expiry_date'),
@@ -216,11 +275,6 @@ def create_traveler():
             data.get('father_name'),
             data.get('mother_name'),
             data.get('spouse_name'),
-            data.get('passport_scan'),
-            data.get('aadhaar_scan'),
-            data.get('pan_scan'),
-            data.get('vaccine_scan'),
-            data.get('photo'),
             data.get('pin', '0000'),
             data.get('emergency_contact'),
             data.get('emergency_phone'),
@@ -232,8 +286,29 @@ def create_traveler():
         
         traveler_id = cursor.lastrowid
         
-        cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (data['batch_id'],))
+        # Handle file uploads
+        document_fields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
+        document_updates = []
+        document_values = []
         
+        for doc_field in document_fields:
+            if doc_field in files and files[doc_field]:
+                file = files[doc_field]
+                if file and file.filename:
+                    filename = save_uploaded_file(file, traveler_id, doc_field)
+                    if filename:
+                        document_updates.append(f"{doc_field} = ?")
+                        document_values.append(filename)
+        
+        if document_updates:
+            update_query = f"UPDATE travelers SET {', '.join(document_updates)} WHERE id = ?"
+            document_values.append(traveler_id)
+            cursor.execute(update_query, document_values)
+        
+        # Update batch booked seats
+        cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (batch_id,))
+        
+        # Log activity
         log_activity(session['user_id'], 'create', 'traveler', f'Created traveler: {data["first_name"]} {data["last_name"]}')
         
         db.commit()
@@ -256,83 +331,84 @@ def update_traveler(traveler_id):
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    data = request.json
+    # Handle multipart/form-data for file uploads
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        data = request.form.to_dict()
+        files = request.files
+    else:
+        data = request.json
+        files = {}
     
     db = get_db()
     cursor = db.cursor()
     
     try:
-        cursor.execute('SELECT id, batch_id FROM travelers WHERE id = ?', (traveler_id,))
+        cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = ?', (traveler_id,))
         existing = cursor.fetchone()
         if not existing:
             db.close()
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         old_batch_id = existing['batch_id']
-        new_batch_id = data.get('batch_id', old_batch_id)
+        new_batch_id = int(data.get('batch_id', old_batch_id))
         
         extra_fields = data.get('extra_fields', '{}')
         if isinstance(extra_fields, dict):
             extra_fields = json.dumps(extra_fields)
         
-        cursor.execute('''
-            UPDATE travelers SET
-                first_name = ?, last_name = ?, passport_name = ?,
-                batch_id = ?, passport_no = ?, passport_issue_date = ?,
-                passport_expiry_date = ?, passport_status = ?, gender = ?,
-                dob = ?,
-                mobile = ?, email = ?, aadhaar = ?, pan = ?,
-                aadhaar_pan_linked = ?, vaccine_status = ?, wheelchair = ?,
-                place_of_birth = ?, place_of_issue = ?, passport_address = ?,
-                father_name = ?, mother_name = ?, spouse_name = ?,
-                passport_scan = COALESCE(?, passport_scan),
-                aadhaar_scan = COALESCE(?, aadhaar_scan),
-                pan_scan = COALESCE(?, pan_scan),
-                vaccine_scan = COALESCE(?, vaccine_scan),
-                photo = COALESCE(?, photo),
-                pin = ?, emergency_contact = ?, emergency_phone = ?,
-                medical_notes = ?,
-                extra_fields = ?,
-                updated_at = ?
-            WHERE id = ?
-        ''', (
-            data.get('first_name'),
-            data.get('last_name'),
-            data.get('passport_name'),
-            new_batch_id,
-            data.get('passport_no', '').upper() if data.get('passport_no') else None,
-            data.get('passport_issue_date'),
-            data.get('passport_expiry_date'),
-            data.get('passport_status', 'Active'),
-            data.get('gender'),
-            data.get('dob'),
-            data.get('mobile'),
-            data.get('email'),
-            data.get('aadhaar'),
-            data.get('pan'),
-            data.get('aadhaar_pan_linked', 'No'),
-            data.get('vaccine_status', 'Not Vaccinated'),
-            data.get('wheelchair', 'No'),
-            data.get('place_of_birth'),
-            data.get('place_of_issue'),
-            data.get('passport_address'),
-            data.get('father_name'),
-            data.get('mother_name'),
-            data.get('spouse_name'),
-            data.get('passport_scan'),
-            data.get('aadhaar_scan'),
-            data.get('pan_scan'),
-            data.get('vaccine_scan'),
-            data.get('photo'),
-            data.get('pin', '0000'),
-            data.get('emergency_contact'),
-            data.get('emergency_phone'),
-            data.get('medical_notes'),
-            extra_fields,
-            datetime.now().isoformat(),
-            traveler_id
-        ))
+        # Build update query dynamically
+        update_fields = []
+        values = []
         
+        # Text fields that can be updated
+        text_fields = [
+            'first_name', 'last_name', 'passport_name', 'passport_no',
+            'passport_issue_date', 'passport_expiry_date', 'passport_status',
+            'gender', 'dob', 'mobile', 'email', 'aadhaar', 'pan',
+            'aadhaar_pan_linked', 'vaccine_status', 'wheelchair',
+            'place_of_birth', 'place_of_issue', 'passport_address',
+            'father_name', 'mother_name', 'spouse_name', 'pin',
+            'emergency_contact', 'emergency_phone', 'medical_notes'
+        ]
+        
+        for field in text_fields:
+            if field in data:
+                update_fields.append(f"{field} = ?")
+                if field == 'passport_no':
+                    values.append(data[field].upper())
+                else:
+                    values.append(data[field])
+        
+        # Handle file uploads
+        document_fields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
+        for doc_field in document_fields:
+            if doc_field in files and files[doc_field]:
+                file = files[doc_field]
+                if file and file.filename:
+                    filename = save_uploaded_file(file, traveler_id, doc_field)
+                    if filename:
+                        update_fields.append(f"{doc_field} = ?")
+                        values.append(filename)
+        
+        # Add batch_id if changed
+        if 'batch_id' in data:
+            update_fields.append("batch_id = ?")
+            values.append(new_batch_id)
+        
+        # Add extra_fields
+        update_fields.append("extra_fields = ?")
+        values.append(extra_fields)
+        
+        # Add updated_at
+        update_fields.append("updated_at = ?")
+        values.append(datetime.now().isoformat())
+        
+        if update_fields:
+            query = f"UPDATE travelers SET {', '.join(update_fields)} WHERE id = ?"
+            values.append(traveler_id)
+            cursor.execute(query, values)
+        
+        # Update batch seats if batch changed
         if old_batch_id != new_batch_id:
             cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (old_batch_id,))
             cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (new_batch_id,))
@@ -366,8 +442,16 @@ def delete_traveler(traveler_id):
             db.close()
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
+        # Delete associated files
+        traveler_dir = os.path.join(UPLOAD_FOLDER, str(traveler_id))
+        if os.path.exists(traveler_dir):
+            import shutil
+            shutil.rmtree(traveler_dir)
+        
+        # Delete traveler record
         cursor.execute('DELETE FROM travelers WHERE id = ?', (traveler_id,))
         
+        # Update batch booked seats
         cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (traveler['batch_id'],))
         
         log_activity(session['user_id'], 'delete', 'traveler', f'Deleted traveler: {traveler["first_name"]} {traveler["last_name"]}')
@@ -458,7 +542,7 @@ def get_traveler_receipts(traveler_id):
 
 @bp.route('/<int:traveler_id>/documents', methods=['GET'])
 def get_traveler_documents(traveler_id):
-    """Get document status for a traveler"""
+    """Get document status and download links for a traveler"""
     db = get_db()
     cursor = db.cursor()
     
@@ -477,15 +561,53 @@ def get_traveler_documents(traveler_id):
     
     result = {}
     for key in ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']:
-        result[key] = {
-            'uploaded': bool(docs[key]),
-            'filename': docs[key] if docs[key] else None
-        }
+        filename = docs[key]
+        if filename:
+            filepath = os.path.join(UPLOAD_FOLDER, str(traveler_id), filename)
+            result[key] = {
+                'uploaded': True,
+                'filename': filename,
+                'url': f'/api/travelers/{traveler_id}/documents/{key}',
+                'exists': os.path.exists(filepath)
+            }
+        else:
+            result[key] = {
+                'uploaded': False,
+                'filename': None
+            }
     
     return jsonify({
         'success': True,
         'documents': result
     })
+
+@bp.route('/<int:traveler_id>/documents/<string:doc_type>', methods=['GET'])
+def download_document(traveler_id, doc_type):
+    """Download a specific document for a traveler"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    valid_doc_types = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
+    if doc_type not in valid_doc_types:
+        return jsonify({'success': False, 'error': 'Invalid document type'}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = ?', (traveler_id,))
+    result = cursor.fetchone()
+    db.close()
+    
+    if not result or not result[doc_type]:
+        return jsonify({'success': False, 'error': 'Document not found'}), 404
+    
+    filename = result[doc_type]
+    filepath = os.path.join(UPLOAD_FOLDER, str(traveler_id), filename)
+    
+    if not os.path.exists(filepath):
+        return jsonify({'success': False, 'error': 'File not found on server'}), 404
+    
+    return send_file(filepath, as_attachment=True, download_name=filename)
 
 @bp.route('/summary', methods=['GET'])
 def get_travelers_summary():
@@ -531,6 +653,17 @@ def get_travelers_summary():
     
     recent = cursor.fetchall()
     
+    cursor.execute('''
+        SELECT 
+            b.id, b.batch_name,
+            COUNT(t.id) as traveler_count
+        FROM batches b
+        LEFT JOIN travelers t ON b.id = t.batch_id
+        GROUP BY b.id
+    ''')
+    
+    batch_dist = cursor.fetchall()
+    
     db.close()
     
     return jsonify({
@@ -538,8 +671,114 @@ def get_travelers_summary():
         'summary': dict(stats) if stats else {},
         'gender_distribution': [dict(g) for g in gender_dist],
         'vaccine_distribution': [dict(v) for v in vaccine_dist],
+        'batch_distribution': [dict(b) for b in batch_dist],
         'recent_registrations': [dict(r) for r in recent]
     })
+
+@bp.route('/search', methods=['GET'])
+def search_travelers():
+    """Search travelers by various criteria"""
+    query = request.args.get('q', '')
+    if len(query) < 2:
+        return jsonify({'success': False, 'error': 'Search query too short'}), 400
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    search_term = f'%{query}%'
+    cursor.execute('''
+        SELECT 
+            t.id, t.first_name, t.last_name, t.passport_no, 
+            t.mobile, t.email, t.passport_status,
+            b.batch_name
+        FROM travelers t
+        LEFT JOIN batches b ON t.batch_id = b.id
+        WHERE 
+            t.first_name LIKE ? OR 
+            t.last_name LIKE ? OR 
+            t.passport_no LIKE ? OR 
+            t.mobile LIKE ? OR 
+            t.email LIKE ? OR
+            t.passport_name LIKE ?
+        ORDER BY t.created_at DESC
+        LIMIT 50
+    ''', [search_term] * 6)
+    
+    results = cursor.fetchall()
+    db.close()
+    
+    return jsonify({
+        'success': True,
+        'results': [dict(r) for r in results],
+        'count': len(results)
+    })
+
+@bp.route('/export', methods=['POST'])
+def export_travelers():
+    """Export travelers data in various formats"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    format_type = request.json.get('format', 'csv')
+    fields = request.json.get('fields', [])
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        SELECT 
+            t.*, b.batch_name
+        FROM travelers t
+        LEFT JOIN batches b ON t.batch_id = b.id
+        ORDER BY t.created_at DESC
+    ''')
+    
+    travelers = cursor.fetchall()
+    db.close()
+    
+    if format_type == 'csv':
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write headers
+        if fields:
+            writer.writerow(fields)
+        else:
+            writer.writerow(['ID', 'First Name', 'Last Name', 'Passport Name', 'Batch', 
+                           'Passport No', 'Mobile', 'Email', 'Status', 'Created At'])
+        
+        # Write data
+        for t in travelers:
+            if fields:
+                row = [t.get(f, '') for f in fields]
+            else:
+                row = [
+                    t['id'], t['first_name'], t['last_name'], t['passport_name'],
+                    t['batch_name'], t['passport_no'], t['mobile'], t['email'],
+                    t['passport_status'], t['created_at']
+                ]
+            writer.writerow(row)
+        
+        output.seek(0)
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8-sig')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'travelers_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        )
+    
+    elif format_type == 'json':
+        return jsonify({
+            'success': True,
+            'data': [dict(t) for t in travelers],
+            'count': len(travelers)
+        })
+    
+    else:
+        return jsonify({'success': False, 'error': 'Unsupported format'}), 400
 
 def log_activity(user_id, action, module, description):
     """Log user activity"""
@@ -547,10 +786,10 @@ def log_activity(user_id, action, module, description):
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
-            (user_id, action, module, description, request.remote_addr)
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            (user_id, action, module, description, request.remote_addr, datetime.now().isoformat())
         )
         db.commit()
         db.close()
-    except:
-        pass
+    except Exception as e:
+        print(f"Error logging activity: {e}")
