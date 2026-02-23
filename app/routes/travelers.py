@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, send_file
+from flask import Blueprint, request, jsonify, session, send_file, current_app
 from app.database import get_db
 from datetime import datetime
 import json
@@ -7,32 +7,35 @@ import uuid
 from werkzeug.utils import secure_filename
 import io
 import base64
+import csv
 
 bp = Blueprint('travelers', __name__, url_prefix='/api/travelers')
 
-# Configuration for file uploads
-UPLOAD_FOLDER = 'uploads/travelers'
+# Configuration for file uploads - using app config
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'gif'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
-
-# Ensure upload directory exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_upload_folder():
+    """Get upload folder path from app config"""
+    return os.path.join(current_app.config['UPLOAD_FOLDER'], 'travelers')
+
 def save_uploaded_file(file, traveler_id, doc_type):
     """Save uploaded file and return filename"""
-    if not file or not allowed_file(file.filename):
+    if not file or not file.filename or not allowed_file(file.filename):
         return None
     
     # Create traveler-specific directory
-    traveler_dir = os.path.join(UPLOAD_FOLDER, str(traveler_id))
+    upload_folder = get_upload_folder()
+    traveler_dir = os.path.join(upload_folder, str(traveler_id))
     os.makedirs(traveler_dir, exist_ok=True)
     
-    # Generate unique filename
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{doc_type}_{uuid.uuid4().hex[:8]}.{ext}"
+    # Secure filename and generate unique name
+    original_filename = secure_filename(file.filename)
+    ext = original_filename.rsplit('.', 1)[1].lower() if '.' in original_filename else ''
+    filename = f"{doc_type}_{uuid.uuid4().hex[:8]}.{ext}" if ext else f"{doc_type}_{uuid.uuid4().hex[:8]}"
     filepath = os.path.join(traveler_dir, filename)
     
     # Save file
@@ -40,9 +43,26 @@ def save_uploaded_file(file, traveler_id, doc_type):
     
     return filename
 
+def log_activity(user_id, action, module, description, ip_address=None):
+    """Log user activity - using existing function from server.py"""
+    try:
+        db = get_db()
+        db.execute(
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now().isoformat())
+        )
+        db.commit()
+        db.close()
+    except Exception as e:
+        print(f"Error logging activity: {e}")
+
 @bp.route('', methods=['GET'])
 def get_travelers():
     """Get all travelers with complete details"""
+    # Check authentication
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -54,7 +74,9 @@ def get_travelers():
             b.departure_date,
             b.return_date,
             (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'completed') as payment_count,
-            (SELECT SUM(amount) FROM payments WHERE traveler_id = t.id AND status = 'completed') as total_paid
+            (SELECT SUM(amount) FROM payments WHERE traveler_id = t.id AND status = 'completed') as total_paid,
+            (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_count,
+            (SELECT SUM(amount) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_amount
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
         ORDER BY t.created_at DESC
@@ -82,6 +104,14 @@ def get_travelers():
 @bp.route('/<int:traveler_id>', methods=['GET'])
 def get_traveler(traveler_id):
     """Get single traveler with complete details (ALL 33 FIELDS)"""
+    # Check authentication (either admin or the traveler themselves)
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -107,6 +137,7 @@ def get_traveler(traveler_id):
         db.close()
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
+    # Get payments
     cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = ? 
@@ -114,6 +145,7 @@ def get_traveler(traveler_id):
     ''', (traveler_id,))
     payments = cursor.fetchall()
     
+    # Get payment summary
     cursor.execute('''
         SELECT 
             COUNT(*) as total_transactions,
@@ -127,6 +159,7 @@ def get_traveler(traveler_id):
     ''', (traveler_id,))
     payment_summary = cursor.fetchone()
     
+    # Get invoices
     cursor.execute('''
         SELECT * FROM invoices 
         WHERE traveler_id = ? 
@@ -134,6 +167,7 @@ def get_traveler(traveler_id):
     ''', (traveler_id,))
     invoices = cursor.fetchall()
     
+    # Get receipts
     cursor.execute('''
         SELECT * FROM receipts 
         WHERE traveler_id = ? 
@@ -211,6 +245,7 @@ def create_traveler():
         data = request.json
         files = {}
     
+    # Validate required fields
     required = ['first_name', 'last_name', 'passport_no', 'mobile', 'batch_id']
     for field in required:
         if not data.get(field):
@@ -309,7 +344,7 @@ def create_traveler():
         cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (batch_id,))
         
         # Log activity
-        log_activity(session['user_id'], 'create', 'traveler', f'Created traveler: {data["first_name"]} {data["last_name"]}')
+        log_activity(session['user_id'], 'create', 'traveler', f'Created traveler: {data["first_name"]} {data["last_name"]}', request.remote_addr)
         
         db.commit()
         db.close()
@@ -350,7 +385,7 @@ def update_traveler(traveler_id):
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         old_batch_id = existing['batch_id']
-        new_batch_id = int(data.get('batch_id', old_batch_id))
+        new_batch_id = int(data.get('batch_id', old_batch_id)) if data.get('batch_id') else old_batch_id
         
         extra_fields = data.get('extra_fields', '{}')
         if isinstance(extra_fields, dict):
@@ -372,7 +407,7 @@ def update_traveler(traveler_id):
         ]
         
         for field in text_fields:
-            if field in data:
+            if field in data and data[field] is not None:
                 update_fields.append(f"{field} = ?")
                 if field == 'passport_no':
                     values.append(data[field].upper())
@@ -391,7 +426,7 @@ def update_traveler(traveler_id):
                         values.append(filename)
         
         # Add batch_id if changed
-        if 'batch_id' in data:
+        if 'batch_id' in data and data['batch_id']:
             update_fields.append("batch_id = ?")
             values.append(new_batch_id)
         
@@ -413,7 +448,8 @@ def update_traveler(traveler_id):
             cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (old_batch_id,))
             cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (new_batch_id,))
         
-        log_activity(session['user_id'], 'update', 'traveler', f'Updated traveler ID: {traveler_id}')
+        # Log activity
+        log_activity(session['user_id'], 'update', 'traveler', f'Updated traveler ID: {traveler_id}', request.remote_addr)
         
         db.commit()
         db.close()
@@ -443,7 +479,8 @@ def delete_traveler(traveler_id):
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         # Delete associated files
-        traveler_dir = os.path.join(UPLOAD_FOLDER, str(traveler_id))
+        upload_folder = get_upload_folder()
+        traveler_dir = os.path.join(upload_folder, str(traveler_id))
         if os.path.exists(traveler_dir):
             import shutil
             shutil.rmtree(traveler_dir)
@@ -454,7 +491,8 @@ def delete_traveler(traveler_id):
         # Update batch booked seats
         cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (traveler['batch_id'],))
         
-        log_activity(session['user_id'], 'delete', 'traveler', f'Deleted traveler: {traveler["first_name"]} {traveler["last_name"]}')
+        # Log activity
+        log_activity(session['user_id'], 'delete', 'traveler', f'Deleted traveler: {traveler["first_name"]} {traveler["last_name"]}', request.remote_addr)
         
         db.commit()
         db.close()
@@ -469,6 +507,14 @@ def delete_traveler(traveler_id):
 @bp.route('/<int:traveler_id>/payments', methods=['GET'])
 def get_traveler_payments(traveler_id):
     """Get all payments for a traveler"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -503,6 +549,14 @@ def get_traveler_payments(traveler_id):
 @bp.route('/<int:traveler_id>/invoices', methods=['GET'])
 def get_traveler_invoices(traveler_id):
     """Get all invoices for a traveler"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -523,6 +577,14 @@ def get_traveler_invoices(traveler_id):
 @bp.route('/<int:traveler_id>/receipts', methods=['GET'])
 def get_traveler_receipts(traveler_id):
     """Get all receipts for a traveler"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -543,6 +605,14 @@ def get_traveler_receipts(traveler_id):
 @bp.route('/<int:traveler_id>/documents', methods=['GET'])
 def get_traveler_documents(traveler_id):
     """Get document status and download links for a traveler"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -559,16 +629,18 @@ def get_traveler_documents(traveler_id):
     if not docs:
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
+    upload_folder = get_upload_folder()
     result = {}
     for key in ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']:
         filename = docs[key]
         if filename:
-            filepath = os.path.join(UPLOAD_FOLDER, str(traveler_id), filename)
+            filepath = os.path.join(upload_folder, str(traveler_id), filename)
             result[key] = {
                 'uploaded': True,
                 'filename': filename,
                 'url': f'/api/travelers/{traveler_id}/documents/{key}',
-                'exists': os.path.exists(filepath)
+                'exists': os.path.exists(filepath),
+                'size': os.path.getsize(filepath) if os.path.exists(filepath) else 0
             }
         else:
             result[key] = {
@@ -584,8 +656,13 @@ def get_traveler_documents(traveler_id):
 @bp.route('/<int:traveler_id>/documents/<string:doc_type>', methods=['GET'])
 def download_document(traveler_id, doc_type):
     """Download a specific document for a traveler"""
-    if 'user_id' not in session:
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # If traveler is accessing, ensure they can only access their own data
+    if 'traveler_id' in session and session['traveler_id'] != traveler_id:
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
     
     valid_doc_types = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
     if doc_type not in valid_doc_types:
@@ -602,7 +679,8 @@ def download_document(traveler_id, doc_type):
         return jsonify({'success': False, 'error': 'Document not found'}), 404
     
     filename = result[doc_type]
-    filepath = os.path.join(UPLOAD_FOLDER, str(traveler_id), filename)
+    upload_folder = get_upload_folder()
+    filepath = os.path.join(upload_folder, str(traveler_id), filename)
     
     if not os.path.exists(filepath):
         return jsonify({'success': False, 'error': 'File not found on server'}), 404
@@ -612,6 +690,9 @@ def download_document(traveler_id, doc_type):
 @bp.route('/summary', methods=['GET'])
 def get_travelers_summary():
     """Get summary statistics for all travelers"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     db = get_db()
     cursor = db.cursor()
     
@@ -678,6 +759,9 @@ def get_travelers_summary():
 @bp.route('/search', methods=['GET'])
 def search_travelers():
     """Search travelers by various criteria"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     query = request.args.get('q', '')
     if len(query) < 2:
         return jsonify({'success': False, 'error': 'Search query too short'}), 400
@@ -719,27 +803,34 @@ def export_travelers():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    format_type = request.json.get('format', 'csv')
-    fields = request.json.get('fields', [])
+    data = request.json
+    format_type = data.get('format', 'csv')
+    fields = data.get('fields', [])
+    batch_id = data.get('batch_id')
     
     db = get_db()
     cursor = db.cursor()
     
-    cursor.execute('''
+    query = '''
         SELECT 
             t.*, b.batch_name
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
-        ORDER BY t.created_at DESC
-    ''')
+        WHERE 1=1
+    '''
+    params = []
     
+    if batch_id:
+        query += " AND t.batch_id = ?"
+        params.append(batch_id)
+    
+    query += " ORDER BY t.created_at DESC"
+    
+    cursor.execute(query, params)
     travelers = cursor.fetchall()
     db.close()
     
     if format_type == 'csv':
-        import csv
-        import io
-        
         output = io.StringIO()
         writer = csv.writer(output)
         
@@ -763,6 +854,10 @@ def export_travelers():
             writer.writerow(row)
         
         output.seek(0)
+        
+        # Log activity
+        log_activity(session['user_id'], 'export', 'traveler', f'Exported travelers data as CSV', request.remote_addr)
+        
         return send_file(
             io.BytesIO(output.getvalue().encode('utf-8-sig')),
             mimetype='text/csv',
@@ -780,16 +875,70 @@ def export_travelers():
     else:
         return jsonify({'success': False, 'error': 'Unsupported format'}), 400
 
-def log_activity(user_id, action, module, description):
-    """Log user activity"""
-    try:
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-            (user_id, action, module, description, request.remote_addr, datetime.now().isoformat())
-        )
-        db.commit()
-        db.close()
-    except Exception as e:
-        print(f"Error logging activity: {e}")
+@bp.route('/stats/monthly', methods=['GET'])
+def get_monthly_stats():
+    """Get monthly registration and payment statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    year = request.args.get('year', datetime.now().year, type=int)
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Monthly registrations
+    cursor.execute('''
+        SELECT 
+            strftime('%m', created_at) as month,
+            COUNT(*) as count
+        FROM travelers
+        WHERE strftime('%Y', created_at) = ?
+        GROUP BY strftime('%m', created_at)
+        ORDER BY month
+    ''', (str(year),))
+    
+    registrations = cursor.fetchall()
+    
+    # Monthly payments
+    cursor.execute('''
+        SELECT 
+            strftime('%m', payment_date) as month,
+            SUM(amount) as total,
+            COUNT(*) as count
+        FROM payments
+        WHERE strftime('%Y', payment_date) = ? AND status = 'completed'
+        GROUP BY strftime('%m', payment_date)
+        ORDER BY month
+    ''', (str(year),))
+    
+    payments = cursor.fetchall()
+    
+    db.close()
+    
+    # Initialize all months with zero
+    months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    registration_data = []
+    payment_data = []
+    
+    for i, month in enumerate(months):
+        reg = next((r for r in registrations if r['month'] == month), None)
+        registration_data.append({
+            'month': month_names[i],
+            'count': reg['count'] if reg else 0
+        })
+        
+        pay = next((p for p in payments if p['month'] == month), None)
+        payment_data.append({
+            'month': month_names[i],
+            'total': float(pay['total']) if pay else 0,
+            'count': pay['count'] if pay else 0
+        })
+    
+    return jsonify({
+        'success': True,
+        'year': year,
+        'registrations': registration_data,
+        'payments': payment_data
+    })
