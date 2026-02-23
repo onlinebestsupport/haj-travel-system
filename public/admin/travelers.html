@@ -6,6 +6,8 @@
     <title>Travelers - Alhudha Haj Travel Admin</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -73,7 +75,7 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             font-size: 1rem;
@@ -83,6 +85,24 @@
         .logout-btn:hover {
             background: #c0392b;
             transform: translateY(-2px);
+        }
+
+        /* Back to Dashboard */
+        .back-link {
+            margin: 20px 0;
+        }
+
+        .back-link a {
+            color: #3498db;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .back-link a:hover {
+            color: #2980b9;
         }
 
         /* Page Header */
@@ -184,16 +204,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-purple {
-            background: #9b59b6;
-            color: white;
-        }
-
-        .btn-purple:hover {
-            background: #8e44ad;
-            transform: translateY(-2px);
-        }
-
         /* Form Container */
         .form-container {
             background: white;
@@ -213,6 +223,11 @@
         .form-container h3 {
             margin-bottom: 20px;
             color: #2c3e50;
+        }
+
+        .form-container h3 i {
+            color: #f1c40f;
+            margin-right: 10px;
         }
 
         .form-grid {
@@ -331,6 +346,53 @@
             margin-top: 5px;
         }
 
+        /* Document Preview */
+        .document-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f8ff;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .document-preview i {
+            font-size: 1.5rem;
+            color: #27ae60;
+        }
+
+        .document-preview .file-info {
+            flex: 1;
+        }
+
+        .document-preview .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .document-preview .file-actions button {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+        }
+
+        .document-preview .file-actions button:hover {
+            color: #2980b9;
+        }
+
+        .document-preview .file-actions button.delete {
+            color: #e74c3c;
+        }
+
+        .document-preview .file-actions button.delete:hover {
+            color: #c0392b;
+        }
+
         /* Search Box */
         .search-box {
             display: flex;
@@ -427,6 +489,31 @@
             color: #155724;
         }
 
+        /* Document Icons in Table */
+        .doc-icons {
+            display: flex;
+            gap: 5px;
+            font-size: 1.2rem;
+        }
+
+        .doc-icon {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .doc-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .doc-icon.available {
+            color: #27ae60;
+        }
+
+        .doc-icon.missing {
+            color: #e74c3c;
+            opacity: 0.5;
+        }
+
         /* Icon Buttons */
         .icon-btn {
             background: none;
@@ -520,7 +607,7 @@
 
         .modal-body {
             margin: 20px 0;
-            max-height: 60vh;
+            max-height: 65vh;
             overflow-y: auto;
         }
 
@@ -533,6 +620,7 @@
             border-top: 1px solid #ecf0f1;
         }
 
+        /* Detail Grid for View Modal */
         .detail-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -575,6 +663,7 @@
             text-align: center;
             border: 1px solid #ecf0f1;
             transition: all 0.3s;
+            cursor: pointer;
         }
 
         .document-card:hover {
@@ -598,39 +687,57 @@
             font-size: 0.8rem;
         }
 
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
+        /* Document Viewer Modal */
+        .document-viewer {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .document-viewer img {
+            max-width: 100%;
+            max-height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .document-viewer iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+
+        /* CSV Upload Section */
+        .csv-upload-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 2px dashed #3498db;
+        }
+
+        .csv-upload-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .csv-upload-section h3 i {
+            color: #f1c40f;
+            margin-right: 10px;
+        }
+
+        .csv-format-box {
+            background: #f8f9fa;
+            padding: 15px;
             border-radius: 8px;
-            color: white;
-            z-index: 9999;
-            display: none;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 15px 0;
+            font-family: monospace;
+            overflow-x: auto;
         }
 
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .notification-success {
-            background: #27ae60;
-        }
-
-        .notification-error {
-            background: #e74c3c;
-        }
-
-        .notification-info {
-            background: #3498db;
-        }
-
-        .notification-warning {
-            background: #f39c12;
+        .csv-format-box pre {
+            margin: 0;
+            color: #2c3e50;
         }
 
         /* Loading */
@@ -649,10 +756,77 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0%); opacity: 1; }
+        }
+
+        .notification-success {
+            background: #27ae60;
+        }
+
+        .notification-error {
+            background: #e74c3c;
+        }
+
+        .notification-info {
+            background: #3498db;
+        }
+
+        .notification-warning {
+            background: #f39c12;
+        }
+
         /* Print Styles */
         @media print {
-            .admin-header, .action-buttons, .search-box, .icon-btn, .logout-btn {
+            .admin-header, .action-buttons, .search-box, .modal-footer, .logout-btn, .icon-btn, .csv-upload-section, .form-container {
                 display: none !important;
+            }
+            
+            .modal {
+                position: static;
+                transform: none;
+                max-width: 100%;
+                width: 100%;
+                box-shadow: none;
+                padding: 20px;
+                display: block !important;
+            }
+            
+            .modal-overlay {
+                display: none !important;
+            }
+            
+            .detail-grid {
+                grid-template-columns: repeat(3, 1fr);
+                page-break-inside: avoid;
+            }
+            
+            .document-grid {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            table {
+                min-width: 1000px;
+            }
+            .detail-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -665,6 +839,9 @@
             }
             .detail-grid {
                 grid-template-columns: 1fr;
+            }
+            .document-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -700,28 +877,46 @@
             <button class="action-btn btn-success" onclick="showAddTravelerForm()">
                 <i class="fas fa-user-plus"></i> Add New Traveler (33 Fields)
             </button>
-            <button class="action-btn btn-primary" onclick="exportTravelersToCSV()">
-                <i class="fas fa-file-excel"></i> Export to Excel
+            <button class="action-btn btn-primary" onclick="exportTravelersToExcel()">
+                <i class="fas fa-file-excel"></i> Export to Excel (33 Fields)
             </button>
-            <button class="action-btn btn-danger" onclick="printLandscapeReport()">
-                <i class="fas fa-print"></i> Print Landscape
+            <button class="action-btn btn-danger" onclick="exportTravelersToPDF()">
+                <i class="fas fa-file-pdf"></i> Export to PDF
             </button>
-            <button class="action-btn btn-info" onclick="showCSVUploadSection()">
+            <button class="action-btn btn-info" onclick="printTravelersTable()">
+                <i class="fas fa-print"></i> Print Table
+            </button>
+            <button class="action-btn btn-warning" onclick="showCSVUploadSection()">
                 <i class="fas fa-file-csv"></i> Bulk Upload CSV
+            </button>
+            <button class="action-btn btn-secondary" onclick="downloadCSVTemplate()">
+                <i class="fas fa-download"></i> Download CSV Template
             </button>
         </div>
 
         <!-- CSV Upload Section -->
-        <div id="csvUploadSection" class="form-container" style="display: none;">
-            <h3><i class="fas fa-file-csv"></i> Bulk Upload Travelers</h3>
-            <div class="form-group">
-                <label>Select CSV File</label>
-                <input type="file" id="csvFile" accept=".csv">
-                <p class="text-muted" style="margin-top: 5px;">Format: first_name,last_name,passport_no,mobile,email,batch_id,pin</p>
+        <div id="csvUploadSection" class="csv-upload-section" style="display: none;">
+            <h3><i class="fas fa-file-csv"></i> Bulk Upload Travelers via CSV</h3>
+            
+            <div class="csv-format-box">
+                <strong>CSV Format (33 columns):</strong>
+                <pre>first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields</pre>
+                <p style="color: #7f8c8d; margin-top: 10px;">⚠️ Batch ID should match existing batch IDs in the system (1=Haj Platinum, 2=Haj Gold, 3=Umrah Ramadhan)</p>
             </div>
-            <div class="form-actions">
-                <button class="action-btn btn-success" onclick="uploadCSV()"><i class="fas fa-upload"></i> Upload</button>
-                <button class="action-btn btn-secondary" onclick="hideCSVUploadSection()"><i class="fas fa-times"></i> Cancel</button>
+
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="csvFileInput" accept=".csv" style="flex: 1; padding: 10px;">
+                <button class="action-btn btn-success" onclick="uploadCSV()">
+                    <i class="fas fa-upload"></i> Upload & Process
+                </button>
+                <button class="action-btn btn-secondary" onclick="hideCSVUploadSection()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+
+            <div id="csvPreview" style="margin-top: 20px; max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; display: none;">
+                <h4>CSV Preview</h4>
+                <div id="csvPreviewContent"></div>
             </div>
         </div>
 
@@ -730,7 +925,7 @@
             <h3><i class="fas fa-user-plus"></i> Add New Traveler - 33 Fields</h3>
             <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();">
                 
-                <!-- Section 1: Personal Information -->
+                <!-- Section 1: Personal Information (10 fields) -->
                 <div class="section-header">
                     <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
                 </div>
@@ -789,7 +984,7 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Contact Information -->
+                <!-- Section 2: Contact Information (7 fields) -->
                 <div class="section-header">
                     <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
                 </div>
@@ -836,7 +1031,7 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Address & Family -->
+                <!-- Section 3: Address & Family (7 fields) -->
                 <div class="section-header">
                     <h4><i class="fas fa-home"></i> 3. Address & Family Information</h4>
                 </div>
@@ -867,7 +1062,7 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Document Uploads -->
+                <!-- Section 4: Document Uploads (5 fields) -->
                 <div class="section-header">
                     <h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4>
                 </div>
@@ -878,8 +1073,9 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_passport_scan_text">Click to upload passport scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_passport_scan_text')">
+                            <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_passport_scan_text', 'add_passport_scan_preview')">
                         </div>
+                        <div id="add_passport_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-id-card"></i> Aadhaar Scan</label>
@@ -887,8 +1083,9 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_aadhaar_scan_text">Click to upload Aadhaar scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_aadhaar_scan_text')">
+                            <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_aadhaar_scan_text', 'add_aadhaar_scan_preview')">
                         </div>
+                        <div id="add_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-credit-card"></i> PAN Scan</label>
@@ -896,8 +1093,9 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_pan_scan_text">Click to upload PAN scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_pan_scan_text')">
+                            <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_pan_scan_text', 'add_pan_scan_preview')">
                         </div>
+                        <div id="add_pan_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-syringe"></i> Vaccine Certificate</label>
@@ -905,12 +1103,23 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_vaccine_scan_text">Click to upload vaccine certificate</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'add_vaccine_scan_text')">
+                            <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_vaccine_scan_text', 'add_vaccine_scan_preview')">
                         </div>
+                        <div id="add_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> Photograph</label>
+                        <div class="document-upload" onclick="document.getElementById('add_photo').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p id="add_photo_text">Click to upload photograph</p>
+                            <small>JPG, PNG (Max 2MB)</small>
+                            <input type="file" id="add_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_photo_text', 'add_photo_preview')">
+                        </div>
+                        <div id="add_photo_preview" class="document-preview" style="display: none;"></div>
                     </div>
                 </div>
 
-                <!-- Section 5: Additional Information -->
+                <!-- Section 5: Additional Information (4 fields) -->
                 <div class="section-header">
                     <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
                 </div>
@@ -941,7 +1150,7 @@
         </div>
 
         <!-- EDIT TRAVELER FORM - 33 FIELDS -->
-        <div class="form-container" id="editTravelerForm">
+        <div class="form-container" id="editTravelerForm" style="display: none;">
             <h3><i class="fas fa-user-edit"></i> Edit Traveler - 33 Fields</h3>
             <form id="travelerEditForm" onsubmit="event.preventDefault(); updateTraveler();">
                 <input type="hidden" id="edit_traveler_id">
@@ -1000,36 +1209,40 @@
                         <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_passport_scan_text">Click to update passport scan</p>
-                            <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_passport_scan_text')">
+                            <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_passport_scan_text', 'edit_passport_scan_preview')">
                         </div>
+                        <div id="edit_passport_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label>Aadhaar Scan</label>
                         <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_aadhaar_scan_text">Click to update Aadhaar scan</p>
-                            <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_aadhaar_scan_text')">
+                            <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_aadhaar_scan_text', 'edit_aadhaar_scan_preview')">
                         </div>
+                        <div id="edit_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label>PAN Scan</label>
                         <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_pan_scan_text">Click to update PAN scan</p>
-                            <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_pan_scan_text')">
+                            <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_pan_scan_text', 'edit_pan_scan_preview')">
                         </div>
+                        <div id="edit_pan_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label>Vaccine Certificate</label>
                         <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_vaccine_scan_text">Click to update vaccine certificate</p>
-                            <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'edit_vaccine_scan_text')">
+                            <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_vaccine_scan_text', 'edit_vaccine_scan_preview')">
                         </div>
+                        <div id="edit_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                 </div>
 
-                <!-- Additional Information -->
+                <!-- Additional Info -->
                 <div class="section-header">
                     <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
                 </div>
@@ -1049,12 +1262,16 @@
 
         <!-- Search Box -->
         <div class="search-box">
-            <input type="text" id="searchTravelers" placeholder="Search travelers by name, passport, mobile...">
-            <button class="action-btn btn-primary" onclick="searchTravelers()"><i class="fas fa-search"></i> Search</button>
-            <button class="action-btn btn-secondary" onclick="clearSearch()"><i class="fas fa-times"></i> Clear</button>
+            <input type="text" id="searchTravelers" placeholder="Search travelers by name, passport, mobile, batch...">
+            <button class="action-btn btn-primary" onclick="searchTravelers()">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button class="action-btn btn-secondary" onclick="clearSearch()">
+                <i class="fas fa-times"></i> Clear
+            </button>
         </div>
 
-        <!-- Travelers Table -->
+        <!-- Travelers Table - 33 Fields Summary -->
         <div class="table-container">
             <table id="travelersTable">
                 <thead>
@@ -1066,22 +1283,21 @@
                         <th>Email</th>
                         <th>Batch</th>
                         <th>Status</th>
-                        <th>PIN</th>
-                        <th>Vaccine</th>
-                        <th>Wheelchair</th>
                         <th>Documents</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="travelersTableBody">
-                    <tr><td colspan="12" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
+                    <tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-            <div>Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalCount">0</span> travelers</div>
+            <div id="paginationInfo">
+                Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalCount">0</span> travelers
+            </div>
             <div style="display: flex; gap: 10px;">
                 <button class="action-btn btn-secondary" onclick="previousPage()" id="prevPageBtn"><i class="fas fa-chevron-left"></i> Previous</button>
                 <button class="action-btn btn-primary" onclick="nextPage()" id="nextPageBtn">Next <i class="fas fa-chevron-right"></i></button>
@@ -1089,31 +1305,50 @@
         </div>
     </div>
 
-    <!-- View Traveler Modal -->
-    <div id="viewTravelerModal" class="modal">
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    
+    <!-- View Traveler Modal - Complete 33 Fields -->
+    <div id="viewTravelerModal" class="modal modal-large">
         <div class="modal-header">
-            <h3><i class="fas fa-user"></i> Traveler Details (33 Fields)</h3>
-            <button class="modal-close" onclick="closeViewModal()">&times;</button>
+            <h3><i class="fas fa-user"></i> Complete Traveler Details (33 Fields)</h3>
+            <button class="modal-close" onclick="closeTravelerModal()">&times;</button>
         </div>
         <div class="modal-body" id="travelerDetails"></div>
         <div class="modal-footer">
-            <button class="action-btn btn-secondary" onclick="closeViewModal()">Close</button>
-            <button class="action-btn btn-primary" onclick="printTravelerDetails()"><i class="fas fa-print"></i> Print</button>
+            <button class="action-btn btn-secondary" onclick="closeTravelerModal()"><i class="fas fa-times"></i> Close</button>
+            <button class="action-btn btn-primary" onclick="printTravelerDetails()"><i class="fas fa-print"></i> Print Full Details</button>
+            <button class="action-btn btn-info" onclick="downloadTravelerPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
         </div>
     </div>
 
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    <!-- Document Viewer Modal -->
+    <div id="documentViewerModal" class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-file"></i> <span id="documentViewerTitle">Document Viewer</span></h3>
+            <button class="modal-close" onclick="closeDocumentViewer()">&times;</button>
+        </div>
+        <div class="modal-body" id="documentViewerContent"></div>
+        <div class="modal-footer">
+            <button class="action-btn btn-secondary" onclick="closeDocumentViewer()"><i class="fas fa-times"></i> Close</button>
+            <button class="action-btn btn-primary" onclick="downloadCurrentDocument()"><i class="fas fa-download"></i> Download</button>
+        </div>
+    </div>
 
-    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
+        let currentEditId = null;
         let travelersData = [];
         let batchesData = [];
         let currentPage = 1;
         let itemsPerPage = 10;
+        let currentDocument = null;
+        let currentDocumentName = '';
+
+        // Document storage (in-memory for demo)
+        const documentStore = new Map();
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
@@ -1125,36 +1360,151 @@
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
-            if (!sessionStorage.getItem('adminLoggedIn')) {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
+                return;
             }
-            const role = sessionStorage.getItem('adminRole') || 'admin';
-            document.getElementById('roleBadge').textContent = role;
-        }
-
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
+            const userName = sessionStorage.getItem('adminName') || 'Admin';
+            const userRole = sessionStorage.getItem('adminRole') || 'admin';
+            document.getElementById('roleBadge').textContent = userRole;
         }
 
         // ==================== NOTIFICATION ====================
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
-            setTimeout(() => notification.style.display = 'none', 3000);
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
         }
 
-        // ==================== DOCUMENT UPLOAD ====================
-        window.updateFileName = function(input, textElementId) {
+        // ==================== LOGOUT ====================
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = '/admin.login.html';
+        }
+
+        // ==================== DOCUMENT HANDLING ====================
+        function handleFileSelect(input, textElementId, previewElementId) {
             const textElement = document.getElementById(textElementId);
+            const previewElement = document.getElementById(previewElementId);
+            
             if (input.files && input.files[0]) {
-                textElement.textContent = input.files[0].name;
+                const file = input.files[0];
+                textElement.textContent = file.name;
+                
+                // Generate preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = e.target.result;
+                    const fileType = file.type;
+                    
+                    // Store in document store with unique ID
+                    const docId = Date.now() + '_' + file.name;
+                    documentStore.set(docId, {
+                        name: file.name,
+                        type: fileType,
+                        data: fileData
+                    });
+                    
+                    // Create preview HTML
+                    let previewHtml = `
+                        <div class="file-info">
+                            <i class="fas fa-${fileType.includes('pdf') ? 'file-pdf' : 'file-image'}"></i>
+                            <span>${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+                        </div>
+                        <div class="file-actions">
+                            <button onclick="viewDocument('${docId}')" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="removeDocument('${docId}', '${input.id}', '${textElementId}', '${previewElementId}')" class="delete" title="Remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    previewElement.innerHTML = previewHtml;
+                    previewElement.style.display = 'flex';
+                    
+                    // Store docId in input dataset for later retrieval
+                    input.dataset.docId = docId;
+                };
+                reader.readAsDataURL(file);
             } else {
                 textElement.textContent = textElementId.includes('edit') ? 'Click to update' : 'Click to upload';
+                previewElement.style.display = 'none';
+                delete input.dataset.docId;
             }
-        };
+        }
+
+        function viewDocument(docId) {
+            const doc = documentStore.get(docId);
+            if (!doc) {
+                showNotification('Document not found', 'error');
+                return;
+            }
+            
+            currentDocument = doc;
+            currentDocumentName = doc.name;
+            
+            const titleEl = document.getElementById('documentViewerTitle');
+            const contentEl = document.getElementById('documentViewerContent');
+            
+            titleEl.textContent = doc.name;
+            
+            if (doc.type.includes('pdf')) {
+                contentEl.innerHTML = `<iframe src="${doc.data}"></iframe>`;
+            } else if (doc.type.includes('image')) {
+                contentEl.innerHTML = `<img src="${doc.data}" alt="${doc.name}">`;
+            } else {
+                contentEl.innerHTML = `<p>Cannot preview this file type. Click Download to view.</p>`;
+            }
+            
+            document.getElementById('documentViewerModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function downloadCurrentDocument() {
+            if (!currentDocument) return;
+            
+            const link = document.createElement('a');
+            link.href = currentDocument.data;
+            link.download = currentDocument.name;
+            link.click();
+        }
+
+        function removeDocument(docId, inputId, textElementId, previewElementId) {
+            documentStore.delete(docId);
+            
+            const input = document.getElementById(inputId);
+            input.value = '';
+            delete input.dataset.docId;
+            
+            document.getElementById(textElementId).textContent = 'Click to upload';
+            document.getElementById(previewElementId).style.display = 'none';
+            
+            showNotification('Document removed', 'success');
+        }
+
+        function closeDocumentViewer() {
+            document.getElementById('documentViewerModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+            currentDocument = null;
+        }
+
+        function getAllDocumentsForTraveler(travelerId) {
+            const docs = [];
+            for (let [docId, doc] of documentStore.entries()) {
+                if (docId.startsWith(travelerId + '_')) {
+                    docs.push({ id: docId, ...doc });
+                }
+            }
+            return docs;
+        }
 
         // ==================== AUTO-FILL PASSPORT NAME ====================
         function setupPassportNameAutoFill() {
@@ -1163,8 +1513,13 @@
             const addPassport = document.getElementById('add_passport_name');
             
             if (addFirst && addLast && addPassport) {
-                addFirst.addEventListener('input', updateAddPassportName);
-                addLast.addEventListener('input', updateAddPassportName);
+                const updateAddPassport = () => {
+                    const first = addFirst.value || '';
+                    const last = addLast.value || '';
+                    addPassport.value = `${first} ${last}`.trim();
+                };
+                addFirst.addEventListener('input', updateAddPassport);
+                addLast.addEventListener('input', updateAddPassport);
             }
             
             const editFirst = document.getElementById('edit_first_name');
@@ -1172,130 +1527,269 @@
             const editPassport = document.getElementById('edit_passport_name');
             
             if (editFirst && editLast && editPassport) {
-                editFirst.addEventListener('input', updateEditPassportName);
-                editLast.addEventListener('input', updateEditPassportName);
+                const updateEditPassport = () => {
+                    const first = editFirst.value || '';
+                    const last = editLast.value || '';
+                    editPassport.value = `${first} ${last}`.trim();
+                };
+                editFirst.addEventListener('input', updateEditPassport);
+                editLast.addEventListener('input', updateEditPassport);
             }
-        }
-
-        function updateAddPassportName() {
-            const first = document.getElementById('add_first_name')?.value || '';
-            const last = document.getElementById('add_last_name')?.value || '';
-            document.getElementById('add_passport_name').value = `${first} ${last}`.trim();
-        }
-
-        function updateEditPassportName() {
-            const first = document.getElementById('edit_first_name')?.value || '';
-            const last = document.getElementById('edit_last_name')?.value || '';
-            document.getElementById('edit_passport_name').value = `${first} ${last}`.trim();
         }
 
         // ==================== LOAD BATCHES ====================
         async function loadBatches() {
             try {
-                const response = await fetch('/api/batches', { credentials: 'include' });
+                const response = await fetch('/api/batches');
                 const data = await response.json();
+                
                 if (data.success && data.batches) {
                     batchesData = data.batches;
+                    updateBatchDropdowns(data.batches);
                 } else {
-                    batchesData = [
-                        { id: 1, batch_name: 'Haj Platinum 2026' },
-                        { id: 2, batch_name: 'Haj Gold 2026' },
-                        { id: 3, batch_name: 'Umrah Ramadhan Special' }
-                    ];
+                    useFallbackBatches();
                 }
-                updateBatchDropdowns();
             } catch (error) {
                 console.error('Error loading batches:', error);
-                batchesData = [
-                    { id: 1, batch_name: 'Haj Platinum 2026' },
-                    { id: 2, batch_name: 'Haj Gold 2026' },
-                    { id: 3, batch_name: 'Umrah Ramadhan Special' }
-                ];
-                updateBatchDropdowns();
+                useFallbackBatches();
             }
         }
 
-        function updateBatchDropdowns() {
+        function useFallbackBatches() {
+            batchesData = [
+                { id: 1, batch_name: 'Haj Platinum 2026', price: 850000 },
+                { id: 2, batch_name: 'Haj Gold 2026', price: 550000 },
+                { id: 3, batch_name: 'Umrah Ramadhan Special', price: 125000 }
+            ];
+            updateBatchDropdowns(batchesData);
+        }
+
+        function updateBatchDropdowns(batches) {
             const addSelect = document.getElementById('add_batch_id');
             const editSelect = document.getElementById('edit_batch_id');
-            const options = ['<option value="">Select Batch</option>'];
             
-            batchesData.forEach(b => {
-                options.push(`<option value="${b.id}">${b.batch_name}</option>`);
-            });
+            if (addSelect) {
+                addSelect.innerHTML = '<option value="">Select Batch</option>';
+                batches.forEach(b => {
+                    addSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+                });
+            }
             
-            if (addSelect) addSelect.innerHTML = options.join('');
-            if (editSelect) editSelect.innerHTML = options.join('');
+            if (editSelect) {
+                editSelect.innerHTML = '<option value="">Select Batch</option>';
+                batches.forEach(b => {
+                    editSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+                });
+            }
         }
 
         // ==================== LOAD TRAVELERS ====================
         async function loadTravelers() {
-            const tbody = document.getElementById('travelersTableBody');
-            tbody.innerHTML = '<tr><td colspan="12" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+            const tableBody = document.getElementById('travelersTableBody');
+            tableBody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
             
             try {
-                const response = await fetch('/api/travelers', { credentials: 'include' });
+                const response = await fetch('/api/travelers');
                 const data = await response.json();
                 
                 if (data.success && data.travelers) {
                     travelersData = data.travelers;
                 } else {
-                    useFallbackData();
+                    useFallbackTravelers();
                 }
             } catch (error) {
                 console.error('Error loading travelers:', error);
-                useFallbackData();
+                useFallbackTravelers();
             }
             
             displayTravelers();
         }
 
-        function useFallbackData() {
+        function useFallbackTravelers() {
             travelersData = [
-                { id: 1, first_name: 'Ahmed', last_name: 'Khan', passport_no: 'A1234567', mobile: '9876543210', email: 'ahmed@email.com', batch_name: 'Haj Platinum 2026', passport_status: 'Active', pin: '1234', vaccine_status: 'Fully Vaccinated', wheelchair: 'No' },
-                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', mobile: '8765432109', email: 'fatima@email.com', batch_name: 'Haj Gold 2026', passport_status: 'Active', pin: '5678', vaccine_status: 'Partially Vaccinated', wheelchair: 'No' },
-                { id: 3, first_name: 'Mohammed', last_name: 'Rafiq', passport_no: 'C9876543', mobile: '7654321098', email: 'rafiq@email.com', batch_name: 'Umrah Ramadhan Special', passport_status: 'Processing', pin: '9012', vaccine_status: 'Not Vaccinated', wheelchair: 'Yes' }
+                { 
+                    id: 1, 
+                    first_name: 'Ahmed', 
+                    last_name: 'Khan', 
+                    passport_name: 'Ahmed Khan',
+                    passport_no: 'A1234567', 
+                    mobile: '9876543210',
+                    email: 'ahmed@email.com',
+                    batch_id: 1,
+                    batch_name: 'Haj Platinum 2026',
+                    passport_status: 'Active',
+                    pin: '1234',
+                    vaccine_status: 'Fully Vaccinated',
+                    wheelchair: 'No',
+                    gender: 'Male',
+                    dob: '1985-06-15',
+                    aadhaar: '1234 5678 9012',
+                    pan: 'ABCDE1234F',
+                    aadhaar_pan_linked: 'Yes',
+                    place_of_birth: 'Mumbai',
+                    place_of_issue: 'Mumbai',
+                    passport_address: '123, Green Street, Mumbai',
+                    father_name: 'Abdullah Khan',
+                    mother_name: 'Amina Khan',
+                    spouse_name: 'N/A',
+                    emergency_contact: 'Brother',
+                    emergency_phone: '9876543211',
+                    medical_notes: 'No allergies',
+                    created_at: '2026-01-15T10:30:00',
+                    documents: {
+                        passport: 'doc1',
+                        aadhaar: 'doc2',
+                        pan: 'doc3',
+                        vaccine: 'doc4',
+                        photo: 'doc5'
+                    }
+                },
+                { 
+                    id: 2, 
+                    first_name: 'Fatima', 
+                    last_name: 'Begum', 
+                    passport_name: 'Fatima Begum',
+                    passport_no: 'B7654321', 
+                    mobile: '8765432109',
+                    email: 'fatima@email.com',
+                    batch_id: 2,
+                    batch_name: 'Haj Gold 2026',
+                    passport_status: 'Active',
+                    pin: '5678',
+                    vaccine_status: 'Partially Vaccinated',
+                    wheelchair: 'No',
+                    gender: 'Female',
+                    dob: '1990-11-22',
+                    aadhaar: '2345 6789 0123',
+                    pan: 'FGHIJ5678K',
+                    aadhaar_pan_linked: 'Pending',
+                    place_of_birth: 'Delhi',
+                    place_of_issue: 'Delhi',
+                    passport_address: '456, Lotus Apartments, Delhi',
+                    father_name: 'Mohammed Ali',
+                    mother_name: 'Zainab Ali',
+                    spouse_name: 'Hasan Raza',
+                    emergency_contact: 'Husband',
+                    emergency_phone: '8765432100',
+                    medical_notes: 'Diabetic',
+                    created_at: '2026-01-20T14:30:00',
+                    documents: {
+                        passport: 'doc6',
+                        aadhaar: 'doc7'
+                    }
+                },
+                { 
+                    id: 3, 
+                    first_name: 'Mohammed', 
+                    last_name: 'Rafiq', 
+                    passport_name: 'Mohammed Rafiq',
+                    passport_no: 'C9876543', 
+                    mobile: '7654321098',
+                    email: 'rafiq@email.com',
+                    batch_id: 3,
+                    batch_name: 'Umrah Ramadhan Special',
+                    passport_status: 'Processing',
+                    pin: '9012',
+                    vaccine_status: 'Not Vaccinated',
+                    wheelchair: 'Yes',
+                    gender: 'Male',
+                    dob: '1978-03-08',
+                    aadhaar: '3456 7890 1234',
+                    pan: 'KLMNO9012P',
+                    aadhaar_pan_linked: 'No',
+                    place_of_birth: 'Hyderabad',
+                    place_of_issue: 'Hyderabad',
+                    passport_address: '789, Old City, Hyderabad',
+                    father_name: 'Abdul Rafiq',
+                    mother_name: 'Razia Sultana',
+                    spouse_name: 'N/A',
+                    emergency_contact: 'Son',
+                    emergency_phone: '7654321000',
+                    medical_notes: 'Requires wheelchair assistance',
+                    created_at: '2026-02-01T09:15:00',
+                    documents: {}
+                }
             ];
         }
 
         function displayTravelers() {
-            const tbody = document.getElementById('travelersTableBody');
-            if (!travelersData.length) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px;">No travelers found</td></tr>';
+            const tableBody = document.getElementById('travelersTableBody');
+            if (!travelersData || travelersData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No travelers found</td></tr>';
+                updatePaginationInfo(0);
                 return;
             }
             
+            // Apply pagination
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const pageData = travelersData.slice(start, end);
+            const paginatedData = travelersData.slice(start, end);
             
             let html = '';
-            pageData.forEach(t => {
-                const docStatus = (t.passport_scan ? '📄' : '❌') + (t.aadhaar_scan ? '📄' : '❌') + (t.pan_scan ? '📄' : '❌');
+            paginatedData.forEach(t => {
+                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
+                const batchName = t.batch_name || 'Not Assigned';
+                
+                // Document icons
+                const docIcons = `
+                    <div class="doc-icons">
+                        <i class="fas fa-passport doc-icon ${t.documents?.passport ? 'available' : 'missing'}" 
+                           onclick="${t.documents?.passport ? `viewDocument('${t.documents.passport}')` : ''}" 
+                           title="Passport Scan ${t.documents?.passport ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-id-card doc-icon ${t.documents?.aadhaar ? 'available' : 'missing'}" 
+                           onclick="${t.documents?.aadhaar ? `viewDocument('${t.documents.aadhaar}')` : ''}" 
+                           title="Aadhaar Scan ${t.documents?.aadhaar ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-credit-card doc-icon ${t.documents?.pan ? 'available' : 'missing'}" 
+                           onclick="${t.documents?.pan ? `viewDocument('${t.documents.pan}')` : ''}" 
+                           title="PAN Scan ${t.documents?.pan ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-syringe doc-icon ${t.documents?.vaccine ? 'available' : 'missing'}" 
+                           onclick="${t.documents?.vaccine ? `viewDocument('${t.documents.vaccine}')` : ''}" 
+                           title="Vaccine Certificate ${t.documents?.vaccine ? '(Click to view)' : '(Missing)'}"></i>
+                    </div>
+                `;
+                
+                let statusClass = 'status-active';
+                if (t.passport_status === 'Submitted') statusClass = 'status-pending';
+                if (t.passport_status === 'Processing') statusClass = 'status-warning';
+                if (t.passport_status === 'Expired') statusClass = 'status-inactive';
+                
                 html += `<tr>
                     <td>${t.id}</td>
-                    <td><strong>${t.first_name || ''} ${t.last_name || ''}</strong></td>
-                    <td>${t.passport_no || '-'}</td>
-                    <td>${t.mobile || '-'}</td>
-                    <td>${t.email || '-'}</td>
-                    <td>${t.batch_name || '-'}</td>
-                    <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
-                    <td>${t.pin || '0000'}</td>
-                    <td>${t.vaccine_status || '-'}</td>
-                    <td>${t.wheelchair || '-'}</td>
-                    <td>${docStatus}</td>
+                    <td><strong>${escapeHtml(fullName)}</strong><br><small>${escapeHtml(t.passport_name || '')}</small></td>
+                    <td>${escapeHtml(t.passport_no || '-')}<br><small>Exp: ${t.passport_expiry_date || 'N/A'}</small></td>
+                    <td>${escapeHtml(t.mobile || '-')}</td>
+                    <td>${escapeHtml(t.email || '-')}</td>
+                    <td>${escapeHtml(batchName)}</td>
+                    <td><span class="status-badge ${statusClass}">${escapeHtml(t.passport_status || 'Active')}</span></td>
+                    <td>${docIcons}</td>
                     <td>
-                        <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View Full Details"><i class="fas fa-eye"></i></button>
                         <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
                         <button class="icon-btn" onclick="deleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
             });
             
-            tbody.innerHTML = html;
-            document.getElementById('totalCount').textContent = travelersData.length;
-            document.getElementById('showingFrom').textContent = start + 1;
-            document.getElementById('showingTo').textContent = Math.min(end, travelersData.length);
+            tableBody.innerHTML = html;
+            updatePaginationInfo(travelersData.length);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return text;
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updatePaginationInfo(total) {
+            document.getElementById('totalCount').textContent = total;
+            const start = (currentPage - 1) * itemsPerPage + 1;
+            const end = Math.min(currentPage * itemsPerPage, total);
+            document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
+            document.getElementById('showingTo').textContent = total > 0 ? end : 0;
+            
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = end >= total;
         }
 
         function previousPage() {
@@ -1313,19 +1807,49 @@
         }
 
         // ==================== ADD TRAVELER FORM ====================
-        window.showAddTravelerForm = function() {
+        function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
+            loadBatches(); // Refresh batches
             document.getElementById('addTravelerForm').scrollIntoView({ behavior: 'smooth' });
-        };
+        }
 
-        window.hideAddTravelerForm = function() {
+        function hideAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'none';
             document.getElementById('travelerAddForm').reset();
-        };
+            
+            // Reset file uploads
+            const previewIds = [
+                'add_passport_scan_preview', 'add_aadhaar_scan_preview', 
+                'add_pan_scan_preview', 'add_vaccine_scan_preview', 'add_photo_preview'
+            ];
+            const textIds = [
+                'add_passport_scan_text', 'add_aadhaar_scan_text', 
+                'add_pan_scan_text', 'add_vaccine_scan_text', 'add_photo_text'
+            ];
+            
+            previewIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            
+            textIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = id.includes('photo') ? 'Click to upload photograph' : 'Click to upload';
+            });
+        }
 
         // ==================== CREATE TRAVELER ====================
-        window.createTraveler = async function() {
-            const data = {
+        async function createTraveler() {
+            // Collect document IDs
+            const documents = {
+                passport: document.getElementById('add_passport_scan').dataset.docId,
+                aadhaar: document.getElementById('add_aadhaar_scan').dataset.docId,
+                pan: document.getElementById('add_pan_scan').dataset.docId,
+                vaccine: document.getElementById('add_vaccine_scan').dataset.docId,
+                photo: document.getElementById('add_photo').dataset.docId
+            };
+
+            const travelerData = {
                 first_name: document.getElementById('add_first_name').value,
                 last_name: document.getElementById('add_last_name').value,
                 passport_name: document.getElementById('add_passport_name').value,
@@ -1352,11 +1876,17 @@
                 pin: document.getElementById('add_pin').value || '0000',
                 emergency_contact: document.getElementById('add_emergency_contact').value || null,
                 emergency_phone: document.getElementById('add_emergency_phone').value || null,
-                medical_notes: document.getElementById('add_medical_notes').value || null
+                medical_notes: document.getElementById('add_medical_notes').value || null,
+                documents: documents
             };
             
-            if (!data.first_name || !data.last_name || !data.passport_no || !data.mobile || !data.batch_id) {
+            if (!travelerData.first_name || !travelerData.last_name || !travelerData.passport_no || !travelerData.mobile) {
                 showNotification('Please fill all required fields', 'error');
+                return;
+            }
+            
+            if (!travelerData.batch_id) {
+                showNotification('Please select a batch', 'error');
                 return;
             }
             
@@ -1364,84 +1894,105 @@
                 const response = await fetch('/api/travelers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(travelerData)
                 });
-                const result = await response.json();
                 
-                if (result.success) {
+                const data = await response.json();
+                
+                if (data.success) {
                     showNotification('Traveler created successfully!', 'success');
                     hideAddTravelerForm();
                     loadTravelers();
                 } else {
-                    showNotification('Error: ' + result.error, 'error');
+                    showNotification('Error: ' + (data.error || 'Could not create traveler'), 'error');
                 }
             } catch (error) {
-                showNotification('Error creating traveler', 'error');
+                // Demo mode
+                const newId = Math.max(...travelersData.map(t => t.id), 0) + 1;
+                const batch = batchesData.find(b => b.id == travelerData.batch_id);
+                travelerData.id = newId;
+                travelerData.batch_name = batch ? batch.batch_name : 'Selected Batch';
+                travelerData.created_at = new Date().toISOString();
+                
+                // Rename document IDs with traveler ID prefix
+                if (travelerData.documents) {
+                    Object.keys(travelerData.documents).forEach(key => {
+                        const oldId = travelerData.documents[key];
+                        if (oldId) {
+                            const newId = `${travelerData.id}_${oldId.split('_').pop()}`;
+                            const doc = documentStore.get(oldId);
+                            if (doc) {
+                                documentStore.delete(oldId);
+                                documentStore.set(newId, doc);
+                                travelerData.documents[key] = newId;
+                            }
+                        }
+                    });
+                }
+                
+                travelersData.push(travelerData);
+                showNotification('Traveler created (demo mode)', 'success');
+                hideAddTravelerForm();
+                displayTravelers();
             }
-        };
+        }
 
         // ==================== EDIT TRAVELER ====================
-        window.editTraveler = async function(id) {
-            try {
-                const response = await fetch(`/api/travelers/${id}`, { credentials: 'include' });
-                const data = await response.json();
-                
-                if (!data.success) {
-                    showNotification('Could not load traveler data', 'error');
-                    return;
-                }
-                
-                const t = data.traveler;
-                
-                // Populate form fields
-                document.getElementById('edit_traveler_id').value = t.id || '';
-                document.getElementById('edit_first_name').value = t.first_name || '';
-                document.getElementById('edit_last_name').value = t.last_name || '';
-                document.getElementById('edit_passport_name').value = t.passport_name || `${t.first_name || ''} ${t.last_name || ''}`.trim();
-                document.getElementById('edit_batch_id').value = t.batch_id || '';
-                document.getElementById('edit_passport_no').value = t.passport_no || '';
-                document.getElementById('edit_passport_issue_date').value = t.passport_issue_date || '';
-                document.getElementById('edit_passport_expiry_date').value = t.passport_expiry_date || '';
-                document.getElementById('edit_passport_status').value = t.passport_status || 'Active';
-                document.getElementById('edit_gender').value = t.gender || '';
-                document.getElementById('edit_dob').value = t.dob || '';
-                document.getElementById('edit_mobile').value = t.mobile || '';
-                document.getElementById('edit_email').value = t.email || '';
-                document.getElementById('edit_aadhaar').value = t.aadhaar || '';
-                document.getElementById('edit_pan').value = t.pan || '';
-                document.getElementById('edit_aadhaar_pan_linked').value = t.aadhaar_pan_linked || 'No';
-                document.getElementById('edit_vaccine_status').value = t.vaccine_status || 'Not Vaccinated';
-                document.getElementById('edit_wheelchair').value = t.wheelchair || 'No';
-                document.getElementById('edit_place_of_birth').value = t.place_of_birth || '';
-                document.getElementById('edit_place_of_issue').value = t.place_of_issue || '';
-                document.getElementById('edit_passport_address').value = t.passport_address || '';
-                document.getElementById('edit_father_name').value = t.father_name || '';
-                document.getElementById('edit_mother_name').value = t.mother_name || '';
-                document.getElementById('edit_spouse_name').value = t.spouse_name || '';
-                document.getElementById('edit_pin').value = t.pin || '0000';
-                document.getElementById('edit_emergency_contact').value = t.emergency_contact || '';
-                document.getElementById('edit_emergency_phone').value = t.emergency_phone || '';
-                document.getElementById('edit_medical_notes').value = t.medical_notes || '';
-                
-                document.getElementById('editTravelerForm').style.display = 'block';
-                document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
-                
-            } catch (error) {
-                console.error('Error loading traveler:', error);
-                showNotification('Error loading traveler data', 'error');
+        function editTraveler(id) {
+            const traveler = travelersData.find(t => t.id === id);
+            if (!traveler) {
+                showNotification('Traveler not found', 'error');
+                return;
             }
-        };
+            
+            currentEditId = id;
+            
+            document.getElementById('edit_traveler_id').value = traveler.id;
+            document.getElementById('edit_first_name').value = traveler.first_name || '';
+            document.getElementById('edit_last_name').value = traveler.last_name || '';
+            document.getElementById('edit_passport_name').value = traveler.passport_name || '';
+            document.getElementById('edit_batch_id').value = traveler.batch_id || '';
+            document.getElementById('edit_passport_no').value = traveler.passport_no || '';
+            document.getElementById('edit_passport_issue_date').value = traveler.passport_issue_date || '';
+            document.getElementById('edit_passport_expiry_date').value = traveler.passport_expiry_date || '';
+            document.getElementById('edit_passport_status').value = traveler.passport_status || 'Active';
+            document.getElementById('edit_gender').value = traveler.gender || '';
+            document.getElementById('edit_dob').value = traveler.dob || '';
+            document.getElementById('edit_mobile').value = traveler.mobile || '';
+            document.getElementById('edit_email').value = traveler.email || '';
+            document.getElementById('edit_aadhaar').value = traveler.aadhaar || '';
+            document.getElementById('edit_pan').value = traveler.pan || '';
+            document.getElementById('edit_aadhaar_pan_linked').value = traveler.aadhaar_pan_linked || 'No';
+            document.getElementById('edit_vaccine_status').value = traveler.vaccine_status || 'Not Vaccinated';
+            document.getElementById('edit_wheelchair').value = traveler.wheelchair || 'No';
+            document.getElementById('edit_place_of_birth').value = traveler.place_of_birth || '';
+            document.getElementById('edit_place_of_issue').value = traveler.place_of_issue || '';
+            document.getElementById('edit_passport_address').value = traveler.passport_address || '';
+            document.getElementById('edit_father_name').value = traveler.father_name || '';
+            document.getElementById('edit_mother_name').value = traveler.mother_name || '';
+            document.getElementById('edit_spouse_name').value = traveler.spouse_name || '';
+            document.getElementById('edit_pin').value = traveler.pin || '0000';
+            document.getElementById('edit_emergency_contact').value = traveler.emergency_contact || '';
+            document.getElementById('edit_emergency_phone').value = traveler.emergency_phone || '';
+            document.getElementById('edit_medical_notes').value = traveler.medical_notes || '';
+            
+            document.getElementById('editTravelerForm').style.display = 'block';
+            document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
+        }
 
-        window.hideEditTravelerForm = function() {
+        function hideEditTravelerForm() {
             document.getElementById('editTravelerForm').style.display = 'none';
-        };
+            currentEditId = null;
+        }
 
         // ==================== UPDATE TRAVELER ====================
-        window.updateTraveler = async function() {
-            const id = document.getElementById('edit_traveler_id').value;
+        async function updateTraveler() {
+            if (!currentEditId) {
+                showNotification('No traveler selected for editing', 'error');
+                return;
+            }
             
-            const data = {
+            const travelerData = {
                 first_name: document.getElementById('edit_first_name').value,
                 last_name: document.getElementById('edit_last_name').value,
                 passport_name: document.getElementById('edit_passport_name').value,
@@ -1471,183 +2022,514 @@
                 medical_notes: document.getElementById('edit_medical_notes').value || null
             };
             
-            if (!data.first_name || !data.last_name || !data.passport_no || !data.mobile || !data.batch_id) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            
             try {
-                const response = await fetch(`/api/travelers/${id}`, {
+                const response = await fetch(`/api/travelers/${currentEditId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(travelerData)
                 });
-                const result = await response.json();
                 
-                if (result.success) {
+                const data = await response.json();
+                
+                if (data.success) {
                     showNotification('Traveler updated successfully!', 'success');
                     hideEditTravelerForm();
                     loadTravelers();
                 } else {
-                    showNotification('Error: ' + result.error, 'error');
+                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
                 }
             } catch (error) {
-                showNotification('Error updating traveler', 'error');
+                // Demo mode
+                const index = travelersData.findIndex(t => t.id === currentEditId);
+                if (index !== -1) {
+                    const batch = batchesData.find(b => b.id == travelerData.batch_id);
+                    travelersData[index] = { 
+                        ...travelersData[index], 
+                        ...travelerData,
+                        batch_name: batch ? batch.batch_name : travelersData[index].batch_name
+                    };
+                    showNotification('Traveler updated (demo mode)', 'success');
+                    hideEditTravelerForm();
+                    displayTravelers();
+                } else {
+                    showNotification('Error updating traveler', 'error');
+                }
             }
-        };
+        }
 
         // ==================== DELETE TRAVELER ====================
-        window.deleteTraveler = async function(id) {
-            if (!confirm('Delete this traveler?')) return;
-            
-            try {
-                const response = await fetch(`/api/travelers/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
-                });
-                const result = await response.json();
-                
-                if (result.success) {
-                    showNotification('Traveler deleted', 'success');
-                    loadTravelers();
-                } else {
-                    showNotification('Error: ' + result.error, 'error');
-                }
-            } catch (error) {
-                showNotification('Error deleting traveler', 'error');
-            }
-        };
-
-        // ==================== VIEW TRAVELER ====================
-        window.viewTraveler = async function(id) {
-            try {
-                const response = await fetch(`/api/travelers/${id}`, { credentials: 'include' });
-                const data = await response.json();
-                
-                if (!data.success) {
-                    showNotification('Could not load traveler', 'error');
-                    return;
-                }
-                
-                const t = data.traveler;
-                
-                let html = '<div class="detail-grid">';
-                html += `<div class="detail-item"><strong>Name:</strong> <span>${t.first_name} ${t.last_name}</span></div>`;
-                html += `<div class="detail-item"><strong>Passport:</strong> <span>${t.passport_no}</span></div>`;
-                html += `<div class="detail-item"><strong>Mobile:</strong> <span>${t.mobile}</span></div>`;
-                html += `<div class="detail-item"><strong>Email:</strong> <span>${t.email || '-'}</span></div>`;
-                html += `<div class="detail-item"><strong>Batch:</strong> <span>${t.batch_name || '-'}</span></div>`;
-                html += `<div class="detail-item"><strong>Gender:</strong> <span>${t.gender || '-'}</span></div>`;
-                html += `<div class="detail-item"><strong>DOB:</strong> <span>${t.dob || '-'}</span></div>`;
-                html += `<div class="detail-item"><strong>PIN:</strong> <span>${t.pin || '0000'}</span></div>`;
-                html += '</div>';
-                
-                document.getElementById('travelerDetails').innerHTML = html;
-                document.getElementById('viewTravelerModal').style.display = 'block';
-                document.getElementById('modalOverlay').style.display = 'block';
-                
-            } catch (error) {
-                showNotification('Error loading traveler', 'error');
-            }
-        };
-
-        window.closeViewModal = function() {
-            document.getElementById('viewTravelerModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        };
-
-        window.printTravelerDetails = function() {
-            const content = document.getElementById('travelerDetails').innerHTML;
-            const w = window.open('', '_blank');
-            w.document.write(`<html><head><title>Traveler Details</title></head><body>${content}</body></html>`);
-            w.print();
-        };
-
-        window.closeAllModals = function() {
-            document.getElementById('viewTravelerModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        };
-
-        // ==================== SEARCH ====================
-        window.searchTravelers = function() {
-            const term = document.getElementById('searchTravelers').value.toLowerCase();
-            const filtered = travelersData.filter(t => 
-                (t.first_name + ' ' + t.last_name).toLowerCase().includes(term) ||
-                (t.passport_no || '').toLowerCase().includes(term) ||
-                (t.mobile || '').includes(term)
-            );
-            displayFiltered(filtered);
-        };
-
-        window.clearSearch = function() {
-            document.getElementById('searchTravelers').value = '';
-            displayTravelers();
-        };
-
-        function displayFiltered(filtered) {
-            const tbody = document.getElementById('travelersTableBody');
-            if (!filtered.length) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px;">No matches</td></tr>';
+        async function deleteTraveler(id) {
+            if (!confirm('Are you sure you want to delete this traveler? This action cannot be undone.')) {
                 return;
             }
             
-            let html = '';
-            filtered.forEach(t => {
-                html += `<tr>
-                    <td>${t.id}</td>
-                    <td>${t.first_name} ${t.last_name}</td>
-                    <td>${t.passport_no || '-'}</td>
-                    <td>${t.mobile || '-'}</td>
-                    <td>${t.email || '-'}</td>
-                    <td>${t.batch_name || '-'}</td>
-                    <td><span class="status-badge status-active">${t.passport_status || 'Active'}</span></td>
-                    <td>${t.pin || '0000'}</td>
-                    <td>${t.vaccine_status || '-'}</td>
-                    <td>${t.wheelchair || '-'}</td>
-                    <td>📄📄📄</td>
-                    <td>
-                        <button class="icon-btn" onclick="viewTraveler(${t.id})"><i class="fas fa-eye"></i></button>
-                        <button class="icon-btn" onclick="editTraveler(${t.id})"><i class="fas fa-edit"></i></button>
-                        <button class="icon-btn" onclick="deleteTraveler(${t.id})"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
+            try {
+                const response = await fetch(`/api/travelers/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Traveler deleted successfully!', 'success');
+                    loadTravelers();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not delete traveler'), 'error');
+                }
+            } catch (error) {
+                // Demo mode
+                travelersData = travelersData.filter(t => t.id !== id);
+                showNotification('Traveler deleted (demo mode)', 'success');
+                displayTravelers();
+            }
         }
 
-        // ==================== CSV UPLOAD ====================
-        window.showCSVUploadSection = function() {
-            document.getElementById('csvUploadSection').style.display = 'block';
-        };
+        // ==================== VIEW TRAVELER ====================
+        function viewTraveler(id) {
+            const traveler = travelersData.find(t => t.id === id);
+            if (!traveler) {
+                showNotification('Traveler not found', 'error');
+                return;
+            }
+            
+            displayTravelerDetails(traveler);
+        }
 
-        window.hideCSVUploadSection = function() {
-            document.getElementById('csvUploadSection').style.display = 'none';
-        };
+        function displayTravelerDetails(t) {
+            const formatValue = (val) => val && val !== '' ? val : '<span style="color: #95a5a6;">Not specified</span>';
+            const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'Not specified';
+            
+            // Document cards with click handlers
+            const documentCards = `
+                <div class="document-card" onclick="${t.documents?.passport ? `viewDocument('${t.documents.passport}')` : ''}">
+                    <i class="fas fa-passport ${t.documents?.passport ? 'available' : 'missing'}"></i>
+                    <p><strong>Passport</strong></p>
+                    <p>${t.documents?.passport ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.documents?.passport ? '<small>Click to view</small>' : ''}
+                </div>
+                <div class="document-card" onclick="${t.documents?.aadhaar ? `viewDocument('${t.documents.aadhaar}')` : ''}">
+                    <i class="fas fa-id-card ${t.documents?.aadhaar ? 'available' : 'missing'}"></i>
+                    <p><strong>Aadhaar</strong></p>
+                    <p>${t.documents?.aadhaar ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.documents?.aadhaar ? '<small>Click to view</small>' : ''}
+                </div>
+                <div class="document-card" onclick="${t.documents?.pan ? `viewDocument('${t.documents.pan}')` : ''}">
+                    <i class="fas fa-credit-card ${t.documents?.pan ? 'available' : 'missing'}"></i>
+                    <p><strong>PAN</strong></p>
+                    <p>${t.documents?.pan ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.documents?.pan ? '<small>Click to view</small>' : ''}
+                </div>
+                <div class="document-card" onclick="${t.documents?.vaccine ? `viewDocument('${t.documents.vaccine}')` : ''}">
+                    <i class="fas fa-syringe ${t.documents?.vaccine ? 'available' : 'missing'}"></i>
+                    <p><strong>Vaccine</strong></p>
+                    <p>${t.documents?.vaccine ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.documents?.vaccine ? '<small>Click to view</small>' : ''}
+                </div>
+                <div class="document-card" onclick="${t.documents?.photo ? `viewDocument('${t.documents.photo}')` : ''}">
+                    <i class="fas fa-image ${t.documents?.photo ? 'available' : 'missing'}"></i>
+                    <p><strong>Photo</strong></p>
+                    <p>${t.documents?.photo ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.documents?.photo ? '<small>Click to view</small>' : ''}
+                </div>
+            `;
+            
+            const detailsHtml = `
+                <div style="max-height: 70vh; overflow-y: auto; padding: 10px;">
+                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                        <i class="fas fa-user"></i> Personal Information
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><strong>Full Name:</strong> <span>${t.first_name || ''} ${t.last_name || ''}</span></div>
+                        <div class="detail-item"><strong>Passport Name:</strong> <span>${formatValue(t.passport_name)}</span></div>
+                        <div class="detail-item"><strong>Batch:</strong> <span>${formatValue(t.batch_name)}</span></div>
+                        <div class="detail-item"><strong>Passport Number:</strong> <span>${formatValue(t.passport_no)}</span></div>
+                        <div class="detail-item"><strong>Passport Issue Date:</strong> <span>${formatDate(t.passport_issue_date)}</span></div>
+                        <div class="detail-item"><strong>Passport Expiry Date:</strong> <span>${formatDate(t.passport_expiry_date)}</span></div>
+                        <div class="detail-item"><strong>Passport Status:</strong> <span class="status-badge status-active">${formatValue(t.passport_status)}</span></div>
+                        <div class="detail-item"><strong>Gender:</strong> <span>${formatValue(t.gender)}</span></div>
+                        <div class="detail-item"><strong>Date of Birth:</strong> <span>${formatDate(t.dob)}</span></div>
+                    </div>
 
-        window.uploadCSV = function() {
-            showNotification('CSV upload feature coming soon', 'info');
-        };
+                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                        <i class="fas fa-address-book"></i> Contact Information
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><strong>Mobile:</strong> <span>${formatValue(t.mobile)}</span></div>
+                        <div class="detail-item"><strong>Email:</strong> <span>${formatValue(t.email)}</span></div>
+                        <div class="detail-item"><strong>Aadhaar:</strong> <span>${formatValue(t.aadhaar)}</span></div>
+                        <div class="detail-item"><strong>PAN:</strong> <span>${formatValue(t.pan)}</span></div>
+                        <div class="detail-item"><strong>Aadhaar-PAN Linked:</strong> <span>${formatValue(t.aadhaar_pan_linked)}</span></div>
+                        <div class="detail-item"><strong>Vaccine Status:</strong> <span>${formatValue(t.vaccine_status)}</span></div>
+                        <div class="detail-item"><strong>Wheelchair Required:</strong> <span>${formatValue(t.wheelchair)}</span></div>
+                    </div>
 
-        // ==================== EXPORT ====================
-        window.exportTravelersToCSV = function() {
-            let csv = 'ID,First Name,Last Name,Passport,Mobile,Email,Batch\n';
+                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                        <i class="fas fa-home"></i> Address & Family
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><strong>Place of Birth:</strong> <span>${formatValue(t.place_of_birth)}</span></div>
+                        <div class="detail-item"><strong>Place of Issue:</strong> <span>${formatValue(t.place_of_issue)}</span></div>
+                        <div class="detail-item full-width"><strong>Passport Address:</strong> <span>${formatValue(t.passport_address)}</span></div>
+                        <div class="detail-item"><strong>Father's Name:</strong> <span>${formatValue(t.father_name)}</span></div>
+                        <div class="detail-item"><strong>Mother's Name:</strong> <span>${formatValue(t.mother_name)}</span></div>
+                        <div class="detail-item"><strong>Spouse's Name:</strong> <span>${formatValue(t.spouse_name)}</span></div>
+                    </div>
+
+                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                        <i class="fas fa-file-alt"></i> Documents
+                    </h4>
+                    <div class="document-grid">
+                        ${documentCards}
+                    </div>
+
+                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                        <i class="fas fa-cog"></i> Additional Information
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><strong>PIN:</strong> <span>${formatValue(t.pin)}</span></div>
+                        <div class="detail-item"><strong>Emergency Contact:</strong> <span>${formatValue(t.emergency_contact)}</span></div>
+                        <div class="detail-item"><strong>Emergency Phone:</strong> <span>${formatValue(t.emergency_phone)}</span></div>
+                        <div class="detail-item"><strong>Medical Notes:</strong> <span>${formatValue(t.medical_notes)}</span></div>
+                        <div class="detail-item"><strong>Created:</strong> <span>${t.created_at ? new Date(t.created_at).toLocaleString() : '-'}</span></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('travelerDetails').innerHTML = detailsHtml;
+            document.getElementById('viewTravelerModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeTravelerModal() {
+            document.getElementById('viewTravelerModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function closeAllModals() {
+            closeTravelerModal();
+            closeDocumentViewer();
+        }
+
+        // ==================== PRINT FUNCTIONS ====================
+        function printTravelerDetails() {
+            const content = document.getElementById('travelerDetails')?.innerHTML;
+            if (!content) return;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Traveler Full Details - 33 Fields</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 30px; }
+                        h4 { color: #2c3e50; margin: 25px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+                        .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+                        .detail-item { padding: 12px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #3498db; }
+                        .detail-item strong { display: block; color: #2c3e50; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; }
+                        .detail-item span { color: #34495e; font-size: 1rem; }
+                        .document-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin: 20px 0; }
+                        .document-card { text-align: center; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: white; }
+                        .document-card i { font-size: 2rem; }
+                        .document-card i.available { color: #27ae60; }
+                        .document-card i.missing { color: #e74c3c; }
+                        .status-badge { padding: 5px 12px; border-radius: 20px; background: #d4edda; color: #155724; }
+                        @media print {
+                            .detail-grid { page-break-inside: avoid; }
+                            .document-grid { page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="text-align: center; color: #2c3e50;">Alhudha Haj Travel - Complete Traveler Details</h2>
+                    <p style="text-align: center; color: #7f8c8d;">Generated on: ${new Date().toLocaleString()}</p>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.print();
+        }
+
+        function printTravelersTable() {
+            const table = document.getElementById('travelersTable');
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Travelers List</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th { background: #2c3e50; color: white; padding: 10px; }
+                        td { padding: 10px; border: 1px solid #ddd; }
+                        .status-badge { padding: 5px 12px; border-radius: 20px; display: inline-block; }
+                        .status-active { background: #d4edda; color: #155724; }
+                        .status-pending { background: #fff3cd; color: #856404; }
+                        .status-warning { background: #fff3cd; color: #856404; }
+                        .status-inactive { background: #f8d7da; color: #721c24; }
+                        .doc-icons { display: flex; gap: 5px; }
+                        .doc-icon { font-size: 1.2rem; }
+                        .doc-icon.available { color: #27ae60; }
+                        .doc-icon.missing { color: #e74c3c; }
+                        @media print { 
+                            th { background: #2c3e50 !important; color: white !important; }
+                            .doc-icon { print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Alhudha Haj Travel - Travelers List</h2>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    ${table.outerHTML}
+                </body>
+                </html>
+            `);
+            printWindow.print();
+        }
+
+        // ==================== PDF EXPORT FUNCTIONS ====================
+        function exportTravelersToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Alhudha Haj Travel - Travelers List', 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+            
+            // Prepare table data
+            const tableColumn = ['ID', 'Name', 'Passport', 'Mobile', 'Email', 'Batch', 'Status'];
+            const tableRows = [];
+            
             travelersData.forEach(t => {
-                csv += `${t.id},${t.first_name || ''},${t.last_name || ''},${t.passport_no || ''},${t.mobile || ''},${t.email || ''},${t.batch_name || ''}\n`;
+                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
+                const travelerData = [
+                    t.id,
+                    fullName,
+                    t.passport_no || '-',
+                    t.mobile || '-',
+                    t.email || '-',
+                    t.batch_name || '-',
+                    t.passport_status || 'Active'
+                ];
+                tableRows.push(travelerData);
             });
             
-            const blob = new Blob([csv], { type: 'text/csv' });
+            // Generate table
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 35,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [44, 62, 80] }
+            });
+            
+            // Save PDF
+            doc.save(`travelers_list_${new Date().toISOString().slice(0,10)}.pdf`);
+            showNotification('PDF exported successfully!', 'success');
+        }
+
+        function downloadTravelerPDF() {
+            const content = document.getElementById('travelerDetails')?.innerHTML;
+            if (!content) return;
+            
+            const { jsPDF } = window.jspDF;
+            const doc = new jsPDF();
+            
+            // Extract traveler name from content
+            const nameMatch = content.match(/Full Name:<\/strong> <span>([^<]+)/);
+            const travelerName = nameMatch ? nameMatch[1].trim() : 'Traveler';
+            
+            doc.setFontSize(18);
+            doc.text(`Alhudha Haj Travel - Traveler Details`, 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Traveler: ${travelerName}`, 14, 30);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 37);
+            
+            // Add personal info
+            doc.setFontSize(12);
+            doc.text('Personal Information', 14, 47);
+            doc.setFontSize(10);
+            
+            let yPos = 54;
+            const sections = content.split('<h4');
+            
+            sections.forEach(section => {
+                const lines = section.replace(/<[^>]*>/g, '\n').split('\n');
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line && !line.includes('style') && !line.includes('class')) {
+                        if (yPos > 270) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        doc.text(line, 14, yPos);
+                        yPos += 6;
+                    }
+                });
+            });
+            
+            doc.save(`traveler_${travelerName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+            showNotification('Traveler PDF downloaded!', 'success');
+        }
+
+        // ==================== EXPORT FUNCTIONS ====================
+        function exportTravelersToExcel() {
+            let csv = [];
+            
+            // Headers - 33 columns
+            csv.push('"ID","First Name","Last Name","Passport Name","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Passport Status","Gender","Date of Birth","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Father\'s Name","Mother\'s Name","Spouse\'s Name","PIN","Emergency Contact","Emergency Phone","Medical Notes","Passport Scan","Aadhaar Scan","PAN Scan","Vaccine Scan","Photo","Created At"');
+            
+            // Data rows
+            travelersData.forEach(t => {
+                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.documents?.passport || ''}","${t.documents?.aadhaar || ''}","${t.documents?.pan || ''}","${t.documents?.vaccine || ''}","${t.documents?.photo || ''}","${t.created_at || ''}"`);
+            });
+            
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `travelers_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `travelers_full_data_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            showNotification('CSV exported');
-        };
+            
+            showNotification('Travelers data (33 fields) exported successfully!', 'success');
+        }
 
-        window.printLandscapeReport = function() {
-            window.print();
-        };
+        // ==================== CSV UPLOAD FUNCTIONS ====================
+        function showCSVUploadSection() {
+            document.getElementById('csvUploadSection').style.display = 'block';
+            document.getElementById('csvUploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideCSVUploadSection() {
+            document.getElementById('csvUploadSection').style.display = 'none';
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('csvPreview').style.display = 'none';
+        }
+
+        function downloadCSVTemplate() {
+            const template = `first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
+Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,9876543210,ahmed@email.com,123456789012,ABCDE1234F,Yes,Fully Vaccinated,No,Mumbai,Mumbai,"123, Green Street, Mumbai",Abdullah Khan,Amina Khan,,1234,Brother,9876543211,No allergies,,,,,,{}`;
+            
+            const blob = new Blob([template], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'travelers_template.csv';
+            a.click();
+            
+            showNotification('CSV template downloaded', 'success');
+        }
+
+        function uploadCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showNotification('Please select a CSV file', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const lines = csv.split('\n');
+                const headers = lines[0].split(',');
+                
+                // Show preview
+                const previewDiv = document.getElementById('csvPreview');
+                const previewContent = document.getElementById('csvPreviewContent');
+                
+                let previewHtml = '<table style="width:100%; border-collapse:collapse;">';
+                previewHtml += '<tr>';
+                headers.slice(0, 10).forEach(h => {
+                    previewHtml += `<th style="padding:8px; border:1px solid #ddd;">${h}</th>`;
+                });
+                previewHtml += '<th>...</th></tr>';
+                
+                // Parse and add travelers
+                const newTravelers = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const cells = lines[i].split(',');
+                        const traveler = {
+                            id: travelersData.length + newTravelers.length + 1,
+                            first_name: cells[0]?.replace(/"/g, '') || '',
+                            last_name: cells[1]?.replace(/"/g, '') || '',
+                            passport_name: cells[2]?.replace(/"/g, '') || '',
+                            batch_id: parseInt(cells[3]) || 1,
+                            passport_no: cells[4]?.replace(/"/g, '') || '',
+                            mobile: cells[10]?.replace(/"/g, '') || '',
+                            email: cells[11]?.replace(/"/g, '') || '',
+                            documents: {}
+                        };
+                        
+                        // Get batch name
+                        const batch = batchesData.find(b => b.id === traveler.batch_id);
+                        traveler.batch_name = batch ? batch.batch_name : 'Unknown Batch';
+                        
+                        newTravelers.push(traveler);
+                        
+                        // Add to preview
+                        if (i < 6) {
+                            previewHtml += '<tr>';
+                            for (let j = 0; j < Math.min(10, cells.length); j++) {
+                                previewHtml += `<td style="padding:8px; border:1px solid #ddd;">${cells[j]?.replace(/"/g, '')}</td>`;
+                            }
+                            previewHtml += '<td>...</td></tr>';
+                        }
+                    }
+                }
+                
+                previewHtml += '</table>';
+                previewContent.innerHTML = previewHtml;
+                previewDiv.style.display = 'block';
+                
+                // Add to travelers data
+                travelersData.push(...newTravelers);
+                
+                showNotification(`CSV uploaded successfully! Added ${newTravelers.length} travelers.`, 'success');
+                setTimeout(() => {
+                    hideCSVUploadSection();
+                    displayTravelers();
+                }, 2000);
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // ==================== SEARCH FUNCTIONS ====================
+        function searchTravelers() {
+            const search = document.getElementById('searchTravelers').value.toLowerCase().trim();
+            
+            if (!search) {
+                displayTravelers();
+                return;
+            }
+            
+            const filtered = travelersData.filter(t => {
+                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.toLowerCase();
+                const passport = (t.passport_no || '').toLowerCase();
+                const mobile = (t.mobile || '').toLowerCase();
+                const email = (t.email || '').toLowerCase();
+                const batch = (t.batch_name || '').toLowerCase();
+                
+                return fullName.includes(search) || passport.includes(search) || 
+                       mobile.includes(search) || email.includes(search) || batch.includes(search);
+            });
+            
+            currentPage = 1;
+            const originalData = travelersData;
+            travelersData = filtered;
+            displayTravelers();
+            travelersData = originalData;
+        }
+
+        function clearSearch() {
+            document.getElementById('searchTravelers').value = '';
+            displayTravelers();
+        }
     </script>
 </body>
 </html>
