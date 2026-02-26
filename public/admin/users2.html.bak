@@ -1258,37 +1258,20 @@
 
         // ==================== SESSION MANAGEMENT ====================
         function startSessionMonitoring() {
-            // Clear any existing intervals
             if (sessionCheckInterval) {
                 clearInterval(sessionCheckInterval);
             }
-            
-            // Check session every 30 seconds
             sessionCheckInterval = setInterval(checkSession, 30000);
-            
-            // Add activity listeners to reset session timeout
             ['click', 'mousemove', 'keypress', 'scroll'].forEach(event => {
                 document.addEventListener(event, resetSessionTimeout);
             });
         }
 
         function resetSessionTimeout() {
-            // Clear existing timeouts
-            if (sessionWarningTimeout) {
-                clearTimeout(sessionWarningTimeout);
-            }
-            if (sessionLogoutTimeout) {
-                clearTimeout(sessionLogoutTimeout);
-            }
-            
-            // Hide warning if visible
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             document.getElementById('sessionWarning').style.display = 'none';
-            
-            // Set new timeouts
-            // Show warning after 25 minutes (1500000 ms)
             sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
-            
-            // Auto logout after 30 minutes (1800000 ms)
             sessionLogoutTimeout = setTimeout(autoLogout, 1800000);
         }
 
@@ -1297,17 +1280,11 @@
             const message = document.getElementById('sessionWarningMessage');
             message.textContent = 'Your session will expire in 5 minutes. Please stay active or click to extend.';
             warning.style.display = 'block';
-            
-            // Add click to extend
-            warning.onclick = function() {
-                extendSession();
-            };
+            warning.onclick = extendSession;
         }
 
         function extendSession() {
-            fetch('/api/check-session', {
-                credentials: 'include'
-            })
+            fetch('/api/check-session', { credentials: 'include' })
             .then(response => response.json())
             .then(data => {
                 if (data.authenticated) {
@@ -1316,9 +1293,7 @@
                     showNotification('Session extended successfully', 'success');
                 }
             })
-            .catch(() => {
-                autoLogout();
-            });
+            .catch(() => autoLogout());
         }
 
         function autoLogout() {
@@ -1331,20 +1306,12 @@
 
         async function checkSession() {
             try {
-                const response = await fetch('/api/check-session', {
-                    credentials: 'include'
-                });
-                
+                const response = await fetch('/api/check-session', { credentials: 'include' });
                 const data = await response.json();
-                
                 if (!data.authenticated) {
-                    // Session expired
                     autoLogout();
                 } else if (data.user) {
-                    // Update role badge
                     document.getElementById('roleBadge').textContent = data.user.role || currentUserRole;
-                    
-                    // Reset session timeout on successful check
                     resetSessionTimeout();
                 }
             } catch (error) {
@@ -1355,39 +1322,27 @@
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
-            loadUsers();
+            loadRealUsers(); // Changed from loadUsers() to loadRealUsers()
             initializePermissionCheckboxes();
             startSessionMonitoring();
             resetSessionTimeout();
         });
 
-        // Clean up on page unload
         window.addEventListener('beforeunload', function() {
-            if (sessionCheckInterval) {
-                clearInterval(sessionCheckInterval);
-            }
-            if (sessionWarningTimeout) {
-                clearTimeout(sessionWarningTimeout);
-            }
-            if (sessionLogoutTimeout) {
-                clearTimeout(sessionLogoutTimeout);
-            }
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
         });
 
         // ==================== AUTHENTICATION ====================
         async function checkAuth() {
             try {
-                const response = await fetch('/api/check-session', {
-                    credentials: 'include'
-                });
-                
+                const response = await fetch('/api/check-session', { credentials: 'include' });
                 const data = await response.json();
-                
                 if (!data.authenticated) {
                     window.location.href = '/admin.login.html';
                     return;
                 }
-                
                 if (data.user) {
                     sessionStorage.setItem('adminLoggedIn', 'true');
                     sessionStorage.setItem('adminName', data.user.name || 'Admin');
@@ -1397,21 +1352,15 @@
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
-                // Fallback to session storage
                 const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-                if (!isLoggedIn) {
-                    window.location.href = '/admin.login.html';
-                }
+                if (!isLoggedIn) window.location.href = '/admin.login.html';
             }
         }
 
         // ==================== LOGOUT ====================
         async function logout() {
             try {
-                await fetch('/api/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
+                await fetch('/api/logout', { method: 'POST', credentials: 'include' });
             } catch (error) {
                 console.error('Logout error:', error);
             } finally {
@@ -1426,17 +1375,12 @@
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
+            setTimeout(() => notification.style.display = 'none', 3000);
         }
 
         // ==================== PERMISSION FUNCTIONS ====================
         function initializePermissionCheckboxes() {
             updateSelectedPermissionsCount();
-            
-            // Add event listeners to all permission checkboxes
             document.querySelectorAll('.perm-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateSelectedPermissionsCount);
             });
@@ -1449,17 +1393,13 @@
 
         function toggleAllPermissions() {
             const selectAll = document.getElementById('selectAllPermissions').checked;
-            document.querySelectorAll('.perm-checkbox').forEach(cb => {
-                cb.checked = selectAll;
-            });
+            document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = selectAll);
             updateSelectedPermissionsCount();
         }
 
         function toggleEditAllPermissions() {
             const selectAll = document.getElementById('editSelectAllPermissions').checked;
-            document.querySelectorAll('#editPermissionsContainer .perm-checkbox').forEach(cb => {
-                cb.checked = selectAll;
-            });
+            document.querySelectorAll('#editPermissionsContainer .perm-checkbox').forEach(cb => cb.checked = selectAll);
             updateEditSelectedPermissionsCount();
         }
 
@@ -1471,21 +1411,15 @@
         function applyRoleTemplate(role) {
             const template = roleTemplates[role];
             if (!template) return;
-            
-            // Set role dropdown
             document.getElementById('role').value = role;
-            
-            // Set permissions
             document.querySelectorAll('.perm-checkbox').forEach(cb => {
                 cb.checked = template.permissions.includes(cb.value);
             });
-            
             updateSelectedPermissionsCount();
             showNotification(`${role} template applied`, 'info');
         }
 
         function updatePermissionsByRole(role) {
-            // This can auto-select common permissions based on role
             if (role === 'super_admin') {
                 document.getElementById('selectAllPermissions').checked = true;
                 toggleAllPermissions();
@@ -1499,7 +1433,6 @@
         }
 
         function updateEditPermissionsByRole(role) {
-            // Similar for edit modal
             if (role === 'super_admin') {
                 document.getElementById('editSelectAllPermissions').checked = true;
                 toggleEditAllPermissions();
@@ -1518,18 +1451,21 @@
             updateSelectedPermissionsCount();
         }
 
-        // ==================== LOAD USERS ====================
-        async function loadUsers() {
+        // ==================== LOAD REAL USERS (FIXED) ====================
+        async function loadRealUsers() {
             try {
                 const response = await fetch('/api/admin/users', {
-                    credentials: 'include'
+                    credentials: 'include',
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
                 });
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Redirecting to login...', 'warning');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -1537,107 +1473,83 @@
                     const data = await response.json();
                     if (data.success && data.users) {
                         allUsers = data.users;
-                        displayUsers(data.users);
-                        updateUserStats(data.users);
+                        displayUsers(allUsers);
+                        updateUserStats(allUsers);
+                        console.log(`✅ Loaded ${allUsers.length} real users from database`);
                     } else {
-                        useDemoUsers();
+                        console.error('No users data in response');
+                        showNotification('Failed to load users', 'error');
                     }
                 } else {
-                    useDemoUsers();
+                    showNotification('Failed to load users from server', 'error');
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                useDemoUsers();
+                showNotification('Error connecting to server', 'error');
             }
         }
 
-        function useDemoUsers() {
-            allUsers = [
-                { 
-                    id: 1, 
-                    username: 'superadmin', 
-                    full_name: 'Super Admin', 
-                    email: 'super@alhudha.com', 
-                    role: 'super_admin',
-                    permissions: roleTemplates.super_admin.permissions,
-                    department: 'Management', 
-                    is_active: true, 
-                    last_login: '2026-02-18 10:30', 
-                    created_at: '2026-01-01' 
-                },
-                { 
-                    id: 2, 
-                    username: 'admin1', 
-                    full_name: 'Ahmed Khan', 
-                    email: 'admin@alhudha.com', 
-                    role: 'admin',
-                    permissions: roleTemplates.admin.permissions,
-                    department: 'Operations', 
-                    is_active: true, 
-                    last_login: '2026-02-17 15:20', 
-                    created_at: '2026-01-15' 
-                },
-                { 
-                    id: 3, 
-                    username: 'manager1', 
-                    full_name: 'Fatima Begum', 
-                    email: 'manager@alhudha.com', 
-                    role: 'manager',
-                    permissions: roleTemplates.manager.permissions,
-                    department: 'Sales', 
-                    is_active: true, 
-                    last_login: '2026-02-16 09:45', 
-                    created_at: '2026-01-20' 
-                },
-                { 
-                    id: 4, 
-                    username: 'staff1', 
-                    full_name: 'Omar Hassan', 
-                    email: 'staff@alhudha.com', 
-                    role: 'staff',
-                    permissions: roleTemplates.staff.permissions,
-                    department: 'Customer Service', 
-                    is_active: true, 
-                    last_login: '2026-02-15 11:30', 
-                    created_at: '2026-02-01' 
-                },
-                { 
-                    id: 5, 
-                    username: 'viewer1', 
-                    full_name: 'Zainab Ali', 
-                    email: 'viewer@alhudha.com', 
-                    role: 'viewer',
-                    permissions: roleTemplates.viewer.permissions,
-                    department: 'Accounts', 
-                    is_active: false, 
-                    last_login: '2026-02-10', 
-                    created_at: '2026-02-05' 
-                }
-            ];
-            displayUsers(allUsers);
-            updateUserStats(allUsers);
-        }
-
+        // ==================== DISPLAY USERS (FIXED) ====================
         function displayUsers(users) {
+            if (!users || !Array.isArray(users)) {
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="11" class="loading">No users found</td></tr>';
+                return;
+            }
+            
             let html = '';
             users.forEach(user => {
-                const roleClass = `role-badge role-${user.role}`;
-                const permissions = user.permissions || [];
-                const permissionTags = permissions.slice(0, 5).map(p => 
-                    `<span class="permission-tag">${p.replace(/_/g, ' ')}</span>`
-                ).join('');
+                const roleClass = `role-badge role-${user.role || 'viewer'}`;
+                
+                // ============ SAFE PERMISSIONS HANDLING ============
+                let permissions = [];
+                if (user.permissions) {
+                    if (Array.isArray(user.permissions)) {
+                        permissions = user.permissions;
+                    } else if (typeof user.permissions === 'object' && user.permissions !== null) {
+                        try {
+                            permissions = Object.keys(user.permissions).filter(key => user.permissions[key] === true);
+                        } catch (e) {
+                            permissions = [];
+                        }
+                    } else if (typeof user.permissions === 'string') {
+                        try {
+                            const parsed = JSON.parse(user.permissions);
+                            if (Array.isArray(parsed)) {
+                                permissions = parsed;
+                            } else if (typeof parsed === 'object') {
+                                permissions = Object.keys(parsed).filter(key => parsed[key] === true);
+                            }
+                        } catch (e) {
+                            permissions = user.permissions.split(',').map(p => p.trim());
+                        }
+                    }
+                }
+                
+                if (!Array.isArray(permissions)) permissions = [];
+                
+                let permissionTags = '';
+                try {
+                    if (permissions.length > 0) {
+                        permissionTags = permissions.slice(0, 5).map(p => 
+                            `<span class="permission-tag">${String(p).replace(/_/g, ' ')}</span>`
+                        ).join('');
+                    }
+                } catch (e) {
+                    permissionTags = '<span class="permission-tag">Permissions</span>';
+                }
                 
                 const morePerms = permissions.length > 5 ? `<span class="permission-tag">+${permissions.length-5}</span>` : '';
+                // ============ END PERMISSIONS HANDLING ============
                 
                 const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
                 const created = user.created_at ? new Date(user.created_at).toLocaleDateString() : '-';
                 
                 html += `<tr>
-                    <td>${user.id}</td>
-                    <td><strong>${user.username}</strong></td>
+                    <td>${user.id || ''}</td>
+                    <td><strong>${user.username || ''}</strong></td>
                     <td>${user.full_name || '-'}</td>
-                    <td>${user.email}</td>
-                    <td><span class="${roleClass}">${user.role}</span></td>
+                    <td>${user.email || ''}</td>
+                    <td><span class="${roleClass}">${user.role || 'viewer'}</span></td>
                     <td><div class="permission-tags">${permissionTags} ${morePerms}</div></td>
                     <td>${user.department || '-'}</td>
                     <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
@@ -1652,7 +1564,7 @@
                     </td>
                 </tr>`;
             });
-            document.getElementById('usersTable').innerHTML = html;
+            document.getElementById('usersTable').innerHTML = html || '<tr><td colspan="11" style="text-align: center; padding: 40px;">No users found</td></tr>';
         }
 
         function updateUserStats(users) {
@@ -1671,7 +1583,6 @@
         document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Collect permissions
             const permissions = [];
             document.querySelectorAll('#addUserForm .perm-checkbox:checked').forEach(cb => {
                 permissions.push(cb.value);
@@ -1681,15 +1592,14 @@
                 username: document.getElementById('username').value.trim(),
                 password: document.getElementById('password').value,
                 email: document.getElementById('email').value.trim(),
-                full_name: document.getElementById('fullname').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                department: document.getElementById('department').value.trim(),
+                full_name: document.getElementById('fullname').value.trim() || null,
+                phone: document.getElementById('phone').value.trim() || null,
+                department: document.getElementById('department').value.trim() || null,
                 role: document.getElementById('role').value,
                 permissions: permissions,
                 is_active: true
             };
             
-            // Validate
             if (!userData.username || !userData.password || !userData.email || !userData.role) {
                 showNotification('Username, password, email and role are required', 'error');
                 return;
@@ -1715,9 +1625,7 @@
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -1726,7 +1634,7 @@
                 if (data.success) {
                     showNotification('User created successfully!', 'success');
                     hideAddUserForm();
-                    loadUsers();
+                    loadRealUsers(); // Using the fixed loader
                 } else {
                     showNotification('Error: ' + (data.error || 'Could not create user'), 'error');
                 }
@@ -1742,15 +1650,11 @@
         // ==================== EDIT USER ====================
         async function editUser(id) {
             try {
-                const response = await fetch(`/api/admin/users/${id}`, {
-                    credentials: 'include'
-                });
+                const response = await fetch(`/api/admin/users/${id}`, { credentials: 'include' });
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -1768,7 +1672,6 @@
                     document.getElementById('edit_department').value = user.department || '';
                     document.getElementById('edit_role').value = user.role || 'viewer';
                     
-                    // Build permissions HTML
                     buildEditPermissions(user.permissions || []);
                     
                     document.getElementById('editUserModal').style.display = 'block';
@@ -1785,6 +1688,21 @@
         function buildEditPermissions(userPermissions) {
             const container = document.getElementById('editPermissionsContainer');
             
+            // Handle different permission formats
+            let permissions = [];
+            if (Array.isArray(userPermissions)) {
+                permissions = userPermissions;
+            } else if (typeof userPermissions === 'object' && userPermissions !== null) {
+                permissions = Object.keys(userPermissions).filter(key => userPermissions[key] === true);
+            } else if (typeof userPermissions === 'string') {
+                try {
+                    const parsed = JSON.parse(userPermissions);
+                    permissions = Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    permissions = userPermissions.split(',').map(p => p.trim());
+                }
+            }
+            
             let html = '';
             
             // Module Access
@@ -1793,7 +1711,7 @@
                     <h5><i class="fas fa-cubes"></i> Module Access</h5>
                     ${permissionCategories.moduleAccess.map(perm => `
                         <div class="permission-item">
-                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${userPermissions.includes(perm) ? 'checked' : ''}>
+                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${permissions.includes(perm) ? 'checked' : ''}>
                             <label for="edit_${perm}">${perm.charAt(0).toUpperCase() + perm.slice(1)}</label>
                         </div>
                     `).join('')}
@@ -1806,7 +1724,7 @@
                     <h5><i class="fas fa-tasks"></i> Operations</h5>
                     ${permissionCategories.operations.map(perm => `
                         <div class="permission-item">
-                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${userPermissions.includes(perm) ? 'checked' : ''}>
+                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${permissions.includes(perm) ? 'checked' : ''}>
                             <label for="edit_${perm}">${perm.charAt(0).toUpperCase() + perm.slice(1)}</label>
                         </div>
                     `).join('')}
@@ -1819,7 +1737,7 @@
                     <h5><i class="fas fa-users-cog"></i> User Management</h5>
                     ${permissionCategories.userManagement.map(perm => `
                         <div class="permission-item">
-                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${userPermissions.includes(perm) ? 'checked' : ''}>
+                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${permissions.includes(perm) ? 'checked' : ''}>
                             <label for="edit_${perm}">${perm.replace(/_/g, ' ')}</label>
                         </div>
                     `).join('')}
@@ -1832,7 +1750,7 @@
                     <h5><i class="fas fa-cog"></i> System Settings</h5>
                     ${permissionCategories.systemSettings.map(perm => `
                         <div class="permission-item">
-                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${userPermissions.includes(perm) ? 'checked' : ''}>
+                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${permissions.includes(perm) ? 'checked' : ''}>
                             <label for="edit_${perm}">${perm.charAt(0).toUpperCase() + perm.slice(1)}</label>
                         </div>
                     `).join('')}
@@ -1845,7 +1763,7 @@
                     <h5><i class="fas fa-rupee-sign"></i> Financial</h5>
                     ${permissionCategories.financial.map(perm => `
                         <div class="permission-item">
-                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${userPermissions.includes(perm) ? 'checked' : ''}>
+                            <input type="checkbox" class="perm-checkbox" value="${perm}" id="edit_${perm}" ${permissions.includes(perm) ? 'checked' : ''}>
                             <label for="edit_${perm}">${perm.replace(/_/g, ' ')}</label>
                         </div>
                     `).join('')}
@@ -1854,7 +1772,6 @@
             
             container.innerHTML = html;
             
-            // Add event listeners
             container.querySelectorAll('.perm-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateEditSelectedPermissionsCount);
             });
@@ -1867,7 +1784,6 @@
             
             if (!currentUserId) return;
             
-            // Collect permissions
             const permissions = [];
             document.querySelectorAll('#editPermissionsContainer .perm-checkbox:checked').forEach(cb => {
                 permissions.push(cb.value);
@@ -1897,9 +1813,7 @@
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -1908,7 +1822,7 @@
                 if (data.success) {
                     showNotification('User updated successfully!', 'success');
                     closeEditModal();
-                    loadUsers();
+                    loadRealUsers();
                 } else {
                     showNotification('Error: ' + (data.error || 'Update failed'), 'error');
                 }
@@ -1930,7 +1844,6 @@
             document.getElementById('passwordModal').style.display = 'block';
             document.getElementById('modalOverlay').style.display = 'block';
             
-            // Reset password requirements
             ['req_length', 'req_match', 'req_letter', 'req_number'].forEach(id => {
                 document.getElementById(id).className = 'invalid';
                 document.getElementById(id).innerHTML = '<i class="fas fa-times-circle"></i> ' + 
@@ -1941,7 +1854,6 @@
             });
         }
 
-        // Password validation
         document.getElementById('new_password').addEventListener('input', validatePassword);
         document.getElementById('confirm_password').addEventListener('input', validatePassword);
 
@@ -1949,41 +1861,20 @@
             const password = document.getElementById('new_password').value;
             const confirm = document.getElementById('confirm_password').value;
             
-            // Check length
-            if (password.length >= 6) {
-                document.getElementById('req_length').className = 'valid';
-                document.getElementById('req_length').innerHTML = '<i class="fas fa-check-circle"></i> Be at least 6 characters';
-            } else {
-                document.getElementById('req_length').className = 'invalid';
-                document.getElementById('req_length').innerHTML = '<i class="fas fa-times-circle"></i> Be at least 6 characters';
-            }
+            document.getElementById('req_length').className = password.length >= 6 ? 'valid' : 'invalid';
+            document.getElementById('req_length').innerHTML = `<i class="fas fa-${password.length >= 6 ? 'check-circle' : 'times-circle'}"></i> Be at least 6 characters`;
             
-            // Check match
-            if (password && confirm && password === confirm) {
-                document.getElementById('req_match').className = 'valid';
-                document.getElementById('req_match').innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
-            } else {
-                document.getElementById('req_match').className = 'invalid';
-                document.getElementById('req_match').innerHTML = '<i class="fas fa-times-circle"></i> Passwords match';
-            }
+            const match = password && confirm && password === confirm;
+            document.getElementById('req_match').className = match ? 'valid' : 'invalid';
+            document.getElementById('req_match').innerHTML = `<i class="fas fa-${match ? 'check-circle' : 'times-circle'}"></i> Passwords match`;
             
-            // Check for letter
-            if (/[a-zA-Z]/.test(password)) {
-                document.getElementById('req_letter').className = 'valid';
-                document.getElementById('req_letter').innerHTML = '<i class="fas fa-check-circle"></i> Contain at least one letter';
-            } else {
-                document.getElementById('req_letter').className = 'invalid';
-                document.getElementById('req_letter').innerHTML = '<i class="fas fa-times-circle"></i> Contain at least one letter';
-            }
+            const hasLetter = /[a-zA-Z]/.test(password);
+            document.getElementById('req_letter').className = hasLetter ? 'valid' : 'invalid';
+            document.getElementById('req_letter').innerHTML = `<i class="fas fa-${hasLetter ? 'check-circle' : 'times-circle'}"></i> Contain at least one letter`;
             
-            // Check for number
-            if (/[0-9]/.test(password)) {
-                document.getElementById('req_number').className = 'valid';
-                document.getElementById('req_number').innerHTML = '<i class="fas fa-check-circle"></i> Contain at least one number';
-            } else {
-                document.getElementById('req_number').className = 'invalid';
-                document.getElementById('req_number').innerHTML = '<i class="fas fa-times-circle"></i> Contain at least one number';
-            }
+            const hasNumber = /[0-9]/.test(password);
+            document.getElementById('req_number').className = hasNumber ? 'valid' : 'invalid';
+            document.getElementById('req_number').innerHTML = `<i class="fas fa-${hasNumber ? 'check-circle' : 'times-circle'}"></i> Contain at least one number`;
         }
 
         document.getElementById('passwordForm')?.addEventListener('submit', async function(e) {
@@ -2022,9 +1913,7 @@
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -2057,9 +1946,7 @@
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -2067,7 +1954,7 @@
                 
                 if (data.success) {
                     showNotification(`User ${data.is_active ? 'activated' : 'deactivated'}`, 'success');
-                    loadUsers();
+                    loadRealUsers();
                 } else {
                     showNotification('Error: ' + (data.error || 'Could not toggle status'), 'error');
                 }
@@ -2089,9 +1976,7 @@
                 
                 if (response.status === 401) {
                     showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin.login.html';
-                    }, 2000);
+                    setTimeout(() => window.location.href = '/admin.login.html', 2000);
                     return;
                 }
                 
@@ -2099,7 +1984,7 @@
                 
                 if (data.success) {
                     showNotification('User deleted successfully', 'success');
-                    loadUsers();
+                    loadRealUsers();
                 } else {
                     showNotification('Error: ' + (data.error || 'Could not delete user'), 'error');
                 }
@@ -2112,10 +1997,7 @@
         // ==================== VIEW USER DETAILS ====================
         async function viewUserDetails(userId) {
             try {
-                const response = await fetch(`/api/admin/users/${userId}`, {
-                    credentials: 'include'
-                });
-                
+                const response = await fetch(`/api/admin/users/${userId}`, { credentials: 'include' });
                 const data = await response.json();
                 
                 if (data.success) {
@@ -2124,52 +2006,23 @@
                     
                     let html = `
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Username</p>
-                                <p style="font-weight: 600;">${user.username}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Email</p>
-                                <p style="font-weight: 600;">${user.email}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Full Name</p>
-                                <p>${user.full_name || '-'}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Phone</p>
-                                <p>${user.phone || '-'}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Department</p>
-                                <p>${user.department || '-'}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Role</p>
-                                <p><span class="role-badge role-${user.role}">${user.role}</span></p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Status</p>
-                                <p><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Last Login</p>
-                                <p>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</p>
-                            </div>
-                            <div>
-                                <p style="color: #7f8c8d; margin-bottom: 5px;">Created</p>
-                                <p>${user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</p>
-                            </div>
+                            <div><p style="color: #7f8c8d;">Username</p><p style="font-weight: 600;">${user.username}</p></div>
+                            <div><p style="color: #7f8c8d;">Email</p><p style="font-weight: 600;">${user.email}</p></div>
+                            <div><p style="color: #7f8c8d;">Full Name</p><p>${user.full_name || '-'}</p></div>
+                            <div><p style="color: #7f8c8d;">Phone</p><p>${user.phone || '-'}</p></div>
+                            <div><p style="color: #7f8c8d;">Department</p><p>${user.department || '-'}</p></div>
+                            <div><p style="color: #7f8c8d;">Role</p><p><span class="role-badge role-${user.role}">${user.role}</span></p></div>
+                            <div><p style="color: #7f8c8d;">Status</p><p><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></p></div>
+                            <div><p style="color: #7f8c8d;">Last Login</p><p>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</p></div>
+                            <div><p style="color: #7f8c8d;">Created</p><p>${user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</p></div>
                         </div>
                     `;
                     
                     if (permissions.length > 0) {
-                        html += `
-                            <h4 style="color: #3498db; margin: 20px 0 10px;">Permissions</h4>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                ${permissions.map(p => `<span class="permission-tag">${p.replace(/_/g, ' ')}</span>`).join('')}
-                            </div>
-                        `;
+                        html += `<h4 style="color: #3498db; margin: 20px 0 10px;">Permissions</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${permissions.map(p => `<span class="permission-tag">${p.replace(/_/g, ' ')}</span>`).join('')}
+                                </div>`;
                     }
                     
                     document.getElementById('userDetailsContent').innerHTML = html;
@@ -2192,13 +2045,10 @@
                 const matchesSearch = user.username.toLowerCase().includes(search) ||
                                      (user.full_name && user.full_name.toLowerCase().includes(search)) ||
                                      user.email.toLowerCase().includes(search);
-                
                 const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-                
                 const matchesStatus = statusFilter === 'all' || 
                                      (statusFilter === 'active' && user.is_active) ||
                                      (statusFilter === 'inactive' && !user.is_active);
-                
                 return matchesSearch && matchesRole && matchesStatus;
             });
             
@@ -2215,7 +2065,6 @@
         // ==================== EXPORT USERS ====================
         function exportUsers() {
             let csv = 'ID,Username,Full Name,Email,Role,Department,Status,Last Login,Created\n';
-            
             allUsers.forEach(user => {
                 csv += `${user.id},${user.username},${user.full_name || ''},${user.email},${user.role},${user.department || ''},${user.is_active ? 'Active' : 'Inactive'},${user.last_login || ''},${user.created_at || ''}\n`;
             });
@@ -2226,7 +2075,6 @@
             a.href = url;
             a.download = `users_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            
             showNotification('Users exported successfully!', 'success');
         }
 
@@ -2237,31 +2085,15 @@
             
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
-                <html>
-                <head>
-                    <title>User Details</title>
-                    <style>
-                        body { font-family: Arial; padding: 30px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        td { padding: 10px; border: 1px solid #ddd; }
-                        .role-badge { padding: 4px 8px; border-radius: 4px; color: white; display: inline-block; margin: 2px; }
-                        .role-super_admin { background: #8e44ad; }
-                        .role-admin { background: #3498db; }
-                        .role-manager { background: #f39c12; }
-                        .role-staff { background: #27ae60; }
-                        .role-viewer { background: #7f8c8d; }
-                        .status-badge { padding: 4px 8px; border-radius: 4px; }
-                        .status-active { background: #d4edda; color: #155724; }
-                        .status-inactive { background: #f8d7da; color: #721c24; }
-                        .permission-tag { background: #e1f0fa; color: #2980b9; padding: 2px 8px; border-radius: 12px; display: inline-block; margin: 2px; }
-                    </style>
-                </head>
-                <body>
-                    <h2>User Details</h2>
-                    <p>Generated on: ${new Date().toLocaleString()}</p>
-                    ${content}
-                </body>
-                </html>
+                <html><head><title>User Details</title>
+                <style>body{font-family:Arial;padding:30px;}
+                .role-badge{padding:4px 8px;border-radius:4px;color:white;display:inline-block;}
+                .role-super_admin{background:#8e44ad;}.role-admin{background:#3498db;}
+                .role-manager{background:#f39c12;}.role-staff{background:#27ae60;}
+                .role-viewer{background:#7f8c8d;}.status-badge{padding:4px 8px;border-radius:4px;}
+                .status-active{background:#d4edda;color:#155724;}.status-inactive{background:#f8d7da;color:#721c24;}
+                .permission-tag{background:#e1f0fa;color:#2980b9;padding:2px 8px;border-radius:12px;display:inline-block;margin:2px;}</style>
+                </head><body><h2>User Details</h2><p>Generated on: ${new Date().toLocaleString()}</p>${content}</body></html>
             `);
             printWindow.document.close();
             printWindow.print();
@@ -2291,6 +2123,10 @@
             document.getElementById('userDetailsModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
+
+        // ==================== REMOVE DEMO DATA FUNCTION ====================
+        // The useDemoUsers function has been completely removed
+        // All data now comes from the real API
     </script>
 </body>
 </html>
