@@ -927,9 +927,62 @@
             document.getElementById('modalOverlay').style.display = 'block';
         };
 
-        window.editUser = function(userId) {
-            alert(`Edit user ${userId} - Edit functionality to be implemented`);
-        };
+        window.editUser = async function(userId) {
+    console.log(`📝 Editing user ${userId}...`);
+    
+    try {
+        // Show modal
+        const modal = document.getElementById('editUserModal');
+        const overlay = document.getElementById('modalOverlay');
+        
+        if (!modal) {
+            alert('Edit modal not found!');
+            return;
+        }
+        
+        modal.style.display = 'block';
+        if (overlay) overlay.style.display = 'block';
+        
+        // Set loading state
+        document.getElementById('edit_user_id').value = userId;
+        document.getElementById('edit_username').value = 'Loading...';
+        document.getElementById('edit_email').value = 'Loading...';
+        document.getElementById('edit_fullname').value = '';
+        document.getElementById('edit_phone').value = '';
+        document.getElementById('edit_department').value = '';
+        document.getElementById('edit_role').value = 'viewer';
+        
+        // Fetch user data
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (data.success && data.user) {
+            const user = data.user;
+            
+            // Fill form with user data
+            document.getElementById('edit_user_id').value = user.id || userId;
+            document.getElementById('edit_username').value = user.username || '';
+            document.getElementById('edit_email').value = user.email || '';
+            document.getElementById('edit_fullname').value = user.full_name || '';
+            document.getElementById('edit_phone').value = user.phone || '';
+            document.getElementById('edit_department').value = user.department || '';
+            document.getElementById('edit_role').value = user.role || 'viewer';
+            
+            console.log('✅ User data loaded');
+        } else {
+            alert('Error loading user: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert('Failed to load user details');
+        closeEditModal();
+    }
+};
 
         // ==================== FORM FUNCTIONS ====================
         window.showAddUserForm = function() {
