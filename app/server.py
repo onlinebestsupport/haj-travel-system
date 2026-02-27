@@ -8,6 +8,7 @@ import json
 import hashlib
 import uuid
 
+# ==================== ENVIRONMENT CONFIGURATION ====================
 # Load environment variables
 load_dotenv()
 
@@ -20,10 +21,11 @@ from app.database import get_db, init_db
 # Import route blueprints
 from app.routes import auth, admin, batches, travelers, payments, company, uploads
 
+# ==================== FLASK APP INITIALIZATION ====================
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configuration
+# ==================== APP CONFIGURATION ====================
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
@@ -34,7 +36,7 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HT
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# Define paths
+# ==================== DIRECTORY PATHS ====================
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 ADMIN_DIR = os.path.join(PUBLIC_DIR, 'admin')
@@ -51,9 +53,11 @@ print(f"📁 Public exists: {os.path.exists(PUBLIC_DIR)}")
 print(f"📁 Admin exists: {os.path.exists(ADMIN_DIR)}")
 print(f"📁 Traveler exists: {os.path.exists(TRAVELER_DIR)}")
 
+# ==================== CORS CONFIGURATION ====================
 # Enable CORS
 CORS(app, supports_credentials=True, origins=['*'])
 
+# ==================== UPLOAD DIRECTORIES ====================
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'passports'), exist_ok=True)
@@ -63,6 +67,7 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'vaccine'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'photos'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'backups'), exist_ok=True)
 
+# ==================== DATABASE INITIALIZATION ====================
 # Initialize database
 try:
     init_db()
@@ -70,7 +75,8 @@ try:
 except Exception as e:
     print(f"❌ Database initialization error: {e}")
 
-# Register blueprints - THESE COME FIRST
+# ==================== BLUEPRINT REGISTRATION ====================
+# Register blueprints
 app.register_blueprint(auth.bp)
 app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
@@ -79,8 +85,7 @@ app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
 
-# ==================== API ROUTES (These must come before static routes) ====================
-
+# ==================== API ROUTES - HEALTH CHECK ====================
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -96,6 +101,7 @@ def health_check():
         ]
     })
 
+# ==================== API ROUTES - AUTHENTICATION ====================
 @app.route('/api/login', methods=['POST'])
 def api_login():
     """Admin login API"""
@@ -185,15 +191,23 @@ def api_traveler_logout():
 def check_session():
     """Check if user is logged in"""
     if session.get('user_id'):
-        return jsonify({
-            'success': True,
-            'authenticated': True,
-            'user': {
-                'id': session['user_id'],
-                'username': session['username'],
-                'role': session['role']
-            }
-        })
+        db = get_db()
+        user = db.execute(
+            'SELECT id, username, full_name, role FROM users WHERE id = ?', 
+            (session['user_id'],)
+        ).fetchone()
+        
+        if user:
+            return jsonify({
+                'success': True,
+                'authenticated': True,
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'name': user['full_name'],
+                    'role': user['role']
+                }
+            })
     elif session.get('traveler_id'):
         return jsonify({
             'success': True,
@@ -204,9 +218,10 @@ def check_session():
                 'passport': session['traveler_passport']
             }
         })
-    else:
-        return jsonify({'success': True, 'authenticated': False})
+    
+    return jsonify({'success': True, 'authenticated': False})
 
+# ==================== API ROUTES - DASHBOARD ====================
 @app.route('/api/admin/dashboard/stats', methods=['GET'])
 def dashboard_stats():
     """Get dashboard statistics"""
@@ -247,6 +262,7 @@ def dashboard_stats():
         'recent_activity': [dict(row) for row in recent]
     })
 
+# ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
     """Get frontpage configuration"""
@@ -337,6 +353,7 @@ def publish_frontpage():
     
     return jsonify({'success': True, 'message': 'Website published successfully'})
 
+# ==================== API ROUTES - REPORTS ====================
 @app.route('/api/reports/generate', methods=['POST'])
 def generate_report():
     """Generate custom report"""
@@ -405,6 +422,7 @@ def generate_report():
         }
     })
 
+# ==================== API ROUTES - BACKUP ====================
 @app.route('/api/backup/create', methods=['POST'])
 def create_backup():
     """Create database backup"""
@@ -466,6 +484,7 @@ def delete_backup(backup_id):
     
     return jsonify({'success': True})
 
+# ==================== API ROUTES - COMPANY SETTINGS ====================
 @app.route('/api/company/settings', methods=['GET'])
 def get_company_settings():
     """Get company settings"""
@@ -508,6 +527,7 @@ def update_company_settings():
     
     return jsonify({'success': True})
 
+# ==================== API ROUTES - ACTIVITY LOG ====================
 @app.route('/api/activity/log', methods=['GET'])
 def get_activity_log():
     """Get activity log"""
@@ -530,8 +550,7 @@ def get_activity_log():
         'activities': [dict(a) for a in activities]
     })
 
-# ==================== STATIC FILE ROUTES (These come after API routes) ====================
-
+# ==================== STATIC FILE ROUTES - PUBLIC ====================
 @app.route('/')
 def serve_index():
     """Serve homepage"""
@@ -557,12 +576,7 @@ def serve_static(filename):
     except:
         return jsonify({'success': False, 'error': 'File not found'}), 404
 
-# Admin routes
-@app.route('/admin.login.html')
-@app.route('/admin/login')
-def serve_admin_login():
-    return send_from_directory(PUBLIC_DIR, 'admin.login.html')
-
+# ==================== STATIC FILE ROUTES - ADMIN ====================
 @app.route('/admin/')
 @app.route('/admin')
 def serve_admin_index():
@@ -571,16 +585,16 @@ def serve_admin_index():
 
 @app.route('/admin/<path:filename>')
 def serve_admin(filename):
-    """Serve admin files - but only HTML/CSS/JS files"""
+    """Serve admin files - but only HTML/CSS/JS files, not API"""
     # Prevent directory traversal
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     
-    # Don't serve API requests through this route
+    # IMPORTANT: Don't serve API requests through this route
     if filename.startswith('api/'):
         return jsonify({'success': False, 'error': 'API endpoint not found'}), 404
     
-    # If it's a CSS/JS file, serve directly
+    # If it's a CSS/JS/image file, serve directly
     if filename.endswith('.css') or filename.endswith('.js') or filename.endswith('.png') or filename.endswith('.jpg') or filename.endswith('.svg') or filename.endswith('.ico'):
         try:
             return send_from_directory(ADMIN_DIR, filename)
@@ -597,12 +611,7 @@ def serve_admin(filename):
         except:
             return jsonify({'success': False, 'error': 'Admin file not found'}), 404
 
-# Traveler routes
-@app.route('/traveler_login.html')
-@app.route('/traveler/login')
-def serve_traveler_login():
-    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
-
+# ==================== STATIC FILE ROUTES - TRAVELER ====================
 @app.route('/traveler/')
 @app.route('/traveler')
 def serve_traveler_index():
@@ -623,12 +632,23 @@ def serve_traveler(filename):
         except:
             return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
 
-# CSS
+# ==================== STATIC FILE ROUTES - LOGIN PAGES ====================
+@app.route('/admin.login.html')
+@app.route('/admin/login')
+def serve_admin_login():
+    return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+
+@app.route('/traveler_login.html')
+@app.route('/traveler/login')
+def serve_traveler_login():
+    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+
+# ==================== STATIC FILE ROUTES - CSS ====================
 @app.route('/style.css')
 def serve_css():
     return send_from_directory(PUBLIC_DIR, 'style.css')
 
-# Uploads
+# ==================== STATIC FILE ROUTES - UPLOADS ====================
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     """Serve uploaded files"""
@@ -636,11 +656,24 @@ def serve_upload(filename):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# ==================== DEBUG ROUTES ====================
+# ==================== HELPER FUNCTIONS ====================
+def log_activity(user_id, action, module, description, ip_address=None):
+    """Log user activity"""
+    try:
+        db = get_db()
+        db.execute(
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
+            (user_id, action, module, description, ip_address)
+        )
+        db.commit()
+    except:
+        pass  # Fail silently
 
+# ==================== DEBUG ROUTES ====================
 @app.route('/debug/paths')
 def debug_paths():
     """Debug route to check all paths"""
+    import os
     files_in_public = []
     files_in_admin = []
     
@@ -680,8 +713,19 @@ def debug_session():
         'has_traveler': 'traveler_id' in session
     })
 
-# ==================== ERROR HANDLERS ====================
+@app.route('/debug/routes')
+def debug_routes():
+    """Debug endpoint to see all registered routes"""
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'path': str(rule)
+        })
+    return jsonify(routes)
 
+# ==================== ERROR HANDLERS ====================
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'success': False, 'error': 'Resource not found'}), 404
@@ -690,20 +734,7 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-# ==================== HELPER FUNCTIONS ====================
-
-def log_activity(user_id, action, module, description, ip_address=None):
-    """Log user activity"""
-    try:
-        db = get_db()
-        db.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
-            (user_id, action, module, description, ip_address)
-        )
-        db.commit()
-    except:
-        pass  # Fail silently
-
+# ==================== APPLICATION ENTRY POINT ====================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
@@ -721,7 +752,8 @@ if __name__ == '__main__':
     print("   - /api/health - Health check")
     print("   - /api/login - Admin login")
     print("   - /api/traveler/login - Traveler login")
-    print("   - /api/admin/* - Admin API endpoints")
+    print("   - /api/check-session - Session check")
+    print("   - /api/admin/* - All admin API endpoints")
     print("   - /api/frontpage/* - Frontpage config")
     print("   - /api/reports/* - Reports")
     print("   - /api/backup/* - Backup management")
