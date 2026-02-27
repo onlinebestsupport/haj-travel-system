@@ -1159,6 +1159,79 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // ==================== NO-FLASH STATS LOADER ====================
+(function() {
+    // Create a style to hide stats initially
+    const style = document.createElement('style');
+    style.textContent = `
+        .stat-number, .badge, .module-stats span, [id$="Count"], [id*="user"] {
+            opacity: 0 !important;
+            transition: opacity 0.3s ease;
+        }
+        .stats-visible {
+            opacity: 1 !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Load real stats
+    setTimeout(() => {
+        fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.stats;
+                
+                // Get real user count
+                fetch('/api/admin/users', { credentials: 'include' })
+                .then(r => r.json())
+                .then(userData => {
+                    const userCount = userData.success ? userData.users.length : stats.total_users;
+                    
+                    // Update all possible user count elements
+                    document.querySelectorAll('[id*="user" i], [class*="user" i] .badge, .stat-number').forEach(el => {
+                        if (el.id === 'userCount' || el.id === 'totalUsers' || el.textContent.match(/^\d+$/)) {
+                            el.textContent = userCount;
+                        }
+                    });
+                    
+                    // Update traveler count
+                    document.querySelectorAll('[id*="traveler" i], [class*="traveler" i] .badge').forEach(el => {
+                        if (el.textContent.match(/^\d+$/)) {
+                            el.textContent = stats.total_travelers;
+                        }
+                    });
+                    
+                    // Update batch count
+                    document.querySelectorAll('[id*="batch" i], [class*="batch" i] .badge').forEach(el => {
+                        if (el.textContent.match(/^\d+$/)) {
+                            el.textContent = stats.total_batches;
+                        }
+                    });
+                    
+                    // Update payment count
+                    document.querySelectorAll('[id*="payment" i], [class*="payment" i] .badge').forEach(el => {
+                        if (el.textContent.match(/^\d+$/)) {
+                            el.textContent = stats.paid_count;
+                        }
+                    });
+                    
+                    // Show all stats
+                    document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
+                        el.classList.add('stats-visible');
+                    });
+                    
+                    console.log('✅ Stats loaded:', { 
+                        users: userCount,
+                        travelers: stats.total_travelers,
+                        batches: stats.total_batches,
+                        payments: stats.paid_count
+                    });
+                });
+            }
+        });
+    }, 100); // Small delay to ensure DOM is ready
+})();
         // ==================== GLOBAL VARIABLES ====================
         var chartInstances = {
             paymentsChart: null,
