@@ -777,46 +777,189 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+              // ==================== GLOBAL VARIABLES ====================
         let allUsers = [];
         let currentUserId = null;
-        let authCheckInProgress = false;
+        let sessionCheckInProgress = false;
+        let sessionValid = false;
 
-        // ==================== AUTH CHECK ====================
-        async function checkAuth() {
-            if (authCheckInProgress) return false;
-            authCheckInProgress = true;
+        // ==================== SESSION MANAGEMENT ====================
+        async function checkSession() {
+            // Prevent multiple simultaneous checks
+            if (sessionCheckInProgress) {
+                console.log('⏳ Session check already in progress...');
+                return sessionValid;
+            }
+            
+            sessionCheckInProgress = true;
+            console.log('🔍 Checking session validity...');
             
             try {
-                // Try to verify session with a lightweight endpoint
-                const response = await fetch('/api/admin/users?count_only=1', {
-                    credentials: 'include',
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
+                // First check client-side session storage
+                const localLoggedIn = sessionStorage.getItem('adminLoggedIn');
+                const localUser = sessionStorage.getItem('adminName');
+                const localRole = sessionStorage.getItem('adminRole');
                 
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        // Session expired - redirect to login
-                        sessionStorage.clear();
-                        window.location.href = '/admin.login.html';
-                        return false;
-                    }
+                console.log('📦 Local session:', { localLoggedIn, localUser, localRole });
+                
+                // If no local session, redirect immediately
+                if (!localLoggedIn) {
+                    console.log('❌ No local session found');
+                    window.location.href = 'admin.login.html';
+                    return false;
                 }
                 
-                // Update role badge if we have session data
-                const adminName = sessionStorage.getItem('adminName') || 'Admin';
-                const adminRole = sessionStorage.getItem('adminRole') || 'admin';
-                document.getElementById('roleBadge').textContent = adminRole.replace('_', ' ').toUpperCase();
+                // Verify with server
+                const response = await fetch('/api/check-session', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Accept': 'application/json'
+                    }
+                });
                 
-                return true;
+                const data = await response.json();
+                console.log('📡 Server session response:', data);
+                
+                if (data.success && data.authenticated) {
+                    console.log('✅ Server session valid for:', data.user?.username || 'Unknown');
+                    
+                    // Update UI with user info
+                    updateUserInfo(data.user);
+                    sessionValid = true;
+                    return true;
+                } else {
+                    console.log('❌ Server session invalid');
+                    
+                    // Try to refresh session or logout
+                    await handleInvalidSession();
+                    return false;
+                }
             } catch (error) {
-                console.error('Auth check error:', error);
+                console.error('❌ Session check error:', error);
+                
+                // If server is unreachable but local session exists, still allow access
+                if (sessionStorage.getItem('adminLoggedIn')) {
+                    console.log('⚠️ Using local session only (server unreachable)');
+                    updateUserInfo({
+                        username: sessionStorage.getItem('adminName') || 'Admin',
+                        role: sessionStorage.getItem('adminRole') || 'admin'
+                    });
+                    sessionValid = true;
+                    return true;
+                }
+                
+                await handleInvalidSession();
                 return false;
             } finally {
-                authCheckInProgress = false;
+                sessionCheckInProgress = false;
             }
         }
 
+        function updateUserInfo(user) {
+            // Update role badge
+            const roleBadge = document.getElementById('roleBadge');
+            if (roleBadge && user) {
+                roleBadge.textContent = (user.role || 'admin').replace('_', ' ').toUpperCase();
+            }
+            
+            // Also update any other UI elements that show user info
+            const userDisplay = document.getElementById('userDisplay');
+            if (userDisplay && user) {
+                userDisplay.textContent = user.username || 'Admin';
+            }
+        }
+
+        async function handleInvalidSession() {
+            console.log('🔄 Handling invalid session...');
+            
+            // Clear local storage
+            sessionStorage.clear();
+            localStorage.removeItem('adminSession');
+            
+            // Try to logout on server
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (e) {
+                console.log('Logout error (ignored):', e);
+            }
+            
+            // Redirect to login
+            window.location.href = 'admin.login.html';
+        }
+
+        // ==================== PROTECTED PAGE INIT ====================
+        // Run immediately when page loads
+        (async function initPage() {
+            console.log('🚀 Initializing users page...');
+            
+            // Show loading state
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
+            }
+            
+            // Check session first
+            const isValid = await checkSession();
+            
+            if (isValid) {
+                console.log('✅ Session valid, loading users...');
+                // Initialize page
+                if (typeof initPermissions === 'function') initPermissions();
+                loadUsers();
+            }
+        })();
+
+        // ==================== PROTECTED API CALL WRAPPER ====================
+        async function apiCall(url, options = {}) {
+            // Verify session before API call
+            const isValid = await checkSession();
+            if (!isValid) return null;
+            
+            // Add credentials to options
+            options.credentials = 'include';
+            options.headers = {
+                ...options.headers,
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            };
+            
+            try {
+                const response = await fetch(url, options);
+                
+                if (response.status === 401) {
+                    console.log('🔒 Session expired during API call');
+                    await handleInvalidSession();
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('API call error:', error);
+                throw error;
+            }
+        }
+
+        // ==================== PERIODIC SESSION CHECK ====================
+        // Check session every 5 minutes
+        setInterval(async () => {
+            console.log('⏰ Running periodic session check...');
+            await checkSession();
+        }, 300000); // 5 minutes
+
+        // ==================== PAGE VISIBILITY CHECK ====================
+        // Check session when tab becomes visible again
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👁️ Tab became visible, checking session...');
+                checkSession();
+            }
+        });
         // ==================== PERMISSION FUNCTIONS ====================
         function updatePermissionsCount() {
             const checkboxes = document.querySelectorAll('#addUserForm .perm-checkbox');
