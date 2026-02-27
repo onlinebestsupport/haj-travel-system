@@ -1573,6 +1573,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+        // ==================== FIX MODULE COUNTS ====================
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.stats;
+                
+                // Get real user count
+                fetch('/api/admin/users', { credentials: 'include' })
+                .then(r => r.json())
+                .then(userData => {
+                    const userCount = userData.success ? userData.users.length : stats.total_users;
+                    
+                    // Update all hardcoded numbers
+                    document.body.innerHTML = document.body.innerHTML
+                        .replace(/>156</g, `>${stats.total_travelers}<`)
+                        .replace(/>8</g, `>${stats.total_batches}<`)
+                        .replace(/>245</g, `>${stats.paid_count}<`)
+                        .replace(/>89</g, '>0<')
+                        .replace(/>5</g, `>${userCount}<`);
+                        
+                    console.log('✅ Module counts updated');
+                });
+            }
+        });
+    }, 500);
+});
     </script>
 </body>
 </html>
