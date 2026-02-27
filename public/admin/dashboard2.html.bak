@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Chart.js for analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -544,6 +544,12 @@
             cursor: pointer;
         }
 
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
         /* Recent Activity */
         .activity-card {
             background: white;
@@ -668,6 +674,42 @@
             border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
 
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
+        .notification-warning { background: #f39c12; }
+
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -740,18 +782,6 @@
         .stat-card, .module-card, .chart-card, .activity-card {
             animation: fadeInUp 0.5s ease forwards;
         }
-
-        /* Loading Skeleton */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
     </style>
 </head>
 <body>
@@ -791,17 +821,17 @@
                     <a href="travelers.html" class="nav-item">
                         <i class="fas fa-users"></i>
                         <span>Travelers</span>
-                        <span class="badge" id="travelerCount">156</span>
+                        <span class="badge" id="travelerCount">0</span>
                     </a>
                     <a href="batches.html" class="nav-item">
                         <i class="fas fa-layer-group"></i>
                         <span>Batches</span>
-                        <span class="badge" id="batchCount">8</span>
+                        <span class="badge" id="batchCount">0</span>
                     </a>
                     <a href="payments.html" class="nav-item">
                         <i class="fas fa-credit-card"></i>
                         <span>Payments</span>
-                        <span class="badge" id="paymentCount">245</span>
+                        <span class="badge" id="paymentCount">0</span>
                     </a>
                 </div>
 
@@ -811,17 +841,17 @@
                     <a href="invoices.html" class="nav-item">
                         <i class="fas fa-file-invoice"></i>
                         <span>Invoices</span>
-                        <span class="badge" id="invoiceCount">89</span>
+                        <span class="badge" id="invoiceCount">0</span>
                     </a>
                     <a href="receipts.html" class="nav-item">
                         <i class="fas fa-receipt"></i>
                         <span>Receipts</span>
-                        <span class="badge" id="receiptCount">245</span>
+                        <span class="badge" id="receiptCount">0</span>
                     </a>
                     <a href="reports.html" class="nav-item">
                         <i class="fas fa-chart-bar"></i>
                         <span>Reports</span>
-                        <span class="badge">12</span>
+                        <span class="badge">0</span>
                     </a>
                 </div>
 
@@ -831,35 +861,39 @@
                     <a href="whatsapp.html" class="nav-item">
                         <i class="fab fa-whatsapp"></i>
                         <span>WhatsApp</span>
-                        <span class="badge">3</span>
+                        <span class="badge">0</span>
                     </a>
                     <a href="email.html" class="nav-item">
                         <i class="fas fa-envelope"></i>
                         <span>Email</span>
-                        <span class="badge">12</span>
+                        <span class="badge">0</span>
                     </a>
                 </div>
 
-                <!-- System -->
-                <div class="nav-section">
-                    <div class="nav-section-title">SYSTEM</div>
-                    <a href="users.html" class="nav-item">
-                        <i class="fas fa-user-cog"></i>
-                        <span>Users</span>
-                        <span class="badge" id="userCount">5</span>
-                    </a>
-                    <a href="frontpage.html" class="nav-item">
-                        <i class="fas fa-edit"></i>
-                        <span>Front Page</span>
-                    </a>
-                    <a href="backup.html" class="nav-item">
-                        <i class="fas fa-database"></i>
-                        <span>Backup</span>
-                        <span class="badge">Auto</span>
-                    </a>
-                </div>
+                            <!-- System -->
+            <div class="nav-section">
+                <div class="nav-section-title">SYSTEM</div>
+                <a href="users.html" class="nav-item">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Users</span>
+                    <span class="badge" id="userCount">0</span>
+                </a>
+                <a href="frontpage.html" class="nav-item">
+                    <i class="fas fa-edit"></i>
+                    <span>Front Page</span>
+                </a>
+                <a href="backup.html" class="nav-item">
+                    <i class="fas fa-database"></i>
+                    <span>Backup</span>
+                    <span class="badge">Auto</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
             </div>
-        </aside>
+        </div>
+    </aside>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -890,9 +924,9 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Total Travelers</h3>
-                        <div class="stat-number" id="totalTravelers">156</div>
+                        <div class="stat-number" id="totalTravelers">0</div>
                         <div class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +12 this month
+                            <i class="fas fa-arrow-up"></i> Loading...
                         </div>
                     </div>
                     <div class="stat-icon">
@@ -902,9 +936,9 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Active Batches</h3>
-                        <div class="stat-number" id="activeBatches">8</div>
+                        <div class="stat-number" id="activeBatches">0</div>
                         <div class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +2 this month
+                            <i class="fas fa-arrow-up"></i> Loading...
                         </div>
                     </div>
                     <div class="stat-icon">
@@ -914,9 +948,9 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Total Collections</h3>
-                        <div class="stat-number" id="totalCollections">₹1.25Cr</div>
+                        <div class="stat-number" id="totalCollections">₹0</div>
                         <div class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +15% vs last month
+                            <i class="fas fa-arrow-up"></i> Loading...
                         </div>
                     </div>
                     <div class="stat-icon">
@@ -926,9 +960,9 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Pending Payments</h3>
-                        <div class="stat-number" id="pendingPayments">₹24.5L</div>
+                        <div class="stat-number" id="pendingPayments">₹0</div>
                         <div class="stat-trend trend-down">
-                            <i class="fas fa-arrow-down"></i> -8% vs last month
+                            <i class="fas fa-arrow-down"></i> Loading...
                         </div>
                     </div>
                     <div class="stat-icon">
@@ -969,8 +1003,8 @@
                     <h3>Travelers</h3>
                     <p>Manage pilgrim profiles</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-user"></i> 156</span>
-                        <span><i class="fas fa-user-plus"></i> +12</span>
+                        <span><i class="fas fa-user"></i> <span class="module-traveler-count">0</span></span>
+                        <span><i class="fas fa-user-plus"></i> +0</span>
                     </div>
                 </a>
                 <a href="batches.html" class="module-card">
@@ -978,8 +1012,8 @@
                     <h3>Batches</h3>
                     <p>Manage Haj/Umrah packages</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-check-circle"></i> 8 Active</span>
-                        <span><i class="fas fa-users"></i> 78% Full</span>
+                        <span><i class="fas fa-check-circle"></i> <span class="module-batch-count">0</span> Active</span>
+                        <span><i class="fas fa-users"></i> 0% Full</span>
                     </div>
                 </a>
                 <a href="payments.html" class="module-card">
@@ -987,8 +1021,8 @@
                     <h3>Payments</h3>
                     <p>Track payments & receipts</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-check"></i> 245</span>
-                        <span><i class="fas fa-clock"></i> 12 Pending</span>
+                        <span><i class="fas fa-check"></i> <span class="module-payment-count">0</span></span>
+                        <span><i class="fas fa-clock"></i> 0 Pending</span>
                     </div>
                 </a>
                 <a href="invoices.html" class="module-card">
@@ -996,8 +1030,8 @@
                     <h3>Invoices</h3>
                     <p>Generate & manage invoices</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-file"></i> 89</span>
-                        <span><i class="fas fa-rupee-sign"></i> ₹45L</span>
+                        <span><i class="fas fa-file"></i> <span class="module-invoice-count">0</span></span>
+                        <span><i class="fas fa-rupee-sign"></i> ₹0</span>
                     </div>
                 </a>
                 <a href="receipts.html" class="module-card">
@@ -1005,8 +1039,8 @@
                     <h3>Receipts</h3>
                     <p>Print payment receipts</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-receipt"></i> 245</span>
-                        <span><i class="fas fa-print"></i> Today 8</span>
+                        <span><i class="fas fa-receipt"></i> <span class="module-receipt-count">0</span></span>
+                        <span><i class="fas fa-print"></i> Today 0</span>
                     </div>
                 </a>
                 <a href="reports.html" class="module-card">
@@ -1014,7 +1048,7 @@
                     <h3>Reports</h3>
                     <p>Analytics & insights</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-chart-line"></i> 12 Reports</span>
+                        <span><i class="fas fa-chart-line"></i> 0 Reports</span>
                         <span><i class="fas fa-download"></i> Export</span>
                     </div>
                 </a>
@@ -1023,8 +1057,8 @@
                     <h3>WhatsApp</h3>
                     <p>Chat with travelers</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-comment"></i> 23</span>
-                        <span><i class="fas fa-clock"></i> 3 Unread</span>
+                        <span><i class="fas fa-comment"></i> 0</span>
+                        <span><i class="fas fa-clock"></i> 0 Unread</span>
                     </div>
                 </a>
                 <a href="email.html" class="module-card">
@@ -1032,8 +1066,8 @@
                     <h3>Email</h3>
                     <p>Send & receive emails</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-inbox"></i> 12</span>
-                        <span><i class="fas fa-clock"></i> 5 Unread</span>
+                        <span><i class="fas fa-inbox"></i> 0</span>
+                        <span><i class="fas fa-clock"></i> 0 Unread</span>
                     </div>
                 </a>
                 <a href="users.html" class="module-card">
@@ -1041,8 +1075,8 @@
                     <h3>Users</h3>
                     <p>Manage system users</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-users"></i> 5</span>
-                        <span><i class="fas fa-shield-alt"></i> 2 Admins</span>
+                        <span><i class="fas fa-users"></i> <span class="module-user-count">0</span></span>
+                        <span><i class="fas fa-shield-alt"></i> 0 Admins</span>
                     </div>
                 </a>
                 <a href="frontpage.html" class="module-card">
@@ -1059,7 +1093,7 @@
                     <h3>Backup</h3>
                     <p>Database backup & restore</p>
                     <div class="module-stats">
-                        <span><i class="fas fa-save"></i> 12</span>
+                        <span><i class="fas fa-save"></i> 0</span>
                         <span><i class="fas fa-clock"></i> Last: Today</span>
                     </div>
                 </a>
@@ -1076,7 +1110,9 @@
                             <option value="year">This Year</option>
                         </select>
                     </div>
-                    <canvas id="paymentsChart" style="width: 100%; height: 300px;"></canvas>
+                    <div class="chart-container">
+                        <canvas id="paymentsChart"></canvas>
+                    </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
@@ -1087,7 +1123,9 @@
                             <option value="past">Past</option>
                         </select>
                     </div>
-                    <canvas id="travelersChart" style="width: 100%; height: 300px;"></canvas>
+                    <div class="chart-container">
+                        <canvas id="travelersChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -1098,7 +1136,15 @@
                     <a href="#" class="view-all">View All</a>
                 </div>
                 <div class="activity-list" id="recentActivity">
-                    <!-- Activity will be loaded here -->
+                    <div class="activity-item">
+                        <div class="activity-icon payment">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="activity-details">
+                            <p>Loading activities...</p>
+                            <small><i class="fas fa-clock"></i> Just now</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1110,234 +1156,452 @@
     </div>
 
     <!-- Notification -->
-    <div id="notification" class="notification" style="display: none;"></div>
-
-    <style>
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .notification-success { background: #27ae60; }
-        .notification-error { background: #e74c3c; }
-        .notification-info { background: #3498db; }
-        .notification-warning { background: #f39c12; }
-    </style>
+    <div id="notification" class="notification"></div>
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
-        let paymentsChart, travelersChart;
+        var chartInstances = {
+            paymentsChart: null,
+            travelersChart: null
+        };
+        
+        var intervals = [];
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            initializeDashboard();
-            updateDateTime();
-            loadRecentActivity();
-            initializeCharts();
+            // Use setTimeout to defer non-critical tasks
+            setTimeout(function() {
+                checkAuth();
+            }, 0);
             
-            // Update time every second
-            setInterval(updateDateTime, 1000);
+            setTimeout(function() {
+                initializeDashboard();
+            }, 50);
+            
+            setTimeout(function() {
+                updateDateTime();
+                loadRecentActivity();
+            }, 100);
+            
+            setTimeout(function() {
+                initializeCharts();
+            }, 200);
+            
+            // Update time every second with optimized interval
+            var timeInterval = setInterval(function() {
+                if (!document.hidden) {
+                    window.requestAnimationFrame(updateDateTime);
+                }
+            }, 1000);
+            
+            intervals.push(timeInterval);
+            
+            // Handle visibility change
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    // Page became visible - refresh data
+                    setTimeout(function() {
+                        loadCounts();
+                        loadRecentActivity();
+                    }, 100);
+                }
+            });
+        });
+
+        // Clean up intervals on page unload
+        window.addEventListener('beforeunload', function() {
+            for (var i = 0; i < intervals.length; i++) {
+                clearInterval(intervals[i]);
+            }
+            
+            // Destroy chart instances
+            for (var key in chartInstances) {
+                if (chartInstances[key]) {
+                    try {
+                        chartInstances[key].destroy();
+                    } catch (e) {}
+                }
+            }
         });
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = '/admin.login.html';
-                return;
+            try {
+                var isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+                if (!isLoggedIn) {
+                    window.location.href = '/admin.login.html';
+                    return;
+                }
+                
+                var userName = sessionStorage.getItem('adminName') || 'Admin';
+                var userRole = sessionStorage.getItem('adminRole') || 'admin';
+                
+                var greetingName = document.getElementById('greetingName');
+                var userDisplayName = document.getElementById('userDisplayName');
+                var userRoleDisplay = document.getElementById('userRoleDisplay');
+                var userAvatar = document.getElementById('userAvatar');
+                
+                if (greetingName) greetingName.textContent = userName;
+                if (userDisplayName) userDisplayName.textContent = userName;
+                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
+                
+                // Set avatar initials
+                if (userAvatar) {
+                    var nameParts = userName.split(' ');
+                    var initials = '';
+                    for (var i = 0; i < Math.min(2, nameParts.length); i++) {
+                        if (nameParts[i] && nameParts[i].length > 0) {
+                            initials += nameParts[i][0].toUpperCase();
+                        }
+                    }
+                    userAvatar.textContent = initials || 'AD';
+                }
+            } catch (e) {
+                console.error('Auth check error:', e);
             }
-            
-            const userName = sessionStorage.getItem('adminName') || 'Admin';
-            const userRole = sessionStorage.getItem('adminRole') || 'admin';
-            
-            document.getElementById('greetingName').textContent = userName;
-            document.getElementById('userDisplayName').textContent = userName;
-            document.getElementById('userRoleDisplay').textContent = formatRole(userRole);
-            
-            // Set avatar initials
-            const initials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('userAvatar').textContent = initials || 'AD';
         }
 
         function formatRole(role) {
-            return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            try {
+                return role.split('_').map(function(word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                }).join(' ');
+            } catch (e) {
+                return role;
+            }
         }
 
         // ==================== DATE/TIME ====================
         function updateDateTime() {
-            const now = new Date();
-            
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', timeOptions);
-            document.getElementById('headerDate').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            document.getElementById('headerTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            try {
+                var now = new Date();
+                
+                var dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                var timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                var headerDateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+                var headerTimeOptions = { hour: '2-digit', minute: '2-digit' };
+                
+                var currentDate = document.getElementById('currentDate');
+                var currentTime = document.getElementById('currentTime');
+                var headerDate = document.getElementById('headerDate');
+                var headerTime = document.getElementById('headerTime');
+                
+                if (currentDate) currentDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+                if (currentTime) currentTime.textContent = now.toLocaleTimeString('en-US', timeOptions);
+                if (headerDate) headerDate.textContent = now.toLocaleDateString('en-US', headerDateOptions);
+                if (headerTime) headerTime.textContent = now.toLocaleTimeString('en-US', headerTimeOptions);
+            } catch (e) {
+                console.error('Date update error:', e);
+            }
         }
 
         // ==================== DASHBOARD INIT ====================
         function initializeDashboard() {
-            // Load counts
             loadCounts();
         }
 
         function loadCounts() {
-            // Simulate loading counts from API
-            setTimeout(() => {
-                document.getElementById('totalTravelers').textContent = '156';
-                document.getElementById('activeBatches').textContent = '8';
-                document.getElementById('totalCollections').textContent = '₹1.25Cr';
-                document.getElementById('pendingPayments').textContent = '₹24.5L';
-                
-                document.getElementById('travelerCount').textContent = '156';
-                document.getElementById('batchCount').textContent = '8';
-                document.getElementById('paymentCount').textContent = '245';
-                document.getElementById('invoiceCount').textContent = '89';
-                document.getElementById('receiptCount').textContent = '245';
-                document.getElementById('userCount').textContent = '5';
-            }, 500);
+            try {
+                // Simulate loading counts from API
+                setTimeout(function() {
+                    window.requestAnimationFrame(function() {
+                        var totalTravelers = document.getElementById('totalTravelers');
+                        var activeBatches = document.getElementById('activeBatches');
+                        var totalCollections = document.getElementById('totalCollections');
+                        var pendingPayments = document.getElementById('pendingPayments');
+                        
+                        if (totalTravelers) totalTravelers.textContent = '156';
+                        if (activeBatches) activeBatches.textContent = '8';
+                        if (totalCollections) totalCollections.textContent = '₹1.25Cr';
+                        if (pendingPayments) pendingPayments.textContent = '₹24.5L';
+                        
+                        // Update badges
+                        var travelerCount = document.getElementById('travelerCount');
+                        var batchCount = document.getElementById('batchCount');
+                        var paymentCount = document.getElementById('paymentCount');
+                        var invoiceCount = document.getElementById('invoiceCount');
+                        var receiptCount = document.getElementById('receiptCount');
+                        var userCount = document.getElementById('userCount');
+                        
+                        if (travelerCount) travelerCount.textContent = '156';
+                        if (batchCount) batchCount.textContent = '8';
+                        if (paymentCount) paymentCount.textContent = '245';
+                        if (invoiceCount) invoiceCount.textContent = '89';
+                        if (receiptCount) receiptCount.textContent = '245';
+                        if (userCount) userCount.textContent = '5';
+                        
+                        // Update module stats
+                        var moduleTravelerCount = document.querySelector('.module-traveler-count');
+                        var moduleBatchCount = document.querySelector('.module-batch-count');
+                        var modulePaymentCount = document.querySelector('.module-payment-count');
+                        var moduleInvoiceCount = document.querySelector('.module-invoice-count');
+                        var moduleReceiptCount = document.querySelector('.module-receipt-count');
+                        var moduleUserCount = document.querySelector('.module-user-count');
+                        
+                        if (moduleTravelerCount) moduleTravelerCount.textContent = '156';
+                        if (moduleBatchCount) moduleBatchCount.textContent = '8';
+                        if (modulePaymentCount) modulePaymentCount.textContent = '245';
+                        if (moduleInvoiceCount) moduleInvoiceCount.textContent = '89';
+                        if (moduleReceiptCount) moduleReceiptCount.textContent = '245';
+                        if (moduleUserCount) moduleUserCount.textContent = '5';
+                    });
+                }, 500);
+            } catch (e) {
+                console.error('Load counts error:', e);
+            }
         }
 
         // ==================== CHARTS ====================
         function initializeCharts() {
-            // Payments Chart (Pie)
-            const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
-            paymentsChart = new Chart(paymentsCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Bank Transfer', 'UPI', 'Cash', 'Credit Card', 'Cheque'],
-                    datasets: [{
-                        data: [45, 25, 15, 10, 5],
-                        backgroundColor: [
-                            '#3498db',
-                            '#2ecc71',
-                            '#f1c40f',
-                            '#e74c3c',
-                            '#9b59b6'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: { family: 'Inter', size: 12 }
+            try {
+                // Destroy existing charts
+                if (chartInstances.paymentsChart) {
+                    chartInstances.paymentsChart.destroy();
+                    chartInstances.paymentsChart = null;
+                }
+                
+                if (chartInstances.travelersChart) {
+                    chartInstances.travelersChart.destroy();
+                    chartInstances.travelersChart = null;
+                }
+                
+                window.requestAnimationFrame(function() {
+                    // Payments Chart (Pie)
+                    var paymentsCanvas = document.getElementById('paymentsChart');
+                    if (paymentsCanvas) {
+                        var paymentsCtx = paymentsCanvas.getContext('2d');
+                        
+                        // Clear canvas
+                        paymentsCtx.clearRect(0, 0, paymentsCanvas.width, paymentsCanvas.height);
+                        
+                        chartInstances.paymentsChart = new Chart(paymentsCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Bank Transfer', 'UPI', 'Cash', 'Credit Card', 'Cheque'],
+                                datasets: [{
+                                    data: [45, 25, 15, 10, 5],
+                                    backgroundColor: [
+                                        '#3498db',
+                                        '#2ecc71',
+                                        '#f1c40f',
+                                        '#e74c3c',
+                                        '#9b59b6'
+                                    ],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            font: { family: 'Inter', size: 12 }
+                                        }
+                                    }
+                                },
+                                cutout: '60%'
                             }
-                        }
-                    },
-                    cutout: '60%'
-                }
-            });
-
-            // Travelers Chart (Bar)
-            const travelersCtx = document.getElementById('travelersChart').getContext('2d');
-            travelersChart = new Chart(travelersCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Haj Platinum', 'Haj Gold', 'Haj Silver', 'Umrah Ramadhan', 'Umrah Winter'],
-                    datasets: [{
-                        label: 'Number of Travelers',
-                        data: [45, 82, 120, 170, 140],
-                        backgroundColor: '#3498db',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { display: false }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
+                        });
                     }
-                }
-            });
+
+                    // Travelers Chart (Bar)
+                    var travelersCanvas = document.getElementById('travelersChart');
+                    if (travelersCanvas) {
+                        var travelersCtx = travelersCanvas.getContext('2d');
+                        
+                        // Clear canvas
+                        travelersCtx.clearRect(0, 0, travelersCanvas.width, travelersCanvas.height);
+                        
+                        chartInstances.travelersChart = new Chart(travelersCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Haj Platinum', 'Haj Gold', 'Haj Silver', 'Umrah Ramadhan', 'Umrah Winter'],
+                                datasets: [{
+                                    label: 'Number of Travelers',
+                                    data: [45, 82, 120, 170, 140],
+                                    backgroundColor: '#3498db',
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { display: false }
+                                    },
+                                    x: {
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error('Chart initialization error:', e);
+            }
         }
 
         // ==================== RECENT ACTIVITY ====================
         function loadRecentActivity() {
-            const activities = [
-                { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Ahmed Khan', amount: '₹85,000', time: '10 minutes ago' },
-                { type: 'traveler', icon: 'fa-user-plus', color: 'traveler', text: 'New traveler registered: Fatima Begum', details: 'Batch: Haj Gold 2026', time: '25 minutes ago' },
-                { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Mohammed Rafiq', amount: '₹25,000', time: '1 hour ago' },
-                { type: 'batch', icon: 'fa-layer-group', color: 'batch', text: 'Batch Haj Silver 2026 updated', details: 'Seats: 45/120', time: '2 hours ago' },
-                { type: 'traveler', icon: 'fa-user-edit', color: 'traveler', text: 'Traveler profile updated: Aisha Begum', details: 'Documents uploaded', time: '3 hours ago' }
-            ];
+            try {
+                var activities = [
+                    { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Ahmed Khan', amount: '₹85,000', time: '10 minutes ago' },
+                    { type: 'traveler', icon: 'fa-user-plus', color: 'traveler', text: 'New traveler registered: Fatima Begum', details: 'Batch: Haj Gold 2026', time: '25 minutes ago' },
+                    { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Mohammed Rafiq', amount: '₹25,000', time: '1 hour ago' },
+                    { type: 'batch', icon: 'fa-layer-group', color: 'batch', text: 'Batch Haj Silver 2026 updated', details: 'Seats: 45/120', time: '2 hours ago' },
+                    { type: 'traveler', icon: 'fa-user-edit', color: 'traveler', text: 'Traveler profile updated: Aisha Begum', details: 'Documents uploaded', time: '3 hours ago' }
+                ];
 
-            const activityList = document.getElementById('recentActivity');
-            activityList.innerHTML = activities.map(a => `
-                <div class="activity-item">
-                    <div class="activity-icon ${a.color}">
-                        <i class="fas ${a.icon}"></i>
-                    </div>
-                    <div class="activity-details">
-                        <p>${a.text} ${a.amount ? '<span class="activity-amount">' + a.amount + '</span>' : ''}</p>
-                        <small><i class="fas fa-clock"></i> ${a.time} ${a.details ? ' • ' + a.details : ''}</small>
-                    </div>
-                </div>
-            `).join('');
+                var activityList = document.getElementById('recentActivity');
+                if (!activityList) return;
+                
+                var html = '';
+                for (var i = 0; i < activities.length; i++) {
+                    var a = activities[i];
+                    html += '<div class="activity-item">' +
+                        '<div class="activity-icon ' + a.color + '">' +
+                            '<i class="fas ' + a.icon + '"></i>' +
+                        '</div>' +
+                        '<div class="activity-details">' +
+                            '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
+                            '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
+                        '</div>' +
+                    '</div>';
+                }
+                
+                activityList.innerHTML = html;
+            } catch (e) {
+                console.error('Activity load error:', e);
+            }
         }
 
         // ==================== LOGOUT ====================
-        async function logout() {
+        function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 showNotification('Logging out...', 'info');
                 
-                // Simulate logout process
-                setTimeout(() => {
-                    sessionStorage.clear();
+                setTimeout(function() {
+                    try {
+                        sessionStorage.clear();
+                    } catch (e) {}
                     window.location.href = '/admin.login.html';
                 }, 1000);
             }
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        function showNotification(message, type) {
+            if (!type) type = 'success';
+            
+            var notification = document.getElementById('notification');
+            if (!notification) return;
+            
+            var icon = type === 'success' ? 'check-circle' : 
+                      type === 'error' ? 'exclamation-circle' : 'info-circle';
+            
+            notification.className = 'notification notification-' + type;
+            notification.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
             notification.style.display = 'block';
             
-            setTimeout(() => {
+            // Clear any existing timeout
+            if (window.notificationTimeout) {
+                clearTimeout(window.notificationTimeout);
+            }
+            
+            window.notificationTimeout = setTimeout(function() {
                 notification.style.display = 'none';
             }, 3000);
         }
 
         // ==================== CHART PERIOD CHANGE ====================
-        document.getElementById('paymentChartPeriod').addEventListener('change', function(e) {
-            // Update chart data based on period
-            showNotification(`Updating payment chart for ${e.target.value}`, 'info');
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            var paymentSelect = document.getElementById('paymentChartPeriod');
+            var travelersSelect = document.getElementById('travelersChartPeriod');
+            
+            if (paymentSelect) {
+                paymentSelect.addEventListener('change', function(e) {
+                    showNotification('Updating payment chart for ' + e.target.value, 'info');
+                });
+            }
 
-        document.getElementById('travelersChartPeriod').addEventListener('change', function(e) {
-            // Update chart data based on period
-            showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+            if (travelersSelect) {
+                travelersSelect.addEventListener('change', function(e) {
+                    showNotification('Updating travelers chart for ' + e.target.value, 'info');
+                });
+            }
         });
+        // Auto-update dashboard stats
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update all stat cards
+            const updates = {
+                'totalUsers': data.stats.total_users,
+                'totalTravelers': data.stats.total_travelers,
+                'totalBatches': data.stats.total_batches,
+                'activeBatches': data.stats.active_batches,
+                'totalPayments': data.stats.paid_count
+            };
+            
+            Object.entries(updates).forEach(([key, value]) => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = value;
+            });
+            
+            // Also update any element showing "5" near "Users"
+            document.querySelectorAll('*').forEach(el => {
+                if (el.textContent && el.textContent.includes('Users')) {
+                    const parent = el.parentElement;
+                    if (parent) {
+                        const numEl = parent.querySelector('p, span, div:last-child');
+                        if (numEl && numEl.textContent.match(/^\d+$/)) {
+                            numEl.textContent = data.stats.total_users;
+                        }
+                    }
+                }
+            });
+        }
+    });
+});
+        // ==================== FIX MODULE COUNTS ====================
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.stats;
+                
+                // Get real user count
+                fetch('/api/admin/users', { credentials: 'include' })
+                .then(r => r.json())
+                .then(userData => {
+                    const userCount = userData.success ? userData.users.length : stats.total_users;
+                    
+                    // Update all hardcoded numbers
+                    document.body.innerHTML = document.body.innerHTML
+                        .replace(/>156</g, `>${stats.total_travelers}<`)
+                        .replace(/>8</g, `>${stats.total_batches}<`)
+                        .replace(/>245</g, `>${stats.paid_count}<`)
+                        .replace(/>89</g, '>0<')
+                        .replace(/>5</g, `>${userCount}<`);
+                        
+                    console.log('✅ Module counts updated');
+                });
+            }
+        });
+    }, 500);
+});
     </script>
 </body>
 </html>
