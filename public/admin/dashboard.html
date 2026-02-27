@@ -1538,6 +1538,41 @@
                 });
             }
         });
+        // Auto-update dashboard stats
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update all stat cards
+            const updates = {
+                'totalUsers': data.stats.total_users,
+                'totalTravelers': data.stats.total_travelers,
+                'totalBatches': data.stats.total_batches,
+                'activeBatches': data.stats.active_batches,
+                'totalPayments': data.stats.paid_count
+            };
+            
+            Object.entries(updates).forEach(([key, value]) => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = value;
+            });
+            
+            // Also update any element showing "5" near "Users"
+            document.querySelectorAll('*').forEach(el => {
+                if (el.textContent && el.textContent.includes('Users')) {
+                    const parent = el.parentElement;
+                    if (parent) {
+                        const numEl = parent.querySelector('p, span, div:last-child');
+                        if (numEl && numEl.textContent.match(/^\d+$/)) {
+                            numEl.textContent = data.stats.total_users;
+                        }
+                    }
+                }
+            });
+        }
+    });
+});
     </script>
 </body>
 </html>
