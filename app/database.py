@@ -1,55 +1,10 @@
-# Add this at the very top of database.py, after imports
-import threading
-_INITIALIZING = False
-_INITIALIZED = False
-_init_lock = threading.Lock()
-
-def init_db():
-    """Initialize database with all tables and seed data"""
-    global _INITIALIZED, _INITIALIZING
-    
-    # Prevent concurrent initialization
-    with _init_lock:
-        if _INITIALIZED:
-            print("✅ Database already initialized, skipping...")
-            return
-        
-        if _INITIALIZING:
-            print("⏳ Database initialization already in progress, waiting...")
-            # Wait for initialization to complete
-            for _ in range(30):  # Wait up to 30 seconds
-                if _INITIALIZED:
-                    return
-                import time
-                time.sleep(1)
-            return
-        
-        _INITIALIZING = True
-    
-    # Rest of your initialization code...
-    try:
-        conn, cursor = get_db()
-        # ... all your table creation code ...
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        with _init_lock:
-            _INITIALIZED = True
-            _INITIALIZING = False
-        print("✅ Database initialized successfully")
-        
-    except Exception as e:
-        with _init_lock:
-            _INITIALIZING = False
-        print(f"❌ Database initialization error: {e}")
-        raise
 import os
 import psycopg2
 import psycopg2.extras
 from datetime import datetime
 import json
+import threading
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -64,6 +19,11 @@ if not DATABASE_URL:
     print("⚠️ Using fallback database URL")
 
 print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'unknown'}")
+
+# Global flags to prevent double initialization
+_INITIALIZED = False
+_INITIALIZING = False
+_init_lock = threading.Lock()
 
 # ==================== DATABASE CONNECTION ====================
 
@@ -396,10 +356,31 @@ def migrate_receipts_table():
 
 def init_db():
     """Initialize database with all tables and seed data"""
+    global _INITIALIZED, _INITIALIZING
+    
+    # Prevent concurrent initialization
+    with _init_lock:
+        if _INITIALIZED:
+            print("✅ Database already initialized, skipping...")
+            return True
+        
+        if _INITIALIZING:
+            print("⏳ Database initialization already in progress, waiting...")
+            # Wait for initialization to complete
+            for i in range(30):  # Wait up to 30 seconds
+                if _INITIALIZED:
+                    return True
+                time.sleep(1)
+            print("⚠️ Initialization timeout, continuing...")
+            return False
+        
+        _INITIALIZING = True
+    
     conn = None
     cursor = None
     
     try:
+        print("🚀 Starting database initialization...")
         conn, cursor = get_db()
         
         # Create all tables in order
@@ -416,6 +397,7 @@ def init_db():
         create_whatsapp_settings_table(cursor)
         
         conn.commit()
+        print("✅ All tables created")
         
         # Seed default users
         seed_default_users(conn, cursor)
@@ -426,7 +408,7 @@ def init_db():
         # Verify connection
         cursor.execute("SELECT version()")
         version = cursor.fetchone()
-        print(f"✅ PostgreSQL connected: {version['version']}")
+        print(f"✅ PostgreSQL connected: {version['version'][:50]}...")
         
         # Count tables
         cursor.execute("""
@@ -436,11 +418,19 @@ def init_db():
         tables_count = cursor.fetchone()['count']
         print(f"📊 Tables created: {tables_count}")
         
+        with _init_lock:
+            _INITIALIZED = True
+            _INITIALIZING = False
+        
+        print("✅ Database initialization complete")
+        return True
+        
     except Exception as e:
         print(f"❌ Database initialization error: {e}")
-        if conn:
-            conn.rollback()
-        raise e
+        with _init_lock:
+            _INITIALIZING = False
+        return False
+        
     finally:
         if cursor:
             cursor.close()
@@ -482,16 +472,6 @@ def get_table_counts():
     finally:
         cursor.close()
         conn.close()
-
-# ==================== RUN ON IMPORT ====================
-
-# Initialize database when module is imported
-print("🚀 Initializing PostgreSQL database...")
-try:
-    init_db()
-    print("✅ Database ready")
-except Exception as e:
-    print(f"❌ Failed to initialize database: {e}")
 
 # ==================== EXPORTED FUNCTIONS ====================
 
