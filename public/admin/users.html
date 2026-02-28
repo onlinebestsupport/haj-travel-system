@@ -436,39 +436,6 @@
             .filter-section { flex-direction: column; }
             .permissions-grid { grid-template-columns: 1fr; }
         }
-        /* Session Warning Banner */
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, -100%);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
-}
-
-#sessionWarning {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #f39c12;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 50px;
-    z-index: 10000;
-    display: none;
-    animation: slideDown 0.3s ease;
-    box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
-    font-weight: 600;
-    cursor: pointer;
-    border: 2px solid white;
-}
-
-#sessionWarning:hover {
-    background: #e67e22;
-}
     </style>
 </head>
 <body>
@@ -837,237 +804,678 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // ==================== GLOBAL VARIABLES SECTION ====================
+        let allUsers = [];
+        let currentUserId = null;
+        let sessionCheckInProgress = false;
+        let sessionValid = false;
 
-/* ================= GLOBAL VARIABLES ================= */
-
-let allUsers = [];
-let currentUserId = null;
-let sessionCheckInProgress = false;
-let sessionValid = false;
-
-let sessionWarningTimeout = null;
-let sessionLogoutTimeout = null;
-let sessionCheckInterval = null;
-let warningShown = false;
-
-/* ================= USER INFO ================= */
-
-function updateUserInfo(user) {
-    if (!user) return;
-
-    const roleBadge = document.getElementById('roleBadge');
-    if (roleBadge) {
-        roleBadge.textContent = user.role || 'Admin';
-    }
-
-    sessionStorage.setItem('adminLoggedIn', 'true');
-}
-
-/* ================= NOTIFICATION ================= */
-
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-
-    const icons = {
-        success: 'check-circle',
-        error: 'times-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
-
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${message}`;
-    notification.style.display = 'block';
-
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-/* ================= SESSION WARNING ================= */
-
-function createSessionWarning() {
-    if (document.getElementById('sessionWarning')) return;
-
-    const warningDiv = document.createElement('div');
-    warningDiv.id = 'sessionWarning';
-    warningDiv.innerHTML = `
-        <i class="fas fa-exclamation-triangle"></i>
-        <span id="sessionWarningMessage">Your session will expire soon. Click to extend.</span>
-    `;
-    warningDiv.onclick = extendSession;
-    document.body.appendChild(warningDiv);
-}
-
-function startSessionMonitoring() {
-
-    if (sessionCheckInterval) clearInterval(sessionCheckInterval);
-
-    sessionCheckInterval = setInterval(async () => {
-        const valid = await quickSessionCheck();
-        if (!valid) showSessionExpiredWarning();
-    }, 60000);
-
-    ['click','mousemove','keypress','scroll'].forEach(evt => {
-        document.addEventListener(evt, resetSessionTimer);
-    });
-}
-
-async function quickSessionCheck() {
-    try {
-        const res = await fetch('/api/check-session', { credentials:'include' });
-        const data = await res.json();
-        return data.authenticated;
-    } catch {
-        return false;
-    }
-}
-
-function resetSessionTimer() {
-
-    if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
-    if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
-
-    hideSessionWarning();
-
-    sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
-    sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
-}
-
-function showSessionWarning() {
-    if (warningShown) return;
-    const warning = document.getElementById('sessionWarning');
-    if (!warning) return;
-    warning.style.display = 'block';
-    warningShown = true;
-}
-
-function hideSessionWarning() {
-    const warning = document.getElementById('sessionWarning');
-    if (warning) warning.style.display = 'none';
-    warningShown = false;
-}
-
-function showSessionExpiredWarning() {
-    hideSessionWarning();
-    showNotification('Session expired. Redirecting to login...', 'warning');
-
-    sessionStorage.clear();
-    localStorage.removeItem('adminSession');
-
-    setTimeout(() => {
-        window.location.href = 'admin.login.html';
-    }, 2000);
-}
-
-async function extendSession() {
-    try {
-        const res = await fetch('/api/check-session', { credentials:'include' });
-        const data = await res.json();
-        if (data.authenticated) {
-            hideSessionWarning();
-            resetSessionTimer();
-            showNotification('Session extended', 'success');
-        } else {
-            showSessionExpiredWarning();
+        // ==================== SESSION MANAGEMENT SECTION ====================
+        async function checkSession() {
+            if (sessionCheckInProgress) {
+                console.log('⏳ Session check already in progress...');
+                return sessionValid;
+            }
+            
+            sessionCheckInProgress = true;
+            console.log('🔍 Checking session validity...');
+            
+            try {
+                const localLoggedIn = sessionStorage.getItem('adminLoggedIn');
+                const localUser = sessionStorage.getItem('adminName');
+                const localRole = sessionStorage.getItem('adminRole');
+                
+                console.log('📦 Local session:', { localLoggedIn, localUser, localRole });
+                
+                if (!localLoggedIn) {
+                    console.log('❌ No local session found');
+                    window.location.href = '/admin.login.html';
+                    return false;
+                }
+                
+                const response = await fetch('/api/check-session', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('📡 Server session response:', data);
+                
+                if (data.success && data.authenticated) {
+                    console.log('✅ Server session valid for:', data.user?.username || 'Unknown');
+                    updateUserInfo(data.user);
+                    sessionValid = true;
+                    return true;
+                } else {
+                    console.log('❌ Server session invalid');
+                    await handleInvalidSession();
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Session check error:', error);
+                
+                if (sessionStorage.getItem('adminLoggedIn')) {
+                    console.log('⚠️ Using local session only (server unreachable)');
+                    updateUserInfo({
+                        username: sessionStorage.getItem('adminName') || 'Admin',
+                        role: sessionStorage.getItem('adminRole') || 'admin'
+                    });
+                    sessionValid = true;
+                    return true;
+                }
+                
+                await handleInvalidSession();
+                return false;
+            } finally {
+                sessionCheckInProgress = false;
+            }
         }
-    } catch {
-        showSessionExpiredWarning();
-    }
-}
 
-/* ================= SESSION CHECK ================= */
+        function updateUserInfo(user) {
+            const roleBadge = document.getElementById('roleBadge');
+            if (roleBadge && user) {
+                roleBadge.textContent = (user.role || 'admin').replace('_', ' ').toUpperCase();
+            }
+        }
 
-async function checkSession() {
+        async function handleInvalidSession() {
+            console.log('🔄 Handling invalid session...');
+            
+            sessionStorage.clear();
+            localStorage.removeItem('adminSession');
+            
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (e) {
+                console.log('Logout error (ignored):', e);
+            }
+            
+            window.location.href = '/admin.login.html';
+        }
 
-    if (sessionCheckInProgress) return sessionValid;
+        // ==================== PAGE INITIALIZATION SECTION ====================
+        (async function initPage() {
+            console.log('🚀 Initializing users page...');
+            
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
+            }
+            
+            const isValid = await checkSession();
+            
+            if (isValid) {
+                console.log('✅ Session valid, loading users...');
+                if (typeof initPermissions === 'function') initPermissions();
+                loadUsers();
+            }
+        })();
 
-    sessionCheckInProgress = true;
+        // ==================== API CALL WRAPPER SECTION ====================
+        async function apiCall(url, options = {}) {
+            const isValid = await checkSession();
+            if (!isValid) return null;
+            
+            options.credentials = 'include';
+            options.headers = {
+                ...options.headers,
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            };
+            
+            try {
+                const response = await fetch(url, options);
+                
+                if (response.status === 401) {
+                    console.log('🔒 Session expired during API call');
+                    await handleInvalidSession();
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('API call error:', error);
+                throw error;
+            }
+        }
 
-    try {
+        // ==================== PERIODIC SESSION CHECK SECTION ====================
+        setInterval(async () => {
+            console.log('⏰ Running periodic session check...');
+            await checkSession();
+        }, 300000);
 
-        const res = await fetch('/api/check-session', {
-            credentials:'include',
-            headers:{ 'Cache-Control':'no-cache' }
+        // ==================== PAGE VISIBILITY CHECK SECTION ====================
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👁️ Tab became visible, checking session...');
+                checkSession();
+            }
         });
 
-        const data = await res.json();
-
-        if (data.success && data.authenticated) {
-            sessionValid = true;
-            updateUserInfo(data.user);
-            resetSessionTimer();
-            return true;
+        // ==================== PERMISSION FUNCTIONS SECTION ====================
+        function updatePermissionsCount() {
+            const checkboxes = document.querySelectorAll('#addUserForm .perm-checkbox');
+            const checked = document.querySelectorAll('#addUserForm .perm-checkbox:checked');
+            const countSpan = document.getElementById('selectedPermissionsCount');
+            if (countSpan) {
+                countSpan.textContent = checked.length + ' permissions selected';
+                countSpan.style.color = checked.length > 0 ? '#27ae60' : '#7f8c8d';
+            }
+            return checked.length;
         }
 
-        showSessionExpiredWarning();
-        return false;
+        function initPermissions() {
+            const checkboxes = document.querySelectorAll('#addUserForm .perm-checkbox');
+            checkboxes.forEach(cb => {
+                cb.removeEventListener('change', updatePermissionsCount);
+                cb.addEventListener('change', updatePermissionsCount);
+            });
 
-    } catch (err) {
-        console.error(err);
-        showSessionExpiredWarning();
-        return false;
-    } finally {
-        sessionCheckInProgress = false;
-    }
-}
+            const selectAll = document.getElementById('selectAllPermissions');
+            if (selectAll) {
+                selectAll.removeEventListener('change', function() {});
+                selectAll.addEventListener('change', function() {
+                    document.querySelectorAll('#addUserForm .perm-checkbox').forEach(cb => cb.checked = this.checked);
+                    updatePermissionsCount();
+                });
+            }
 
-/* ================= API WRAPPER ================= */
-
-async function apiCall(url, options = {}) {
-
-    const valid = await checkSession();
-    if (!valid) return null;
-
-    options.credentials = 'include';
-
-    try {
-        const res = await fetch(url, options);
-
-        if (res.status === 401) {
-            showSessionExpiredWarning();
-            return null;
+            updatePermissionsCount();
         }
 
-        return res;
+        window.applyRoleTemplate = function(role) {
+            const templates = {
+                super_admin: [
+                    'dashboard', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 'reports',
+                    'create', 'read', 'update', 'delete', 'export', 'print',
+                    'manage_users', 'edit_users', 'delete_users', 'change_passwords', 'assign_roles',
+                    'backup', 'settings', 'frontpage', 'whatsapp', 'email',
+                    'view_financial', 'process_payments', 'refund', 'reports_financial'
+                ],
+                admin: [
+                    'dashboard', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 'reports',
+                    'create', 'read', 'update', 'delete', 'export', 'print',
+                    'view_financial', 'process_payments', 'reports_financial'
+                ],
+                manager: [
+                    'dashboard', 'batches', 'travelers', 'payments', 'invoices', 'receipts',
+                    'create', 'read', 'update', 'export', 'print',
+                    'view_financial', 'process_payments'
+                ],
+                staff: [
+                    'dashboard', 'travelers', 'payments', 'receipts',
+                    'create', 'read', 'update', 'print'
+                ],
+                viewer: [
+                    'dashboard', 'travelers', 'payments', 'reports',
+                    'read', 'export', 'print'
+                ]
+            };
 
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
-}
+            const template = templates[role];
+            if (template) {
+                document.querySelectorAll('#addUserForm .perm-checkbox').forEach(cb => {
+                    cb.checked = template.includes(cb.value);
+                });
+                updatePermissionsCount();
+                
+                const roleSelect = document.getElementById('role');
+                if (roleSelect) roleSelect.value = role;
+            }
+        };
 
-/* ================= LOGOUT ================= */
+        // ==================== NOTIFICATION SECTION ====================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
 
-async function logout() {
-    try {
-        await fetch('/api/logout', { method:'POST', credentials:'include' });
-    } catch {}
-    sessionStorage.clear();
-    window.location.href = 'admin.login.html';
-}
+        // ==================== LOGOUT SECTION ====================
+        async function logout() {
+            try {
+                showNotification('Logging out...', 'info');
+                await fetch('/api/logout', { 
+                    method: 'POST', 
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                sessionStorage.clear();
+                window.location.href = '/admin.login.html';
+            }
+        }
 
-/* ================= INIT ================= */
+        // ==================== LOAD USERS SECTION ====================
+        async function loadUsers() {
+            console.log('📡 Loading users...');
+            const tbody = document.getElementById('usersTableBody');
+            
+            try {
+                const response = await apiCall('/api/admin/users');
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success && data.users) {
+                    window.allUsers = data.users;
+                    
+                    let html = '';
+                    data.users.forEach(user => {
+                        let permCount = 0;
+                        if (user.permissions) {
+                            if (typeof user.permissions === 'object') {
+                                permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
+                            } else if (Array.isArray(user.permissions)) {
+                                permCount = user.permissions.length;
+                            }
+                        }
+                        
+                        html += `<tr>
+                            <td>${user.id}</td>
+                            <td><strong>${escapeHtml(user.username)}</strong></td>
+                            <td>${escapeHtml(user.full_name || '-')}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
+                            <td>${permCount}</td>
+                            <td>${escapeHtml(user.department || '-')}</td>
+                            <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                            <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                            <td>
+                                <button class="icon-btn" onclick="viewUserDetails(${user.id})" title="View Details"><i class="fas fa-eye"></i></button>
+                                <button class="icon-btn" onclick="editUser(${user.id})" title="Edit User"><i class="fas fa-edit"></i></button>
+                                <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                                    <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    tbody.innerHTML = html;
+                    
+                    document.getElementById('totalUsers').textContent = data.users.length;
+                    document.getElementById('activeUsers').textContent = data.users.filter(u => u.is_active).length;
+                    document.getElementById('inactiveUsers').textContent = data.users.filter(u => !u.is_active).length;
+                    document.getElementById('adminCount').textContent = data.users.filter(u => u.role === 'super_admin' || u.role === 'admin').length;
+                    
+                    console.log(`✅ Loaded ${data.users.length} users`);
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error.message}
+                    <br><button class="retry-btn" onclick="loadUsers()"><i class="fas fa-redo"></i> Retry</button>
+                </td></tr>`;
+            }
+        }
 
-document.addEventListener('DOMContentLoaded', async () => {
+        function escapeHtml(text) {
+            if (!text) return text;
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-    createSessionWarning();
-    startSessionMonitoring();
-    resetSessionTimer();
+        // ==================== TOGGLE USER STATUS SECTION ====================
+        window.toggleUserStatus = async function(userId) {
+            const user = window.allUsers?.find(u => u.id === userId);
+            if (!user) return;
+            
+            const newStatus = !user.is_active;
+            const action = newStatus ? 'activate' : 'deactivate';
+            
+            if (!confirm(`Are you sure you want to ${action} user "${user.username}"?`)) return;
+            
+            try {
+                const response = await apiCall(`/api/admin/users/${userId}/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(`User ${action}d successfully!`, 'success');
+                    loadUsers();
+                } else {
+                    showNotification('Error: ' + (data.error || `Could not ${action} user`), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification(`Error ${action}ing user`, 'error');
+            }
+        };
 
-    const tbody = document.getElementById('usersTableBody');
-    if (tbody) {
-        tbody.innerHTML =
-        '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
-    }
+        // ==================== EDIT USER SECTION ====================
+        window.editUser = async function(userId) {
+            console.log(`📝 Editing user ${userId}...`);
+            
+            const modal = document.getElementById('editUserModal');
+            const overlay = document.getElementById('modalOverlay');
+            
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            try {
+                const response = await apiCall(`/api/admin/users/${userId}`);
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    const user = data.user;
+                    document.getElementById('edit_user_id').value = user.id;
+                    document.getElementById('edit_username').value = user.username || '';
+                    document.getElementById('edit_email').value = user.email || '';
+                    document.getElementById('edit_fullname').value = user.full_name || '';
+                    document.getElementById('edit_phone').value = user.phone || '';
+                    document.getElementById('edit_department').value = user.department || '';
+                    document.getElementById('edit_role').value = user.role || 'viewer';
+                    
+                    const permContainer = document.getElementById('editPermissionsContainer');
+                    if (permContainer && user.permissions) {
+                        let perms = [];
+                        if (typeof user.permissions === 'object') {
+                            perms = Object.keys(user.permissions).filter(k => user.permissions[k] === true);
+                        }
+                        permContainer.innerHTML = perms.length ? 
+                            perms.map(p => `<span style="background:#3498db; color:white; padding:2px 8px; border-radius:12px; margin:2px; display:inline-block;">${p}</span>`).join('') :
+                            '<p>No specific permissions</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showNotification('Error loading user details', 'error');
+                closeEditModal();
+            }
+        };
 
-    const valid = await checkSession();
-    if (valid) {
-        if (typeof initPermissions === 'function') initPermissions();
-        loadUsers();
-    }
-});
+        // ==================== EDIT USER FORM SUBMIT SECTION ====================
+        document.getElementById('editUserForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('edit_user_id').value;
+            
+            const userData = {
+                email: document.getElementById('edit_email').value.trim(),
+                full_name: document.getElementById('edit_fullname').value.trim() || null,
+                phone: document.getElementById('edit_phone').value.trim() || null,
+                department: document.getElementById('edit_department').value.trim() || null,
+                role: document.getElementById('edit_role').value
+            };
+            
+            if (!userData.email || !userData.role) {
+                showNotification('Email and role are required', 'error');
+                return;
+            }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await apiCall(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('User updated successfully!', 'success');
+                    closeEditModal();
+                    loadUsers();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not update user'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error updating user', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
 
-</script>
+        window.closeEditModal = function() {
+            document.getElementById('editUserModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        };
+
+        // ==================== VIEW USER DETAILS SECTION ====================
+        window.viewUserDetails = function(userId) {
+            const user = window.allUsers?.find(u => u.id === userId);
+            if (!user) {
+                alert('User not found');
+                return;
+            }
+            
+            let permList = '';
+            if (user.permissions) {
+                if (typeof user.permissions === 'object') {
+                    const activePerms = Object.keys(user.permissions).filter(k => user.permissions[k] === true);
+                    permList = activePerms.map(p => `<span class="permission-tag">${p}</span>`).join(' ');
+                } else if (Array.isArray(user.permissions)) {
+                    permList = user.permissions.map(p => `<span class="permission-tag">${p}</span>`).join(' ');
+                }
+            }
+            
+            const details = `
+                <div style="padding: 20px;">
+                    <h3 style="margin-bottom: 20px;">${escapeHtml(user.username)}</h3>
+                    <p><strong>Email:</strong> ${escapeHtml(user.email)}</p>
+                    <p><strong>Full Name:</strong> ${escapeHtml(user.full_name || '-')}</p>
+                    <p><strong>Role:</strong> ${escapeHtml(user.role)}</p>
+                    <p><strong>Department:</strong> ${escapeHtml(user.department || '-')}</p>
+                    <p><strong>Status:</strong> ${user.is_active ? 'Active' : 'Inactive'}</p>
+                    <p><strong>Last Login:</strong> ${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</p>
+                    <p><strong>Created:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</p>
+                    <div style="margin-top: 15px;">
+                        <strong>Permissions:</strong> 
+                        <div style="margin-top: 10px;">${permList || 'None'}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('userDetailsContent').innerHTML = details;
+            document.getElementById('userDetailsModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        };
+
+        // ==================== FORM FUNCTIONS SECTION ====================
+        window.showAddUserForm = function() {
+            document.getElementById('addUserForm').style.display = 'block';
+            document.getElementById('addUserForm').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.hideAddUserForm = function() {
+            document.getElementById('addUserForm').style.display = 'none';
+            document.getElementById('userCreateForm').reset();
+            updatePermissionsCount();
+        };
+
+        // ==================== CREATE USER SECTION ====================
+        document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const permissions = {};
+            document.querySelectorAll('#addUserForm .perm-checkbox').forEach(cb => {
+                permissions[cb.value] = cb.checked;
+            });
+            
+            const userData = {
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+                email: document.getElementById('email').value.trim(),
+                full_name: document.getElementById('fullname').value.trim() || null,
+                phone: document.getElementById('phone').value.trim() || null,
+                department: document.getElementById('department').value.trim() || null,
+                role: document.getElementById('role').value,
+                permissions: permissions,
+                is_active: true
+            };
+            
+            if (!userData.username || !userData.password || !userData.email || !userData.role) {
+                showNotification('Username, password, email and role are required', 'error');
+                return;
+            }
+            
+            if (userData.password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await apiCall('/api/admin/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('User created successfully!', 'success');
+                    hideAddUserForm();
+                    loadUsers();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not create user'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error creating user', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // ==================== FILTER FUNCTIONS SECTION ====================
+        window.filterUsers = function() {
+            const search = document.getElementById('searchUsers').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const filtered = window.allUsers.filter(user => {
+                const matchesSearch = user.username.toLowerCase().includes(search) ||
+                                     (user.full_name && user.full_name.toLowerCase().includes(search)) ||
+                                     user.email.toLowerCase().includes(search);
+                const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+                const matchesStatus = statusFilter === 'all' || 
+                                     (statusFilter === 'active' && user.is_active) ||
+                                     (statusFilter === 'inactive' && !user.is_active);
+                return matchesSearch && matchesRole && matchesStatus;
+            });
+            
+            displayFilteredUsers(filtered);
+        };
+
+        function displayFilteredUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            let html = '';
+            users.forEach(user => {
+                let permCount = 0;
+                if (user.permissions) {
+                    if (typeof user.permissions === 'object') {
+                        permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
+                    } else if (Array.isArray(user.permissions)) {
+                        permCount = user.permissions.length;
+                    }
+                }
+                
+                html += `<tr>
+                    <td>${user.id}</td>
+                    <td><strong>${escapeHtml(user.username)}</strong></td>
+                    <td>${escapeHtml(user.full_name || '-')}</td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
+                    <td>${permCount}</td>
+                    <td>${escapeHtml(user.department || '-')}</td>
+                    <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                    <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                    <td>
+                        <button class="icon-btn" onclick="viewUserDetails(${user.id})"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn" onclick="editUser(${user.id})"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                            <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        window.resetFilters = function() {
+            document.getElementById('searchUsers').value = '';
+            document.getElementById('roleFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            displayFilteredUsers(window.allUsers);
+        };
+
+        window.exportUsers = function() {
+            showNotification('Export feature coming soon!', 'info');
+        };
+
+        window.printUserDetails = function() {
+            const content = document.getElementById('userDetailsContent')?.innerHTML;
+            if (!content) return;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>User Details</title>
+                    <style>
+                        body { font-family: Arial; padding: 30px; }
+                        .permission-tag { background: #e1f0fa; color: #2980b9; padding: 2px 8px; border-radius: 12px; margin: 2px; display: inline-block; }
+                    </style>
+                </head>
+                <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        };
+
+        // ==================== CLOSE MODALS SECTION ====================
+        window.closeDetailsModal = function() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        };
+
+        window.closeAllModals = function() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+            document.getElementById('editUserModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        };
+    </script>
 </body>
 </html>
