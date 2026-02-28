@@ -1,3 +1,50 @@
+# Add this at the very top of database.py, after imports
+import threading
+_INITIALIZING = False
+_INITIALIZED = False
+_init_lock = threading.Lock()
+
+def init_db():
+    """Initialize database with all tables and seed data"""
+    global _INITIALIZED, _INITIALIZING
+    
+    # Prevent concurrent initialization
+    with _init_lock:
+        if _INITIALIZED:
+            print("✅ Database already initialized, skipping...")
+            return
+        
+        if _INITIALIZING:
+            print("⏳ Database initialization already in progress, waiting...")
+            # Wait for initialization to complete
+            for _ in range(30):  # Wait up to 30 seconds
+                if _INITIALIZED:
+                    return
+                import time
+                time.sleep(1)
+            return
+        
+        _INITIALIZING = True
+    
+    # Rest of your initialization code...
+    try:
+        conn, cursor = get_db()
+        # ... all your table creation code ...
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        with _init_lock:
+            _INITIALIZED = True
+            _INITIALIZING = False
+        print("✅ Database initialized successfully")
+        
+    except Exception as e:
+        with _init_lock:
+            _INITIALIZING = False
+        print(f"❌ Database initialization error: {e}")
+        raise
 import os
 import psycopg2
 import psycopg2.extras
