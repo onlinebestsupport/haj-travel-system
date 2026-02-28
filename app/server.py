@@ -262,7 +262,7 @@ def dashboard_stats():
         },
         'recent_activity': [dict(row) for row in recent]
     })
-    # ==================== API ROUTES - DATABASE INIT ====================
+ # ==================== API ROUTES - DATABASE INIT ====================
 @app.route('/api/admin/init-db', methods=['POST'])
 def init_database():
     """Initialize database tables (admin only)"""
@@ -275,100 +275,161 @@ def init_database():
         return jsonify({
             'success': True,
             'message': 'Database initialized successfully',
-            'tables': ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
+            'tables': ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 
+                      'frontpage_settings', 'email_settings', 'whatsapp_settings']
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== API ROUTES - MIGRATIONS ====================
+@app.route('/api/admin/migrate-receipts', methods=['POST'])
+def migrate_receipts():
+    """Run receipts table migration"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        from app.database import migrate_receipts_table
+        migrate_receipts_table()
+        return jsonify({
+            'success': True,
+            'message': 'Receipts table migrated successfully'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
     """Get frontpage configuration"""
-    db = get_db()
-    config = db.execute('SELECT * FROM frontpage_settings WHERE id = 1').fetchone()
-    
-    if config:
-        return jsonify({
-            'success': True,
-            **dict(config)
-        })
-    else:
-        return jsonify({'success': False, 'error': 'Configuration not found'}), 404
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM frontpage_settings WHERE id = 1')
+        config = cursor.fetchone()
+        cursor.close()
+        db.close()
+        
+        if config:
+            return jsonify({'success': True, **dict(config)})
+        else:
+            return jsonify({'success': False, 'error': 'Configuration not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/frontpage/config', methods=['POST'])
 def update_frontpage_config():
     """Update frontpage configuration"""
-    if not session.get('user_id'):
+    if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     data = request.json
-    
     db = get_db()
-    db.execute('''
-        UPDATE frontpage_settings SET
-            hero_heading = ?, hero_subheading = ?, hero_button_text = ?, hero_button_link = ?,
-            packages_title = ?, footer_text = ?, footer_phone = ?, footer_email = ?,
-            facebook_url = ?, twitter_url = ?, instagram_url = ?,
-            alert_enabled = ?, alert_message = ?, alert_link = ?, alert_color = ?, alert_style = ?,
-            whatsapp_number = ?, whatsapp_message = ?, booking_email = ?, email_subject = ?,
-            whatsapp_enabled = ?, email_enabled = ?,
-            packages = ?, features = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = 1
-    ''', (
-        data.get('hero_heading'), data.get('hero_subheading'), data.get('hero_button_text'), data.get('hero_button_link'),
-        data.get('packages_title'), data.get('footer_text'), data.get('footer_phone'), data.get('footer_email'),
-        data.get('facebook_url'), data.get('twitter_url'), data.get('instagram_url'),
-        data.get('alert_enabled'), data.get('alert_message'), data.get('alert_link'), data.get('alert_color'), data.get('alert_style'),
-        data.get('whatsapp_number'), data.get('whatsapp_message'), data.get('booking_email'), data.get('email_subject'),
-        data.get('whatsapp_enabled'), data.get('email_enabled'),
-        json.dumps(data.get('packages', [])), json.dumps(data.get('features', []))
-    ))
-    db.commit()
+    cursor = db.cursor()
     
-    log_activity(session['user_id'], 'update', 'frontpage', 'Updated frontpage configuration', request.remote_addr)
-    
-    return jsonify({'success': True})
+    try:
+        cursor.execute("""
+            UPDATE frontpage_settings SET
+                hero_heading = %s,
+                hero_subheading = %s,
+                hero_button_text = %s,
+                hero_button_link = %s,
+                packages_title = %s,
+                footer_text = %s,
+                footer_phone = %s,
+                footer_email = %s,
+                facebook_url = %s,
+                twitter_url = %s,
+                instagram_url = %s,
+                alert_enabled = %s,
+                alert_message = %s,
+                alert_link = %s,
+                alert_color = %s,
+                alert_style = %s,
+                whatsapp_number = %s,
+                whatsapp_message = %s,
+                booking_email = %s,
+                email_subject = %s,
+                whatsapp_enabled = %s,
+                email_enabled = %s,
+                packages = %s,
+                features = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1
+        """, (
+            data.get('hero_heading'),
+            data.get('hero_subheading'),
+            data.get('hero_button_text'),
+            data.get('hero_button_link'),
+            data.get('packages_title'),
+            data.get('footer_text'),
+            data.get('footer_phone'),
+            data.get('footer_email'),
+            data.get('facebook_url'),
+            data.get('twitter_url'),
+            data.get('instagram_url'),
+            data.get('alert_enabled', False),
+            data.get('alert_message'),
+            data.get('alert_link'),
+            data.get('alert_color'),
+            data.get('alert_style'),
+            data.get('whatsapp_number'),
+            data.get('whatsapp_message'),
+            data.get('booking_email'),
+            data.get('email_subject'),
+            data.get('whatsapp_enabled', False),
+            data.get('email_enabled', False),
+            json.dumps(data.get('packages', [])),
+            json.dumps(data.get('features', []))
+        ))
+        db.commit()
+        
+        log_activity(session['user_id'], 'update', 'frontpage', 'Updated frontpage configuration', request.remote_addr)
+        cursor.close()
+        db.close()
+        
+        return jsonify({'success': True, 'message': 'Frontpage updated successfully'})
+    except Exception as e:
+        db.rollback()
+        cursor.close()
+        db.close()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/frontpage/whatsapp', methods=['GET'])
 def get_whatsapp_config():
     """Get WhatsApp configuration"""
-    db = get_db()
-    config = db.execute('SELECT number, message_template FROM whatsapp_settings WHERE id = 1').fetchone()
-    frontpage = db.execute('SELECT whatsapp_number, whatsapp_message FROM frontpage_settings WHERE id = 1').fetchone()
-    
-    return jsonify({
-        'success': True,
-        'whatsappNumber': config['number'] if config else frontpage['whatsapp_number'] if frontpage else None,
-        'whatsappMessage': config['message_template'] if config else frontpage['whatsapp_message'] if frontpage else None
-    })
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT number, message_template, enabled FROM whatsapp_settings WHERE id = 1')
+        config = cursor.fetchone()
+        cursor.close()
+        db.close()
+        
+        if config:
+            return jsonify({'success': True, **dict(config)})
+        else:
+            return jsonify({'success': False, 'error': 'WhatsApp config not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/frontpage/email', methods=['GET'])
 def get_email_config():
     """Get email configuration"""
-    db = get_db()
-    config = db.execute('SELECT from_email, reply_to, subject_prefix FROM email_settings WHERE id = 1').fetchone()
-    frontpage = db.execute('SELECT booking_email, email_subject FROM frontpage_settings WHERE id = 1').fetchone()
-    
-    return jsonify({
-        'success': True,
-        'bookingEmail': config['from_email'] if config else frontpage['booking_email'] if frontpage else None,
-        'emailSubject': config['subject_prefix'] if config else frontpage['email_subject'] if frontpage else None,
-        'footerEmail': config['reply_to'] if config else None
-    })
-
-@app.route('/api/frontpage/publish', methods=['POST'])
-def publish_frontpage():
-    """Publish frontpage changes to live site"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    data = request.json
-    
-    # In production, this would write to a file or update a live database
-    # For now, we'll just log it
-    log_activity(session['user_id'], 'publish', 'frontpage', 'Published frontpage to live site', request.remote_addr)
-    
-    return jsonify({'success': True, 'message': 'Website published successfully'})
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT from_email, reply_to, subject_prefix FROM email_settings WHERE id = 1')
+        config = cursor.fetchone()
+        cursor.close()
+        db.close()
+        
+        if config:
+            return jsonify({'success': True, **dict(config)})
+        else:
+            return jsonify({'success': False, 'error': 'Email config not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== API ROUTES - REPORTS ====================
 @app.route('/api/reports/generate', methods=['POST'])
