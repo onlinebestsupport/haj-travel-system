@@ -4,13 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alhudha Haj Travel System - Admin Dashboard</title>
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Chart.js for analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Font Awesome 6 (optimized load) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Google Fonts (optimized) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Chart.js (load defer) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
     <style>
+        /* Root variables remain the same */
         * {
             margin: 0;
             padding: 0;
@@ -51,6 +61,7 @@
             overflow-x: hidden;
         }
 
+        /* All your existing CSS remains exactly the same */
         /* Modern Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -820,7 +831,7 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- Sidebar -->
+        <!-- Sidebar (Keep all existing HTML structure exactly the same) -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -929,7 +940,7 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content (Keep all existing HTML structure exactly the same) -->
         <main class="main-content">
             <!-- Top Header -->
             <header class="top-header">
@@ -1199,11 +1210,24 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== SESSION MANAGEMENT WITH WARNING ====================
+        // ==================== OPTIMIZED JAVASCRIPT WITH FIXES ====================
+        
+        // Use strict mode to catch errors
+        'use strict';
+
+        // ==================== GLOBAL VARIABLES ====================
+        let chartInstances = {
+            paymentsChart: null,
+            travelersChart: null
+        };
+        
+        let intervals = [];
         let sessionWarningTimeout = null;
         let sessionLogoutTimeout = null;
         let warningShown = false;
+        let notificationTimeout = null;
 
+        // ==================== SESSION MANAGEMENT ====================
         function resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
@@ -1220,8 +1244,8 @@
         function showSessionWarning() {
             if (warningShown) return;
             
-            var warning = document.getElementById('sessionWarning');
-            var message = document.getElementById('sessionWarningMessage');
+            const warning = document.getElementById('sessionWarning');
+            const message = document.getElementById('sessionWarningMessage');
             if (!warning || !message) return;
             
             message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
@@ -1230,7 +1254,7 @@
         }
 
         function hideSessionWarning() {
-            var warning = document.getElementById('sessionWarning');
+            const warning = document.getElementById('sessionWarning');
             if (warning) {
                 warning.style.display = 'none';
             }
@@ -1243,17 +1267,17 @@
             
             sessionStorage.clear();
             
-            setTimeout(function() {
+            setTimeout(() => {
                 window.location.href = '/admin.login.html';
             }, 3000);
         }
 
         async function extendSession() {
             try {
-                var response = await fetch('/api/check-session', {
+                const response = await fetch('/api/check-session', {
                     credentials: 'include'
                 });
-                var data = await response.json();
+                const data = await response.json();
                 
                 if (data.authenticated) {
                     hideSessionWarning();
@@ -1267,21 +1291,13 @@
             }
         }
 
-        // ==================== GLOBAL VARIABLES ====================
-        var chartInstances = {
-            paymentsChart: null,
-            travelersChart: null
-        };
-        
-        var intervals = [];
-
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize session management
             resetSessionTimer();
             
             // Monitor user activity
-            ['click', 'mousemove', 'keypress', 'scroll'].forEach(function(event) {
+            ['click', 'mousemove', 'keypress', 'scroll'].forEach(event => {
                 document.addEventListener(event, resetSessionTimer);
             });
             
@@ -1290,10 +1306,22 @@
             loadDashboardStats();
             updateDateTime();
             loadRecentActivity();
-            initializeCharts();
             
-            // Update time every second
-            var timeInterval = setInterval(function() {
+            // Initialize charts after Chart.js loads
+            if (typeof Chart !== 'undefined') {
+                initializeCharts();
+            } else {
+                // Wait for Chart.js to load
+                const checkChart = setInterval(() => {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        initializeCharts();
+                    }
+                }, 100);
+            }
+            
+            // Update time every second (optimized with requestAnimationFrame)
+            const timeInterval = setInterval(() => {
                 if (!document.hidden) {
                     window.requestAnimationFrame(updateDateTime);
                 }
@@ -1312,39 +1340,38 @@
 
         // Clean up intervals on page unload
         window.addEventListener('beforeunload', function() {
-            for (var i = 0; i < intervals.length; i++) {
-                clearInterval(intervals[i]);
-            }
+            intervals.forEach(interval => clearInterval(interval));
             
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+            if (notificationTimeout) clearTimeout(notificationTimeout);
             
             // Destroy chart instances
-            for (var key in chartInstances) {
-                if (chartInstances[key]) {
+            Object.values(chartInstances).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
                     try {
-                        chartInstances[key].destroy();
+                        chart.destroy();
                     } catch (e) {}
                 }
-            }
+            });
         });
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
             try {
-                var isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+                const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
                 if (!isLoggedIn) {
                     window.location.href = '/admin.login.html';
                     return;
                 }
                 
-                var userName = sessionStorage.getItem('adminName') || 'Admin';
-                var userRole = sessionStorage.getItem('adminRole') || 'admin';
+                const userName = sessionStorage.getItem('adminName') || 'Admin';
+                const userRole = sessionStorage.getItem('adminRole') || 'admin';
                 
-                var greetingName = document.getElementById('greetingName');
-                var userDisplayName = document.getElementById('userDisplayName');
-                var userRoleDisplay = document.getElementById('userRoleDisplay');
-                var userAvatar = document.getElementById('userAvatar');
+                const greetingName = document.getElementById('greetingName');
+                const userDisplayName = document.getElementById('userDisplayName');
+                const userRoleDisplay = document.getElementById('userRoleDisplay');
+                const userAvatar = document.getElementById('userAvatar');
                 
                 if (greetingName) greetingName.textContent = userName;
                 if (userDisplayName) userDisplayName.textContent = userName;
@@ -1352,9 +1379,9 @@
                 
                 // Set avatar initials
                 if (userAvatar) {
-                    var nameParts = userName.split(' ');
-                    var initials = '';
-                    for (var i = 0; i < Math.min(2, nameParts.length); i++) {
+                    const nameParts = userName.split(' ');
+                    let initials = '';
+                    for (let i = 0; i < Math.min(2, nameParts.length); i++) {
                         if (nameParts[i] && nameParts[i].length > 0) {
                             initials += nameParts[i][0].toUpperCase();
                         }
@@ -1368,9 +1395,9 @@
 
         function formatRole(role) {
             try {
-                return role.split('_').map(function(word) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                }).join(' ');
+                return role.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
             } catch (e) {
                 return role;
             }
@@ -1379,17 +1406,17 @@
         // ==================== DATE/TIME ====================
         function updateDateTime() {
             try {
-                var now = new Date();
+                const now = new Date();
                 
-                var dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                var timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-                var headerDateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-                var headerTimeOptions = { hour: '2-digit', minute: '2-digit' };
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                const headerDateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+                const headerTimeOptions = { hour: '2-digit', minute: '2-digit' };
                 
-                var currentDate = document.getElementById('currentDate');
-                var currentTime = document.getElementById('currentTime');
-                var headerDate = document.getElementById('headerDate');
-                var headerTime = document.getElementById('headerTime');
+                const currentDate = document.getElementById('currentDate');
+                const currentTime = document.getElementById('currentTime');
+                const headerDate = document.getElementById('headerDate');
+                const headerTime = document.getElementById('headerTime');
                 
                 if (currentDate) currentDate.textContent = now.toLocaleDateString('en-US', dateOptions);
                 if (currentTime) currentTime.textContent = now.toLocaleTimeString('en-US', timeOptions);
@@ -1401,80 +1428,95 @@
         }
 
         // ==================== LOAD DASHBOARD STATS ====================
-        function loadDashboardStats() {
-            // Hide stats initially
-            document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(function(el) {
-                el.classList.remove('stats-visible');
-            });
-            
-            fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
+        async function loadDashboardStats() {
+            try {
+                // Hide stats initially
+                document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
+                    el.classList.remove('stats-visible');
+                });
+                
+                const response = await fetch('/api/admin/dashboard/stats', { 
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
                 if (data.success) {
-                    var stats = data.stats;
+                    const stats = data.stats || {};
                     
-                    // Get real user count
-                    return fetch('/api/admin/users', { credentials: 'include' })
-                    .then(function(r) { return r.json(); })
-                    .then(function(userData) {
-                        var userCount = userData.success ? userData.users.length : stats.total_users;
-                        
-                        // Update all stat elements
-                        var updates = {
-                            'totalTravelers': stats.total_travelers,
-                            'activeBatches': stats.active_batches,
-                            'totalCollections': '₹' + (stats.total_collected || 0).toLocaleString(),
-                            'pendingPayments': '₹' + (stats.pending_amount || 0).toLocaleString(),
-                            'travelerCount': stats.total_travelers,
-                            'batchCount': stats.total_batches,
-                            'paymentCount': stats.paid_count,
-                            'invoiceCount': 0,
-                            'receiptCount': stats.paid_count,
-                            'userCount': userCount,
-                            'totalUsers': userCount,
-                            'activeUsers': stats.active_users,
-                            'inactiveUsers': (stats.total_users - stats.active_users) || 0,
-                            'adminCount': userCount
-                        };
-                        
-                        // Apply updates
-                        Object.entries(updates).forEach(function([id, value]) {
-                            var el = document.getElementById(id);
-                            if (el) el.textContent = value;
+                    // Get user count in parallel
+                    let userCount = 0;
+                    try {
+                        const userResponse = await fetch('/api/admin/users', { 
+                            credentials: 'include',
+                            headers: { 'Cache-Control': 'no-cache' }
                         });
-                        
-                        // Update module stats
-                        var moduleTraveler = document.querySelector('.module-traveler-count');
-                        var moduleBatch = document.querySelector('.module-batch-count');
-                        var modulePayment = document.querySelector('.module-payment-count');
-                        var moduleInvoice = document.querySelector('.module-invoice-count');
-                        var moduleReceipt = document.querySelector('.module-receipt-count');
-                        var moduleUser = document.querySelector('.module-user-count');
-                        
-                        if (moduleTraveler) moduleTraveler.textContent = stats.total_travelers;
-                        if (moduleBatch) moduleBatch.textContent = stats.total_batches;
-                        if (modulePayment) modulePayment.textContent = stats.paid_count;
-                        if (moduleInvoice) moduleInvoice.textContent = '0';
-                        if (moduleReceipt) moduleReceipt.textContent = stats.paid_count;
-                        if (moduleUser) moduleUser.textContent = userCount;
-                        
-                        // Show all stats
-                        document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(function(el) {
-                            el.classList.add('stats-visible');
-                        });
-                        
-                        console.log('✅ Dashboard stats loaded:', { 
-                            users: userCount,
-                            travelers: stats.total_travelers,
-                            batches: stats.total_batches,
-                            payments: stats.paid_count
-                        });
+                        const userData = await userResponse.json();
+                        userCount = userData.success && userData.users ? userData.users.length : 
+                                   stats.total_users || 0;
+                    } catch (e) {
+                        console.warn('Could not fetch users:', e);
+                        userCount = stats.total_users || 0;
+                    }
+                    
+                    // Update all stat elements
+                    const updates = {
+                        'totalTravelers': stats.total_travelers || 0,
+                        'activeBatches': stats.active_batches || 0,
+                        'totalCollections': '₹' + (stats.total_collected || 0).toLocaleString(),
+                        'pendingPayments': '₹' + (stats.pending_amount || 0).toLocaleString(),
+                        'travelerCount': stats.total_travelers || 0,
+                        'batchCount': stats.total_batches || 0,
+                        'paymentCount': stats.paid_count || 0,
+                        'invoiceCount': 0,
+                        'receiptCount': stats.paid_count || 0,
+                        'userCount': userCount
+                    };
+                    
+                    // Apply updates
+                    Object.entries(updates).forEach(([id, value]) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = value;
+                    });
+                    
+                    // Update module stats
+                    const moduleTraveler = document.querySelector('.module-traveler-count');
+                    const moduleBatch = document.querySelector('.module-batch-count');
+                    const modulePayment = document.querySelector('.module-payment-count');
+                    const moduleInvoice = document.querySelector('.module-invoice-count');
+                    const moduleReceipt = document.querySelector('.module-receipt-count');
+                    const moduleUser = document.querySelector('.module-user-count');
+                    
+                    if (moduleTraveler) moduleTraveler.textContent = stats.total_travelers || 0;
+                    if (moduleBatch) moduleBatch.textContent = stats.total_batches || 0;
+                    if (modulePayment) modulePayment.textContent = stats.paid_count || 0;
+                    if (moduleInvoice) moduleInvoice.textContent = '0';
+                    if (moduleReceipt) moduleReceipt.textContent = stats.paid_count || 0;
+                    if (moduleUser) moduleUser.textContent = userCount;
+                    
+                    // Show all stats
+                    document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
+                        el.classList.add('stats-visible');
+                    });
+                    
+                    console.log('✅ Dashboard stats loaded:', { 
+                        users: userCount,
+                        travelers: stats.total_travelers,
+                        batches: stats.total_batches,
+                        payments: stats.paid_count
                     });
                 }
-            })
-            .catch(function(error) {
+            } catch (error) {
                 console.error('❌ Error loading dashboard stats:', error);
-            });
+                showNotification('Error loading dashboard data', 'error');
+            }
         }
 
         // ==================== CHARTS ====================
@@ -1491,14 +1533,12 @@
                     chartInstances.travelersChart = null;
                 }
                 
-                window.requestAnimationFrame(function() {
+                // Use requestAnimationFrame for smoother rendering
+                window.requestAnimationFrame(() => {
                     // Payments Chart (Pie)
-                    var paymentsCanvas = document.getElementById('paymentsChart');
-                    if (paymentsCanvas) {
-                        var paymentsCtx = paymentsCanvas.getContext('2d');
-                        
-                        // Clear canvas
-                        paymentsCtx.clearRect(0, 0, paymentsCanvas.width, paymentsCanvas.height);
+                    const paymentsCanvas = document.getElementById('paymentsChart');
+                    if (paymentsCanvas && typeof Chart !== 'undefined') {
+                        const paymentsCtx = paymentsCanvas.getContext('2d');
                         
                         chartInstances.paymentsChart = new Chart(paymentsCtx, {
                             type: 'doughnut',
@@ -1533,12 +1573,9 @@
                     }
 
                     // Travelers Chart (Bar)
-                    var travelersCanvas = document.getElementById('travelersChart');
-                    if (travelersCanvas) {
-                        var travelersCtx = travelersCanvas.getContext('2d');
-                        
-                        // Clear canvas
-                        travelersCtx.clearRect(0, 0, travelersCanvas.width, travelersCanvas.height);
+                    const travelersCanvas = document.getElementById('travelersChart');
+                    if (travelersCanvas && typeof Chart !== 'undefined') {
+                        const travelersCtx = travelersCanvas.getContext('2d');
                         
                         chartInstances.travelersChart = new Chart(travelersCtx, {
                             type: 'bar',
@@ -1576,86 +1613,87 @@
         }
 
         // ==================== RECENT ACTIVITY ====================
-        function loadRecentActivity() {
+        async function loadRecentActivity() {
             try {
-                fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        var activities = [];
-                        
-                        // Add recent travelers
-                        if (data.recent_travelers && data.recent_travelers.length > 0) {
-                            data.recent_travelers.forEach(function(t) {
-                                activities.push({
-                                    type: 'traveler',
-                                    icon: 'fa-user-plus',
-                                    color: 'traveler',
-                                    text: 'New traveler: ' + t.first_name + ' ' + t.last_name,
-                                    details: 'Passport: ' + t.passport_no,
-                                    time: new Date(t.created_at).toLocaleString()
-                                });
-                            });
-                        }
-                        
-                        // Add recent payments
-                        if (data.recent_payments && data.recent_payments.length > 0) {
-                            data.recent_payments.forEach(function(p) {
-                                activities.push({
-                                    type: 'payment',
-                                    icon: 'fa-credit-card',
-                                    color: 'payment',
-                                    text: 'Payment: ' + (p.first_name || '') + ' ' + (p.last_name || ''),
-                                    amount: '₹' + (p.amount || 0).toLocaleString(),
-                                    time: new Date(p.payment_date).toLocaleString()
-                                });
-                            });
-                        }
-                        
-                        // Add upcoming batches
-                        if (data.upcoming_batches && data.upcoming_batches.length > 0) {
-                            data.upcoming_batches.forEach(function(b) {
-                                activities.push({
-                                    type: 'batch',
-                                    icon: 'fa-layer-group',
-                                    color: 'batch',
-                                    text: 'Batch: ' + b.batch_name,
-                                    details: 'Seats: ' + (b.booked_seats || 0) + '/' + (b.total_seats || 0),
-                                    time: 'Departs: ' + b.departure_date
-                                });
-                            });
-                        }
-                        
-                        var activityList = document.getElementById('recentActivity');
-                        if (!activityList) return;
-                        
-                        if (activities.length === 0) {
-                            activityList.innerHTML = '<div class="activity-item"><div class="activity-details"><p>No recent activity</p></div></div>';
-                            return;
-                        }
-                        
-                        var html = '';
-                        for (var i = 0; i < Math.min(5, activities.length); i++) {
-                            var a = activities[i];
-                            html += '<div class="activity-item">' +
-                                '<div class="activity-icon ' + a.color + '">' +
-                                    '<i class="fas ' + a.icon + '"></i>' +
-                                '</div>' +
-                                '<div class="activity-details">' +
-                                    '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
-                                    '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
-                                '</div>' +
-                            '</div>';
-                        }
-                        
-                        activityList.innerHTML = html;
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Error loading activity:', error);
+                const response = await fetch('/api/admin/dashboard/stats', { 
+                    credentials: 'include',
+                    headers: { 'Cache-Control': 'no-cache' }
                 });
-            } catch (e) {
-                console.error('Activity load error:', e);
+                
+                const data = await response.json();
+                const activityList = document.getElementById('recentActivity');
+                
+                if (!activityList) return;
+                
+                if (data.success) {
+                    const activities = [];
+                    
+                    // Add recent travelers
+                    if (data.recent_travelers && data.recent_travelers.length > 0) {
+                        data.recent_travelers.slice(0, 2).forEach(t => {
+                            activities.push({
+                                type: 'traveler',
+                                icon: 'fa-user-plus',
+                                color: 'traveler',
+                                text: `New traveler: ${t.first_name || ''} ${t.last_name || ''}`.trim(),
+                                details: t.passport_no ? `Passport: ${t.passport_no}` : '',
+                                time: t.created_at ? new Date(t.created_at).toLocaleString() : 'Just now'
+                            });
+                        });
+                    }
+                    
+                    // Add recent payments
+                    if (data.recent_payments && data.recent_payments.length > 0) {
+                        data.recent_payments.slice(0, 2).forEach(p => {
+                            activities.push({
+                                type: 'payment',
+                                icon: 'fa-credit-card',
+                                color: 'payment',
+                                text: `Payment: ${p.first_name || ''} ${p.last_name || ''}`.trim(),
+                                amount: p.amount ? `₹${p.amount.toLocaleString()}` : '',
+                                time: p.payment_date ? new Date(p.payment_date).toLocaleString() : 'Just now'
+                            });
+                        });
+                    }
+                    
+                    // Add upcoming batches
+                    if (data.upcoming_batches && data.upcoming_batches.length > 0) {
+                        data.upcoming_batches.slice(0, 1).forEach(b => {
+                            activities.push({
+                                type: 'batch',
+                                icon: 'fa-layer-group',
+                                color: 'batch',
+                                text: `Batch: ${b.batch_name || ''}`,
+                                details: b.booked_seats ? `Seats: ${b.booked_seats}/${b.total_seats || 0}` : '',
+                                time: b.departure_date ? `Departs: ${new Date(b.departure_date).toLocaleDateString()}` : ''
+                            });
+                        });
+                    }
+                    
+                    if (activities.length === 0) {
+                        activityList.innerHTML = '<div class="activity-item"><div class="activity-details"><p>No recent activity</p></div></div>';
+                        return;
+                    }
+                    
+                    // Build HTML efficiently
+                    let html = '';
+                    for (let i = 0; i < Math.min(5, activities.length); i++) {
+                        const a = activities[i];
+                        html += '<div class="activity-item">' +
+                            '<div class="activity-icon ' + a.color + '">' +
+                                '<i class="fas ' + a.icon + '"></i>' +
+                            '</div>' +
+                            '<div class="activity-details">' +
+                                '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
+                                '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
+                            '</div>' +
+                        '</div>';
+                    }
+                    
+                    activityList.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading activity:', error);
             }
         }
 
@@ -1664,53 +1702,53 @@
             if (confirm('Are you sure you want to logout?')) {
                 showNotification('Logging out...', 'info');
                 
-                setTimeout(function() {
-                    try {
-                        sessionStorage.clear();
-                    } catch (e) {}
+                setTimeout(() => {
+                    sessionStorage.clear();
+                    localStorage.removeItem('token');
                     window.location.href = '/admin.login.html';
                 }, 1000);
             }
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type) {
-            if (!type) type = 'success';
-            
-            var notification = document.getElementById('notification');
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
             if (!notification) return;
             
-            var icon = type === 'success' ? 'check-circle' : 
-                      type === 'error' ? 'exclamation-circle' : 'info-circle';
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'error' ? 'exclamation-circle' : 
+                        type === 'warning' ? 'exclamation-triangle' : 'info-circle';
             
-            notification.className = 'notification notification-' + type;
-            notification.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
             notification.style.display = 'block';
             
-            // Clear any existing timeout
-            if (window.notificationTimeout) {
-                clearTimeout(window.notificationTimeout);
+            // Clear existing timeout
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
             }
             
-            window.notificationTimeout = setTimeout(function() {
+            notificationTimeout = setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
         }
 
         // ==================== CHART PERIOD CHANGE ====================
         document.addEventListener('DOMContentLoaded', function() {
-            var paymentSelect = document.getElementById('paymentChartPeriod');
-            var travelersSelect = document.getElementById('travelersChartPeriod');
+            const paymentSelect = document.getElementById('paymentChartPeriod');
+            const travelersSelect = document.getElementById('travelersChartPeriod');
             
             if (paymentSelect) {
-                paymentSelect.addEventListener('change', function(e) {
-                    showNotification('Updating payment chart for ' + e.target.value, 'info');
+                paymentSelect.addEventListener('change', (e) => {
+                    showNotification(`Updating payment chart for ${e.target.value}`, 'info');
+                    // Here you would update the chart with real data
                 });
             }
 
             if (travelersSelect) {
-                travelersSelect.addEventListener('change', function(e) {
-                    showNotification('Updating travelers chart for ' + e.target.value, 'info');
+                travelersSelect.addEventListener('change', (e) => {
+                    showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+                    // Here you would update the chart with real data
                 });
             }
         });
