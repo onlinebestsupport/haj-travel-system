@@ -18,9 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Import database
 from app.database import get_db, init_db
 
-# Import route blueprints - ADD invoices HERE
-from app.routes import auth, admin, batches, travelers, payments, company, uploads, invoices
-
+# Import route blueprints
+from app.routes import auth, admin, batches, travelers, payments, company, uploads, invoices, receipts
 # ==================== FLASK APP INITIALIZATION ====================
 # Initialize Flask app
 app = Flask(__name__)
