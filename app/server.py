@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Import database
 from app.database import get_db, init_db
 
-# Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads
+# Import route blueprints - ADD invoices HERE
+from app.routes import auth, admin, batches, travelers, payments, company, uploads, invoices
 
 # ==================== FLASK APP INITIALIZATION ====================
 # Initialize Flask app
@@ -84,6 +84,7 @@ app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
+app.register_blueprint(invoices.bp)  # ADD THIS LINE
 
 # ==================== API ROUTES - HEALTH CHECK ====================
 @app.route('/api/health', methods=['GET'])
@@ -748,6 +749,7 @@ if __name__ == '__main__':
     print("   - /api/reports/* - Reports")
     print("   - /api/backup/* - Backup management")
     print("   - /api/company/* - Company settings")
+    print("   - /api/invoices/* - Invoice management")  # ADD THIS LINE
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=port, debug=debug)
