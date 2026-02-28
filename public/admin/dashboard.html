@@ -710,6 +710,40 @@
             100% { background-position: -200% 0; }
         }
 
+        /* Session Warning Banner */
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        #sessionWarning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f39c12;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            z-index: 10000;
+            display: none;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        #sessionWarning:hover {
+            background: #e67e22;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -870,30 +904,30 @@
                     </a>
                 </div>
 
-                            <!-- System -->
-            <div class="nav-section">
-                <div class="nav-section-title">SYSTEM</div>
-                <a href="users.html" class="nav-item">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Users</span>
-                    <span class="badge" id="userCount">0</span>
-                </a>
-                <a href="frontpage.html" class="nav-item">
-                    <i class="fas fa-edit"></i>
-                    <span>Front Page</span>
-                </a>
-                <a href="backup.html" class="nav-item">
-                    <i class="fas fa-database"></i>
-                    <span>Backup</span>
-                    <span class="badge">Auto</span>
-                </a>
-                <a href="settings.html" class="nav-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
+                <!-- System -->
+                <div class="nav-section">
+                    <div class="nav-section-title">SYSTEM</div>
+                    <a href="users.html" class="nav-item">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Users</span>
+                        <span class="badge" id="userCount">0</span>
+                    </a>
+                    <a href="frontpage.html" class="nav-item">
+                        <i class="fas fa-edit"></i>
+                        <span>Front Page</span>
+                    </a>
+                    <a href="backup.html" class="nav-item">
+                        <i class="fas fa-database"></i>
+                        <span>Backup</span>
+                        <span class="badge">Auto</span>
+                    </a>
+                    <a href="settings.html" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
             </div>
-        </div>
-    </aside>
+        </aside>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -1155,83 +1189,84 @@
         </main>
     </div>
 
+    <!-- Session Warning Banner -->
+    <div id="sessionWarning" onclick="extendSession()">
+        <i class="fas fa-exclamation-triangle"></i> 
+        <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
+    </div>
+
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== NO-FLASH STATS LOADER ====================
-(function() {
-    // Create a style to hide stats initially
-    const style = document.createElement('style');
-    style.textContent = `
-        .stat-number, .badge, .module-stats span, [id$="Count"], [id*="user"] {
-            opacity: 0 !important;
-            transition: opacity 0.3s ease;
+        // ==================== SESSION MANAGEMENT WITH WARNING ====================
+        let sessionWarningTimeout = null;
+        let sessionLogoutTimeout = null;
+        let warningShown = false;
+
+        function resetSessionTimer() {
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+            
+            hideSessionWarning();
+            
+            // Show warning after 25 minutes (1500000 ms)
+            sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
+            
+            // Auto logout after 30 minutes (1800000 ms)
+            sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
         }
-        .stats-visible {
-            opacity: 1 !important;
+
+        function showSessionWarning() {
+            if (warningShown) return;
+            
+            var warning = document.getElementById('sessionWarning');
+            var message = document.getElementById('sessionWarningMessage');
+            if (!warning || !message) return;
+            
+            message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
+            warning.style.display = 'block';
+            warningShown = true;
         }
-    `;
-    document.head.appendChild(style);
-    
-    // Load real stats
-    setTimeout(() => {
-        fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const stats = data.stats;
-                
-                // Get real user count
-                fetch('/api/admin/users', { credentials: 'include' })
-                .then(r => r.json())
-                .then(userData => {
-                    const userCount = userData.success ? userData.users.length : stats.total_users;
-                    
-                    // Update all possible user count elements
-                    document.querySelectorAll('[id*="user" i], [class*="user" i] .badge, .stat-number').forEach(el => {
-                        if (el.id === 'userCount' || el.id === 'totalUsers' || el.textContent.match(/^\d+$/)) {
-                            el.textContent = userCount;
-                        }
-                    });
-                    
-                    // Update traveler count
-                    document.querySelectorAll('[id*="traveler" i], [class*="traveler" i] .badge').forEach(el => {
-                        if (el.textContent.match(/^\d+$/)) {
-                            el.textContent = stats.total_travelers;
-                        }
-                    });
-                    
-                    // Update batch count
-                    document.querySelectorAll('[id*="batch" i], [class*="batch" i] .badge').forEach(el => {
-                        if (el.textContent.match(/^\d+$/)) {
-                            el.textContent = stats.total_batches;
-                        }
-                    });
-                    
-                    // Update payment count
-                    document.querySelectorAll('[id*="payment" i], [class*="payment" i] .badge').forEach(el => {
-                        if (el.textContent.match(/^\d+$/)) {
-                            el.textContent = stats.paid_count;
-                        }
-                    });
-                    
-                    // Show all stats
-                    document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
-                        el.classList.add('stats-visible');
-                    });
-                    
-                    console.log('✅ Stats loaded:', { 
-                        users: userCount,
-                        travelers: stats.total_travelers,
-                        batches: stats.total_batches,
-                        payments: stats.paid_count
-                    });
-                });
+
+        function hideSessionWarning() {
+            var warning = document.getElementById('sessionWarning');
+            if (warning) {
+                warning.style.display = 'none';
             }
-        });
-    }, 100); // Small delay to ensure DOM is ready
-})();
+            warningShown = false;
+        }
+
+        function showSessionExpiredWarning() {
+            hideSessionWarning();
+            showNotification('Your session has expired. Redirecting to login...', 'warning');
+            
+            sessionStorage.clear();
+            
+            setTimeout(function() {
+                window.location.href = '/admin.login.html';
+            }, 3000);
+        }
+
+        async function extendSession() {
+            try {
+                var response = await fetch('/api/check-session', {
+                    credentials: 'include'
+                });
+                var data = await response.json();
+                
+                if (data.authenticated) {
+                    hideSessionWarning();
+                    resetSessionTimer();
+                    showNotification('Session extended successfully', 'success');
+                } else {
+                    showSessionExpiredWarning();
+                }
+            } catch (error) {
+                console.error('Session extension failed:', error);
+            }
+        }
+
         // ==================== GLOBAL VARIABLES ====================
         var chartInstances = {
             paymentsChart: null,
@@ -1242,25 +1277,22 @@
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            // Use setTimeout to defer non-critical tasks
-            setTimeout(function() {
-                checkAuth();
-            }, 0);
+            // Initialize session management
+            resetSessionTimer();
             
-            setTimeout(function() {
-                initializeDashboard();
-            }, 50);
+            // Monitor user activity
+            ['click', 'mousemove', 'keypress', 'scroll'].forEach(function(event) {
+                document.addEventListener(event, resetSessionTimer);
+            });
             
-            setTimeout(function() {
-                updateDateTime();
-                loadRecentActivity();
-            }, 100);
+            // Load dashboard data
+            checkAuth();
+            loadDashboardStats();
+            updateDateTime();
+            loadRecentActivity();
+            initializeCharts();
             
-            setTimeout(function() {
-                initializeCharts();
-            }, 200);
-            
-            // Update time every second with optimized interval
+            // Update time every second
             var timeInterval = setInterval(function() {
                 if (!document.hidden) {
                     window.requestAnimationFrame(updateDateTime);
@@ -1272,11 +1304,8 @@
             // Handle visibility change
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) {
-                    // Page became visible - refresh data
-                    setTimeout(function() {
-                        loadCounts();
-                        loadRecentActivity();
-                    }, 100);
+                    loadDashboardStats();
+                    loadRecentActivity();
                 }
             });
         });
@@ -1286,6 +1315,9 @@
             for (var i = 0; i < intervals.length; i++) {
                 clearInterval(intervals[i]);
             }
+            
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             
             // Destroy chart instances
             for (var key in chartInstances) {
@@ -1368,60 +1400,81 @@
             }
         }
 
-        // ==================== DASHBOARD INIT ====================
-        function initializeDashboard() {
-            loadCounts();
-        }
-
-        function loadCounts() {
-            try {
-                // Simulate loading counts from API
-                setTimeout(function() {
-                    window.requestAnimationFrame(function() {
-                        var totalTravelers = document.getElementById('totalTravelers');
-                        var activeBatches = document.getElementById('activeBatches');
-                        var totalCollections = document.getElementById('totalCollections');
-                        var pendingPayments = document.getElementById('pendingPayments');
+        // ==================== LOAD DASHBOARD STATS ====================
+        function loadDashboardStats() {
+            // Hide stats initially
+            document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(function(el) {
+                el.classList.remove('stats-visible');
+            });
+            
+            fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    var stats = data.stats;
+                    
+                    // Get real user count
+                    return fetch('/api/admin/users', { credentials: 'include' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(userData) {
+                        var userCount = userData.success ? userData.users.length : stats.total_users;
                         
-                        if (totalTravelers) totalTravelers.textContent = '156';
-                        if (activeBatches) activeBatches.textContent = '8';
-                        if (totalCollections) totalCollections.textContent = '₹1.25Cr';
-                        if (pendingPayments) pendingPayments.textContent = '₹24.5L';
+                        // Update all stat elements
+                        var updates = {
+                            'totalTravelers': stats.total_travelers,
+                            'activeBatches': stats.active_batches,
+                            'totalCollections': '₹' + (stats.total_collected || 0).toLocaleString(),
+                            'pendingPayments': '₹' + (stats.pending_amount || 0).toLocaleString(),
+                            'travelerCount': stats.total_travelers,
+                            'batchCount': stats.total_batches,
+                            'paymentCount': stats.paid_count,
+                            'invoiceCount': 0,
+                            'receiptCount': stats.paid_count,
+                            'userCount': userCount,
+                            'totalUsers': userCount,
+                            'activeUsers': stats.active_users,
+                            'inactiveUsers': (stats.total_users - stats.active_users) || 0,
+                            'adminCount': userCount
+                        };
                         
-                        // Update badges
-                        var travelerCount = document.getElementById('travelerCount');
-                        var batchCount = document.getElementById('batchCount');
-                        var paymentCount = document.getElementById('paymentCount');
-                        var invoiceCount = document.getElementById('invoiceCount');
-                        var receiptCount = document.getElementById('receiptCount');
-                        var userCount = document.getElementById('userCount');
-                        
-                        if (travelerCount) travelerCount.textContent = '156';
-                        if (batchCount) batchCount.textContent = '8';
-                        if (paymentCount) paymentCount.textContent = '245';
-                        if (invoiceCount) invoiceCount.textContent = '89';
-                        if (receiptCount) receiptCount.textContent = '245';
-                        if (userCount) userCount.textContent = '5';
+                        // Apply updates
+                        Object.entries(updates).forEach(function([id, value]) {
+                            var el = document.getElementById(id);
+                            if (el) el.textContent = value;
+                        });
                         
                         // Update module stats
-                        var moduleTravelerCount = document.querySelector('.module-traveler-count');
-                        var moduleBatchCount = document.querySelector('.module-batch-count');
-                        var modulePaymentCount = document.querySelector('.module-payment-count');
-                        var moduleInvoiceCount = document.querySelector('.module-invoice-count');
-                        var moduleReceiptCount = document.querySelector('.module-receipt-count');
-                        var moduleUserCount = document.querySelector('.module-user-count');
+                        var moduleTraveler = document.querySelector('.module-traveler-count');
+                        var moduleBatch = document.querySelector('.module-batch-count');
+                        var modulePayment = document.querySelector('.module-payment-count');
+                        var moduleInvoice = document.querySelector('.module-invoice-count');
+                        var moduleReceipt = document.querySelector('.module-receipt-count');
+                        var moduleUser = document.querySelector('.module-user-count');
                         
-                        if (moduleTravelerCount) moduleTravelerCount.textContent = '156';
-                        if (moduleBatchCount) moduleBatchCount.textContent = '8';
-                        if (modulePaymentCount) modulePaymentCount.textContent = '245';
-                        if (moduleInvoiceCount) moduleInvoiceCount.textContent = '89';
-                        if (moduleReceiptCount) moduleReceiptCount.textContent = '245';
-                        if (moduleUserCount) moduleUserCount.textContent = '5';
+                        if (moduleTraveler) moduleTraveler.textContent = stats.total_travelers;
+                        if (moduleBatch) moduleBatch.textContent = stats.total_batches;
+                        if (modulePayment) modulePayment.textContent = stats.paid_count;
+                        if (moduleInvoice) moduleInvoice.textContent = '0';
+                        if (moduleReceipt) moduleReceipt.textContent = stats.paid_count;
+                        if (moduleUser) moduleUser.textContent = userCount;
+                        
+                        // Show all stats
+                        document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(function(el) {
+                            el.classList.add('stats-visible');
+                        });
+                        
+                        console.log('✅ Dashboard stats loaded:', { 
+                            users: userCount,
+                            travelers: stats.total_travelers,
+                            batches: stats.total_batches,
+                            payments: stats.paid_count
+                        });
                     });
-                }, 500);
-            } catch (e) {
-                console.error('Load counts error:', e);
-            }
+                }
+            })
+            .catch(function(error) {
+                console.error('❌ Error loading dashboard stats:', error);
+            });
         }
 
         // ==================== CHARTS ====================
@@ -1525,32 +1578,82 @@
         // ==================== RECENT ACTIVITY ====================
         function loadRecentActivity() {
             try {
-                var activities = [
-                    { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Ahmed Khan', amount: '₹85,000', time: '10 minutes ago' },
-                    { type: 'traveler', icon: 'fa-user-plus', color: 'traveler', text: 'New traveler registered: Fatima Begum', details: 'Batch: Haj Gold 2026', time: '25 minutes ago' },
-                    { type: 'payment', icon: 'fa-credit-card', color: 'payment', text: 'Payment received from Mohammed Rafiq', amount: '₹25,000', time: '1 hour ago' },
-                    { type: 'batch', icon: 'fa-layer-group', color: 'batch', text: 'Batch Haj Silver 2026 updated', details: 'Seats: 45/120', time: '2 hours ago' },
-                    { type: 'traveler', icon: 'fa-user-edit', color: 'traveler', text: 'Traveler profile updated: Aisha Begum', details: 'Documents uploaded', time: '3 hours ago' }
-                ];
-
-                var activityList = document.getElementById('recentActivity');
-                if (!activityList) return;
-                
-                var html = '';
-                for (var i = 0; i < activities.length; i++) {
-                    var a = activities[i];
-                    html += '<div class="activity-item">' +
-                        '<div class="activity-icon ' + a.color + '">' +
-                            '<i class="fas ' + a.icon + '"></i>' +
-                        '</div>' +
-                        '<div class="activity-details">' +
-                            '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
-                            '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
-                        '</div>' +
-                    '</div>';
-                }
-                
-                activityList.innerHTML = html;
+                fetch('/api/admin/dashboard/stats', { credentials: 'include' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        var activities = [];
+                        
+                        // Add recent travelers
+                        if (data.recent_travelers && data.recent_travelers.length > 0) {
+                            data.recent_travelers.forEach(function(t) {
+                                activities.push({
+                                    type: 'traveler',
+                                    icon: 'fa-user-plus',
+                                    color: 'traveler',
+                                    text: 'New traveler: ' + t.first_name + ' ' + t.last_name,
+                                    details: 'Passport: ' + t.passport_no,
+                                    time: new Date(t.created_at).toLocaleString()
+                                });
+                            });
+                        }
+                        
+                        // Add recent payments
+                        if (data.recent_payments && data.recent_payments.length > 0) {
+                            data.recent_payments.forEach(function(p) {
+                                activities.push({
+                                    type: 'payment',
+                                    icon: 'fa-credit-card',
+                                    color: 'payment',
+                                    text: 'Payment: ' + (p.first_name || '') + ' ' + (p.last_name || ''),
+                                    amount: '₹' + (p.amount || 0).toLocaleString(),
+                                    time: new Date(p.payment_date).toLocaleString()
+                                });
+                            });
+                        }
+                        
+                        // Add upcoming batches
+                        if (data.upcoming_batches && data.upcoming_batches.length > 0) {
+                            data.upcoming_batches.forEach(function(b) {
+                                activities.push({
+                                    type: 'batch',
+                                    icon: 'fa-layer-group',
+                                    color: 'batch',
+                                    text: 'Batch: ' + b.batch_name,
+                                    details: 'Seats: ' + (b.booked_seats || 0) + '/' + (b.total_seats || 0),
+                                    time: 'Departs: ' + b.departure_date
+                                });
+                            });
+                        }
+                        
+                        var activityList = document.getElementById('recentActivity');
+                        if (!activityList) return;
+                        
+                        if (activities.length === 0) {
+                            activityList.innerHTML = '<div class="activity-item"><div class="activity-details"><p>No recent activity</p></div></div>';
+                            return;
+                        }
+                        
+                        var html = '';
+                        for (var i = 0; i < Math.min(5, activities.length); i++) {
+                            var a = activities[i];
+                            html += '<div class="activity-item">' +
+                                '<div class="activity-icon ' + a.color + '">' +
+                                    '<i class="fas ' + a.icon + '"></i>' +
+                                '</div>' +
+                                '<div class="activity-details">' +
+                                    '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
+                                    '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
+                                '</div>' +
+                            '</div>';
+                        }
+                        
+                        activityList.innerHTML = html;
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading activity:', error);
+                });
             } catch (e) {
                 console.error('Activity load error:', e);
             }
@@ -1611,41 +1714,6 @@
                 });
             }
         });
-        // Auto-update dashboard stats
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            // Update all stat cards
-            const updates = {
-                'totalUsers': data.stats.total_users,
-                'totalTravelers': data.stats.total_travelers,
-                'totalBatches': data.stats.total_batches,
-                'activeBatches': data.stats.active_batches,
-                'totalPayments': data.stats.paid_count
-            };
-            
-            Object.entries(updates).forEach(([key, value]) => {
-                const el = document.getElementById(key);
-                if (el) el.textContent = value;
-            });
-            
-            // Also update any element showing "5" near "Users"
-            document.querySelectorAll('*').forEach(el => {
-                if (el.textContent && el.textContent.includes('Users')) {
-                    const parent = el.parentElement;
-                    if (parent) {
-                        const numEl = parent.querySelector('p, span, div:last-child');
-                        if (numEl && numEl.textContent.match(/^\d+$/)) {
-                            numEl.textContent = data.stats.total_users;
-                        }
-                    }
-                }
-            });
-        }
-    });
-});
     </script>
 </body>
 </html>
