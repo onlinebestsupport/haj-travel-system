@@ -1,146 +1,52 @@
 import os
-import sqlite3
-import json
-import shutil
+import psycopg2
+import psycopg2.extras
 from datetime import datetime
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ==================== DATABASE PATH CONFIGURATION ====================
-# Support Railway persistent volumes
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# ==================== DATABASE CONFIGURATION ====================
+# Get database URL from environment variables
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Priority 1: Use Railway volume if available (persistent storage)
-RAILWAY_VOLUME = os.environ.get('RAILWAY_VOLUME_PATH', '/railway/volume')
-PERSISTENT_DB_PATH = os.path.join(RAILWAY_VOLUME, 'alhudha.db')
+if not DATABASE_URL:
+    # Fallback for local development
+    DATABASE_URL = 'postgresql://postgres:jeWsXcYVvlcoWFfCYYCBDKOqJnJiQTEs@postgres.railway.internal:5432/railway'
+    print("⚠️ Using fallback database URL")
 
-# Priority 2: Use local SQL directory (may be ephemeral)
-LOCAL_DB_PATH = os.path.join(BASE_DIR, 'sql', 'alhudha.db')
-
-# Priority 3: Use temporary directory as last resort
-TEMP_DB_PATH = os.path.join('/tmp', 'alhudha.db')
-
-# Choose the best available path
-if os.path.exists(RAILWAY_VOLUME) and os.access(RAILWAY_VOLUME, os.W_OK):
-    DB_PATH = PERSISTENT_DB_PATH
-    print(f"📁 Using persistent volume: {DB_PATH}")
-elif os.path.exists(os.path.dirname(LOCAL_DB_PATH)):
-    DB_PATH = LOCAL_DB_PATH
-    print(f"📁 Using local SQL directory: {DB_PATH}")
-else:
-    DB_PATH = TEMP_DB_PATH
-    print(f"📁 Using temporary storage: {DB_PATH} (WARNING: Data will be lost on restart!)")
-
-# Backup directory
-BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
-os.makedirs(BACKUP_DIR, exist_ok=True)
+print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'unknown'}")
 
 # ==================== DATABASE CONNECTION ====================
 
 def get_db():
-    """Return SQLite connection with foreign keys enabled and retry logic"""
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    
-    # Connection retry logic
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            conn = sqlite3.connect(DB_PATH, timeout=20)  # 20 second timeout
-            conn.row_factory = sqlite3.Row
-            conn.execute("PRAGMA foreign_keys = ON")
-            conn.execute("PRAGMA journal_mode = WAL")  # Write-Ahead Logging for better concurrency
-            conn.execute("PRAGMA synchronous = NORMAL")  # Balance safety and performance
-            return conn
-        except sqlite3.OperationalError as e:
-            if 'locked' in str(e) and attempt < max_retries - 1:
-                import time
-                time.sleep(1)  # Wait and retry
-                continue
-            raise e
-    return None
-
-# ==================== BACKUP FUNCTIONS ====================
-
-def backup_database():
-    """Create a timestamped backup of the database"""
+    """Get PostgreSQL database connection"""
     try:
-        if not os.path.exists(DB_PATH):
-            return None
-        
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_path = os.path.join(BACKUP_DIR, f'alhudha_backup_{timestamp}.db')
-        
-        # Use SQLite backup API for safe backup
-        conn = sqlite3.connect(DB_PATH)
-        backup_conn = sqlite3.connect(backup_path)
-        conn.backup(backup_conn)
-        backup_conn.close()
-        conn.close()
-        
-        print(f"✅ Database backed up to: {backup_path}")
-        return backup_path
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = False
+        # Return rows as dictionaries
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        return conn, cursor
     except Exception as e:
-        print(f"❌ Backup failed: {e}")
-        return None
-
-def restore_latest_backup():
-    """Restore the most recent database backup"""
-    try:
-        backups = sorted([f for f in os.listdir(BACKUP_DIR) if f.startswith('alhudha_backup_')])
-        if not backups:
-            return False
-        
-        latest_backup = os.path.join(BACKUP_DIR, backups[-1])
-        
-        # Close any existing connections
-        conn = sqlite3.connect(DB_PATH)
-        conn.close()
-        
-        # Restore backup
-        shutil.copy2(latest_backup, DB_PATH)
-        print(f"✅ Restored from backup: {latest_backup}")
-        return True
-    except Exception as e:
-        print(f"❌ Restore failed: {e}")
-        return False
-
-# ==================== DATABASE HEALTH CHECK ====================
-
-def check_database_integrity():
-    """Run integrity check on database"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("PRAGMA integrity_check")
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result and result[0] == 'ok':
-            print("✅ Database integrity check passed")
-            return True
-        else:
-            print("❌ Database integrity check failed")
-            return False
-    except Exception as e:
-        print(f"❌ Integrity check error: {e}")
-        return False
+        print(f"❌ Database connection error: {e}")
+        raise e
 
 # ==================== TABLE CREATION FUNCTIONS ====================
 
 def create_users_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            full_name TEXT,
-            email TEXT UNIQUE,
-            phone TEXT,
-            department TEXT,
-            role TEXT DEFAULT 'staff',
-            permissions TEXT DEFAULT '{}',
-            is_active INTEGER DEFAULT 1,
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            full_name VARCHAR(255),
+            email VARCHAR(255) UNIQUE,
+            phone VARCHAR(50),
+            department VARCHAR(255),
+            role VARCHAR(50) DEFAULT 'staff',
+            permissions JSONB DEFAULT '{}',
+            is_active BOOLEAN DEFAULT TRUE,
             last_login TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -150,14 +56,14 @@ def create_users_table(cursor):
 def create_batches_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS batches (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            batch_name TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            batch_name VARCHAR(255) NOT NULL,
             total_seats INTEGER DEFAULT 150,
             booked_seats INTEGER DEFAULT 0,
-            price REAL,
-            departure_date TEXT,
-            return_date TEXT,
-            status TEXT DEFAULT 'Open',
+            price DECIMAL(10,2),
+            departure_date DATE,
+            return_date DATE,
+            status VARCHAR(50) DEFAULT 'Open',
             description TEXT,
             itinerary TEXT,
             inclusions TEXT,
@@ -173,148 +79,225 @@ def create_batches_table(cursor):
 def create_travelers_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS travelers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            passport_name TEXT,
-            batch_id INTEGER,
-            passport_no TEXT NOT NULL UNIQUE,
-            passport_issue_date TEXT,
-            passport_expiry_date TEXT,
-            passport_status TEXT DEFAULT 'Active',
-            gender TEXT,
-            dob TEXT,
-            mobile TEXT NOT NULL,
-            email TEXT,
-            aadhaar TEXT,
-            pan TEXT,
-            aadhaar_pan_linked TEXT DEFAULT 'No',
-            vaccine_status TEXT DEFAULT 'Not Vaccinated',
-            wheelchair TEXT DEFAULT 'No',
-            place_of_birth TEXT,
-            place_of_issue TEXT,
+            id SERIAL PRIMARY KEY,
+            first_name VARCHAR(255) NOT NULL,
+            last_name VARCHAR(255) NOT NULL,
+            passport_name VARCHAR(255),
+            batch_id INTEGER REFERENCES batches(id) ON DELETE SET NULL,
+            passport_no VARCHAR(50) UNIQUE NOT NULL,
+            passport_issue_date DATE,
+            passport_expiry_date DATE,
+            passport_status VARCHAR(50) DEFAULT 'Active',
+            gender VARCHAR(20),
+            dob DATE,
+            mobile VARCHAR(20) NOT NULL,
+            email VARCHAR(255),
+            aadhaar VARCHAR(20),
+            pan VARCHAR(20),
+            aadhaar_pan_linked VARCHAR(20) DEFAULT 'No',
+            vaccine_status VARCHAR(50) DEFAULT 'Not Vaccinated',
+            wheelchair VARCHAR(10) DEFAULT 'No',
+            place_of_birth VARCHAR(255),
+            place_of_issue VARCHAR(255),
             passport_address TEXT,
-            father_name TEXT,
-            mother_name TEXT,
-            spouse_name TEXT,
+            father_name VARCHAR(255),
+            mother_name VARCHAR(255),
+            spouse_name VARCHAR(255),
             passport_scan TEXT,
             aadhaar_scan TEXT,
             pan_scan TEXT,
             vaccine_scan TEXT,
             photo TEXT,
-            pin TEXT DEFAULT '0000',
-            emergency_contact TEXT,
-            emergency_phone TEXT,
+            pin VARCHAR(10) DEFAULT '0000',
+            emergency_contact VARCHAR(255),
+            emergency_phone VARCHAR(20),
             medical_notes TEXT,
-            extra_fields TEXT DEFAULT '{}',
+            extra_fields JSONB DEFAULT '{}',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
 def create_payments_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            traveler_id INTEGER NOT NULL,
-            batch_id INTEGER NOT NULL,
-            installment TEXT,
-            amount REAL NOT NULL,
-            payment_date TEXT NOT NULL,
-            due_date TEXT,
-            payment_method TEXT,
-            transaction_id TEXT,
-            status TEXT DEFAULT 'completed',
+            id SERIAL PRIMARY KEY,
+            traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+            batch_id INTEGER NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+            installment VARCHAR(255),
+            amount DECIMAL(10,2) NOT NULL,
+            payment_date DATE NOT NULL,
+            due_date DATE,
+            payment_method VARCHAR(100),
+            transaction_id VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'completed',
             remarks TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (traveler_id) REFERENCES travelers(id) ON DELETE CASCADE,
-            FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
 def create_invoices_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS invoices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            invoice_number TEXT UNIQUE NOT NULL,
-            traveler_id INTEGER NOT NULL,
-            batch_id INTEGER NOT NULL,
-            invoice_date TEXT NOT NULL,
-            due_date TEXT,
-            base_amount REAL NOT NULL,
-            gst_percent REAL DEFAULT 5,
-            gst_amount REAL,
-            tcs_percent REAL DEFAULT 1,
-            tcs_amount REAL,
-            total_amount REAL NOT NULL,
-            paid_amount REAL DEFAULT 0,
-            status TEXT DEFAULT 'pending',
-            hsn_code TEXT DEFAULT '9985',
-            place_of_supply TEXT,
+            id SERIAL PRIMARY KEY,
+            invoice_number VARCHAR(255) UNIQUE NOT NULL,
+            traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+            batch_id INTEGER NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+            invoice_date DATE NOT NULL,
+            due_date DATE,
+            base_amount DECIMAL(10,2) NOT NULL,
+            gst_percent DECIMAL(5,2) DEFAULT 5,
+            gst_amount DECIMAL(10,2),
+            tcs_percent DECIMAL(5,2) DEFAULT 1,
+            tcs_amount DECIMAL(10,2),
+            total_amount DECIMAL(10,2) NOT NULL,
+            paid_amount DECIMAL(10,2) DEFAULT 0,
+            status VARCHAR(50) DEFAULT 'pending',
+            hsn_code VARCHAR(50) DEFAULT '9985',
+            place_of_supply VARCHAR(255),
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (traveler_id) REFERENCES travelers(id) ON DELETE CASCADE,
-            FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
 def create_receipts_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS receipts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            receipt_number TEXT UNIQUE NOT NULL,
-            traveler_id INTEGER NOT NULL,
-            payment_id INTEGER NOT NULL,
-            receipt_date TEXT NOT NULL,
-            amount REAL NOT NULL,
-            payment_method TEXT,
-            transaction_id TEXT,
-            receipt_type TEXT DEFAULT 'payment',
+            id SERIAL PRIMARY KEY,
+            receipt_number VARCHAR(255) UNIQUE NOT NULL,
+            traveler_id INTEGER NOT NULL REFERENCES travelers(id) ON DELETE CASCADE,
+            payment_id INTEGER NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+            invoice_id INTEGER REFERENCES invoices(id) ON DELETE SET NULL,
+            receipt_date DATE NOT NULL,
+            amount DECIMAL(10,2) NOT NULL,
+            payment_method VARCHAR(100),
+            transaction_id VARCHAR(255),
+            receipt_type VARCHAR(50) DEFAULT 'payment',
             installment_info TEXT,
             remarks TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (traveler_id) REFERENCES travelers(id) ON DELETE CASCADE,
-            FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
 def create_activity_log_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS activity_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            action TEXT NOT NULL,
-            module TEXT,
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            action VARCHAR(255) NOT NULL,
+            module VARCHAR(255),
             description TEXT,
-            ip_address TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            ip_address VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
 def create_backup_history_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            backup_name TEXT NOT NULL,
-            backup_type TEXT,
-            file_size TEXT,
+            id SERIAL PRIMARY KEY,
+            backup_name VARCHAR(255) NOT NULL,
+            backup_type VARCHAR(50),
+            file_size VARCHAR(50),
             tables_count INTEGER,
-            status TEXT,
+            status VARCHAR(50),
             location TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
+def create_frontpage_settings_table(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS frontpage_settings (
+            id SERIAL PRIMARY KEY,
+            hero_heading VARCHAR(255),
+            hero_subheading TEXT,
+            hero_button_text VARCHAR(100),
+            hero_button_link VARCHAR(255),
+            packages_title VARCHAR(255),
+            footer_text TEXT,
+            footer_phone VARCHAR(50),
+            footer_email VARCHAR(255),
+            facebook_url VARCHAR(255),
+            twitter_url VARCHAR(255),
+            instagram_url VARCHAR(255),
+            alert_enabled BOOLEAN DEFAULT FALSE,
+            alert_message TEXT,
+            alert_link VARCHAR(255),
+            alert_color VARCHAR(50),
+            alert_style VARCHAR(50),
+            whatsapp_number VARCHAR(50),
+            whatsapp_message TEXT,
+            booking_email VARCHAR(255),
+            email_subject VARCHAR(255),
+            whatsapp_enabled BOOLEAN DEFAULT FALSE,
+            email_enabled BOOLEAN DEFAULT FALSE,
+            packages JSONB DEFAULT '[]',
+            features JSONB DEFAULT '[]',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Insert default record
+    cursor.execute("""
+        INSERT INTO frontpage_settings (id, hero_heading, hero_subheading, footer_text)
+        VALUES (1, 'Welcome to Alhudha Haj Travel', 'Your trusted partner for Haj and Umrah', '© 2026 Alhudha Haj Travel')
+        ON CONFLICT (id) DO NOTHING
+    """)
+
+def create_email_settings_table(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS email_settings (
+            id SERIAL PRIMARY KEY,
+            from_email VARCHAR(255),
+            reply_to VARCHAR(255),
+            subject_prefix VARCHAR(255),
+            smtp_server VARCHAR(255),
+            smtp_port INTEGER,
+            smtp_username VARCHAR(255),
+            smtp_password VARCHAR(255),
+            use_tls BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    cursor.execute("""
+        INSERT INTO email_settings (id, from_email, reply_to, subject_prefix)
+        VALUES (1, 'noreply@alhudha.com', 'info@alhudha.com', '[Alhudha Haj]')
+        ON CONFLICT (id) DO NOTHING
+    """)
+
+def create_whatsapp_settings_table(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS whatsapp_settings (
+            id SERIAL PRIMARY KEY,
+            number VARCHAR(50),
+            message_template TEXT,
+            api_key VARCHAR(255),
+            api_url VARCHAR(255),
+            enabled BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    cursor.execute("""
+        INSERT INTO whatsapp_settings (id, number, message_template, enabled)
+        VALUES (1, '+919876543210', 'Hello! Thank you for contacting Alhudha Haj Travel. How can we help you?', false)
+        ON CONFLICT (id) DO NOTHING
+    """)
+
 # ==================== SEED DEFAULT USERS ====================
 
-def seed_default_users(cursor):
+def seed_default_users(conn, cursor):
     """Insert default users if table is empty"""
-    existing = cursor.execute("SELECT COUNT(*) as count FROM users").fetchone()['count']
+    cursor.execute("SELECT COUNT(*) as count FROM users")
+    result = cursor.fetchone()
     
-    if existing == 0:
+    if result['count'] == 0:
         default_users = [
             ('superadmin', 'admin123', 'Super Admin', 'super@alhudha.com', 'super_admin'),
             ('admin1', 'admin123', 'Admin User', 'admin@alhudha.com', 'admin'),
@@ -323,27 +306,56 @@ def seed_default_users(cursor):
 
         for username, password, name, email, role in default_users:
             cursor.execute("""
-                INSERT INTO users (username, password, full_name, email, role)
-                VALUES (?, ?, ?, ?, ?)
-            """, (username, password, name, email, role))
+                INSERT INTO users (username, password, full_name, email, role, permissions)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (username, password, name, email, role, '{}'))
         
+        conn.commit()
         print("✅ Default users seeded")
+
+# ==================== MIGRATION FUNCTIONS ====================
+
+def migrate_receipts_table():
+    """Add invoice_id column to receipts table if not exists"""
+    conn, cursor = get_db()
+    try:
+        # Check if column exists
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='receipts' AND column_name='invoice_id'
+        """)
+        result = cursor.fetchone()
+        
+        if not result:
+            cursor.execute("""
+                ALTER TABLE receipts 
+                ADD COLUMN invoice_id INTEGER 
+                REFERENCES invoices(id) ON DELETE SET NULL
+            """)
+            conn.commit()
+            print("✅ Added invoice_id column to receipts table")
+        else:
+            print("✅ invoice_id column already exists")
+            
+    except Exception as e:
+        print(f"⚠️ Migration error: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
 
 # ==================== MAIN INITIALIZATION ====================
 
 def init_db():
     """Initialize database with all tables and seed data"""
-    
-    # Create backup before initialization if database exists
-    if os.path.exists(DB_PATH):
-        backup_database()
-    
     conn = None
+    cursor = None
+    
     try:
-        conn = get_db()
-        cursor = conn.cursor()
+        conn, cursor = get_db()
         
-        # Create all tables in order (respect foreign keys)
+        # Create all tables in order
         create_users_table(cursor)
         create_batches_table(cursor)
         create_travelers_table(cursor)
@@ -352,22 +364,30 @@ def init_db():
         create_receipts_table(cursor)
         create_activity_log_table(cursor)
         create_backup_history_table(cursor)
-        
-        # Seed default data
-        seed_default_users(cursor)
+        create_frontpage_settings_table(cursor)
+        create_email_settings_table(cursor)
+        create_whatsapp_settings_table(cursor)
         
         conn.commit()
         
-        # Verify database integrity
-        cursor.execute("PRAGMA integrity_check")
-        integrity = cursor.fetchone()
+        # Seed default users
+        seed_default_users(conn, cursor)
         
-        if integrity and integrity[0] == 'ok':
-            print("✅ Database initialized successfully")
-            print(f"📍 Database location: {DB_PATH}")
-            print(f"📍 Backup directory: {BACKUP_DIR}")
-        else:
-            print("⚠️ Database integrity check warning")
+        # Run migrations
+        migrate_receipts_table()
+        
+        # Verify connection
+        cursor.execute("SELECT version()")
+        version = cursor.fetchone()
+        print(f"✅ PostgreSQL connected: {version['version']}")
+        
+        # Count tables
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """)
+        tables_count = cursor.fetchone()['count']
+        print(f"📊 Tables created: {tables_count}")
         
     except Exception as e:
         print(f"❌ Database initialization error: {e}")
@@ -375,40 +395,57 @@ def init_db():
             conn.rollback()
         raise e
     finally:
+        if cursor:
+            cursor.close()
         if conn:
             conn.close()
 
-# ==================== AUTO-RECOVERY ON STARTUP ====================
+# ==================== HELPER FUNCTIONS ====================
 
-def ensure_database():
-    """Ensure database exists and is valid, restore from backup if corrupted"""
-    if not os.path.exists(DB_PATH):
-        print("📦 Database file not found. Creating new database...")
-        init_db()
-        return
-    
-    # Check integrity
-    if not check_database_integrity():
-        print("⚠️ Database corruption detected! Attempting to restore from backup...")
-        if restore_latest_backup():
-            if check_database_integrity():
-                print("✅ Database restored successfully")
-            else:
-                print("❌ Backup also corrupted. Creating fresh database...")
-                os.remove(DB_PATH)
-                init_db()
+def execute_query(query, params=None):
+    """Execute a query and return results"""
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute(query, params or ())
+        if query.strip().upper().startswith('SELECT'):
+            results = cursor.fetchall()
+            return results
         else:
-            print("❌ No valid backup found. Creating fresh database...")
-            os.remove(DB_PATH)
-            init_db()
-    else:
-        print("✅ Database integrity verified")
+            conn.commit()
+            return cursor.rowcount
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+def get_table_counts():
+    """Get count of records in all tables"""
+    conn, cursor = get_db()
+    try:
+        tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
+        counts = {}
+        for table in tables:
+            cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
+            result = cursor.fetchone()
+            counts[table] = result['count'] if result else 0
+        return counts
+    finally:
+        cursor.close()
+        conn.close()
 
 # ==================== RUN ON IMPORT ====================
 
-# Run database check when module is imported
-ensure_database()
+# Initialize database when module is imported
+print("🚀 Initializing PostgreSQL database...")
+try:
+    init_db()
+    print("✅ Database ready")
+except Exception as e:
+    print(f"❌ Failed to initialize database: {e}")
 
 # ==================== EXPORTED FUNCTIONS ====================
 
-__all__ = ['get_db', 'init_db', 'backup_database', 'restore_latest_backup', 'check_database_integrity']
+__all__ = ['get_db', 'init_db', 'execute_query', 'get_table_counts', 'migrate_receipts_table']
