@@ -1611,69 +1611,64 @@
                 });
             }
         });
-        // Auto-update dashboard stats
+  // ==================== SAFE DASHBOARD STATS LOAD ====================
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-    .then(r => r.json())
+    .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            // Update all stat cards
-            const updates = {
-                'totalUsers': data.stats.total_users,
-                'totalTravelers': data.stats.total_travelers,
-                'totalBatches': data.stats.total_batches,
-                'activeBatches': data.stats.active_batches,
-                'totalPayments': data.stats.paid_count
-            };
-            
-            Object.entries(updates).forEach(([key, value]) => {
-                const el = document.getElementById(key);
-                if (el) el.textContent = value;
-            });
-            
-            // Also update any element showing "5" near "Users"
-            document.querySelectorAll('*').forEach(el => {
-                if (el.textContent && el.textContent.includes('Users')) {
-                    const parent = el.parentElement;
-                    if (parent) {
-                        const numEl = parent.querySelector('p, span, div:last-child');
-                        if (numEl && numEl.textContent.match(/^\d+$/)) {
-                            numEl.textContent = data.stats.total_users;
-                        }
-                    }
-                }
-            });
-        }
-    });
-});
-        // ==================== FIX MODULE COUNTS ====================
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const stats = data.stats;
-                
-                // Get real user count
-                fetch('/api/admin/users', { credentials: 'include' })
-                .then(r => r.json())
-                .then(userData => {
-                    const userCount = userData.success ? userData.users.length : stats.total_users;
-                    
-                    // Update all hardcoded numbers
-                    document.body.innerHTML = document.body.innerHTML
-                        .replace(/>156</g, `>${stats.total_travelers}<`)
-                        .replace(/>8</g, `>${stats.total_batches}<`)
-                        .replace(/>245</g, `>${stats.paid_count}<`)
-                        .replace(/>89</g, '>0<')
-                        .replace(/>5</g, `>${userCount}<`);
-                        
-                    console.log('✅ Module counts updated');
-                });
-            }
+        if (!data.success) return;
+
+        const stats = data.stats;
+
+        // Update stat cards
+        const map = {
+            totalTravelers: stats.total_travelers,
+            activeBatches: stats.active_batches,
+            totalCollections: '₹' + (stats.total_collections || 0),
+            pendingPayments: '₹' + (stats.pending_amount || 0)
+        };
+
+        Object.keys(map).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = map[id];
         });
-    }, 500);
+
+        // Update sidebar badges safely
+        const badgeMap = {
+            travelerCount: stats.total_travelers,
+            batchCount: stats.total_batches,
+            paymentCount: stats.paid_count,
+            invoiceCount: stats.total_invoices || 0,
+            receiptCount: stats.total_receipts || 0,
+            userCount: stats.total_users
+        };
+
+        Object.keys(badgeMap).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = badgeMap[id];
+        });
+
+        // Update module counters
+        const classMap = {
+            '.module-traveler-count': stats.total_travelers,
+            '.module-batch-count': stats.total_batches,
+            '.module-payment-count': stats.paid_count,
+            '.module-invoice-count': stats.total_invoices || 0,
+            '.module-receipt-count': stats.total_receipts || 0,
+            '.module-user-count': stats.total_users
+        };
+
+        Object.keys(classMap).forEach(selector => {
+            const el = document.querySelector(selector);
+            if (el) el.textContent = classMap[selector];
+        });
+
+        console.log('✅ Dashboard stats updated safely');
+
+    })
+    .catch(error => {
+        console.error('Dashboard stats error:', error);
+    });
 });
     </script>
 </body>
