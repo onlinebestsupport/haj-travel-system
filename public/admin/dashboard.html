@@ -1299,37 +1299,51 @@
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
-    try {
-        const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-        const adminName = sessionStorage.getItem('adminName');
-
-        if (isLoggedIn !== 'true' || !adminName) {
-            console.warn('Session invalid. Redirecting to login.');
-            window.location.replace('/admin.login.html');
-            return;
+            try {
+                var isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+                if (!isLoggedIn) {
+                    window.location.href = '/admin.login.html';
+                    return;
+                }
+                
+                var userName = sessionStorage.getItem('adminName') || 'Admin';
+                var userRole = sessionStorage.getItem('adminRole') || 'admin';
+                
+                var greetingName = document.getElementById('greetingName');
+                var userDisplayName = document.getElementById('userDisplayName');
+                var userRoleDisplay = document.getElementById('userRoleDisplay');
+                var userAvatar = document.getElementById('userAvatar');
+                
+                if (greetingName) greetingName.textContent = userName;
+                if (userDisplayName) userDisplayName.textContent = userName;
+                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
+                
+                // Set avatar initials
+                if (userAvatar) {
+                    var nameParts = userName.split(' ');
+                    var initials = '';
+                    for (var i = 0; i < Math.min(2, nameParts.length); i++) {
+                        if (nameParts[i] && nameParts[i].length > 0) {
+                            initials += nameParts[i][0].toUpperCase();
+                        }
+                    }
+                    userAvatar.textContent = initials || 'AD';
+                }
+            } catch (e) {
+                console.error('Auth check error:', e);
+            }
         }
 
-        const userRole = sessionStorage.getItem('adminRole') || 'admin';
-
-        document.getElementById('greetingName').textContent = adminName;
-        document.getElementById('userDisplayName').textContent = adminName;
-        document.getElementById('userRoleDisplay').textContent = formatRole(userRole);
-
-        const avatar = document.getElementById('userAvatar');
-        if (avatar) {
-            avatar.textContent = adminName
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-                .substring(0, 2)
-                .toUpperCase();
+        function formatRole(role) {
+            try {
+                return role.split('_').map(function(word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                }).join(' ');
+            } catch (e) {
+                return role;
+            }
         }
 
-    } catch (err) {
-        console.error('Auth check failed:', err);
-        window.location.replace('/admin.login.html');
-    }
-}
         // ==================== DATE/TIME ====================
         function updateDateTime() {
             try {
@@ -1597,63 +1611,39 @@
                 });
             }
         });
-  // ==================== SAFE DASHBOARD STATS LOAD ====================
+        // Auto-update dashboard stats
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/api/admin/dashboard/stats', { credentials: 'include' })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        if (!data.success) return;
-
-        const stats = data.stats;
-
-        // Update stat cards
-        const map = {
-            totalTravelers: stats.total_travelers,
-            activeBatches: stats.active_batches,
-            totalCollections: '₹' + (stats.total_collections || 0),
-            pendingPayments: '₹' + (stats.pending_amount || 0)
-        };
-
-        Object.keys(map).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = map[id];
-        });
-
-        // Update sidebar badges safely
-        const badgeMap = {
-            travelerCount: stats.total_travelers,
-            batchCount: stats.total_batches,
-            paymentCount: stats.paid_count,
-            invoiceCount: stats.total_invoices || 0,
-            receiptCount: stats.total_receipts || 0,
-            userCount: stats.total_users
-        };
-
-        Object.keys(badgeMap).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = badgeMap[id];
-        });
-
-        // Update module counters
-        const classMap = {
-            '.module-traveler-count': stats.total_travelers,
-            '.module-batch-count': stats.total_batches,
-            '.module-payment-count': stats.paid_count,
-            '.module-invoice-count': stats.total_invoices || 0,
-            '.module-receipt-count': stats.total_receipts || 0,
-            '.module-user-count': stats.total_users
-        };
-
-        Object.keys(classMap).forEach(selector => {
-            const el = document.querySelector(selector);
-            if (el) el.textContent = classMap[selector];
-        });
-
-        console.log('✅ Dashboard stats updated safely');
-
-    })
-    .catch(error => {
-        console.error('Dashboard stats error:', error);
+        if (data.success) {
+            // Update all stat cards
+            const updates = {
+                'totalUsers': data.stats.total_users,
+                'totalTravelers': data.stats.total_travelers,
+                'totalBatches': data.stats.total_batches,
+                'activeBatches': data.stats.active_batches,
+                'totalPayments': data.stats.paid_count
+            };
+            
+            Object.entries(updates).forEach(([key, value]) => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = value;
+            });
+            
+            // Also update any element showing "5" near "Users"
+            document.querySelectorAll('*').forEach(el => {
+                if (el.textContent && el.textContent.includes('Users')) {
+                    const parent = el.parentElement;
+                    if (parent) {
+                        const numEl = parent.querySelector('p, span, div:last-child');
+                        if (numEl && numEl.textContent.match(/^\d+$/)) {
+                            numEl.textContent = data.stats.total_users;
+                        }
+                    }
+                }
+            });
+        }
     });
 });
     </script>
