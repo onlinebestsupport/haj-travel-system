@@ -436,6 +436,39 @@
             .filter-section { flex-direction: column; }
             .permissions-grid { grid-template-columns: 1fr; }
         }
+        /* Session Warning Banner */
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -100%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+#sessionWarning {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f39c12;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 50px;
+    z-index: 10000;
+    display: none;
+    animation: slideDown 0.3s ease;
+    box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+#sessionWarning:hover {
+    background: #e67e22;
+}
     </style>
 </head>
 <body>
