@@ -82,7 +82,6 @@ app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
 app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
-app.register_blueprint(invoices.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
 
