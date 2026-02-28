@@ -1148,7 +1148,6 @@
         // ==================== ALLOW NUMBERS ONLY ====================
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
-            var keyChar = String.fromCharCode(key);
             
             // Allow numbers, backspace, delete, tab, escape, enter
             if (key == 8 || key == 9 || key == 13 || key == 27 || key == 46 || 
@@ -1170,26 +1169,13 @@
                     const data = await response.json();
                     if (data.success && data.travelers) {
                         travelersData = data.travelers;
-                    } else {
-                        useDemoTravelers();
                     }
-                } else {
-                    useDemoTravelers();
                 }
             } catch (error) {
                 console.error('Error loading travelers:', error);
-                useDemoTravelers();
             }
             
             updateTravelerDropdown();
-        }
-
-        function useDemoTravelers() {
-            travelersData = [
-                { id: 1, first_name: 'Ahmed', last_name: 'Khan', passport_no: 'A1234567', batch_id: 1, mobile: '9876543210' },
-                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_no: 'B7654321', batch_id: 2, mobile: '8765432109' },
-                { id: 3, first_name: 'Mohammed', last_name: 'Rafiq', passport_no: 'C9876543', batch_id: 3, mobile: '7654321098' }
-            ];
         }
 
         function updateTravelerDropdown() {
@@ -1213,24 +1199,11 @@
                     const data = await response.json();
                     if (data.success && data.batches) {
                         batchesData = data.batches;
-                    } else {
-                        useDemoBatches();
                     }
-                } else {
-                    useDemoBatches();
                 }
             } catch (error) {
                 console.error('Error loading batches:', error);
-                useDemoBatches();
             }
-        }
-
-        function useDemoBatches() {
-            batchesData = [
-                { id: 1, batch_name: 'Haj Platinum 2026', price: 850000 },
-                { id: 2, batch_name: 'Haj Gold 2026', price: 550000 },
-                { id: 3, batch_name: 'Umrah Ramadhan Special', price: 125000 }
-            ];
         }
 
         // ==================== PAYMENT FORM FUNCTIONS ====================
@@ -1284,8 +1257,6 @@
             if (!selectedOption.value) return;
             
             const travelerId = selectedOption.value;
-            const passport = selectedOption.getAttribute('data-passport');
-            const batchId = selectedOption.getAttribute('data-batch');
             
             // Find traveler in data
             const traveler = travelersData.find(t => t.id == travelerId);
@@ -1307,7 +1278,7 @@
             try {
                 let traveler;
                 
-                // Try to find in demo data first
+                // Try to find in data first
                 if (!isNaN(search)) {
                     traveler = travelersData.find(t => t.id == search);
                 } else {
@@ -1354,8 +1325,7 @@
 
         async function loadTravelerDetails(traveler) {
             // Get batch details
-            const batch = batchesData.find(b => b.id == traveler.batch_id) || 
-                         (await fetch(`/api/batches/${traveler.batch_id}`).then(res => res.json()).then(data => data.batch));
+            const batch = batchesData.find(b => b.id == traveler.batch_id);
             
             // Get payment history
             let payments = [];
@@ -1366,16 +1336,12 @@
                 const paymentsData = await paymentsResponse.json();
                 payments = paymentsData.success ? paymentsData.payments : [];
             } catch (error) {
-                // Demo payments
-                payments = [
-                    { id: 1, amount: 85000, status: 'Paid', payment_date: '2026-01-15' },
-                    { id: 2, amount: 85000, status: 'Paid', payment_date: '2026-02-15' }
-                ];
+                console.error('Error loading payments:', error);
             }
             
             // Calculate totals
             const totalPaid = payments
-                .filter(p => p.status === 'Paid')
+                .filter(p => p.status === 'completed')
                 .reduce((sum, p) => sum + p.amount, 0);
             
             const packagePrice = batch ? (batch.price || 0) : 0;
@@ -1455,7 +1421,7 @@
                 transaction_id: document.getElementById('transaction_id').value || null,
                 due_date: document.getElementById('due_date').value || null,
                 remarks: document.getElementById('remarks').value || null,
-                status: 'Paid'
+                status: 'completed'
             };
             
             if (!paymentData.traveler_id || !paymentData.amount || !paymentData.payment_date || !paymentData.payment_method) {
@@ -1495,24 +1461,8 @@
                     showNotification('Error: ' + (data.error || 'Could not record payment'), 'error');
                 }
             } catch (error) {
-                // Demo mode
-                const newPayment = {
-                    id: paymentsData.length + 1,
-                    traveler_name: currentTravelerData.first_name + ' ' + currentTravelerData.last_name,
-                    traveler_passport: currentTravelerData.passport_no,
-                    batch_name: currentTravelerData.batch?.batch_name || 'Haj Package',
-                    installment: paymentData.installment,
-                    amount: amount,
-                    payment_date: paymentData.payment_date,
-                    payment_method: paymentData.payment_method,
-                    transaction_id: paymentData.transaction_id || 'DEMO' + Math.floor(Math.random() * 1000),
-                    status: 'Paid'
-                };
-                paymentsData.push(newPayment);
-                showNotification(`Demo: Payment recorded successfully!`, 'success');
-                hideAddPaymentForm();
-                displayPayments();
-                loadPaymentStats();
+                console.error('Error:', error);
+                showNotification('Error creating payment', 'error');
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -1533,84 +1483,20 @@
                     const data = await response.json();
                     if (data.success && data.payments) {
                         paymentsData = data.payments;
-                    } else {
-                        useDemoPayments();
                     }
-                } else {
-                    useDemoPayments();
                 }
             } catch (error) {
                 console.error('Error loading payments:', error);
-                useDemoPayments();
             }
             
             displayPayments();
         }
 
-        function useDemoPayments() {
-            paymentsData = [
-                { 
-                    id: 1, 
-                    traveler_id: 1,
-                    traveler_name: 'Ahmed Khan', 
-                    traveler_passport: 'A1234567',
-                    batch_name: 'Haj Platinum 2026',
-                    batch_id: 1,
-                    installment: 'Booking Amount', 
-                    amount: 85000, 
-                    payment_date: '2026-01-15', 
-                    payment_method: 'Bank Transfer', 
-                    status: 'Paid', 
-                    transaction_id: 'TXN123456' 
-                },
-                { 
-                    id: 2, 
-                    traveler_id: 1,
-                    traveler_name: 'Ahmed Khan', 
-                    traveler_passport: 'A1234567',
-                    batch_name: 'Haj Platinum 2026',
-                    batch_id: 1,
-                    installment: '1st Installment', 
-                    amount: 85000, 
-                    payment_date: '2026-02-15', 
-                    payment_method: 'Bank Transfer', 
-                    status: 'Paid', 
-                    transaction_id: 'TXN123457' 
-                },
-                { 
-                    id: 3, 
-                    traveler_id: 2,
-                    traveler_name: 'Fatima Begum', 
-                    traveler_passport: 'B7654321',
-                    batch_name: 'Haj Gold 2026',
-                    batch_id: 2,
-                    installment: 'Full Payment', 
-                    amount: 550000, 
-                    payment_date: '2026-01-20', 
-                    payment_method: 'UPI', 
-                    status: 'Paid', 
-                    transaction_id: 'UPI123456' 
-                },
-                { 
-                    id: 4, 
-                    traveler_id: 3,
-                    traveler_name: 'Mohammed Rafiq', 
-                    traveler_passport: 'C9876543',
-                    batch_name: 'Umrah Ramadhan Special',
-                    batch_id: 3,
-                    installment: 'Booking Amount', 
-                    amount: 25000, 
-                    payment_date: '2026-02-01', 
-                    payment_method: 'Cash', 
-                    status: 'Pending', 
-                    transaction_id: 'CASH001' 
-                }
-            ];
-        }
-
         function displayPayments() {
+            const tbody = document.getElementById('paymentsTableBody');
+            
             if (!paymentsData || paymentsData.length === 0) {
-                document.getElementById('paymentsTableBody').innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No payments found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No payments found</td></tr>';
                 updatePaginationInfo(0);
                 return;
             }
@@ -1622,24 +1508,32 @@
             
             let html = '';
             paginatedData.forEach(p => {
+                // Get traveler name from first_name and last_name (API returns these)
+                const travelerName = p.first_name && p.last_name ? 
+                    `${p.first_name} ${p.last_name}` : (p.traveler_name || '-');
+                
+                // Get passport from passport_no (API returns this)
+                const passport = p.passport_no || p.traveler_passport || '-';
+                
                 const today = new Date();
                 const dueDate = p.due_date ? new Date(p.due_date) : null;
                 let statusClass = 'status-active';
                 let statusText = p.status || 'Pending';
                 
-                if (p.status === 'Pending' && dueDate && dueDate < today) {
+                if (p.status === 'pending' && dueDate && dueDate < today) {
                     statusClass = 'status-inactive';
                     statusText = 'Overdue';
-                } else if (p.status === 'Pending') {
+                } else if (p.status === 'pending') {
                     statusClass = 'status-pending';
-                } else if (p.status === 'Reversed') {
+                } else if (p.status === 'reversed') {
                     statusClass = 'status-inactive';
+                    statusText = 'Reversed';
                 }
                 
                 html += `<tr>
                     <td>${p.id}</td>
-                    <td><strong>${p.traveler_name || '-'}</strong></td>
-                    <td>${p.traveler_passport || '-'}</td>
+                    <td><strong>${travelerName}</strong></td>
+                    <td>${passport}</td>
                     <td>${p.batch_name || '-'}</td>
                     <td>${p.installment || '-'}</td>
                     <td>₹${(p.amount || 0).toLocaleString()}</td>
@@ -1649,12 +1543,12 @@
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>
                         <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View"><i class="fas fa-eye"></i></button>
-                        ${p.status === 'Paid' ? `<button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse"><i class="fas fa-undo-alt"></i></button>` : ''}
+                        ${p.status === 'completed' ? `<button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse"><i class="fas fa-undo-alt"></i></button>` : ''}
                     </td>
                 </tr>`;
             });
             
-            document.getElementById('paymentsTableBody').innerHTML = html;
+            tbody.innerHTML = html;
             updatePaginationInfo(paymentsData.length);
         }
 
@@ -1695,19 +1589,19 @@
                     if (data.success) {
                         document.getElementById('paymentTotalCollected').innerHTML = `₹${(data.stats.total_collected || 0).toLocaleString()}`;
                         document.getElementById('paymentPendingAmount').innerHTML = `₹${(data.stats.pending_amount || 0).toLocaleString()}`;
-                        document.getElementById('paidCount').innerHTML = data.stats.status_counts?.Paid || '0';
-                        document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.Pending || '0';
-                        document.getElementById('reversedCount').innerHTML = data.stats.status_counts?.Reversed || '0';
+                        document.getElementById('paidCount').innerHTML = data.stats.status_counts?.completed || '0';
+                        document.getElementById('pendingCount').innerHTML = data.stats.status_counts?.pending || '0';
+                        document.getElementById('reversedCount').innerHTML = data.stats.status_counts?.reversed || '0';
                         return;
                     }
                 }
                 
-                // Demo stats
-                const totalCollected = paymentsData.reduce((sum, p) => sum + (p.status === 'Paid' ? (p.amount || 0) : 0), 0);
-                const pendingAmount = paymentsData.reduce((sum, p) => sum + (p.status === 'Pending' ? (p.amount || 0) : 0), 0);
-                const paidCount = paymentsData.filter(p => p.status === 'Paid').length;
-                const pendingCount = paymentsData.filter(p => p.status === 'Pending').length;
-                const reversedCount = paymentsData.filter(p => p.status === 'Reversed').length;
+                // Fallback: calculate from paymentsData
+                const totalCollected = paymentsData.reduce((sum, p) => sum + (p.status === 'completed' ? (p.amount || 0) : 0), 0);
+                const pendingAmount = paymentsData.reduce((sum, p) => sum + (p.status === 'pending' ? (p.amount || 0) : 0), 0);
+                const paidCount = paymentsData.filter(p => p.status === 'completed').length;
+                const pendingCount = paymentsData.filter(p => p.status === 'pending').length;
+                const reversedCount = paymentsData.filter(p => p.status === 'reversed').length;
                 
                 document.getElementById('paymentTotalCollected').innerHTML = `₹${totalCollected.toLocaleString()}`;
                 document.getElementById('paymentPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString()}`;
@@ -1728,6 +1622,10 @@
                 return;
             }
             
+            const travelerName = payment.first_name && payment.last_name ? 
+                `${payment.first_name} ${payment.last_name}` : (payment.traveler_name || '-');
+            const passport = payment.passport_no || payment.traveler_passport || '-';
+            
             const detailsHtml = `
                 <div style="padding: 10px;">
                     <h4 style="color: #2c3e50; margin-bottom: 20px;">Payment #${payment.id}</h4>
@@ -1735,11 +1633,11 @@
                     <div class="detail-grid">
                         <div class="detail-item">
                             <strong>Traveler Name</strong>
-                            <span>${payment.traveler_name || '-'}</span>
+                            <span>${travelerName}</span>
                         </div>
                         <div class="detail-item">
                             <strong>Passport Number</strong>
-                            <span>${payment.traveler_passport || '-'}</span>
+                            <span>${passport}</span>
                         </div>
                         <div class="detail-item">
                             <strong>Batch</strong>
@@ -1771,7 +1669,7 @@
                         </div>
                         <div class="detail-item">
                             <strong>Status</strong>
-                            <span class="status-badge ${payment.status === 'Paid' ? 'status-active' : 'status-pending'}">${payment.status || 'Pending'}</span>
+                            <span class="status-badge ${payment.status === 'completed' ? 'status-active' : 'status-pending'}">${payment.status || 'Pending'}</span>
                         </div>
                     </div>
                     
@@ -1870,18 +1768,9 @@
                 return;
             }
             
-            // Find and update payment
-            const paymentIndex = paymentsData.findIndex(p => p.id === currentPaymentId);
-            if (paymentIndex !== -1) {
-                paymentsData[paymentIndex].status = 'Reversed';
-                paymentsData[paymentIndex].reversal_reason = reversalData.reason;
-                paymentsData[paymentIndex].reversal_remarks = reversalData.remarks;
-                paymentsData[paymentIndex].reversal_date = new Date().toISOString().split('T')[0];
-            }
-            
-            showNotification('Payment reversed successfully', 'success');
+            showNotification('Payment reversed successfully (demo)', 'success');
             closeReverseModal();
-            displayPayments();
+            loadPayments();
             loadPaymentStats();
         }
 
@@ -1900,8 +1789,9 @@
                 // Search filter
                 let matchesSearch = true;
                 if (search) {
-                    const travelerName = (p.traveler_name || '').toLowerCase();
-                    const passport = (p.traveler_passport || '').toLowerCase();
+                    const travelerName = (p.first_name && p.last_name ? 
+                        `${p.first_name} ${p.last_name}` : p.traveler_name || '').toLowerCase();
+                    const passport = (p.passport_no || p.traveler_passport || '').toLowerCase();
                     const transactionId = (p.transaction_id || '').toLowerCase();
                     matchesSearch = travelerName.includes(search) || passport.includes(search) || transactionId.includes(search);
                 }
@@ -1912,9 +1802,13 @@
                     if (statusFilter === 'Overdue') {
                         const today = new Date();
                         const dueDate = p.due_date ? new Date(p.due_date) : null;
-                        matchesStatus = p.status === 'Pending' && dueDate && dueDate < today;
-                    } else {
-                        matchesStatus = p.status === statusFilter;
+                        matchesStatus = p.status === 'pending' && dueDate && dueDate < today;
+                    } else if (statusFilter === 'Paid') {
+                        matchesStatus = p.status === 'completed';
+                    } else if (statusFilter === 'Pending') {
+                        matchesStatus = p.status === 'pending';
+                    } else if (statusFilter === 'Reversed') {
+                        matchesStatus = p.status === 'reversed';
                     }
                 }
                 
@@ -1950,7 +1844,11 @@
             
             // Data rows
             paymentsData.forEach(p => {
-                csv.push(`"${p.id}","${p.traveler_name || ''}","${p.traveler_passport || ''}","${p.batch_name || ''}","${p.installment || ''}","${p.amount || 0}","${p.payment_date || ''}","${p.due_date || ''}","${p.payment_method || ''}","${p.transaction_id || ''}","${p.status || ''}","${(p.remarks || '').replace(/"/g, '""')}"`);
+                const travelerName = p.first_name && p.last_name ? 
+                    `${p.first_name} ${p.last_name}` : (p.traveler_name || '');
+                const passport = p.passport_no || p.traveler_passport || '';
+                
+                csv.push(`"${p.id}","${travelerName}","${passport}","${p.batch_name || ''}","${p.installment || ''}","${p.amount || 0}","${p.payment_date || ''}","${p.due_date || ''}","${p.payment_method || ''}","${p.transaction_id || ''}","${p.status || ''}","${(p.remarks || '').replace(/"/g, '""')}"`);
             });
             
             const csvContent = csv.join('\n');
