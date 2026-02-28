@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 import json
 import hashlib
 import uuid
+import threading
+import time
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ==================== ENVIRONMENT CONFIGURATION ====================
 # Load environment variables
@@ -25,6 +32,10 @@ from app.routes import auth, admin, batches, travelers, payments, company, uploa
 # Initialize Flask app
 app = Flask(__name__)
 
+# Global flag to track database initialization
+_db_initialized = False
+_db_init_lock = threading.Lock()
+
 # ==================== APP CONFIGURATION ====================
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -32,7 +43,7 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__fil
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
@@ -67,16 +78,6 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'vaccine'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'photos'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'backups'), exist_ok=True)
 
-# ==================== DATABASE INITIALIZATION ====================
-# Initialize database with error handling
-try:
-    with app.app_context():
-        init_db()
-        print("✅ Database initialized successfully")
-except Exception as e:
-    print(f"⚠️ Database initialization warning (continuing): {e}")
-    # Don't crash - continue startup
-
 # ==================== BLUEPRINT REGISTRATION ====================
 # Register blueprints
 app.register_blueprint(auth.bp)
@@ -89,7 +90,53 @@ app.register_blueprint(uploads.bp)
 app.register_blueprint(invoices.bp)
 app.register_blueprint(receipts.bp)
 
-# ==================== SIMPLE HEALTH CHECK ====================
+# ==================== DATABASE INITIALIZATION (Lazy) ====================
+
+def initialize_database():
+    """Initialize database safely (called on first request)"""
+    global _db_initialized
+    
+    with _db_init_lock:
+        if _db_initialized:
+            return True
+        
+        print("🚀 Initializing database on first request...")
+        try:
+            with app.app_context():
+                # Run in a separate thread with timeout
+                init_result = {'success': False, 'error': None}
+                
+                def init_thread_func():
+                    try:
+                        init_db()
+                        init_result['success'] = True
+                    except Exception as e:
+                        init_result['error'] = str(e)
+                
+                init_thread = threading.Thread(target=init_thread_func)
+                init_thread.daemon = True
+                init_thread.start()
+                
+                # Wait up to 25 seconds
+                init_thread.join(timeout=25)
+                
+                if init_thread.is_alive():
+                    print("⚠️ Database initialization still running in background")
+                    _db_initialized = True  # Assume it will complete
+                    return True
+                elif init_result['success']:
+                    print("✅ Database initialized successfully")
+                    _db_initialized = True
+                    return True
+                else:
+                    print(f"❌ Database initialization failed: {init_result['error']}")
+                    return False
+                    
+        except Exception as e:
+            print(f"⚠️ Database init error: {e}")
+            return False
+
+# Simple health check endpoints (always work even without DB)
 @app.route('/')
 def root():
     """Root endpoint - simple health check"""
@@ -110,57 +157,15 @@ def simple_health():
         'timestamp': datetime.now().isoformat()
     }), 200
 
-# ==================== API ROUTES - HEALTH CHECK ====================
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        'success': True,
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat(),
-        'version': '2.0.0',
-        'modules': [
-            'auth', 'admin', 'batches', 'travelers', 'payments',
-            'invoices', 'receipts', 'reports', 'users', 'frontpage',
-            'whatsapp', 'email', 'backup', 'company'
-        ]
-    })
-
-# ==================== API ROUTES - DATABASE INIT ====================
-@app.route('/api/admin/init-db', methods=['POST'])
-def init_database():
-    """Initialize database tables (admin only)"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+# Before request handler to ensure DB is ready
+@app.before_request
+def before_request():
+    """Initialize database before processing requests (except health checks)"""
+    if request.path in ['/', '/health', '/api/health']:
+        return  # Skip for health endpoints
     
-    try:
-        with app.app_context():
-            init_db()
-        return jsonify({
-            'success': True,
-            'message': 'Database initialized successfully',
-            'tables': ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 
-                      'frontpage_settings', 'email_settings', 'whatsapp_settings']
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ==================== API ROUTES - MIGRATIONS ====================
-@app.route('/api/admin/migrate-receipts', methods=['POST'])
-def migrate_receipts():
-    """Run receipts table migration"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    try:
-        from app.database import migrate_receipts_table
-        migrate_receipts_table()
-        return jsonify({
-            'success': True,
-            'message': 'Receipts table migrated successfully'
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    if not _db_initialized:
+        initialize_database()
 
 # ==================== API ROUTES - AUTHENTICATION ====================
 @app.route('/api/login', methods=['POST'])
@@ -174,6 +179,8 @@ def api_login():
         return jsonify({'success': False, 'error': 'Username and password required'}), 400
     
     try:
+        initialize_database()  # Ensure DB is ready
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password))
@@ -223,6 +230,8 @@ def api_traveler_login():
         return jsonify({'success': False, 'error': 'Passport number and PIN required'}), 400
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
@@ -273,6 +282,8 @@ def check_session():
     """Check if user is logged in"""
     if session.get('user_id'):
         try:
+            initialize_database()
+            
             db = get_db()
             cursor = db.cursor()
             cursor.execute(
@@ -310,7 +321,7 @@ def check_session():
     
     return jsonify({'success': True, 'authenticated': False})
 
-# ==================== API ROUTES - DASHBOARD ====================
+# ==================== API ROUTES - ADMIN ====================
 @app.route('/api/admin/dashboard/stats', methods=['GET'])
 def dashboard_stats():
     """Get dashboard statistics"""
@@ -318,6 +329,8 @@ def dashboard_stats():
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         
@@ -334,11 +347,11 @@ def dashboard_stats():
         # Payment stats
         cursor.execute('SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM payments WHERE status = %s', ('completed',))
         payments = cursor.fetchone()
-        total_collected = payments['total'] or 0
+        total_collected = float(payments['total']) if payments['total'] else 0
         
         cursor.execute('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = %s', ('pending',))
         pending_payments = cursor.fetchone()
-        pending_amount = pending_payments['total'] or 0
+        pending_amount = float(pending_payments['total']) if pending_payments['total'] else 0
         
         # Recent activity
         cursor.execute('''
@@ -356,12 +369,51 @@ def dashboard_stats():
                 'total_travelers': travelers_count,
                 'total_batches': batches_count,
                 'active_batches': active_batches,
-                'total_collected': float(total_collected),
-                'pending_amount': float(pending_amount),
+                'total_collected': total_collected,
+                'pending_amount': pending_amount,
                 'paid_count': payments['count'] or 0,
-                'pending_count': 0  # You can add this query if needed
+                'pending_count': 0
             },
             'recent_activity': [dict(row) for row in recent]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== API ROUTES - DATABASE INIT ====================
+@app.route('/api/admin/init-db', methods=['POST'])
+def init_database():
+    """Initialize database tables (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        with app.app_context():
+            success = initialize_database()
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': 'Database initialized successfully',
+                    'tables': ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 
+                              'frontpage_settings', 'email_settings', 'whatsapp_settings']
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Database initialization failed'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== API ROUTES - MIGRATIONS ====================
+@app.route('/api/admin/migrate-receipts', methods=['POST'])
+def migrate_receipts():
+    """Run receipts table migration"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        from app.database import migrate_receipts_table
+        migrate_receipts_table()
+        return jsonify({
+            'success': True,
+            'message': 'Receipts table migrated successfully'
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -371,6 +423,8 @@ def dashboard_stats():
 def get_frontpage_config():
     """Get frontpage configuration"""
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT * FROM frontpage_settings WHERE id = 1')
@@ -394,6 +448,8 @@ def update_frontpage_config():
     data = request.json
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute("""
@@ -464,6 +520,8 @@ def update_frontpage_config():
 def get_whatsapp_config():
     """Get WhatsApp configuration"""
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT number, message_template FROM whatsapp_settings WHERE id = 1')
@@ -482,6 +540,8 @@ def get_whatsapp_config():
 def get_email_config():
     """Get email configuration"""
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT from_email, reply_to, subject_prefix FROM email_settings WHERE id = 1')
@@ -504,16 +564,17 @@ def create_backup():
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     data = request.json
-    backup_type = data.get('type', 'manual')
     backup_name = data.get('name', f"Backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('''
             INSERT INTO backup_history (backup_name, backup_type, file_size, tables_count, status, location)
             VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (backup_name, backup_type, '2.4 MB', 12, 'completed', 'local'))
+        ''', (backup_name, 'manual', '2.4 MB', 12, 'completed', 'local'))
         db.commit()
         
         log_activity(session['user_id'], 'create', 'backup', f'Created backup: {backup_name}', request.remote_addr)
@@ -531,6 +592,8 @@ def list_backups():
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT * FROM backup_history ORDER BY created_at DESC')
@@ -550,6 +613,8 @@ def list_backups():
 def get_company_settings():
     """Get company settings"""
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT * FROM company_settings WHERE id = 1')
@@ -573,6 +638,8 @@ def update_company_settings():
     data = request.json
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('''
@@ -611,6 +678,8 @@ def get_activity_log():
     limit = request.args.get('limit', 50, type=int)
     
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute('''
@@ -640,18 +709,15 @@ def serve_index():
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Serve static files from public directory"""
-    # Prevent directory traversal attacks
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     
-    # Check if it's a file with extension
     if '.' in filename:
         try:
             return send_from_directory(PUBLIC_DIR, filename)
         except:
             pass
     
-    # If no extension, try with .html
     try:
         return send_from_directory(PUBLIC_DIR, filename + '.html')
     except:
@@ -660,18 +726,14 @@ def serve_static(filename):
 @app.route('/admin/<path:filename>')
 def serve_admin(filename):
     """Serve admin static files safely"""
-
-    # Prevent directory traversal
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
 
     file_path = os.path.join(ADMIN_DIR, filename)
 
-    # 1️⃣ If exact file exists (users.html, style.css, js, images)
     if os.path.exists(file_path):
         return send_from_directory(ADMIN_DIR, filename)
 
-    # 2️⃣ If no extension → try adding .html
     if '.' not in filename:
         html_file = filename + '.html'
         html_path = os.path.join(ADMIN_DIR, html_file)
@@ -679,10 +741,8 @@ def serve_admin(filename):
         if os.path.exists(html_path):
             return send_from_directory(ADMIN_DIR, html_file)
 
-    # 3️⃣ If nothing found
     return jsonify({'success': False, 'error': 'Admin file not found'}), 404
 
-# ==================== STATIC FILE ROUTES - TRAVELER ====================
 @app.route('/traveler/')
 @app.route('/traveler')
 def serve_traveler_index():
@@ -703,7 +763,6 @@ def serve_traveler(filename):
         except:
             return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
 
-# ==================== STATIC FILE ROUTES - LOGIN PAGES ====================
 @app.route('/admin.login.html')
 @app.route('/admin/login')
 def serve_admin_login():
@@ -714,12 +773,10 @@ def serve_admin_login():
 def serve_traveler_login():
     return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
 
-# ==================== STATIC FILE ROUTES - CSS ====================
 @app.route('/style.css')
 def serve_css():
     return send_from_directory(PUBLIC_DIR, 'style.css')
 
-# ==================== STATIC FILE ROUTES - UPLOADS ====================
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     """Serve uploaded files"""
@@ -731,6 +788,8 @@ def serve_upload(filename):
 def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
     try:
+        initialize_database()
+        
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
@@ -747,7 +806,6 @@ def log_activity(user_id, action, module, description, ip_address=None):
 @app.route('/debug/paths')
 def debug_paths():
     """Debug route to check all paths"""
-    import os
     files_in_public = []
     files_in_admin = []
     
@@ -824,15 +882,7 @@ if __name__ == '__main__':
     print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
     print("=" * 60)
     print("📡 Health check: /health")
-    print("📡 API Endpoints:")
-    print("   - /api/health - Health check")
-    print("   - /api/login - Admin login")
-    print("   - /api/traveler/login - Traveler login")
-    print("   - /api/check-session - Session check")
-    print("   - /api/admin/* - All admin API endpoints")
-    print("   - /api/frontpage/* - Frontpage config")
-    print("   - /api/invoices/* - Invoice management")
-    print("   - /api/receipts/* - Receipt management")
+    print("📡 API Endpoints ready (lazy DB init)")
     print("=" * 60)
     
     # CRITICAL: host must be '0.0.0.0' for Railway
