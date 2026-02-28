@@ -165,6 +165,99 @@ def create_invoice():
         db.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@bp.route('/<int:invoice_id>', methods=['PUT'])
+def update_invoice(invoice_id):
+    """Update invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        # Check if invoice exists
+        cursor.execute('SELECT id FROM invoices WHERE id = ?', (invoice_id,))
+        if not cursor.fetchone():
+            db.close()
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+        
+        # Recalculate if base_amount changed
+        base_amount = float(data.get('base_amount', 0))
+        gst_percent = float(data.get('gst_percent', 5))
+        tcs_percent = float(data.get('tcs_percent', 1))
+        
+        gst_amount = base_amount * (gst_percent / 100)
+        tcs_amount = base_amount * (tcs_percent / 100)
+        total_amount = base_amount + gst_amount + tcs_amount
+        
+        cursor.execute('''
+            UPDATE invoices SET
+                invoice_date = ?,
+                due_date = ?,
+                base_amount = ?,
+                gst_percent = ?,
+                gst_amount = ?,
+                tcs_percent = ?,
+                tcs_amount = ?,
+                total_amount = ?,
+                paid_amount = ?,
+                status = ?,
+                hsn_code = ?,
+                place_of_supply = ?,
+                notes = ?,
+                updated_at = ?
+            WHERE id = ?
+        ''', (
+            data.get('invoice_date'),
+            data.get('due_date'),
+            base_amount,
+            gst_percent,
+            gst_amount,
+            tcs_percent,
+            tcs_amount,
+            total_amount,
+            data.get('paid_amount', 0),
+            data.get('status', 'pending'),
+            data.get('hsn_code', '9985'),
+            data.get('place_of_supply'),
+            data.get('notes'),
+            datetime.now().isoformat(),
+            invoice_id
+        ))
+        
+        db.commit()
+        db.close()
+        
+        return jsonify({'success': True, 'message': 'Invoice updated successfully'})
+        
+    except Exception as e:
+        db.rollback()
+        db.close()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@bp.route('/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice(invoice_id):
+    """Delete invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    try:
+        cursor.execute('DELETE FROM invoices WHERE id = ?', (invoice_id,))
+        db.commit()
+        db.close()
+        
+        return jsonify({'success': True, 'message': 'Invoice deleted successfully'})
+        
+    except Exception as e:
+        db.rollback()
+        db.close()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 @bp.route('/stats', methods=['GET'])
 def get_invoice_stats():
     """Get invoice statistics"""
@@ -192,4 +285,31 @@ def get_invoice_stats():
     return jsonify({
         'success': True,
         'stats': dict(stats) if stats else {}
+    })
+
+@bp.route('/traveler/<int:traveler_id>', methods=['GET'])
+def get_traveler_invoices(traveler_id):
+    """Get invoices for a specific traveler"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        SELECT 
+            i.*,
+            b.batch_name
+        FROM invoices i
+        LEFT JOIN batches b ON i.batch_id = b.id
+        WHERE i.traveler_id = ?
+        ORDER BY i.created_at DESC
+    ''', (traveler_id,))
+    
+    invoices = cursor.fetchall()
+    db.close()
+    
+    return jsonify({
+        'success': True,
+        'invoices': [dict(inv) for inv in invoices]
     })
