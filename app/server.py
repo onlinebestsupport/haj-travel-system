@@ -262,7 +262,23 @@ def dashboard_stats():
         },
         'recent_activity': [dict(row) for row in recent]
     })
-
+    # ==================== API ROUTES - DATABASE INIT ====================
+@app.route('/api/admin/init-db', methods=['POST'])
+def init_database():
+    """Initialize database tables (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        from app.database import init_db
+        init_db()
+        return jsonify({
+            'success': True,
+            'message': 'Database initialized successfully',
+            'tables': ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
