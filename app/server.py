@@ -20,6 +20,7 @@ from app.database import get_db, init_db
 
 # Import route blueprints
 from app.routes import auth, admin, batches, travelers, payments, company, uploads, invoices, receipts
+
 # ==================== FLASK APP INITIALIZATION ====================
 # Initialize Flask app
 app = Flask(__name__)
@@ -67,12 +68,14 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'photos'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'backups'), exist_ok=True)
 
 # ==================== DATABASE INITIALIZATION ====================
-# Initialize database
+# Initialize database with error handling
 try:
-    init_db()
-    print("✅ Database initialized successfully")
+    with app.app_context():
+        init_db()
+        print("✅ Database initialized successfully")
 except Exception as e:
-    print(f"❌ Database initialization error: {e}")
+    print(f"⚠️ Database initialization warning (continuing): {e}")
+    # Don't crash - continue startup
 
 # ==================== BLUEPRINT REGISTRATION ====================
 # Register blueprints
@@ -83,8 +86,29 @@ app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
-app.register_blueprint(invoices.bp)  # Invoices module
-app.register_blueprint(receipts.bp)  # ADD THIS LINE - Receipts module
+app.register_blueprint(invoices.bp)
+app.register_blueprint(receipts.bp)
+
+# ==================== SIMPLE HEALTH CHECK ====================
+@app.route('/')
+def root():
+    """Root endpoint - simple health check"""
+    return jsonify({
+        'success': True,
+        'message': 'Alhudha Haj Travel API',
+        'status': 'running',
+        'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/health')
+@app.route('/api/health')
+def simple_health():
+    """Simple health check endpoint for Railway"""
+    return jsonify({
+        'success': True,
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat()
+    }), 200
 
 # ==================== API ROUTES - HEALTH CHECK ====================
 @app.route('/api/health', methods=['GET'])
@@ -102,167 +126,7 @@ def health_check():
         ]
     })
 
-# ==================== API ROUTES - AUTHENTICATION ====================
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    """Admin login API"""
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password required'}), 400
-    
-    db = get_db()
-    user = db.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
-    
-    if user:
-        session['user_id'] = user['id']
-        session['username'] = user['username']
-        session['role'] = user['role']
-        session.permanent = True
-        
-        # Update last login
-        db.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', (user['id'],))
-        db.commit()
-        
-        # Log activity
-        log_activity(user['id'], 'login', 'auth', f'User {username} logged in', request.remote_addr)
-        
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': user['id'],
-                'username': user['username'],
-                'name': user['full_name'],
-                'role': user['role'],
-                'permissions': json.loads(user['permissions']) if user['permissions'] else {}
-            }
-        })
-    else:
-        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-
-@app.route('/api/traveler/login', methods=['POST'])
-def api_traveler_login():
-    """Traveler login API"""
-    data = request.json
-    passport_no = data.get('passport_no')
-    pin = data.get('pin')
-    
-    if not passport_no or not pin:
-        return jsonify({'success': False, 'error': 'Passport number and PIN required'}), 400
-    
-    db = get_db()
-    traveler = db.execute(
-        'SELECT * FROM travelers WHERE passport_no = ? AND pin = ?',
-        (passport_no.upper(), pin)
-    ).fetchone()
-    
-    if traveler:
-        session['traveler_id'] = traveler['id']
-        session['traveler_passport'] = traveler['passport_no']
-        session['traveler_name'] = f"{traveler['first_name']} {traveler['last_name']}"
-        session.permanent = True
-        
-        return jsonify({
-            'success': True,
-            'traveler_id': traveler['id'],
-            'name': f"{traveler['first_name']} {traveler['last_name']}",
-            'passport': traveler['passport_no']
-        })
-    else:
-        return jsonify({'success': False, 'error': 'Invalid passport number or PIN'}), 401
-
-@app.route('/api/logout', methods=['POST'])
-def api_logout():
-    """Logout API"""
-    user_id = session.get('user_id')
-    if user_id:
-        log_activity(user_id, 'logout', 'auth', 'User logged out', request.remote_addr)
-    session.clear()
-    return jsonify({'success': True})
-
-@app.route('/api/traveler/logout', methods=['POST'])
-def api_traveler_logout():
-    """Traveler logout API"""
-    session.clear()
-    return jsonify({'success': True})
-
-@app.route('/api/check-session', methods=['GET'])
-def check_session():
-    """Check if user is logged in"""
-    if session.get('user_id'):
-        db = get_db()
-        user = db.execute(
-            'SELECT id, username, full_name, role FROM users WHERE id = ?', 
-            (session['user_id'],)
-        ).fetchone()
-        
-        if user:
-            return jsonify({
-                'success': True,
-                'authenticated': True,
-                'user': {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'name': user['full_name'],
-                    'role': user['role']
-                }
-            })
-    elif session.get('traveler_id'):
-        return jsonify({
-            'success': True,
-            'authenticated': True,
-            'traveler': {
-                'id': session['traveler_id'],
-                'name': session['traveler_name'],
-                'passport': session['traveler_passport']
-            }
-        })
-    
-    return jsonify({'success': True, 'authenticated': False})
-
-# ==================== API ROUTES - DASHBOARD ====================
-@app.route('/api/admin/dashboard/stats', methods=['GET'])
-def dashboard_stats():
-    """Get dashboard statistics"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    db = get_db()
-    
-    # Get counts
-    travelers_count = db.execute('SELECT COUNT(*) as count FROM travelers').fetchone()['count']
-    batches_count = db.execute('SELECT COUNT(*) as count FROM batches').fetchone()['count']
-    active_batches = db.execute('SELECT COUNT(*) as count FROM batches WHERE status = "Open"').fetchone()['count']
-    
-    # Payment stats
-    payments = db.execute('SELECT SUM(amount) as total, COUNT(*) as count FROM payments WHERE status = "completed"').fetchone()
-    total_collected = payments['total'] or 0
-    
-    pending_payments = db.execute('SELECT SUM(amount) as total FROM payments WHERE status = "pending"').fetchone()
-    pending_amount = pending_payments['total'] or 0
-    
-    # Recent activity
-    recent = db.execute('''
-        SELECT 'traveler' as type, first_name || ' ' || last_name as name, created_at 
-        FROM travelers ORDER BY created_at DESC LIMIT 5
-    ''').fetchall()
-    
-    return jsonify({
-        'success': True,
-        'stats': {
-            'total_travelers': travelers_count,
-            'total_batches': batches_count,
-            'active_batches': active_batches,
-            'total_collected': total_collected,
-            'pending_amount': pending_amount,
-            'paid_count': payments['count'] or 0,
-            'pending_count': db.execute('SELECT COUNT(*) as count FROM payments WHERE status = "pending"').fetchone()['count']
-        },
-        'recent_activity': [dict(row) for row in recent]
-    })
- # ==================== API ROUTES - DATABASE INIT ====================
+# ==================== API ROUTES - DATABASE INIT ====================
 @app.route('/api/admin/init-db', methods=['POST'])
 def init_database():
     """Initialize database tables (admin only)"""
@@ -270,8 +134,8 @@ def init_database():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     try:
-        from app.database import init_db
-        init_db()
+        with app.app_context():
+            init_db()
         return jsonify({
             'success': True,
             'message': 'Database initialized successfully',
@@ -298,6 +162,210 @@ def migrate_receipts():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== API ROUTES - AUTHENTICATION ====================
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    """Admin login API"""
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Username and password required'}), 400
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password))
+        user = cursor.fetchone()
+        
+        if user:
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            session.permanent = True
+            
+            # Update last login
+            cursor.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s', (user['id'],))
+            db.commit()
+            
+            # Log activity
+            log_activity(user['id'], 'login', 'auth', f'User {username} logged in', request.remote_addr)
+            
+            cursor.close()
+            db.close()
+            
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'name': user['full_name'],
+                    'role': user['role'],
+                    'permissions': json.loads(user['permissions']) if user['permissions'] else {}
+                }
+            })
+        else:
+            cursor.close()
+            db.close()
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/traveler/login', methods=['POST'])
+def api_traveler_login():
+    """Traveler login API"""
+    data = request.json
+    passport_no = data.get('passport_no')
+    pin = data.get('pin')
+    
+    if not passport_no or not pin:
+        return jsonify({'success': False, 'error': 'Passport number and PIN required'}), 400
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute(
+            'SELECT * FROM travelers WHERE passport_no = %s AND pin = %s',
+            (passport_no.upper(), pin)
+        )
+        traveler = cursor.fetchone()
+        
+        if traveler:
+            session['traveler_id'] = traveler['id']
+            session['traveler_passport'] = traveler['passport_no']
+            session['traveler_name'] = f"{traveler['first_name']} {traveler['last_name']}"
+            session.permanent = True
+            
+            cursor.close()
+            db.close()
+            
+            return jsonify({
+                'success': True,
+                'traveler_id': traveler['id'],
+                'name': f"{traveler['first_name']} {traveler['last_name']}",
+                'passport': traveler['passport_no']
+            })
+        else:
+            cursor.close()
+            db.close()
+            return jsonify({'success': False, 'error': 'Invalid passport number or PIN'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    """Logout API"""
+    user_id = session.get('user_id')
+    if user_id:
+        log_activity(user_id, 'logout', 'auth', 'User logged out', request.remote_addr)
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/traveler/logout', methods=['POST'])
+def api_traveler_logout():
+    """Traveler logout API"""
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/check-session', methods=['GET'])
+def check_session():
+    """Check if user is logged in"""
+    if session.get('user_id'):
+        try:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute(
+                'SELECT id, username, full_name, role FROM users WHERE id = %s', 
+                (session['user_id'],)
+            )
+            user = cursor.fetchone()
+            cursor.close()
+            db.close()
+            
+            if user:
+                return jsonify({
+                    'success': True,
+                    'authenticated': True,
+                    'user': {
+                        'id': user['id'],
+                        'username': user['username'],
+                        'name': user['full_name'],
+                        'role': user['role']
+                    }
+                })
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+            
+    elif session.get('traveler_id'):
+        return jsonify({
+            'success': True,
+            'authenticated': True,
+            'traveler': {
+                'id': session['traveler_id'],
+                'name': session['traveler_name'],
+                'passport': session['traveler_passport']
+            }
+        })
+    
+    return jsonify({'success': True, 'authenticated': False})
+
+# ==================== API ROUTES - DASHBOARD ====================
+@app.route('/api/admin/dashboard/stats', methods=['GET'])
+def dashboard_stats():
+    """Get dashboard statistics"""
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Get counts
+        cursor.execute('SELECT COUNT(*) as count FROM travelers')
+        travelers_count = cursor.fetchone()['count']
+        
+        cursor.execute('SELECT COUNT(*) as count FROM batches')
+        batches_count = cursor.fetchone()['count']
+        
+        cursor.execute('SELECT COUNT(*) as count FROM batches WHERE status = %s', ('Open',))
+        active_batches = cursor.fetchone()['count']
+        
+        # Payment stats
+        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM payments WHERE status = %s', ('completed',))
+        payments = cursor.fetchone()
+        total_collected = payments['total'] or 0
+        
+        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = %s', ('pending',))
+        pending_payments = cursor.fetchone()
+        pending_amount = pending_payments['total'] or 0
+        
+        # Recent activity
+        cursor.execute('''
+            SELECT 'traveler' as type, first_name || ' ' || last_name as name, created_at 
+            FROM travelers ORDER BY created_at DESC LIMIT 5
+        ''')
+        recent = cursor.fetchall()
+        
+        cursor.close()
+        db.close()
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_travelers': travelers_count,
+                'total_batches': batches_count,
+                'active_batches': active_batches,
+                'total_collected': float(total_collected),
+                'pending_amount': float(pending_amount),
+                'paid_count': payments['count'] or 0,
+                'pending_count': 0  # You can add this query if needed
+            },
+            'recent_activity': [dict(row) for row in recent]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
@@ -320,14 +388,14 @@ def get_frontpage_config():
 @app.route('/api/frontpage/config', methods=['POST'])
 def update_frontpage_config():
     """Update frontpage configuration"""
-    if 'user_id' not in session:
+    if not session.get('user_id'):
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
     data = request.json
-    db = get_db()
-    cursor = db.cursor()
     
     try:
+        db = get_db()
+        cursor = db.cursor()
         cursor.execute("""
             UPDATE frontpage_settings SET
                 hero_heading = %s,
@@ -388,11 +456,8 @@ def update_frontpage_config():
         cursor.close()
         db.close()
         
-        return jsonify({'success': True, 'message': 'Frontpage updated successfully'})
+        return jsonify({'success': True})
     except Exception as e:
-        db.rollback()
-        cursor.close()
-        db.close()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/frontpage/whatsapp', methods=['GET'])
@@ -401,7 +466,7 @@ def get_whatsapp_config():
     try:
         db = get_db()
         cursor = db.cursor()
-        cursor.execute('SELECT number, message_template, enabled FROM whatsapp_settings WHERE id = 1')
+        cursor.execute('SELECT number, message_template FROM whatsapp_settings WHERE id = 1')
         config = cursor.fetchone()
         cursor.close()
         db.close()
@@ -431,75 +496,6 @@ def get_email_config():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== API ROUTES - REPORTS ====================
-@app.route('/api/reports/generate', methods=['POST'])
-def generate_report():
-    """Generate custom report"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    data = request.json
-    report_type = data.get('type', 'custom')
-    start_date = data.get('startDate')
-    end_date = data.get('endDate')
-    batch_id = data.get('batchId')
-    status = data.get('status')
-    
-    db = get_db()
-    
-    # Build query based on filters
-    query = "SELECT * FROM travelers WHERE 1=1"
-    params = []
-    
-    if start_date:
-        query += " AND created_at >= ?"
-        params.append(start_date)
-    if end_date:
-        query += " AND created_at <= ?"
-        params.append(end_date)
-    if batch_id and batch_id != 'all':
-        query += " AND batch_id = ?"
-        params.append(batch_id)
-    
-    travelers = db.execute(query, params).fetchall()
-    
-    # Get payments
-    payment_query = "SELECT * FROM payments WHERE 1=1"
-    payment_params = []
-    
-    if start_date:
-        payment_query += " AND payment_date >= ?"
-        payment_params.append(start_date)
-    if end_date:
-        payment_query += " AND payment_date <= ?"
-        payment_params.append(end_date)
-    if batch_id and batch_id != 'all':
-        payment_query += " AND batch_id = ?"
-        payment_params.append(batch_id)
-    
-    payments = db.execute(payment_query, payment_params).fetchall()
-    
-    # Calculate totals
-    total_collected = sum(p['amount'] for p in payments if p['status'] == 'completed')
-    pending_amount = sum(p['amount'] for p in payments if p['status'] == 'pending')
-    
-    log_activity(session['user_id'], 'generate', 'report', f'Generated {report_type} report', request.remote_addr)
-    
-    return jsonify({
-        'success': True,
-        'report': {
-            'summary': {
-                'totalTravelers': len(travelers),
-                'totalPayments': total_collected,
-                'pendingAmount': pending_amount,
-                'completedPayments': len([p for p in payments if p['status'] == 'completed']),
-                'pendingPayments': len([p for p in payments if p['status'] == 'pending'])
-            },
-            'travelers': [dict(t) for t in travelers],
-            'payments': [dict(p) for p in payments]
-        }
-    })
-
 # ==================== API ROUTES - BACKUP ====================
 @app.route('/api/backup/create', methods=['POST'])
 def create_backup():
@@ -511,18 +507,22 @@ def create_backup():
     backup_type = data.get('type', 'manual')
     backup_name = data.get('name', f"Backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     
-    # In production, this would create actual database backup
-    # For now, we'll just log it
-    db = get_db()
-    db.execute('''
-        INSERT INTO backup_history (backup_name, backup_type, file_size, tables_count, status, location)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (backup_name, backup_type, '2.4 MB', 12, 'completed', 'local'))
-    db.commit()
-    
-    log_activity(session['user_id'], 'create', 'backup', f'Created backup: {backup_name}', request.remote_addr)
-    
-    return jsonify({'success': True, 'backup_name': backup_name})
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('''
+            INSERT INTO backup_history (backup_name, backup_type, file_size, tables_count, status, location)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (backup_name, backup_type, '2.4 MB', 12, 'completed', 'local'))
+        db.commit()
+        
+        log_activity(session['user_id'], 'create', 'backup', f'Created backup: {backup_name}', request.remote_addr)
+        cursor.close()
+        db.close()
+        
+        return jsonify({'success': True, 'backup_name': backup_name})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/backup/list', methods=['GET'])
 def list_backups():
@@ -530,49 +530,39 @@ def list_backups():
     if not session.get('user_id'):
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
-    db = get_db()
-    backups = db.execute('SELECT * FROM backup_history ORDER BY created_at DESC').fetchall()
-    
-    return jsonify({
-        'success': True,
-        'backups': [dict(b) for b in backups]
-    })
-
-@app.route('/api/backup/restore/<int:backup_id>', methods=['POST'])
-def restore_backup(backup_id):
-    """Restore from backup"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    log_activity(session['user_id'], 'restore', 'backup', f'Restored backup ID: {backup_id}', request.remote_addr)
-    
-    return jsonify({'success': True, 'message': 'Backup restored successfully'})
-
-@app.route('/api/backup/delete/<int:backup_id>', methods=['DELETE'])
-def delete_backup(backup_id):
-    """Delete backup"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    db = get_db()
-    db.execute('DELETE FROM backup_history WHERE id = ?', (backup_id,))
-    db.commit()
-    
-    log_activity(session['user_id'], 'delete', 'backup', f'Deleted backup ID: {backup_id}', request.remote_addr)
-    
-    return jsonify({'success': True})
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM backup_history ORDER BY created_at DESC')
+        backups = cursor.fetchall()
+        cursor.close()
+        db.close()
+        
+        return jsonify({
+            'success': True,
+            'backups': [dict(b) for b in backups]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== API ROUTES - COMPANY SETTINGS ====================
 @app.route('/api/company/settings', methods=['GET'])
 def get_company_settings():
     """Get company settings"""
-    db = get_db()
-    settings = db.execute('SELECT * FROM company_settings WHERE id = 1').fetchone()
-    
-    if settings:
-        return jsonify({'success': True, 'settings': dict(settings)})
-    else:
-        return jsonify({'success': False, 'error': 'Settings not found'}), 404
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM company_settings WHERE id = 1')
+        settings = cursor.fetchone()
+        cursor.close()
+        db.close()
+        
+        if settings:
+            return jsonify({'success': True, 'settings': dict(settings)})
+        else:
+            return jsonify({'success': False, 'error': 'Settings not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/company/settings', methods=['POST'])
 def update_company_settings():
@@ -582,28 +572,34 @@ def update_company_settings():
     
     data = request.json
     
-    db = get_db()
-    db.execute('''
-        UPDATE company_settings SET
-            legal_name = ?, display_name = ?,
-            address_line1 = ?, address_line2 = ?, city = ?, state = ?, country = ?, pin_code = ?,
-            phone = ?, mobile = ?, email = ?, website = ?,
-            gstin = ?, pan = ?, tan = ?, tcs_no = ?, tin = ?, cin = ?, iec = ?, msme = ?,
-            bank_name = ?, bank_branch = ?, account_name = ?, account_no = ?, ifsc_code = ?, micr_code = ?, upi_id = ?, qr_code = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = 1
-    ''', (
-        data.get('legal_name'), data.get('display_name'),
-        data.get('address_line1'), data.get('address_line2'), data.get('city'), data.get('state'), data.get('country'), data.get('pin_code'),
-        data.get('phone'), data.get('mobile'), data.get('email'), data.get('website'),
-        data.get('gstin'), data.get('pan'), data.get('tan'), data.get('tcs_no'), data.get('tin'), data.get('cin'), data.get('iec'), data.get('msme'),
-        data.get('bank_name'), data.get('bank_branch'), data.get('account_name'), data.get('account_no'), data.get('ifsc_code'), data.get('micr_code'), data.get('upi_id'), data.get('qr_code')
-    ))
-    db.commit()
-    
-    log_activity(session['user_id'], 'update', 'company', 'Updated company settings', request.remote_addr)
-    
-    return jsonify({'success': True})
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('''
+            UPDATE company_settings SET
+                legal_name = %s, display_name = %s,
+                address_line1 = %s, address_line2 = %s, city = %s, state = %s, country = %s, pin_code = %s,
+                phone = %s, mobile = %s, email = %s, website = %s,
+                gstin = %s, pan = %s, tan = %s, tcs_no = %s, tin = %s, cin = %s, iec = %s, msme = %s,
+                bank_name = %s, bank_branch = %s, account_name = %s, account_no = %s, ifsc_code = %s, micr_code = %s, upi_id = %s, qr_code = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1
+        ''', (
+            data.get('legal_name'), data.get('display_name'),
+            data.get('address_line1'), data.get('address_line2'), data.get('city'), data.get('state'), data.get('country'), data.get('pin_code'),
+            data.get('phone'), data.get('mobile'), data.get('email'), data.get('website'),
+            data.get('gstin'), data.get('pan'), data.get('tan'), data.get('tcs_no'), data.get('tin'), data.get('cin'), data.get('iec'), data.get('msme'),
+            data.get('bank_name'), data.get('bank_branch'), data.get('account_name'), data.get('account_no'), data.get('ifsc_code'), data.get('micr_code'), data.get('upi_id'), data.get('qr_code')
+        ))
+        db.commit()
+        
+        log_activity(session['user_id'], 'update', 'company', 'Updated company settings', request.remote_addr)
+        cursor.close()
+        db.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== API ROUTES - ACTIVITY LOG ====================
 @app.route('/api/activity/log', methods=['GET'])
@@ -614,19 +610,26 @@ def get_activity_log():
     
     limit = request.args.get('limit', 50, type=int)
     
-    db = get_db()
-    activities = db.execute('''
-        SELECT a.*, u.username 
-        FROM activity_log a
-        LEFT JOIN users u ON a.user_id = u.id
-        ORDER BY a.created_at DESC
-        LIMIT ?
-    ''', (limit,)).fetchall()
-    
-    return jsonify({
-        'success': True,
-        'activities': [dict(a) for a in activities]
-    })
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('''
+            SELECT a.*, u.username 
+            FROM activity_log a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC
+            LIMIT %s
+        ''', (limit,))
+        activities = cursor.fetchall()
+        cursor.close()
+        db.close()
+        
+        return jsonify({
+            'success': True,
+            'activities': [dict(a) for a in activities]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== STATIC FILE ROUTES - PUBLIC ====================
 @app.route('/')
@@ -729,13 +732,16 @@ def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
     try:
         db = get_db()
-        db.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
+        cursor = db.cursor()
+        cursor.execute(
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (%s, %s, %s, %s, %s)',
             (user_id, action, module, description, ip_address)
         )
         db.commit()
-    except:
-        pass  # Fail silently
+        cursor.close()
+        db.close()
+    except Exception as e:
+        print(f"⚠️ Activity log error: {e}")
 
 # ==================== DEBUG ROUTES ====================
 @app.route('/debug/paths')
@@ -804,18 +810,20 @@ def internal_error(error):
 
 # ==================== APPLICATION ENTRY POINT ====================
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
+    port = int(os.environ.get('PORT', 8080))
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
     print("=" * 60)
     print("🚀 Alhudha Haj Travel System v2.0")
     print("=" * 60)
     print(f"📁 Server starting on port {port}")
     print(f"📁 Debug mode: {debug}")
+    print(f"📁 Binding to: 0.0.0.0:{port}")
     print(f"📁 Public directory: {PUBLIC_DIR}")
     print(f"📁 Admin directory: {ADMIN_DIR}")
     print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
     print("=" * 60)
+    print("📡 Health check: /health")
     print("📡 API Endpoints:")
     print("   - /api/health - Health check")
     print("   - /api/login - Admin login")
@@ -823,10 +831,9 @@ if __name__ == '__main__':
     print("   - /api/check-session - Session check")
     print("   - /api/admin/* - All admin API endpoints")
     print("   - /api/frontpage/* - Frontpage config")
-    print("   - /api/reports/* - Reports")
-    print("   - /api/backup/* - Backup management")
-    print("   - /api/company/* - Company settings")
-    print("   - /api/invoices/* - Invoice management")  # ADD THIS LINE
+    print("   - /api/invoices/* - Invoice management")
+    print("   - /api/receipts/* - Receipt management")
     print("=" * 60)
     
+    # CRITICAL: host must be '0.0.0.0' for Railway
     app.run(host='0.0.0.0', port=port, debug=debug)
