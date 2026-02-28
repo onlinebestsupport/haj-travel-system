@@ -1299,51 +1299,37 @@
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
-            try {
-                var isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-                if (!isLoggedIn) {
-                    window.location.href = '/admin.login.html';
-                    return;
-                }
-                
-                var userName = sessionStorage.getItem('adminName') || 'Admin';
-                var userRole = sessionStorage.getItem('adminRole') || 'admin';
-                
-                var greetingName = document.getElementById('greetingName');
-                var userDisplayName = document.getElementById('userDisplayName');
-                var userRoleDisplay = document.getElementById('userRoleDisplay');
-                var userAvatar = document.getElementById('userAvatar');
-                
-                if (greetingName) greetingName.textContent = userName;
-                if (userDisplayName) userDisplayName.textContent = userName;
-                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
-                
-                // Set avatar initials
-                if (userAvatar) {
-                    var nameParts = userName.split(' ');
-                    var initials = '';
-                    for (var i = 0; i < Math.min(2, nameParts.length); i++) {
-                        if (nameParts[i] && nameParts[i].length > 0) {
-                            initials += nameParts[i][0].toUpperCase();
-                        }
-                    }
-                    userAvatar.textContent = initials || 'AD';
-                }
-            } catch (e) {
-                console.error('Auth check error:', e);
-            }
+    try {
+        const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+        const adminName = sessionStorage.getItem('adminName');
+
+        if (isLoggedIn !== 'true' || !adminName) {
+            console.warn('Session invalid. Redirecting to login.');
+            window.location.replace('/admin.login.html');
+            return;
         }
 
-        function formatRole(role) {
-            try {
-                return role.split('_').map(function(word) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                }).join(' ');
-            } catch (e) {
-                return role;
-            }
+        const userRole = sessionStorage.getItem('adminRole') || 'admin';
+
+        document.getElementById('greetingName').textContent = adminName;
+        document.getElementById('userDisplayName').textContent = adminName;
+        document.getElementById('userRoleDisplay').textContent = formatRole(userRole);
+
+        const avatar = document.getElementById('userAvatar');
+        if (avatar) {
+            avatar.textContent = adminName
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
         }
 
+    } catch (err) {
+        console.error('Auth check failed:', err);
+        window.location.replace('/admin.login.html');
+    }
+}
         // ==================== DATE/TIME ====================
         function updateDateTime() {
             try {
