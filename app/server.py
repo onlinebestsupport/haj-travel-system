@@ -576,40 +576,30 @@ def serve_static(filename):
     except:
         return jsonify({'success': False, 'error': 'File not found'}), 404
 
-# ==================== STATIC FILE ROUTES - ADMIN ====================
-@app.route('/admin/')
-@app.route('/admin')
-def serve_admin_index():
-    """Serve admin index/dashboard"""
-    return send_from_directory(ADMIN_DIR, 'dashboard.html')
-
 @app.route('/admin/<path:filename>')
 def serve_admin(filename):
-    """Serve admin files - but only HTML/CSS/JS files, not API"""
+    """Serve admin static files safely"""
+
     # Prevent directory traversal
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
-    
-    # IMPORTANT: Don't serve API requests through this route
-    if filename.startswith('api/'):
-        return jsonify({'success': False, 'error': 'API endpoint not found'}), 404
-    
-    # If it's a CSS/JS/image file, serve directly
-    if filename.endswith('.css') or filename.endswith('.js') or filename.endswith('.png') or filename.endswith('.jpg') or filename.endswith('.svg') or filename.endswith('.ico'):
-        try:
-            return send_from_directory(ADMIN_DIR, filename)
-        except:
-            return jsonify({'success': False, 'error': 'File not found'}), 404
-    
-    # Try with .html extension
-    try:
-        return send_from_directory(ADMIN_DIR, filename + '.html')
-    except:
-        try:
-            # Try without .html
-            return send_from_directory(ADMIN_DIR, filename)
-        except:
-            return jsonify({'success': False, 'error': 'Admin file not found'}), 404
+
+    file_path = os.path.join(ADMIN_DIR, filename)
+
+    # 1️⃣ If exact file exists (users.html, style.css, js, images)
+    if os.path.exists(file_path):
+        return send_from_directory(ADMIN_DIR, filename)
+
+    # 2️⃣ If no extension → try adding .html
+    if '.' not in filename:
+        html_file = filename + '.html'
+        html_path = os.path.join(ADMIN_DIR, html_file)
+
+        if os.path.exists(html_path):
+            return send_from_directory(ADMIN_DIR, html_file)
+
+    # 3️⃣ If nothing found
+    return jsonify({'success': False, 'error': 'Admin file not found'}), 404
 
 # ==================== STATIC FILE ROUTES - TRAVELER ====================
 @app.route('/traveler/')
