@@ -810,11 +810,13 @@
         let sessionCheckInProgress = false;
         let sessionValid = false;
 
-      // ==================== ENHANCED SESSION MANAGEMENT ====================
+    // ==================== ENHANCED SESSION MANAGEMENT WITH WARNING ====================
 let sessionWarningTimeout = null;
 let sessionLogoutTimeout = null;
 let sessionCheckInterval = null;
 let warningShown = false;
+let sessionCheckInProgress = false;
+let sessionValid = false;
 
 // Create session warning banner
 function createSessionWarning() {
@@ -838,6 +840,7 @@ function createSessionWarning() {
             cursor: pointer;
             border: 2px solid white;
             text-align: center;
+            max-width: 90%;
         `;
         warningDiv.innerHTML = `
             <i class="fas fa-exclamation-triangle"></i> 
@@ -860,7 +863,7 @@ function resetSessionTimer() {
     
     // Auto logout after 30 minutes (1800000 ms)
     sessionLogoutTimeout = setTimeout(() => {
-        showSessionExpiredWarning();
+        showSessionExpiredWarning('Session expired due to inactivity');
     }, 1800000);
 }
 
@@ -878,15 +881,25 @@ function showSessionWarning() {
 }
 
 // Show expired warning and redirect
-function showSessionExpiredWarning() {
+function showSessionExpiredWarning(reason = 'Your session has expired') {
     hideSessionWarning();
     
+    // Clear any pending timers
+    if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+    if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+    if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+    
     // Show notification
-    showNotification('Your session has expired. Redirecting to login...', 'warning');
+    if (typeof showNotification === 'function') {
+        showNotification(reason + '. Redirecting to login...', 'warning');
+    } else {
+        alert(reason + '. Redirecting to login...');
+    }
     
     // Clear storage
     sessionStorage.clear();
     localStorage.removeItem('adminSession');
+    localStorage.removeItem('rememberedUser');
     
     // Redirect after 3 seconds
     setTimeout(() => {
@@ -898,19 +911,29 @@ function showSessionExpiredWarning() {
 async function extendSession() {
     try {
         const response = await fetch('/api/check-session', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: { 'Cache-Control': 'no-cache' }
         });
         const data = await response.json();
         
         if (data.authenticated) {
             hideSessionWarning();
             resetSessionTimer();
-            showNotification('Session extended successfully', 'success');
+            if (typeof showNotification === 'function') {
+                showNotification('Session extended successfully', 'success');
+            }
         } else {
-            showSessionExpiredWarning();
+            showSessionExpiredWarning('Session invalid');
         }
     } catch (error) {
         console.error('Session extension failed:', error);
+        // If server unreachable but local session exists, still allow
+        if (sessionStorage.getItem('adminLoggedIn')) {
+            hideSessionWarning();
+            resetSessionTimer();
+        } else {
+            showSessionExpiredWarning('Cannot verify session');
+        }
     }
 }
 
@@ -923,60 +946,122 @@ function hideSessionWarning() {
     warningShown = false;
 }
 
-// Modified checkSession with retry logic
-async function checkSession() {
+// Main session check function
+async function checkUserSession() {
+    if (sessionCheckInProgress) {
+        return sessionValid;
+    }
+    
+    sessionCheckInProgress = true;
+    
     try {
+        // First check local storage
         const localLoggedIn = sessionStorage.getItem('adminLoggedIn');
+        const localUser = sessionStorage.getItem('adminName');
+        const localRole = sessionStorage.getItem('adminRole');
         
+        console.log('📦 Local session:', { localLoggedIn, localUser, localRole });
+        
+        // If no local session, show warning and redirect
         if (!localLoggedIn) {
-            showSessionExpiredWarning();
+            showSessionExpiredWarning('No active session found');
             return false;
         }
         
-        // Try to verify with server
+        // Verify with server
         const response = await fetch('/api/check-session', {
+            method: 'GET',
             credentials: 'include',
-            headers: { 'Cache-Control': 'no-cache' }
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
         });
         
         const data = await response.json();
+        console.log('📡 Server session:', data);
         
         if (data.success && data.authenticated) {
-            updateUserInfo(data.user);
+            // Update UI with user info
+            const roleBadge = document.getElementById('roleBadge');
+            if (roleBadge && data.user) {
+                roleBadge.textContent = (data.user.role || 'admin').replace('_', ' ').toUpperCase();
+            }
+            
+            sessionValid = true;
             resetSessionTimer();
             return true;
         } else {
-            // Session invalid but give warning before redirect
-            showSessionExpiredWarning();
+            // Server says not authenticated, but we have local session
+            console.log('⚠️ Server session invalid, but local session exists');
+            showSessionExpiredWarning('Session expired on server');
             return false;
         }
     } catch (error) {
-        console.error('Session check error:', error);
+        console.error('❌ Session check error:', error);
         
         // If server unreachable but local session exists, still allow access
         if (sessionStorage.getItem('adminLoggedIn')) {
-            console.log('⚠️ Using local session only');
+            console.log('⚠️ Using local session only (server unreachable)');
+            const roleBadge = document.getElementById('roleBadge');
+            if (roleBadge) {
+                roleBadge.textContent = (sessionStorage.getItem('adminRole') || 'admin').replace('_', ' ').toUpperCase();
+            }
+            sessionValid = true;
             resetSessionTimer();
             return true;
         }
         
-        showSessionExpiredWarning();
+        showSessionExpiredWarning('Cannot connect to server');
         return false;
+    } finally {
+        sessionCheckInProgress = false;
     }
 }
 
-// Initialize session monitoring
-document.addEventListener('DOMContentLoaded', function() {
-    createSessionWarning();
-    resetSessionTimer();
+// Start session monitoring
+function startSessionMonitoring() {
+    if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+    
+    // Check session every 5 minutes
+    sessionCheckInterval = setInterval(async () => {
+        console.log('⏰ Running periodic session check...');
+        await checkUserSession();
+    }, 300000); // 5 minutes
     
     // Monitor user activity
     ['click', 'mousemove', 'keypress', 'scroll'].forEach(event => {
+        document.removeEventListener(event, resetSessionTimer);
         document.addEventListener(event, resetSessionTimer);
     });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Create warning banner
+    createSessionWarning();
+    
+    // Start monitoring
+    startSessionMonitoring();
+    
+    // Initial session check
+    setTimeout(async () => {
+        const isValid = await checkUserSession();
+        if (isValid && typeof loadUsers === 'function') {
+            loadUsers();
+        }
+    }, 500);
 });
 
-// Add this CSS to your style section
+// Handle page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        console.log('👁️ Tab became visible, checking session...');
+        checkUserSession();
+    }
+});
+
+// Add CSS for animation
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideDown {
@@ -992,22 +1077,26 @@ style.textContent = `
 `;
 document.head.appendChild(style);
         // ==================== PAGE INITIALIZATION SECTION ====================
-        (async function initPage() {
-            console.log('🚀 Initializing users page...');
-            
-            const tbody = document.getElementById('usersTableBody');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
-            }
-            
-            const isValid = await checkSession();
-            
-            if (isValid) {
-                console.log('✅ Session valid, loading users...');
-                if (typeof initPermissions === 'function') initPermissions();
-                loadUsers();
-            }
-        })();
+(async function initPage() {
+    console.log('🚀 Initializing users page...');
+    
+    // Show loading state
+    const tbody = document.getElementById('usersTableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
+    }
+    
+    // Check session first
+    const isValid = await checkUserSession();
+    
+    if (isValid) {
+        console.log('✅ Session valid, loading users...');
+        // Initialize permissions
+        if (typeof initPermissions === 'function') initPermissions();
+        // Load users
+        if (typeof loadUsers === 'function') loadUsers();
+    }
+})();
 
         // ==================== API CALL WRAPPER SECTION ====================
         async function apiCall(url, options = {}) {
