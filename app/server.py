@@ -84,7 +84,8 @@ app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
-app.register_blueprint(invoices.bp)  # ADD THIS LINE
+app.register_blueprint(invoices.bp)  # Invoices module
+app.register_blueprint(receipts.bp)  # ADD THIS LINE - Receipts module
 
 # ==================== API ROUTES - HEALTH CHECK ====================
 @app.route('/api/health', methods=['GET'])
