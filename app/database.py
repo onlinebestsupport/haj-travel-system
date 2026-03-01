@@ -213,17 +213,43 @@ def create_critical_logs_table(cursor):
     """)
 
 def create_backup_history_table(cursor):
+    """Create backup_history table for storing backup metadata"""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_history (
             id SERIAL PRIMARY KEY,
             backup_name VARCHAR(255) NOT NULL,
-            backup_type VARCHAR(50),
+            backup_type VARCHAR(50) DEFAULT 'manual',
             file_size VARCHAR(50),
             tables_count INTEGER,
-            status VARCHAR(50),
-            location TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            status VARCHAR(50) DEFAULT 'completed',
+            location VARCHAR(255),
+            description TEXT,
+            is_restore_point BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_by INTEGER REFERENCES users(id) ON DELETE SET NULL
         )
+    """)
+
+def create_backup_settings_table(cursor):
+    """Create backup_settings table for storing backup configuration"""
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS backup_settings (
+            id SERIAL PRIMARY KEY,
+            schedule VARCHAR(50) DEFAULT 'weekly',
+            retention_days INTEGER DEFAULT 30,
+            location VARCHAR(50) DEFAULT 'both',
+            compression VARCHAR(50) DEFAULT 'normal',
+            encryption VARCHAR(50) DEFAULT 'aes256',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_by INTEGER REFERENCES users(id)
+        )
+    """)
+    
+    # Insert default settings
+    cursor.execute("""
+        INSERT INTO backup_settings (id, schedule, retention_days, location, compression, encryption)
+        VALUES (1, 'weekly', 30, 'both', 'normal', 'aes256')
+        ON CONFLICT (id) DO NOTHING
     """)
 
 def create_frontpage_settings_table(cursor):
@@ -379,7 +405,9 @@ def seed_default_users(conn, cursor):
         default_users = [
             ('superadmin', 'admin123', 'Super Admin', 'super@alhudha.com', 'super_admin'),
             ('admin1', 'admin123', 'Admin User', 'admin@alhudha.com', 'admin'),
-            ('manager1', 'admin123', 'Manager User', 'manager@alhudha.com', 'manager')
+            ('manager1', 'admin123', 'Manager User', 'manager@alhudha.com', 'manager'),
+            ('staff1', 'admin123', 'Staff User', 'staff@alhudha.com', 'staff'),
+            ('viewer1', 'admin123', 'Viewer User', 'viewer@alhudha.com', 'viewer')
         ]
 
         for username, password, name, email, role in default_users:
@@ -464,6 +492,7 @@ def init_db():
         create_activity_log_table(cursor)
         create_critical_logs_table(cursor)
         create_backup_history_table(cursor)
+        create_backup_settings_table(cursor)
         create_frontpage_settings_table(cursor)
         create_email_settings_table(cursor)
         create_whatsapp_settings_table(cursor)
@@ -535,7 +564,7 @@ def get_table_counts():
     """Get count of records in all tables"""
     conn, cursor = get_db()
     try:
-        tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
+        tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 'backup_history']
         counts = {}
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
@@ -546,6 +575,50 @@ def get_table_counts():
         cursor.close()
         conn.close()
 
+def get_backup_settings():
+    """Get backup settings"""
+    conn, cursor = get_db()
+    try:
+        cursor.execute("SELECT * FROM backup_settings WHERE id = 1")
+        settings = cursor.fetchone()
+        return dict(settings) if settings else None
+    finally:
+        cursor.close()
+        conn.close()
+
+def update_backup_settings(schedule, retention_days, location, compression, encryption, updated_by):
+    """Update backup settings"""
+    conn, cursor = get_db()
+    try:
+        cursor.execute("""
+            UPDATE backup_settings SET
+                schedule = %s,
+                retention_days = %s,
+                location = %s,
+                compression = %s,
+                encryption = %s,
+                updated_at = %s,
+                updated_by = %s
+            WHERE id = 1
+        """, (schedule, retention_days, location, compression, encryption, datetime.now(), updated_by))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"❌ Error updating backup settings: {e}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
 # ==================== EXPORTED FUNCTIONS ====================
 
-__all__ = ['get_db', 'init_db', 'execute_query', 'get_table_counts', 'migrate_receipts_table']
+__all__ = [
+    'get_db', 
+    'init_db', 
+    'execute_query', 
+    'get_table_counts', 
+    'migrate_receipts_table',
+    'get_backup_settings',
+    'update_backup_settings'
+]
