@@ -1,39 +1,46 @@
 haj-travel-system/
-├── app/
+│
+├── 📁 app/
+│   ├── 📁 routes/
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── auth.py
+│   │   ├── batches.py
+│   │   ├── company.py
+│   │   ├── invoices.py
+│   │   ├── payments.py
+│   │   ├── receipts.py
+│   │   ├── reports.py
+│   │   ├── travelers.py
+│   │   └── uploads.py
+│   │
 │   ├── __init__.py
 │   ├── database.py
-│   ├── server.py
-│   └── routes/
-│       ├── admin.py
-│       ├── auth.py
-│       ├── batches.py
-│       ├── company.py
-│       ├── payments.py
-│       ├── travelers.py
-│       └── uploads.py
-├── public/
-│   ├── admin/
-│   │   ├── index.html
-│   │   ├── dashboard.html
-│   │   ├── batches.html
-│   │   ├── travelers.html
-│   │   ├── payments.html
-│   │   ├── receipts.html
-│   │   ├── users.html
-│   │   ├── reports.html
-│   │   ├── invoices.html
-│   │   ├── backup.html
-│   │   ├── frontpage.html
-│   │   ├── whatsapp.html
-│   │   ├── email.html
-│   │   └── style.css
-│   ├── index.html
-│   ├── admin.login.html
-│   ├── traveler_login.html
-│   ├── traveler_dashboard.html
-│   └── style.css
-├── sql/
-│   ├── init.sql
-│   └── seed.sql
-└── uploads/
-    └── .gitkeep
+│   ├── middleware.py
+│   ├── reset_database.py
+│   └── server.py
+│
+└── 📁 public/
+    ├── 📁 admin/
+    │   ├── backup.html
+    │   ├── batches.html
+    │   ├── dashboard.html
+    │   ├── email.html
+    │   ├── frontpage.html
+    │   ├── invoices.html
+    │   ├── payments.html
+    │   ├── receipts.html
+    │   ├── reports.html
+    │   ├── style.css
+    │   ├── travelers.html
+    │   ├── users.html
+    │   └── whatsapp.html
+    │
+    ├── 📁 traveler/
+    │   └── style.css
+    │
+    ├── admin.login.html
+    ├── index.html
+    ├── style.css
+    ├── traveler_dashboard.html
+    └── traveler_login.html
