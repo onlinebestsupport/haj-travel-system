@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, send_file
 from app.database import get_db
 from datetime import datetime
 import json
-from app.middleware import role_required, super_admin_required, log_critical_action, auto_backup
+import os
+from app.middleware import role_required, super_admin_required, log_critical_action, auto_backup, manual_backup
 import psycopg2.extras
 
 bp = Blueprint('admin', __name__, url_prefix='/api/admin')
@@ -87,312 +88,410 @@ def get_user(user_id):
     
     return jsonify({'success': True, 'user': user_dict})
 
-@bp.route('/users', methods=['POST'])
-@role_required(['super_admin', 'admin'])
-def create_user():
-    """Create new user with permissions"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    
-    required = ['username', 'password', 'email', 'role']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'success': False, 'error': f'{field} is required'}), 400
-    
-    if len(data['password']) < 6:
-        return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
-    
-    permissions = data.get('permissions', {})
-    if isinstance(permissions, dict):
-        permissions_json = json.dumps(permissions)
-    else:
-        permissions_json = permissions
-    
-    conn, cursor = get_db()
-    
-    try:
-        cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
-        if cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'Username already exists'}), 400
-        
-        cursor.execute('SELECT id FROM users WHERE email = %s', (data['email'],))
-        if cursor.fetchone():
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'Email already exists'}), 400
-        
-        cursor.execute('''
-            INSERT INTO users (
-                username, password, full_name, email, phone, department,
-                role, permissions, is_active, created_at, updated_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
-        ''', (
-            data['username'],
-            data['password'],
-            data.get('full_name'),
-            data['email'],
-            data.get('phone'),
-            data.get('department'),
-            data['role'],
-            permissions_json,
-            True,
-            datetime.now().isoformat(),
-            datetime.now().isoformat()
-        ))
-        
-        user_id = cursor.fetchone()['id']
-        
-        log_critical_action(
-            session['user_id'], 
-            'CREATE_USER', 
-            f'Created user: {data["username"]} (ID: {user_id})',
-            request.remote_addr
-        )
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'user_id': user_id,
-            'message': 'User created successfully'
-        })
-        
-    except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+# ==================== BACKUP & RESTORE ENDPOINTS ====================
 
-@bp.route('/users/<int:user_id>', methods=['PUT'])
+@bp.route('/backups', methods=['GET'])
 @role_required(['super_admin', 'admin'])
-def update_user(user_id):
-    """Update user details and permissions"""
+def get_backups():
+    """Get backup history from PostgreSQL"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    data = request.json
-    
     conn, cursor = get_db()
     
-    try:
-        cursor.execute('SELECT id, username FROM users WHERE id = %s', (user_id,))
-        user = cursor.fetchone()
-        if not user:
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-        
-        if data.get('email'):
-            cursor.execute('SELECT id FROM users WHERE email = %s AND id != %s', (data['email'], user_id))
-            if cursor.fetchone():
-                cursor.close()
-                conn.close()
-                return jsonify({'success': False, 'error': 'Email already in use'}), 400
-        
-        permissions = data.get('permissions', {})
-        if isinstance(permissions, dict):
-            permissions_json = json.dumps(permissions)
+    # Get filter parameters
+    backup_type = request.args.get('type', 'all')
+    
+    query = "SELECT * FROM backup_history"
+    params = []
+    
+    if backup_type != 'all':
+        if backup_type == 'restore':
+            query += " WHERE is_restore_point = TRUE"
         else:
-            permissions_json = permissions
+            query += " WHERE backup_type = %s"
+            params.append(backup_type)
+    
+    query += " ORDER BY created_at DESC"
+    
+    cursor.execute(query, params)
+    backups = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    return jsonify({
+        'success': True,
+        'backups': [dict(b) for b in backups]
+    })
+
+@bp.route('/backups/stats', methods=['GET'])
+@role_required(['super_admin', 'admin'])
+def get_backup_stats():
+    """Get backup statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    
+    # Get database size
+    cursor.execute("SELECT pg_database_size(current_database()) as size")
+    db_size_result = cursor.fetchone()
+    db_size = db_size_result['size'] if db_size_result else 0
+    
+    # Get backup stats
+    cursor.execute("""
+        SELECT 
+            COUNT(*) as total_backups,
+            MAX(created_at) as last_backup,
+            COUNT(CASE WHEN is_restore_point = TRUE THEN 1 END) as restore_points,
+            COUNT(CASE WHEN backup_type = 'auto' THEN 1 END) as auto_backups,
+            COUNT(CASE WHEN backup_type = 'manual' AND is_restore_point = FALSE THEN 1 END) as manual_backups
+        FROM backup_history
+    """)
+    stats = cursor.fetchone()
+    
+    # Get total backup size
+    backup_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'uploads', 'backups')
+    total_size = 0
+    if os.path.exists(backup_dir):
+        for file in os.listdir(backup_dir):
+            file_path = os.path.join(backup_dir, file)
+            if os.path.isfile(file_path):
+                total_size += os.path.getsize(file_path)
+    
+    cursor.close()
+    conn.close()
+    
+    # Format dates
+    last_backup = stats['last_backup']
+    if last_backup:
+        last_backup = last_backup.strftime('%d %b, %H:%M')
+    else:
+        last_backup = 'Never'
+    
+    return jsonify({
+        'success': True,
+        'stats': {
+            'dbSize': format_bytes(db_size),
+            'totalBackups': stats['total_backups'] or 0,
+            'lastBackup': last_backup,
+            'storageUsed': format_bytes(total_size),
+            'storageLimit': '1 GB',
+            'storagePercent': min(round((total_size / (1024 * 1024 * 1024)) * 100, 1), 100),
+            'restorePoints': stats['restore_points'] or 0,
+            'autoBackups': stats['auto_backups'] or 0,
+            'manualBackups': stats['manual_backups'] or 0
+        }
+    })
+
+@bp.route('/backup/create', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def create_backup():
+    """Create database backup"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json or {}
+    backup_type = data.get('type', 'manual')
+    description = data.get('description', '')
+    is_restore_point = data.get('isRestorePoint', False)
+    
+    try:
+        if is_restore_point:
+            result = manual_backup(description, True)
+            backup_type = 'restore_point'
+        else:
+            result = manual_backup()
         
-        cursor.execute('''
-            UPDATE users SET
-                full_name = %s,
-                email = %s,
-                phone = %s,
-                department = %s,
-                role = %s,
-                permissions = %s,
-                is_active = %s,
-                updated_at = %s
-            WHERE id = %s
-        ''', (
-            data.get('full_name'),
-            data.get('email'),
-            data.get('phone'),
-            data.get('department'),
-            data.get('role'),
-            permissions_json,
-            data.get('is_active', True),
-            datetime.now().isoformat(),
-            user_id
-        ))
+        if result:
+            # Log the action
+            log_critical_action(
+                session['user_id'],
+                'CREATE_BACKUP',
+                f'Created {backup_type} backup: {result["name"]}',
+                request.remote_addr
+            )
+            
+            return jsonify({
+                'success': True,
+                'backup': result,
+                'message': f'{backup_type.replace("_", " ").title()} created successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Backup failed'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/backup/<int:backup_id>/download', methods=['GET'])
+@role_required(['super_admin', 'admin'])
+def download_backup(backup_id):
+    """Download backup file"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    cursor.execute("SELECT * FROM backup_history WHERE id = %s", (backup_id,))
+    backup = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if not backup:
+        return jsonify({'success': False, 'error': 'Backup not found'}), 404
+    
+    backup_path = backup['location']
+    if not os.path.exists(backup_path):
+        return jsonify({'success': False, 'error': 'Backup file not found on server'}), 404
+    
+    return send_file(
+        backup_path,
+        as_attachment=True,
+        download_name=backup['backup_name'],
+        mimetype='application/octet-stream'
+    )
+
+@bp.route('/backup/<int:backup_id>', methods=['DELETE'])
+@role_required(['super_admin', 'admin'])
+def delete_backup(backup_id):
+    """Delete backup"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    
+    try:
+        cursor.execute("SELECT * FROM backup_history WHERE id = %s", (backup_id,))
+        backup = cursor.fetchone()
         
+        if not backup:
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'error': 'Backup not found'}), 404
+        
+        # Delete file if exists
+        backup_path = backup['location']
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+        
+        # Delete from database
+        cursor.execute("DELETE FROM backup_history WHERE id = %s", (backup_id,))
+        conn.commit()
+        
+        # Log the action
         log_critical_action(
-            session['user_id'], 
-            'UPDATE_USER', 
-            f'Updated user: {user["username"]} (ID: {user_id})',
+            session['user_id'],
+            'DELETE_BACKUP',
+            f'Deleted backup: {backup["backup_name"]}',
             request.remote_addr
         )
         
-        conn.commit()
         cursor.close()
         conn.close()
         
-        return jsonify({'success': True, 'message': 'User updated successfully'})
+        return jsonify({'success': True, 'message': 'Backup deleted successfully'})
         
     except Exception as e:
         conn.rollback()
         cursor.close()
         conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@bp.route('/users/<int:user_id>/password', methods=['POST'])
+@bp.route('/backup/settings', methods=['GET'])
 @role_required(['super_admin', 'admin'])
-def change_user_password(user_id):
-    """Change user password"""
+def get_backup_settings():
+    """Get backup settings"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    cursor.execute("SELECT * FROM backup_settings WHERE id = 1")
+    settings = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if settings:
+        return jsonify({'success': True, 'settings': dict(settings)})
+    else:
+        return jsonify({
+            'success': True,
+            'settings': {
+                'schedule': 'weekly',
+                'retention_days': 30,
+                'location': 'both',
+                'compression': 'normal',
+                'encryption': 'aes256'
+            }
+        })
+
+@bp.route('/backup/settings', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def update_backup_settings():
+    """Update backup settings"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     data = request.json
-    new_password = data.get('new_password')
-    
-    if not new_password or len(new_password) < 6:
-        return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
     
     conn, cursor = get_db()
     
     try:
-        cursor.execute('SELECT username FROM users WHERE id = %s', (user_id,))
-        user = cursor.fetchone()
-        
-        if not user:
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-        
-        cursor.execute('''
-            UPDATE users SET
-                password = %s,
-                updated_at = %s
-            WHERE id = %s
-        ''', (new_password, datetime.now().isoformat(), user_id))
-        
-        log_critical_action(
-            session['user_id'], 
-            'PASSWORD_CHANGE', 
-            f'Changed password for user: {user["username"]} (ID: {user_id})',
-            request.remote_addr
-        )
+        cursor.execute("""
+            UPDATE backup_settings SET
+                schedule = %s,
+                retention_days = %s,
+                location = %s,
+                compression = %s,
+                encryption = %s,
+                updated_at = %s,
+                updated_by = %s
+            WHERE id = 1
+        """, (
+            data.get('schedule', 'weekly'),
+            data.get('retention_days', 30),
+            data.get('location', 'both'),
+            data.get('compression', 'normal'),
+            data.get('encryption', 'aes256'),
+            datetime.now(),
+            session['user_id']
+        ))
         
         conn.commit()
         cursor.close()
         conn.close()
         
-        return jsonify({'success': True, 'message': 'Password changed successfully'})
+        return jsonify({'success': True, 'message': 'Backup settings updated successfully'})
         
     except Exception as e:
         conn.rollback()
         cursor.close()
         conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@bp.route('/users/<int:user_id>/toggle', methods=['POST'])
-@role_required(['super_admin', 'admin'])
-def toggle_user_status(user_id):
-    """Toggle user active status"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    
-    try:
-        cursor.execute('SELECT is_active, username FROM users WHERE id = %s', (user_id,))
-        user = cursor.fetchone()
-        
-        if not user:
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-        
-        new_status = not user['is_active']
-        
-        cursor.execute('''
-            UPDATE users SET
-                is_active = %s,
-                updated_at = %s
-            WHERE id = %s
-        ''', (new_status, datetime.now().isoformat(), user_id))
-        
-        status_text = 'activated' if new_status else 'deactivated'
-        
-        log_critical_action(
-            session['user_id'], 
-            'TOGGLE_STATUS', 
-            f'{status_text} user: {user["username"]} (ID: {user_id})',
-            request.remote_addr
-        )
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'is_active': new_status,
-            'message': f'User {status_text} successfully'
-        })
-        
-    except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-@bp.route('/users/<int:user_id>', methods=['DELETE'])
+@bp.route('/backup/restore/<int:backup_id>', methods=['POST'])
 @super_admin_required
-def delete_user(user_id):
-    """Delete user - SUPER ADMIN ONLY"""
+def restore_backup(backup_id):
+    """Restore database from backup (Super Admin only)"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    if user_id == session['user_id']:
-        return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
-    
-    backup_file = auto_backup()
     
     conn, cursor = get_db()
     
     try:
-        cursor.execute('SELECT username FROM users WHERE id = %s', (user_id,))
-        user = cursor.fetchone()
+        cursor.execute("SELECT * FROM backup_history WHERE id = %s", (backup_id,))
+        backup = cursor.fetchone()
         
-        if not user:
+        if not backup:
             cursor.close()
             conn.close()
-            return jsonify({'success': False, 'error': 'User not found'}), 404
+            return jsonify({'success': False, 'error': 'Backup not found'}), 404
         
-        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
+        backup_path = backup['location']
+        if not os.path.exists(backup_path):
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'error': 'Backup file not found on server'}), 404
         
+        # Get database URL from environment
+        import os
+        import re
+        import subprocess
+        
+        DATABASE_URL = os.environ.get('DATABASE_URL')
+        if not DATABASE_URL:
+            return jsonify({'success': False, 'error': 'DATABASE_URL not found'}), 500
+        
+        # Parse database URL
+        match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+        if not match:
+            return jsonify({'success': False, 'error': 'Could not parse DATABASE_URL'}), 500
+        
+        user, password, host, port, database = match.groups()
+        
+        # Set PGPASSWORD environment variable
+        env = os.environ.copy()
+        env['PGPASSWORD'] = password
+        
+        # Run pg_restore
+        cmd = [
+            'pg_restore',
+            '-h', host,
+            '-p', str(port),
+            '-U', user,
+            '-d', database,
+            '-c',  # Clean (drop) database objects before recreating
+            '--if-exists',  # Use IF EXISTS when dropping objects
+            backup_path
+        ]
+        
+        print(f"🔄 Running pg_restore: {' '.join(cmd)}")
+        
+        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"❌ pg_restore failed: {result.stderr}")
+            return jsonify({'success': False, 'error': f'Restore failed: {result.stderr}'}), 500
+        
+        # Log the action
         log_critical_action(
-            session['user_id'], 
-            'DELETE_USER', 
-            f'Deleted user: {user["username"]} (ID: {user_id})',
+            session['user_id'],
+            'RESTORE_BACKUP',
+            f'Restored database from backup: {backup["backup_name"]}',
             request.remote_addr
         )
         
-        conn.commit()
         cursor.close()
         conn.close()
         
-        return jsonify({
-            'success': True, 
-            'message': 'User deleted successfully',
-            'backup': backup_file
-        })
+        return jsonify({'success': True, 'message': 'Database restored successfully'})
         
     except Exception as e:
-        conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/backup/verify/<int:backup_id>', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def verify_backup(backup_id):
+    """Verify backup integrity"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    
+    try:
+        cursor.execute("SELECT * FROM backup_history WHERE id = %s", (backup_id,))
+        backup = cursor.fetchone()
         cursor.close()
         conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        
+        if not backup:
+            return jsonify({'success': False, 'error': 'Backup not found'}), 404
+        
+        backup_path = backup['location']
+        if not os.path.exists(backup_path):
+            return jsonify({'success': False, 'error': 'Backup file not found on server'}), 404
+        
+        # Simple verification - check if file exists and has size
+        file_size = os.path.getsize(backup_path)
+        
+        if file_size > 0:
+            return jsonify({
+                'success': True,
+                'message': 'Backup verified successfully',
+                'fileSize': format_bytes(file_size),
+                'fileName': backup['backup_name']
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Backup file is empty'}), 400
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Helper function to format bytes
+def format_bytes(bytes):
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if bytes < 1024.0:
+            return f"{bytes:.1f} {unit}"
+        bytes /= 1024.0
+    return f"{bytes:.1f} TB"
 
 # ==================== DASHBOARD STATS ====================
 
@@ -402,7 +501,6 @@ def get_dashboard_stats():
     conn, cursor = get_db()
     
     try:
-        # Get counts from all tables
         cursor.execute('SELECT COUNT(*) as count FROM travelers')
         travelers_count = cursor.fetchone()['count']
         
@@ -497,38 +595,6 @@ def get_dashboard_stats():
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== ACTIVITY LOG ====================
-
-@bp.route('/activity', methods=['GET'])
-@role_required(['super_admin', 'admin'])
-def get_activity_log():
-    """Get recent activity log"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    limit = request.args.get('limit', 50, type=int)
-    
-    conn, cursor = get_db()
-    
-    cursor.execute('''
-        SELECT 
-            a.*,
-            u.username
-        FROM activity_log a
-        LEFT JOIN users u ON a.user_id = u.id
-        ORDER BY a.created_at DESC
-        LIMIT %s
-    ''', (limit,))
-    
-    activities = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return jsonify({
-        'success': True,
-        'activities': [dict(a) for a in activities]
-    })
-
 # ==================== TABLE COUNTS HELPER ====================
 
 @bp.route('/table-counts', methods=['GET'])
@@ -592,99 +658,6 @@ def system_health():
         })
         
     except Exception as e:
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ==================== DATABASE RESET (DEVELOPMENT ONLY) ====================
-
-@bp.route('/reset-database', methods=['POST'])
-@super_admin_required
-def reset_database():
-    """Reset database with sample data - SUPER ADMIN ONLY"""
-    try:
-        backup_file = auto_backup()
-        
-        conn, cursor = get_db()
-        
-        # Disable foreign key checks temporarily
-        cursor.execute("SET session_replication_role = 'replica';")
-        
-        # Clear tables
-        cursor.execute("DELETE FROM payments")
-        cursor.execute("DELETE FROM receipts")
-        cursor.execute("DELETE FROM invoices")
-        cursor.execute("DELETE FROM travelers")
-        cursor.execute("DELETE FROM batches")
-        cursor.execute("DELETE FROM activity_log")
-        cursor.execute("DELETE FROM backup_history")
-        
-        # Reset sequences
-        cursor.execute("DELETE FROM users WHERE username IN ('superadmin', 'admin1', 'manager1', 'staff1', 'viewer1')")
-        
-        # Re-enable foreign key checks
-        cursor.execute("SET session_replication_role = 'origin';")
-        
-        # Reset sequences
-        cursor.execute("SELECT setval('users_id_seq', 1, false)")
-        cursor.execute("SELECT setval('travelers_id_seq', 1, false)")
-        cursor.execute("SELECT setval('batches_id_seq', 1, false)")
-        cursor.execute("SELECT setval('payments_id_seq', 1, false)")
-        
-        # Insert default users
-        users = [
-            ('superadmin', 'admin123', 'Super Admin', 'super@alhudha.com', '9999999999', 'Management', 'super_admin', 
-             json.dumps({'dashboard': True, 'batches': True, 'travelers': True, 'payments': True, 'invoices': True,
-                        'receipts': True, 'reports': True, 'users': True, 'frontpage': True, 'whatsapp': True,
-                        'email': True, 'backup': True})),
-            ('admin1', 'admin123', 'Admin User', 'admin@alhudha.com', '8888888888', 'Operations', 'admin',
-             json.dumps({'dashboard': True, 'batches': True, 'travelers': True, 'payments': True, 'invoices': True,
-                        'receipts': True, 'reports': True, 'users': False, 'frontpage': False, 'whatsapp': True,
-                        'email': True, 'backup': False})),
-            ('manager1', 'admin123', 'Manager User', 'manager@alhudha.com', '7777777777', 'Sales', 'manager',
-             json.dumps({'dashboard': True, 'batches': True, 'travelers': True, 'payments': True, 'invoices': True,
-                        'receipts': True, 'reports': True, 'users': False, 'frontpage': False, 'whatsapp': False,
-                        'email': False, 'backup': False})),
-            ('staff1', 'admin123', 'Staff User', 'staff@alhudha.com', '6666666666', 'Customer Service', 'staff',
-             json.dumps({'dashboard': True, 'batches': False, 'travelers': True, 'payments': True, 'invoices': False,
-                        'receipts': True, 'reports': False, 'users': False, 'frontpage': False, 'whatsapp': False,
-                        'email': False, 'backup': False})),
-            ('viewer1', 'admin123', 'Viewer User', 'viewer@alhudha.com', '5555555555', 'Accounts', 'viewer',
-             json.dumps({'dashboard': True, 'batches': True, 'travelers': True, 'payments': True, 'invoices': True,
-                        'receipts': True, 'reports': True, 'users': False, 'frontpage': False, 'whatsapp': False,
-                        'email': False, 'backup': False}))
-        ]
-        
-        for user in users:
-            cursor.execute('''
-                INSERT INTO users (
-                    username, password, full_name, email, phone, department, 
-                    role, permissions, is_active, created_at, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (
-                user[0], user[1], user[2], user[3], user[4], user[5], 
-                user[6], user[7], True, datetime.now(), datetime.now()
-            ))
-        
-        log_critical_action(
-            session['user_id'], 
-            'RESET_DATABASE', 
-            f'Database reset with backup: {backup_file}',
-            request.remote_addr
-        )
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True, 
-            'message': 'Database reset successfully',
-            'backup': backup_file
-        })
-        
-    except Exception as e:
-        conn.rollback()
         cursor.close()
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 500
