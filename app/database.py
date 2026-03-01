@@ -200,6 +200,18 @@ def create_activity_log_table(cursor):
         )
     """)
 
+def create_critical_logs_table(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS critical_logs (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+            action VARCHAR(255) NOT NULL,
+            description TEXT,
+            ip_address VARCHAR(50),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
 def create_backup_history_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_history (
@@ -297,6 +309,65 @@ def create_whatsapp_settings_table(cursor):
         ON CONFLICT (id) DO NOTHING
     """)
 
+def create_company_settings_table(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS company_settings (
+            id SERIAL PRIMARY KEY,
+            
+            -- Company Details
+            legal_name VARCHAR(255),
+            display_name VARCHAR(255),
+            
+            -- Address
+            address_line1 VARCHAR(255),
+            address_line2 VARCHAR(255),
+            city VARCHAR(100),
+            state VARCHAR(100),
+            country VARCHAR(100),
+            pin_code VARCHAR(20),
+            
+            -- Contact
+            phone VARCHAR(50),
+            mobile VARCHAR(50),
+            email VARCHAR(255),
+            website VARCHAR(255),
+            
+            -- Tax Information
+            gstin VARCHAR(50),
+            pan VARCHAR(50),
+            tan VARCHAR(50),
+            tcs_no VARCHAR(50),
+            tin VARCHAR(50),
+            cin VARCHAR(50),
+            iec VARCHAR(50),
+            msme VARCHAR(50),
+            
+            -- Bank Details
+            bank_name VARCHAR(255),
+            bank_branch VARCHAR(255),
+            account_name VARCHAR(255),
+            account_no VARCHAR(100),
+            ifsc_code VARCHAR(50),
+            micr_code VARCHAR(50),
+            upi_id VARCHAR(100),
+            qr_code TEXT,
+            
+            -- Logo
+            logo TEXT,
+            
+            -- Metadata
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Insert default record if not exists
+    cursor.execute("""
+        INSERT INTO company_settings (id, legal_name, display_name, country)
+        VALUES (1, 'Alhudha Haj Service P Ltd.', 'Alhudha Haj Travel', 'India')
+        ON CONFLICT (id) DO NOTHING
+    """)
+
 # ==================== SEED DEFAULT USERS ====================
 
 def seed_default_users(conn, cursor):
@@ -391,10 +462,12 @@ def init_db():
         create_invoices_table(cursor)
         create_receipts_table(cursor)
         create_activity_log_table(cursor)
+        create_critical_logs_table(cursor)
         create_backup_history_table(cursor)
         create_frontpage_settings_table(cursor)
         create_email_settings_table(cursor)
         create_whatsapp_settings_table(cursor)
+        create_company_settings_table(cursor)
         
         conn.commit()
         print("✅ All tables created")
