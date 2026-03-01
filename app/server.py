@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import get_db, init_db
 
 # Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads
+from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports
 
 # ==================== FLASK APP INITIALIZATION ====================
 app = Flask(__name__)
@@ -80,6 +80,7 @@ app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
+app.register_blueprint(reports.bp)
 
 # ==================== HEALTH ENDPOINTS (Always work) ====================
 @app.route('/')
@@ -191,6 +192,46 @@ def api_login():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/traveler/login', methods=['POST'])
+def api_traveler_login():
+    data = request.json
+    passport_no = data.get('passport_no')
+    pin = data.get('pin')
+    
+    if not passport_no or not pin:
+        return jsonify({'success': False, 'error': 'Passport number and PIN required'}), 400
+    
+    try:
+        initialize_database()
+        conn, cursor = get_db()
+        cursor.execute(
+            'SELECT * FROM travelers WHERE passport_no = %s AND pin = %s',
+            (passport_no.upper(), pin)
+        )
+        traveler = cursor.fetchone()
+        
+        if traveler:
+            session['traveler_id'] = traveler['id']
+            session['traveler_passport'] = traveler['passport_no']
+            session['traveler_name'] = f"{traveler['first_name']} {traveler['last_name']}"
+            session.permanent = True
+            
+            cursor.close()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'traveler_id': traveler['id'],
+                'name': f"{traveler['first_name']} {traveler['last_name']}",
+                'passport': traveler['passport_no']
+            })
+        else:
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'error': 'Invalid passport number or PIN'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
     session.clear()
@@ -223,6 +264,16 @@ def check_session():
                 })
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 500
+    elif session.get('traveler_id'):
+        return jsonify({
+            'success': True,
+            'authenticated': True,
+            'traveler': {
+                'id': session['traveler_id'],
+                'name': session['traveler_name'],
+                'passport': session['traveler_passport']
+            }
+        })
     
     return jsonify({'success': True, 'authenticated': False})
 
@@ -319,6 +370,35 @@ def get_email_config():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== API ROUTES - DATABASE INIT ====================
+@app.route('/api/admin/init-db', methods=['POST'])
+def init_database_route():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        with app.app_context():
+            success = initialize_database()
+            if success:
+                return jsonify({'success': True, 'message': 'Database initialized'})
+            else:
+                return jsonify({'success': False, 'error': 'Database init failed'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== API ROUTES - MIGRATIONS ====================
+@app.route('/api/admin/migrate-receipts', methods=['POST'])
+def migrate_receipts():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        from app.database import migrate_receipts_table
+        migrate_receipts_table()
+        return jsonify({'success': True, 'message': 'Receipts table migrated'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== STATIC FILE ROUTES ====================
 @app.route('/')
 def serve_index():
@@ -359,6 +439,24 @@ def serve_admin(filename):
 
     return jsonify({'success': False, 'error': 'Admin file not found'}), 404
 
+@app.route('/traveler/')
+@app.route('/traveler')
+def serve_traveler_index():
+    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+
+@app.route('/traveler/<path:filename>')
+def serve_traveler(filename):
+    if '..' in filename or filename.startswith('/'):
+        return jsonify({'success': False, 'error': 'Invalid path'}), 400
+    
+    try:
+        return send_from_directory(PUBLIC_DIR, filename)
+    except:
+        try:
+            return send_from_directory(PUBLIC_DIR, filename + '.html')
+        except:
+            return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
+
 @app.route('/admin.login.html')
 @app.route('/admin/login')
 def serve_admin_login():
@@ -378,6 +476,57 @@ def serve_upload(filename):
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# ==================== DEBUG ROUTES ====================
+@app.route('/debug/paths')
+def debug_paths():
+    files_in_public = []
+    files_in_admin = []
+    
+    try:
+        files_in_public = os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else []
+    except:
+        pass
+    
+    try:
+        files_in_admin = os.listdir(ADMIN_DIR) if os.path.exists(ADMIN_DIR) else []
+    except:
+        pass
+    
+    return jsonify({
+        'base_dir': BASE_DIR,
+        'public_dir': PUBLIC_DIR,
+        'admin_dir': ADMIN_DIR,
+        'public_exists': os.path.exists(PUBLIC_DIR),
+        'admin_exists': os.path.exists(ADMIN_DIR),
+        'files_in_public': files_in_public,
+        'files_in_admin': files_in_admin,
+        'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
+        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0
+    })
+
+@app.route('/debug/test')
+def debug_test():
+    return jsonify({'success': True, 'message': 'Debug route working!'})
+
+@app.route('/debug/session')
+def debug_session():
+    return jsonify({
+        'session': dict(session),
+        'has_user': 'user_id' in session,
+        'has_traveler': 'traveler_id' in session
+    })
+
+@app.route('/debug/routes')
+def debug_routes():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'path': str(rule)
+        })
+    return jsonify(routes)
 
 # ==================== ERROR HANDLERS ====================
 @app.errorhandler(404)
@@ -402,6 +551,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print("📡 Health check: /health")
     print("📡 API Endpoints ready (lazy DB init)")
+    print("📡 Reports API: /api/reports/generate")
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=port, debug=debug)
