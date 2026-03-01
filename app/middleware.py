@@ -60,18 +60,6 @@ def log_critical_action(user_id, action, details, ip_address=None):
     try:
         conn, cursor = get_db()
         
-        # Create critical_logs table if not exists (using PostgreSQL syntax)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS critical_logs (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-                action VARCHAR(255) NOT NULL,
-                description TEXT,
-                ip_address VARCHAR(50),
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
         cursor.execute('''
             INSERT INTO critical_logs (user_id, action, description, ip_address, timestamp)
             VALUES (%s, %s, %s, %s, %s)
@@ -187,7 +175,6 @@ def get_current_user():
                 try:
                     if isinstance(user_dict['permissions'], str):
                         user_dict['permissions'] = json.loads(user_dict['permissions'])
-                    # If it's already a dict (JSONB), keep as is
                 except Exception as e:
                     print(f"⚠️ Error parsing permissions: {e}")
                     user_dict['permissions'] = {}
@@ -205,7 +192,6 @@ def has_permission(permission_name):
     if not user:
         return False
     
-    # Super admin has all permissions
     if user['role'] == 'super_admin':
         return True
     
