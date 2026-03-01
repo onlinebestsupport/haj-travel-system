@@ -1,46 +1,81 @@
-haj-travel-system/
+haj-system-main/
 │
-├── 📁 app/
-│   ├── 📁 routes/
-│   │   ├── __init__.py
-│   │   ├── admin.py
-│   │   ├── auth.py
-│   │   ├── batches.py
-│   │   ├── company.py
-│   │   ├── invoices.py
-│   │   ├── payments.py
-│   │   ├── receipts.py
-│   │   ├── reports.py
-│   │   ├── travelers.py
-│   │   └── uploads.py
+├── 📁 app/                                      ✅ COMPLETE
+│   ├── 📁 routes/                               ✅ ALL ROUTES PRESENT
+│   │   ├── __init__.py                          ✅ (Exports all routes)
+│   │   ├── admin.py                             ✅ User management
+│   │   ├── auth.py                              ✅ Login/logout
+│   │   ├── batches.py                           ✅ Package management
+│   │   ├── company.py                           ✅ 48 fields
+│   │   ├── invoices.py                          ✅ Billing
+│   │   ├── payments.py                          ✅ Transactions
+│   │   ├── receipts.py                          ✅ Payment receipts
+│   │   ├── reports.py                           ✅ Analytics
+│   │   ├── travelers.py                         ✅ 33+ fields
+│   │   ├── uploads.py                           ✅ File handling
+│   │   ├── activity_log.py                       ✅ User actions
+│   │   ├── critical_logs.py                      ✅ System events
+│   │   ├── backup_history.py                      ✅ DB backups
+│   │   ├── frontpage_settings.py                  ✅ Website content
+│   │   ├── email_settings.py                      ✅ Email config
+│   │   └── whatsapp_settings.py                   ✅ WhatsApp config
 │   │
-│   ├── __init__.py
-│   ├── database.py
-│   ├── middleware.py
-│   ├── reset_database.py
-│   └── server.py
+│   ├── __init__.py                               ✅ (Package marker)
+│   ├── database.py                               ✅ (All tables created)
+│   ├── middleware.py                             ✅ (Auth decorators)
+│   ├── reset_database.py                         ✅ (Development only)
+│   └── server.py                                 ✅ (Main Flask app)
 │
-└── 📁 public/
-    ├── 📁 admin/
-    │   ├── backup.html
-    │   ├── batches.html
-    │   ├── dashboard.html
-    │   ├── email.html
-    │   ├── frontpage.html
-    │   ├── invoices.html
-    │   ├── payments.html
-    │   ├── receipts.html
-    │   ├── reports.html
-    │   ├── style.css
-    │   ├── travelers.html
-    │   ├── users.html
-    │   └── whatsapp.html
-    │
-    ├── 📁 traveler/
-    │   └── style.css
-    │
-    ├── admin.login.html
-    ├── index.html
-    ├── style.css
-    ├── traveler_dashboard.html
-    └── traveler_login.html
+├── 📁 public/                                    ✅ COMPLETE
+│   ├── index.html                                ✅ Homepage
+│   ├── admin.login.html                           ✅ Admin login
+│   ├── traveler_login.html                         ✅ Traveler login
+│   ├── traveler_dashboard.html                      ✅ Traveler view
+│   ├── style.css                                  ✅ Global styles
+│   │
+│   └── 📁 admin/                                  ✅ Admin panel
+│       ├── dashboard.html                          ✅ Main dashboard
+│       ├── travelers.html                          ✅ Manage pilgrims
+│       ├── batches.html                            ✅ Manage packages
+│       ├── payments.html                           ✅ Track payments
+│       ├── invoices.html                           ✅ Generate invoices
+│       ├── receipts.html                           ✅ Print receipts
+│       ├── users.html                              ✅ Manage staff
+│       ├── reports.html                            ✅ Analytics
+│       ├── frontpage.html                          ✅ Edit website
+│       ├── whatsapp.html                           ✅ WhatsApp setup
+│       ├── email.html                              ✅ Email config
+│       ├── backup.html                             ✅ Database backup
+│       └── style.css                               ✅ Admin styles
+│
+├── 📁 uploads/                                    ✅ COMPLETE
+│   ├── 📁 passports/                              ✅ Traveler passports
+│   ├── 📁 aadhaar/                                ✅ Aadhaar cards
+│   ├── 📁 pan/                                    ✅ PAN cards
+│   ├── 📁 vaccine/                                ✅ Vaccination certs
+│   ├── 📁 photos/                                 ✅ Traveler photos
+│   ├── 📁 signatures/                             ✅ Digital signatures
+│   ├── 📁 invoices/                               ✅ Generated invoices
+│   ├── 📁 receipts/                               ✅ Generated receipts
+│   ├── 📁 company/                                ✅ Company logos/docs
+│   └── 📁 backups/                                ✅ Database backups
+│
+├── 📁 sql/                                         ❗ OPTIONAL - Migration scripts
+│   └── init.sql                                    (Remove if not needed)
+│
+├── 📄 .env.example                                  ✅ Environment template
+├── 📄 .gitignore                                    ✅ Git ignore rules
+├── 📄 Procfile                                      ✅ Railway deployment
+├── 📄 README.md                                     ✅ Documentation
+├── 📄 railway.json                                  ✅ Railway config
+├── 📄 requirements.txt                              ✅ Python dependencies
+├── 📄 runtime.txt                                   ✅ Python version
+├── 📄 start.sh                                      ✅ Startup script
+├── 📄 structure.txt                                 ✅ This structure (keep)
+│
+└── ❌ REMOVE THESE TEST FILES (not needed in production):
+    ├── check_functions.js
+    ├── list_dbs.py
+    ├── test_dashboard.py
+    ├── test_db.py
+    └── test_env.py
