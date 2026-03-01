@@ -281,62 +281,13 @@ def check_session():
     
     return jsonify({'success': True, 'authenticated': False})
 
-# ==================== API ROUTES - DASHBOARD ====================
-@app.route('/api/admin/dashboard/stats', methods=['GET'])
-def dashboard_stats():
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-    
-    try:
-        initialize_database()
-        db = get_db()
-        cursor = db.cursor()
-        
-        cursor.execute('SELECT COUNT(*) as count FROM travelers')
-        travelers_count = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM batches')
-        batches_count = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM batches WHERE status = %s', ('Open',))
-        active_batches = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM payments WHERE status = %s', ('completed',))
-        payments = cursor.fetchone()
-        total_collected = float(payments['total']) if payments['total'] else 0
-        
-        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = %s', ('pending',))
-        pending_payments = cursor.fetchone()
-        pending_amount = float(pending_payments['total']) if pending_payments['total'] else 0
-        
-        cursor.execute('''
-            SELECT 'traveler' as type, first_name || ' ' || last_name as name, created_at 
-            FROM travelers ORDER BY created_at DESC LIMIT 5
-        ''')
-        recent = cursor.fetchall()
-        
-        cursor.close()
-        db.close()
-        
-        return jsonify({
-            'success': True,
-            'stats': {
-                'total_travelers': travelers_count,
-                'total_batches': batches_count,
-                'active_batches': active_batches,
-                'total_collected': total_collected,
-                'pending_amount': pending_amount,
-                'paid_count': payments['count'] or 0,
-                'pending_count': 0
-            },
-            'recent_activity': [dict(row) for row in recent]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+# ==================== API ROUTES - DASHBOARD (REMOVED - NOW IN admin.py) ====================
+# The /api/admin/dashboard/stats endpoint is now handled in admin.py
+# This prevents duplication and ensures consistent data
 
 # ==================== API ROUTES - DATABASE INIT ====================
 @app.route('/api/admin/init-db', methods=['POST'])
-def init_database():
+def init_database_route():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
