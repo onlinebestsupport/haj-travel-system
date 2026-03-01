@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import get_db, init_db
 
 # Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads, invoices, receipts
+from app.routes import auth, admin, batches, travelers, payments, company, uploads
 
 # ==================== FLASK APP INITIALIZATION ====================
 app = Flask(__name__)
@@ -80,8 +80,6 @@ app.register_blueprint(travelers.bp)
 app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
-app.register_blueprint(invoices.bp)
-app.register_blueprint(receipts.bp)
 
 # ==================== HEALTH ENDPOINTS (Always work) ====================
 @app.route('/')
@@ -160,8 +158,7 @@ def api_login():
     
     try:
         initialize_database()
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password))
         user = cursor.fetchone()
         
@@ -172,10 +169,10 @@ def api_login():
             session.permanent = True
             
             cursor.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s', (user['id'],))
-            db.commit()
+            conn.commit()
             
             cursor.close()
-            db.close()
+            conn.close()
             
             return jsonify({
                 'success': True,
@@ -189,49 +186,8 @@ def api_login():
             })
         else:
             cursor.close()
-            db.close()
+            conn.close()
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/traveler/login', methods=['POST'])
-def api_traveler_login():
-    data = request.json
-    passport_no = data.get('passport_no')
-    pin = data.get('pin')
-    
-    if not passport_no or not pin:
-        return jsonify({'success': False, 'error': 'Passport number and PIN required'}), 400
-    
-    try:
-        initialize_database()
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            'SELECT * FROM travelers WHERE passport_no = %s AND pin = %s',
-            (passport_no.upper(), pin)
-        )
-        traveler = cursor.fetchone()
-        
-        if traveler:
-            session['traveler_id'] = traveler['id']
-            session['traveler_passport'] = traveler['passport_no']
-            session['traveler_name'] = f"{traveler['first_name']} {traveler['last_name']}"
-            session.permanent = True
-            
-            cursor.close()
-            db.close()
-            
-            return jsonify({
-                'success': True,
-                'traveler_id': traveler['id'],
-                'name': f"{traveler['first_name']} {traveler['last_name']}",
-                'passport': traveler['passport_no']
-            })
-        else:
-            cursor.close()
-            db.close()
-            return jsonify({'success': False, 'error': 'Invalid passport number or PIN'}), 401
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -245,15 +201,14 @@ def check_session():
     if session.get('user_id'):
         try:
             initialize_database()
-            db = get_db()
-            cursor = db.cursor()
+            conn, cursor = get_db()
             cursor.execute(
                 'SELECT id, username, full_name, role FROM users WHERE id = %s', 
                 (session['user_id'],)
             )
             user = cursor.fetchone()
             cursor.close()
-            db.close()
+            conn.close()
             
             if user:
                 return jsonify({
@@ -268,63 +223,19 @@ def check_session():
                 })
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 500
-    elif session.get('traveler_id'):
-        return jsonify({
-            'success': True,
-            'authenticated': True,
-            'traveler': {
-                'id': session['traveler_id'],
-                'name': session['traveler_name'],
-                'passport': session['traveler_passport']
-            }
-        })
     
     return jsonify({'success': True, 'authenticated': False})
-
-# ==================== API ROUTES - DASHBOARD (REMOVED - NOW IN admin.py) ====================
-# The /api/admin/dashboard/stats endpoint is now handled in admin.py
-# This prevents duplication and ensures consistent data
-
-# ==================== API ROUTES - DATABASE INIT ====================
-@app.route('/api/admin/init-db', methods=['POST'])
-def init_database_route():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    try:
-        with app.app_context():
-            success = initialize_database()
-            if success:
-                return jsonify({'success': True, 'message': 'Database initialized'})
-            else:
-                return jsonify({'success': False, 'error': 'Database init failed'}), 500
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ==================== API ROUTES - MIGRATIONS ====================
-@app.route('/api/admin/migrate-receipts', methods=['POST'])
-def migrate_receipts():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    try:
-        from app.database import migrate_receipts_table
-        migrate_receipts_table()
-        return jsonify({'success': True, 'message': 'Receipts table migrated'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
     try:
         initialize_database()
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute('SELECT * FROM frontpage_settings WHERE id = 1')
         config = cursor.fetchone()
         cursor.close()
-        db.close()
+        conn.close()
         
         if config:
             return jsonify({'success': True, **dict(config)})
@@ -342,8 +253,7 @@ def update_frontpage_config():
     
     try:
         initialize_database()
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute("""
             UPDATE frontpage_settings SET
                 hero_heading = %s, hero_subheading = %s, hero_button_text = %s,
@@ -367,9 +277,9 @@ def update_frontpage_config():
             data.get('email_enabled', False), json.dumps(data.get('packages', [])),
             json.dumps(data.get('features', []))
         ))
-        db.commit()
+        conn.commit()
         cursor.close()
-        db.close()
+        conn.close()
         
         return jsonify({'success': True})
     except Exception as e:
@@ -379,12 +289,11 @@ def update_frontpage_config():
 def get_whatsapp_config():
     try:
         initialize_database()
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute('SELECT number, message_template FROM whatsapp_settings WHERE id = 1')
         config = cursor.fetchone()
         cursor.close()
-        db.close()
+        conn.close()
         
         if config:
             return jsonify({'success': True, **dict(config)})
@@ -397,12 +306,11 @@ def get_whatsapp_config():
 def get_email_config():
     try:
         initialize_database()
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute('SELECT from_email, reply_to, subject_prefix FROM email_settings WHERE id = 1')
         config = cursor.fetchone()
         cursor.close()
-        db.close()
+        conn.close()
         
         if config:
             return jsonify({'success': True, **dict(config)})
@@ -451,24 +359,6 @@ def serve_admin(filename):
 
     return jsonify({'success': False, 'error': 'Admin file not found'}), 404
 
-@app.route('/traveler/')
-@app.route('/traveler')
-def serve_traveler_index():
-    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
-
-@app.route('/traveler/<path:filename>')
-def serve_traveler(filename):
-    if '..' in filename or filename.startswith('/'):
-        return jsonify({'success': False, 'error': 'Invalid path'}), 400
-    
-    try:
-        return send_from_directory(PUBLIC_DIR, filename)
-    except:
-        try:
-            return send_from_directory(PUBLIC_DIR, filename + '.html')
-        except:
-            return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
-
 @app.route('/admin.login.html')
 @app.route('/admin/login')
 def serve_admin_login():
@@ -488,57 +378,6 @@ def serve_upload(filename):
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# ==================== DEBUG ROUTES ====================
-@app.route('/debug/paths')
-def debug_paths():
-    files_in_public = []
-    files_in_admin = []
-    
-    try:
-        files_in_public = os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else []
-    except:
-        pass
-    
-    try:
-        files_in_admin = os.listdir(ADMIN_DIR) if os.path.exists(ADMIN_DIR) else []
-    except:
-        pass
-    
-    return jsonify({
-        'base_dir': BASE_DIR,
-        'public_dir': PUBLIC_DIR,
-        'admin_dir': ADMIN_DIR,
-        'public_exists': os.path.exists(PUBLIC_DIR),
-        'admin_exists': os.path.exists(ADMIN_DIR),
-        'files_in_public': files_in_public,
-        'files_in_admin': files_in_admin,
-        'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
-        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0
-    })
-
-@app.route('/debug/test')
-def debug_test():
-    return jsonify({'success': True, 'message': 'Debug route working!'})
-
-@app.route('/debug/session')
-def debug_session():
-    return jsonify({
-        'session': dict(session),
-        'has_user': 'user_id' in session,
-        'has_traveler': 'traveler_id' in session
-    })
-
-@app.route('/debug/routes')
-def debug_routes():
-    routes = []
-    for rule in app.url_map.iter_rules():
-        routes.append({
-            'endpoint': rule.endpoint,
-            'methods': list(rule.methods),
-            'path': str(rule)
-        })
-    return jsonify(routes)
 
 # ==================== ERROR HANDLERS ====================
 @app.errorhandler(404)
