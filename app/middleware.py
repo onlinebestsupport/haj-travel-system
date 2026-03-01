@@ -65,15 +65,15 @@ def log_critical_action(user_id, action, details, ip_address=None):
             CREATE TABLE IF NOT EXISTS critical_logs (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-                action TEXT NOT NULL,
-                details TEXT,
-                ip_address TEXT,
+                action VARCHAR(255) NOT NULL,
+                description TEXT,
+                ip_address VARCHAR(50),
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
         cursor.execute('''
-            INSERT INTO critical_logs (user_id, action, details, ip_address, timestamp)
+            INSERT INTO critical_logs (user_id, action, description, ip_address, timestamp)
             VALUES (%s, %s, %s, %s, %s)
         ''', (user_id, action, details, ip_address, datetime.now()))
         
@@ -128,6 +128,10 @@ def auto_backup():
         cursor.execute("SELECT * FROM receipts")
         receipts = cursor.fetchall()
         
+        # Backup activity_log table
+        cursor.execute("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 1000")
+        activity_logs = cursor.fetchall()
+        
         backup_data = {
             'timestamp': datetime.now().isoformat(),
             'users': [dict(u) for u in users],
@@ -135,7 +139,8 @@ def auto_backup():
             'batches': [dict(b) for b in batches],
             'payments': [dict(p) for p in payments],
             'invoices': [dict(i) for i in invoices],
-            'receipts': [dict(r) for r in receipts]
+            'receipts': [dict(r) for r in receipts],
+            'recent_activity': [dict(a) for a in activity_logs]
         }
         
         with open(backup_path, 'w') as f:
@@ -167,8 +172,10 @@ def get_current_user():
     try:
         conn, cursor = get_db()
         cursor.execute('''
-            SELECT id, username, full_name, role, permissions 
-            FROM users WHERE id = %s
+            SELECT id, username, full_name, email, phone, department,
+                   role, permissions, is_active, last_login, created_at
+            FROM users 
+            WHERE id = %s AND is_active = true
         ''', (session['user_id'],))
         user = cursor.fetchone()
         cursor.close()
@@ -180,8 +187,12 @@ def get_current_user():
                 try:
                     if isinstance(user_dict['permissions'], str):
                         user_dict['permissions'] = json.loads(user_dict['permissions'])
-                except:
+                    # If it's already a dict (JSONB), keep as is
+                except Exception as e:
+                    print(f"⚠️ Error parsing permissions: {e}")
                     user_dict['permissions'] = {}
+            else:
+                user_dict['permissions'] = {}
             return user_dict
         return None
     except Exception as e:
@@ -194,11 +205,69 @@ def has_permission(permission_name):
     if not user:
         return False
     
+    # Super admin has all permissions
     if user['role'] == 'super_admin':
         return True
     
     permissions = user.get('permissions', {})
     return permissions.get(permission_name, False)
+
+def require_permission(permission_name):
+    """Decorator to require specific permission"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+            
+            if not has_permission(permission_name):
+                return jsonify({
+                    'success': False, 
+                    'error': f'Permission denied. Required: {permission_name}'
+                }), 403
+                
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def get_client_ip():
+    """Get client IP address from request"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    if request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    return request.remote_addr
+
+def log_user_activity(action, module, description):
+    """Log general user activity"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return
+        
+        conn, cursor = get_db()
+        cursor.execute('''
+            INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (user_id, action, module, description, get_client_ip(), datetime.now()))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Activity log error: {e}")
+
+def check_database_connection():
+    """Check if database connection is healthy"""
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"❌ Database connection check failed: {e}")
+        return False
 
 __all__ = [
     'role_required', 
@@ -206,5 +275,9 @@ __all__ = [
     'log_critical_action', 
     'auto_backup',
     'get_current_user',
-    'has_permission'
+    'has_permission',
+    'require_permission',
+    'get_client_ip',
+    'log_user_activity',
+    'check_database_connection'
 ]
