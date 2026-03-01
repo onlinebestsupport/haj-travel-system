@@ -16,11 +16,11 @@ def role_required(allowed_roles):
             if 'user_id' not in session:
                 return jsonify({'success': False, 'error': 'Unauthorized'}), 401
             
-            db = get_db()
-            cursor = db.cursor()
-            cursor.execute('SELECT role FROM users WHERE id = ?', (session['user_id'],))
+            conn, cursor = get_db()
+            cursor.execute('SELECT role FROM users WHERE id = %s', (session['user_id'],))
             user = cursor.fetchone()
-            db.close()
+            cursor.close()
+            conn.close()
             
             if not user:
                 return jsonify({'success': False, 'error': 'User not found'}), 404
@@ -42,11 +42,11 @@ def super_admin_required(f):
         if 'user_id' not in session:
             return jsonify({'success': False, 'error': 'Unauthorized'}), 401
         
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT role FROM users WHERE id = ?', (session['user_id'],))
+        conn, cursor = get_db()
+        cursor.execute('SELECT role FROM users WHERE id = %s', (session['user_id'],))
         user = cursor.fetchone()
-        db.close()
+        cursor.close()
+        conn.close()
         
         if not user or user['role'] != 'super_admin':
             return jsonify({'success': False, 'error': 'Super admin access required'}), 403
@@ -55,45 +55,54 @@ def super_admin_required(f):
 
 def log_critical_action(user_id, action, details, ip_address=None):
     """Log all critical actions to database"""
+    conn = None
+    cursor = None
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
-        # Create critical_logs table if not exists
+        # Create critical_logs table if not exists (using PostgreSQL syntax)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS critical_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                 action TEXT NOT NULL,
                 details TEXT,
                 ip_address TEXT,
-                timestamp TEXT,
-                FOREIGN KEY (user_id) REFERENCES users(id)
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
         cursor.execute('''
             INSERT INTO critical_logs (user_id, action, details, ip_address, timestamp)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (user_id, action, details, ip_address, datetime.now().isoformat()))
+            VALUES (%s, %s, %s, %s, %s)
+        ''', (user_id, action, details, ip_address, datetime.now()))
         
-        db.commit()
-        db.close()
+        conn.commit()
+        print(f"✅ Critical action logged: {action}")
+        
     except Exception as e:
-        print(f"Logging error: {e}")
+        print(f"❌ Logging error: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def auto_backup():
     """Auto backup before critical operations"""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
         # Create backups directory if not exists
-        backup_dir = 'backups'
+        backup_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads', 'backups')
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
+            print(f"📁 Created backup directory: {backup_dir}")
         
         backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        backup_path = os.path.join(backup_dir, backup_name)
         
         # Backup users table
         cursor.execute("SELECT * FROM users")
@@ -111,19 +120,91 @@ def auto_backup():
         cursor.execute("SELECT * FROM payments")
         payments = cursor.fetchall()
         
+        # Backup invoices table
+        cursor.execute("SELECT * FROM invoices")
+        invoices = cursor.fetchall()
+        
+        # Backup receipts table
+        cursor.execute("SELECT * FROM receipts")
+        receipts = cursor.fetchall()
+        
         backup_data = {
             'timestamp': datetime.now().isoformat(),
             'users': [dict(u) for u in users],
             'travelers': [dict(t) for t in travelers],
             'batches': [dict(b) for b in batches],
-            'payments': [dict(p) for p in payments]
+            'payments': [dict(p) for p in payments],
+            'invoices': [dict(i) for i in invoices],
+            'receipts': [dict(r) for r in receipts]
         }
         
-        with open(f'{backup_dir}/{backup_name}', 'w') as f:
+        with open(backup_path, 'w') as f:
             json.dump(backup_data, f, indent=2, default=str)
         
-        db.close()
+        cursor.close()
+        conn.close()
+        
+        # Log the backup
+        log_critical_action(
+            session.get('user_id'), 
+            'AUTO_BACKUP', 
+            f'Created backup: {backup_name}',
+            request.remote_addr if request else None
+        )
+        
+        print(f"✅ Backup created: {backup_name}")
         return backup_name
+        
     except Exception as e:
-        print(f"Backup error: {e}")
+        print(f"❌ Backup error: {e}")
         return None
+
+def get_current_user():
+    """Helper function to get current user details"""
+    if 'user_id' not in session:
+        return None
+    
+    try:
+        conn, cursor = get_db()
+        cursor.execute('''
+            SELECT id, username, full_name, role, permissions 
+            FROM users WHERE id = %s
+        ''', (session['user_id'],))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if user:
+            user_dict = dict(user)
+            if user_dict.get('permissions'):
+                try:
+                    if isinstance(user_dict['permissions'], str):
+                        user_dict['permissions'] = json.loads(user_dict['permissions'])
+                except:
+                    user_dict['permissions'] = {}
+            return user_dict
+        return None
+    except Exception as e:
+        print(f"❌ Error getting current user: {e}")
+        return None
+
+def has_permission(permission_name):
+    """Check if current user has specific permission"""
+    user = get_current_user()
+    if not user:
+        return False
+    
+    if user['role'] == 'super_admin':
+        return True
+    
+    permissions = user.get('permissions', {})
+    return permissions.get(permission_name, False)
+
+__all__ = [
+    'role_required', 
+    'super_admin_required', 
+    'log_critical_action', 
+    'auto_backup',
+    'get_current_user',
+    'has_permission'
+]
