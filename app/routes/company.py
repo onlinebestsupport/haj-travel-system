@@ -1,18 +1,22 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from app.database import get_db
 from datetime import datetime
 import json
+import os
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('company', __name__, url_prefix='/api/company')
+
+# ==================== COMPANY SETTINGS MANAGEMENT ====================
 
 @bp.route('/settings', methods=['GET'])
 def get_settings():
     """Get complete company settings (ALL 48 FIELDS)"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if settings:
         return jsonify({'success': True, 'settings': dict(settings)})
@@ -72,63 +76,62 @@ def update_settings():
     
     data = request.json
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     try:
         # Check if settings exist
         cursor.execute('SELECT id FROM company_settings WHERE id = 1')
         exists = cursor.fetchone()
         
-        now = datetime.now().isoformat()
+        now = datetime.now()
         
         if exists:
             # Update existing settings
             cursor.execute('''
                 UPDATE company_settings SET
                     -- Company Details
-                    legal_name = ?,
-                    display_name = ?,
+                    legal_name = %s,
+                    display_name = %s,
                     
                     -- Address
-                    address_line1 = ?,
-                    address_line2 = ?,
-                    city = ?,
-                    state = ?,
-                    country = ?,
-                    pin_code = ?,
+                    address_line1 = %s,
+                    address_line2 = %s,
+                    city = %s,
+                    state = %s,
+                    country = %s,
+                    pin_code = %s,
                     
                     -- Contact
-                    phone = ?,
-                    mobile = ?,
-                    email = ?,
-                    website = ?,
+                    phone = %s,
+                    mobile = %s,
+                    email = %s,
+                    website = %s,
                     
                     -- Tax Information
-                    gstin = ?,
-                    pan = ?,
-                    tan = ?,
-                    tcs_no = ?,
-                    tin = ?,
-                    cin = ?,
-                    iec = ?,
-                    msme = ?,
+                    gstin = %s,
+                    pan = %s,
+                    tan = %s,
+                    tcs_no = %s,
+                    tin = %s,
+                    cin = %s,
+                    iec = %s,
+                    msme = %s,
                     
                     -- Bank Details
-                    bank_name = ?,
-                    bank_branch = ?,
-                    account_name = ?,
-                    account_no = ?,
-                    ifsc_code = ?,
-                    micr_code = ?,
-                    upi_id = ?,
-                    qr_code = ?,
+                    bank_name = %s,
+                    bank_branch = %s,
+                    account_name = %s,
+                    account_no = %s,
+                    ifsc_code = %s,
+                    micr_code = %s,
+                    upi_id = %s,
+                    qr_code = %s,
                     
                     -- Logo
-                    logo = ?,
+                    logo = %s,
                     
                     -- Metadata
-                    updated_at = ?
+                    updated_at = %s
                 WHERE id = 1
             ''', (
                 # Company Details
@@ -198,8 +201,8 @@ def update_settings():
                     logo,
                     
                     -- Metadata
-                    updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (
                 # Company Details
                 data.get('legal_name', 'Alhudha Haj Service P Ltd.'),
@@ -243,14 +246,16 @@ def update_settings():
                 data.get('logo'),
                 
                 # Metadata
+                now,
                 now
             ))
         
         # Log activity
-        log_activity(session['user_id'], 'update', 'company', 'Updated company settings')
+        log_activity(session['user_id'], 'update', 'company', 'Updated company settings', request.remote_addr)
         
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return jsonify({
             'success': True, 
@@ -258,8 +263,9 @@ def update_settings():
         })
         
     except Exception as e:
-        db.rollback()
-        db.close()
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @bp.route('/logo', methods=['POST'])
@@ -282,32 +288,30 @@ def upload_logo():
         return jsonify({'success': False, 'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, svg'}), 400
     
     # Generate unique filename
-    import os
-    from werkzeug.utils import secure_filename
-    
     filename = secure_filename(file.filename)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    new_filename = f"logo_{timestamp}_{filename}"
+    ext = filename.rsplit('.', 1)[1].lower()
+    new_filename = f"logo_{timestamp}.{ext}"
     
     # Save file
-    upload_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'uploads', 'company')
+    upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'company')
     os.makedirs(upload_folder, exist_ok=True)
     file_path = os.path.join(upload_folder, new_filename)
     file.save(file_path)
     
     # Update database with logo path
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('''
         UPDATE company_settings 
-        SET logo = ?, updated_at = ?
+        SET logo = %s, updated_at = %s
         WHERE id = 1
-    ''', (f'/uploads/company/{new_filename}', datetime.now().isoformat()))
-    db.commit()
-    db.close()
+    ''', (f'/uploads/company/{new_filename}', datetime.now()))
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     # Log activity
-    log_activity(session['user_id'], 'upload', 'company', 'Uploaded company logo')
+    log_activity(session['user_id'], 'upload', 'company', 'Uploaded company logo', request.remote_addr)
     
     return jsonify({
         'success': True,
@@ -318,11 +322,11 @@ def upload_logo():
 @bp.route('/details', methods=['GET'])
 def get_company_details():
     """Get formatted company details for invoices/receipts"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if not settings:
         return jsonify({'success': False, 'error': 'Company settings not found'}), 404
@@ -385,8 +389,7 @@ def get_company_details():
 @bp.route('/bank-details', methods=['GET'])
 def get_bank_details():
     """Get bank details only"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('''
         SELECT 
             bank_name, bank_branch, account_name, account_no,
@@ -394,7 +397,8 @@ def get_bank_details():
         FROM company_settings WHERE id = 1
     ''')
     bank = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -404,15 +408,15 @@ def get_bank_details():
 @bp.route('/tax-details', methods=['GET'])
 def get_tax_details():
     """Get tax details only"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('''
         SELECT 
             gstin, pan, tan, tcs_no, tin, cin, iec, msme
         FROM company_settings WHERE id = 1
     ''')
     tax = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -422,8 +426,7 @@ def get_tax_details():
 @bp.route('/contact-details', methods=['GET'])
 def get_contact_details():
     """Get contact details only"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     cursor.execute('''
         SELECT 
             phone, mobile, email, website,
@@ -431,24 +434,70 @@ def get_contact_details():
         FROM company_settings WHERE id = 1
     ''')
     contact = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
         'contact_details': dict(contact) if contact else {}
     })
 
+@bp.route('/initialize', methods=['POST'])
+def initialize_settings():
+    """Initialize company settings with default values"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn, cursor = get_db()
+    
+    try:
+        # Check if settings already exist
+        cursor.execute('SELECT id FROM company_settings WHERE id = 1')
+        exists = cursor.fetchone()
+        
+        if not exists:
+            now = datetime.now()
+            cursor.execute('''
+                INSERT INTO company_settings (
+                    id, legal_name, display_name, country, created_at, updated_at
+                ) VALUES (1, %s, %s, %s, %s, %s)
+            ''', (
+                'Alhudha Haj Service P Ltd.',
+                'Alhudha Haj Travel',
+                'India',
+                now,
+                now
+            ))
+            conn.commit()
+            message = 'Company settings initialized with defaults'
+        else:
+            message = 'Company settings already exist'
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': message
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 # Helper function to log activity
-def log_activity(user_id, action, module, description):
+def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
-            (user_id, action, module, description, request.remote_addr)
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
+            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
         )
-        db.commit()
-        db.close()
-    except:
-        pass  # Fail silently
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Activity log error: {e}")
