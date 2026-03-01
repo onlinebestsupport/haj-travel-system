@@ -71,6 +71,7 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'pan'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'vaccine'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'photos'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'backups'), exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'company'), exist_ok=True)
 
 # ==================== BLUEPRINT REGISTRATION ====================
 app.register_blueprint(auth.bp)
@@ -280,6 +281,7 @@ def check_session():
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
 def get_frontpage_config():
+    """Get complete frontpage configuration"""
     try:
         initialize_database()
         conn, cursor = get_db()
@@ -297,6 +299,7 @@ def get_frontpage_config():
 
 @app.route('/api/frontpage/config', methods=['POST'])
 def update_frontpage_config():
+    """Update frontpage configuration"""
     if not session.get('user_id'):
         return jsonify({'success': False, 'error': 'Not authenticated'}), 401
     
@@ -336,8 +339,155 @@ def update_frontpage_config():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/frontpage/publish', methods=['POST'])
+def publish_frontpage():
+    """Publish frontpage configuration with full company details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    try:
+        conn, cursor = get_db()
+        
+        # Update frontpage_settings
+        cursor.execute("""
+            UPDATE frontpage_settings SET
+                hero_heading = %s,
+                hero_subheading = %s,
+                hero_button_text = %s,
+                hero_button_link = %s,
+                packages_title = %s,
+                footer_text = %s,
+                footer_phone = %s,
+                footer_email = %s,
+                facebook_url = %s,
+                twitter_url = %s,
+                instagram_url = %s,
+                alert_enabled = %s,
+                alert_message = %s,
+                alert_link = %s,
+                alert_color = %s,
+                alert_style = %s,
+                whatsapp_number = %s,
+                whatsapp_message = %s,
+                booking_email = %s,
+                email_subject = %s,
+                whatsapp_enabled = %s,
+                email_enabled = %s,
+                packages = %s,
+                features = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1
+        """, (
+            data['hero']['heading'],
+            data['hero']['subheading'],
+            data['hero']['button'],
+            data['hero']['buttonLink'],
+            data['packagesTitle'],
+            data['footer']['text'],
+            data['footer']['phone'],
+            data['footer']['email'],
+            data['contact']['facebook'],
+            data['contact']['twitter'],
+            data['contact']['instagram'],
+            data['alert']['enabled'],
+            data['alert']['message'],
+            data['alert']['link'],
+            data['alert']['color'],
+            data['alert']['style'],
+            data['contact']['whatsapp'],
+            data['contact']['whatsappMessage'],
+            data['contact']['email'],
+            data['contact']['emailSubject'],
+            data['whatsappEnabled'],
+            data['emailEnabled'],
+            json.dumps(data['packages']),
+            json.dumps(data['features'])
+        ))
+        
+        # Update company_settings with all 48 fields
+        cursor.execute("""
+            UPDATE company_settings SET
+                legal_name = %s,
+                display_name = %s,
+                address_line1 = %s,
+                address_line2 = %s,
+                city = %s,
+                state = %s,
+                country = %s,
+                pin_code = %s,
+                phone = %s,
+                mobile = %s,
+                email = %s,
+                website = %s,
+                gstin = %s,
+                pan = %s,
+                tan = %s,
+                tcs_no = %s,
+                tin = %s,
+                cin = %s,
+                iec = %s,
+                msme = %s,
+                bank_name = %s,
+                bank_branch = %s,
+                account_name = %s,
+                account_no = %s,
+                ifsc_code = %s,
+                micr_code = %s,
+                upi_id = %s,
+                qr_code = %s,
+                logo = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1
+        """, (
+            data['company']['legalName'],
+            data['company']['displayName'],
+            data['company']['address1'],
+            data['company']['address2'],
+            data['company']['city'],
+            data['company']['state'],
+            data['company']['country'],
+            data['company']['pin'],
+            data['company']['phone'],
+            data['company']['mobile'],
+            data['company']['email'],
+            data['company']['website'],
+            data['company']['gstin'],
+            data['company']['pan'],
+            data['company']['tan'],
+            data['company']['tcs'],
+            data['company']['tin'],
+            data['company']['cin'],
+            data['company']['iec'],
+            data['company']['msme'],
+            data['company']['bankName'],
+            data['company']['bankBranch'],
+            data['company']['accountName'],
+            data['company']['accountNo'],
+            data['company']['ifsc'],
+            data['company']['micr'],
+            data['company']['upi'],
+            data['company']['qr'],
+            data.get('logo', '')
+        ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Log the publish action
+        log_admin_action(session['user_id'], 'publish_frontpage', 'Published website frontpage')
+        
+        return jsonify({'success': True, 'message': 'Frontpage published successfully'})
+        
+    except Exception as e:
+        print(f"❌ Publish error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/frontpage/whatsapp', methods=['GET'])
 def get_whatsapp_config():
+    """Get WhatsApp configuration"""
     try:
         initialize_database()
         conn, cursor = get_db()
@@ -355,6 +505,7 @@ def get_whatsapp_config():
 
 @app.route('/api/frontpage/email', methods=['GET'])
 def get_email_config():
+    """Get email configuration"""
     try:
         initialize_database()
         conn, cursor = get_db()
@@ -467,6 +618,11 @@ def serve_admin_login():
 def serve_traveler_login():
     return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
 
+@app.route('/frontpage.html')
+@app.route('/admin/frontpage.html')
+def serve_frontpage():
+    return send_from_directory(ADMIN_DIR, 'frontpage.html')
+
 @app.route('/style.css')
 def serve_css():
     return send_from_directory(PUBLIC_DIR, 'style.css')
@@ -476,6 +632,13 @@ def serve_upload(filename):
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/uploads/company/<path:filename>')
+def serve_company_upload(filename):
+    if '..' in filename or filename.startswith('/'):
+        return jsonify({'success': False, 'error': 'Invalid path'}), 400
+    company_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'company')
+    return send_from_directory(company_folder, filename)
 
 # ==================== DEBUG ROUTES ====================
 @app.route('/debug/paths')
@@ -502,7 +665,8 @@ def debug_paths():
         'files_in_public': files_in_public,
         'files_in_admin': files_in_admin,
         'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
-        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0
+        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0,
+        'frontpage_exists': os.path.exists(os.path.join(ADMIN_DIR, 'frontpage.html'))
     })
 
 @app.route('/debug/test')
@@ -537,6 +701,21 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
+# ==================== HELPER FUNCTIONS ====================
+def log_admin_action(user_id, action, description):
+    """Log admin actions to database"""
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (user_id, action, 'frontpage', description, request.remote_addr, datetime.now()))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Failed to log admin action: {e}")
+
 # ==================== APPLICATION ENTRY POINT ====================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
@@ -551,7 +730,9 @@ if __name__ == '__main__':
     print("=" * 60)
     print("📡 Health check: /health")
     print("📡 API Endpoints ready (lazy DB init)")
-    print("📡 Reports API: /api/reports/generate")
+    print("📡 Frontpage Editor: /admin/frontpage.html")
+    print("📡 Frontpage API: /api/frontpage/config")
+    print("📡 Publish API: /api/frontpage/publish")
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=port, debug=debug)
