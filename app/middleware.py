@@ -4,6 +4,8 @@ from app.database import get_db
 from datetime import datetime
 import json
 import os
+import subprocess
+import shutil
 
 def role_required(allowed_roles):
     """
@@ -79,78 +81,144 @@ def log_critical_action(user_id, action, details, ip_address=None):
             conn.close()
 
 def auto_backup():
-    """Auto backup before critical operations"""
+    """Create automatic database backup with PostgreSQL pg_dump"""
     try:
-        conn, cursor = get_db()
+        from flask import current_app
         
-        # Create backups directory if not exists
+        # Get database URL from environment
+        import os
+        DATABASE_URL = os.environ.get('DATABASE_URL')
+        
+        if not DATABASE_URL:
+            print("❌ DATABASE_URL not found")
+            return None
+        
+        # Parse database URL
+        # Format: postgresql://user:password@host:port/database
+        import re
+        match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+        if not match:
+            print("❌ Could not parse DATABASE_URL")
+            return None
+        
+        user, password, host, port, database = match.groups()
+        
+        # Create backups directory
         backup_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads', 'backups')
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
             print(f"📁 Created backup directory: {backup_dir}")
         
-        backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        # Generate backup filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_name = f"backup_{timestamp}.sql"
         backup_path = os.path.join(backup_dir, backup_name)
         
-        # Backup users table
-        cursor.execute("SELECT * FROM users")
-        users = cursor.fetchall()
+        # Set PGPASSWORD environment variable for password
+        env = os.environ.copy()
+        env['PGPASSWORD'] = password
         
-        # Backup travelers table
-        cursor.execute("SELECT * FROM travelers")
-        travelers = cursor.fetchall()
+        # Run pg_dump command
+        cmd = [
+            'pg_dump',
+            '-h', host,
+            '-p', str(port),
+            '-U', user,
+            '-d', database,
+            '-F', 'c',  # Custom format (compressed)
+            '-f', backup_path
+        ]
         
-        # Backup batches table
-        cursor.execute("SELECT * FROM batches")
-        batches = cursor.fetchall()
+        print(f"🔄 Running pg_dump: {' '.join(cmd)}")
         
-        # Backup payments table
-        cursor.execute("SELECT * FROM payments")
-        payments = cursor.fetchall()
+        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
         
-        # Backup invoices table
-        cursor.execute("SELECT * FROM invoices")
-        invoices = cursor.fetchall()
+        if result.returncode != 0:
+            print(f"❌ pg_dump failed: {result.stderr}")
+            return None
         
-        # Backup receipts table
-        cursor.execute("SELECT * FROM receipts")
-        receipts = cursor.fetchall()
+        # Get file size
+        file_size = os.path.getsize(backup_path)
+        size_str = format_file_size(file_size)
         
-        # Backup activity_log table
-        cursor.execute("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 1000")
-        activity_logs = cursor.fetchall()
+        print(f"✅ Backup created: {backup_name} ({size_str})")
         
-        backup_data = {
-            'timestamp': datetime.now().isoformat(),
-            'users': [dict(u) for u in users],
-            'travelers': [dict(t) for t in travelers],
-            'batches': [dict(b) for b in batches],
-            'payments': [dict(p) for p in payments],
-            'invoices': [dict(i) for i in invoices],
-            'receipts': [dict(r) for r in receipts],
-            'recent_activity': [dict(a) for a in activity_logs]
-        }
-        
-        with open(backup_path, 'w') as f:
-            json.dump(backup_data, f, indent=2, default=str)
-        
+        # Get table count
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """)
+        tables_count = cursor.fetchone()['count']
         cursor.close()
         conn.close()
         
-        # Log the backup
-        log_critical_action(
-            session.get('user_id'), 
-            'AUTO_BACKUP', 
-            f'Created backup: {backup_name}',
-            request.remote_addr if request else None
-        )
+        # Save to backup_history table
+        conn, cursor = get_db()
+        cursor.execute("""
+            INSERT INTO backup_history (
+                backup_name, backup_type, file_size, tables_count, 
+                status, location, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            backup_name,
+            'auto',
+            size_str,
+            tables_count,
+            'completed',
+            backup_path,
+            datetime.now()
+        ))
+        backup_id = cursor.fetchone()['id']
+        conn.commit()
+        cursor.close()
+        conn.close()
         
-        print(f"✅ Backup created: {backup_name}")
-        return backup_name
+        return {
+            'id': backup_id,
+            'name': backup_name,
+            'path': backup_path,
+            'size': size_str,
+            'tables': tables_count
+        }
         
     except Exception as e:
         print(f"❌ Backup error: {e}")
         return None
+
+def manual_backup(description=None, is_restore_point=False):
+    """Create manual backup or restore point"""
+    try:
+        result = auto_backup()  # Reuse auto_backup logic
+        
+        if result and is_restore_point:
+            # Update as restore point
+            conn, cursor = get_db()
+            cursor.execute("""
+                UPDATE backup_history 
+                SET is_restore_point = TRUE, description = %s
+                WHERE id = %s
+            """, (description, result['id']))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            result['is_restore_point'] = True
+            result['description'] = description
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Manual backup error: {e}")
+        return None
+
+def format_file_size(size_bytes):
+    """Format file size in human readable format"""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} TB"
 
 def get_current_user():
     """Helper function to get current user details"""
@@ -260,6 +328,7 @@ __all__ = [
     'super_admin_required', 
     'log_critical_action', 
     'auto_backup',
+    'manual_backup',
     'get_current_user',
     'has_permission',
     'require_permission',
