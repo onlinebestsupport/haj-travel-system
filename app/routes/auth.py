@@ -29,13 +29,12 @@ def login():
     if not username or not password:
         return jsonify({'success': False, 'error': 'Username and password required'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     # Get user with active status
     cursor.execute('''
         SELECT * FROM users 
-        WHERE username = ? AND is_active = 1
+        WHERE username = %s AND is_active = true
     ''', (username,))
     
     user = cursor.fetchone()
@@ -54,23 +53,27 @@ def login():
         # Update last login
         cursor.execute('''
             UPDATE users 
-            SET last_login = ? 
-            WHERE id = ?
-        ''', (datetime.now().isoformat(), user['id']))
+            SET last_login = %s 
+            WHERE id = %s
+        ''', (datetime.now(), user['id']))
         
         # Parse permissions
         permissions = {}
         if user['permissions']:
             try:
-                permissions = json.loads(user['permissions'])
+                if isinstance(user['permissions'], str):
+                    permissions = json.loads(user['permissions'])
+                else:
+                    permissions = user['permissions']
             except:
                 permissions = {}
         
         # Log activity
         log_activity(user['id'], 'login', 'auth', f'User logged in from {request.remote_addr}', request.remote_addr)
         
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return jsonify({
             'success': True,
@@ -85,7 +88,8 @@ def login():
             'redirect': '/admin/dashboard.html'
         })
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     # Failed login - log attempt (optional)
     log_activity(None, 'failed_login', 'auth', f'Failed login attempt for username: {username}', request.remote_addr)
@@ -105,14 +109,13 @@ def traveler_login():
     if len(pin) != 4 or not pin.isdigit():
         return jsonify({'success': False, 'error': 'PIN must be exactly 4 digits'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT t.*, b.batch_name, b.departure_date, b.return_date, b.status as batch_status
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
-        WHERE t.passport_no = ? AND t.pin = ?
+        WHERE t.passport_no = %s AND t.pin = %s
     ''', (passport_no, pin))
     
     traveler = cursor.fetchone()
@@ -129,10 +132,10 @@ def traveler_login():
         cursor.execute('''
             SELECT 
                 COUNT(*) as payment_count,
-                SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_paid,
-                SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as total_pending
+                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending
             FROM payments
-            WHERE traveler_id = ?
+            WHERE traveler_id = %s
         ''', (traveler['id'],))
         
         payment_summary = cursor.fetchone()
@@ -140,7 +143,8 @@ def traveler_login():
         # Log activity
         log_activity(None, 'traveler_login', 'auth', f'Traveler logged in: {traveler["first_name"]} {traveler["last_name"]}', request.remote_addr)
         
-        db.close()
+        cursor.close()
+        conn.close()
         
         return jsonify({
             'success': True,
@@ -156,7 +160,8 @@ def traveler_login():
             'message': 'Login successful'
         })
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     # Failed login - log attempt
     log_activity(None, 'failed_traveler_login', 'auth', f'Failed traveler login attempt for passport: {passport_no}', request.remote_addr)
@@ -186,23 +191,26 @@ def check_session():
     }
     
     if 'user_id' in session:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
         cursor.execute('''
             SELECT id, username, full_name, email, role, permissions
-            FROM users WHERE id = ? AND is_active = 1
+            FROM users WHERE id = %s AND is_active = true
         ''', (session['user_id'],))
         
         user = cursor.fetchone()
-        db.close()
+        cursor.close()
+        conn.close()
         
         if user:
             # Parse permissions
             permissions = {}
             if user['permissions']:
                 try:
-                    permissions = json.loads(user['permissions'])
+                    if isinstance(user['permissions'], str):
+                        permissions = json.loads(user['permissions'])
+                    else:
+                        permissions = user['permissions']
                 except:
                     permissions = {}
             
@@ -223,16 +231,16 @@ def check_session():
             session.clear()
     
     elif 'traveler_id' in session:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
         cursor.execute('''
             SELECT id, first_name, last_name, passport_no, batch_id
-            FROM travelers WHERE id = ?
+            FROM travelers WHERE id = %s
         ''', (session['traveler_id'],))
         
         traveler = cursor.fetchone()
-        db.close()
+        cursor.close()
+        conn.close()
         
         if traveler:
             response.update({
@@ -267,26 +275,27 @@ def change_password():
     if len(new_password) < 6:
         return jsonify({'success': False, 'error': 'New password must be at least 6 characters'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
-    cursor.execute('SELECT password FROM users WHERE id = ?', (session['user_id'],))
+    cursor.execute('SELECT password FROM users WHERE id = %s', (session['user_id'],))
     user = cursor.fetchone()
     
     if not user or user['password'] != old_password:  # Simple check for demo
-        db.close()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': 'Current password is incorrect'}), 401
     
     cursor.execute('''
         UPDATE users 
-        SET password = ?, updated_at = ?
-        WHERE id = ?
-    ''', (new_password, datetime.now().isoformat(), session['user_id']))
+        SET password = %s, updated_at = %s
+        WHERE id = %s
+    ''', (new_password, datetime.now(), session['user_id']))
     
     log_activity(session['user_id'], 'password_change', 'auth', 'User changed password', request.remote_addr)
     
-    db.commit()
-    db.close()
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     return jsonify({'success': True, 'message': 'Password changed successfully'})
 
@@ -299,12 +308,12 @@ def forgot_password():
     if not email:
         return jsonify({'success': False, 'error': 'Email required'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
-    cursor.execute('SELECT id, username FROM users WHERE email = ?', (email,))
+    cursor.execute('SELECT id, username FROM users WHERE email = %s', (email,))
     user = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if user:
         # In production, send email with reset link
@@ -321,16 +330,16 @@ def forgot_password():
 def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
-            (user_id, action, module, description, ip_address)
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
+            (user_id, action, module, description, ip_address, datetime.now())
         )
-        db.commit()
-        db.close()
-    except:
-        pass  # Fail silently
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Activity log error: {e}")  # Fail silently but log for debugging
 
 # Token generation for API (optional)
 def generate_token(user_id):
@@ -338,13 +347,41 @@ def generate_token(user_id):
     import secrets
     token = secrets.token_hex(32)
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
+    
+    # Create api_tokens table if not exists
     cursor.execute('''
-        INSERT INTO api_tokens (user_id, token, created_at)
-        VALUES (?, ?, ?)
-    ''', (user_id, token, datetime.now().isoformat()))
-    db.commit()
-    db.close()
+        CREATE TABLE IF NOT EXISTS api_tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            token TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_used TIMESTAMP,
+            expires_at TIMESTAMP
+        )
+    ''')
+    
+    cursor.execute('''
+        INSERT INTO api_tokens (user_id, token, created_at, expires_at)
+        VALUES (%s, %s, %s, %s)
+    ''', (user_id, token, datetime.now(), datetime.now() + timedelta(days=30)))
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
     
     return token
+
+@bp.route('/api-token', methods=['POST'])
+def create_api_token():
+    """Create new API token for authenticated user"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    token = generate_token(session['user_id'])
+    
+    return jsonify({
+        'success': True,
+        'token': token,
+        'message': 'API token created successfully'
+    })
