@@ -44,17 +44,18 @@ def save_uploaded_file(file, traveler_id, doc_type):
     return filename
 
 def log_activity(user_id, action, module, description, ip_address=None):
-    """Log user activity - using existing function from server.py"""
+    """Log user activity"""
     try:
-        db = get_db()
-        db.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now().isoformat())
+        conn, cursor = get_db()
+        cursor.execute(
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
+            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
         )
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
     except Exception as e:
-        print(f"Error logging activity: {e}")
+        print(f"⚠️ Error logging activity: {e}")
 
 @bp.route('', methods=['GET'])
 def get_travelers():
@@ -63,8 +64,7 @@ def get_travelers():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT 
@@ -74,16 +74,17 @@ def get_travelers():
             b.departure_date,
             b.return_date,
             (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'completed') as payment_count,
-            (SELECT SUM(amount) FROM payments WHERE traveler_id = t.id AND status = 'completed') as total_paid,
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE traveler_id = t.id AND status = 'completed') as total_paid,
             (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_count,
-            (SELECT SUM(amount) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_amount
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_amount
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
         ORDER BY t.created_at DESC
     ''')
     
     travelers = cursor.fetchall()
-    db.close()
+    cursor.close()
+    conn.close()
     
     # Convert to list of dicts and parse extra_fields
     result = []
@@ -91,7 +92,8 @@ def get_travelers():
         t_dict = dict(t)
         if t_dict.get('extra_fields'):
             try:
-                t_dict['extra_fields'] = json.loads(t_dict['extra_fields'])
+                if isinstance(t_dict['extra_fields'], str):
+                    t_dict['extra_fields'] = json.loads(t_dict['extra_fields'])
             except:
                 t_dict['extra_fields'] = {}
         result.append(t_dict)
@@ -112,8 +114,7 @@ def get_traveler(traveler_id):
     if 'traveler_id' in session and session['traveler_id'] != traveler_id:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT 
@@ -128,19 +129,20 @@ def get_traveler(traveler_id):
             b.description as batch_description
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
-        WHERE t.id = ?
+        WHERE t.id = %s
     ''', (traveler_id,))
     
     traveler = cursor.fetchone()
     
     if not traveler:
-        db.close()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
     # Get payments
     cursor.execute('''
         SELECT * FROM payments 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY payment_date DESC
     ''', (traveler_id,))
     payments = cursor.fetchall()
@@ -149,20 +151,20 @@ def get_traveler(traveler_id):
     cursor.execute('''
         SELECT 
             COUNT(*) as total_transactions,
-            SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_paid,
-            SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
+            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending_amount,
             MAX(payment_date) as last_payment_date,
             COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
             COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
         FROM payments 
-        WHERE traveler_id = ?
+        WHERE traveler_id = %s
     ''', (traveler_id,))
     payment_summary = cursor.fetchone()
     
     # Get invoices
     cursor.execute('''
         SELECT * FROM invoices 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY created_at DESC
     ''', (traveler_id,))
     invoices = cursor.fetchall()
@@ -170,12 +172,13 @@ def get_traveler(traveler_id):
     # Get receipts
     cursor.execute('''
         SELECT * FROM receipts 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY created_at DESC
     ''', (traveler_id,))
     receipts = cursor.fetchall()
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     result = dict(traveler)
     result['payments'] = [dict(p) for p in payments]
@@ -185,7 +188,8 @@ def get_traveler(traveler_id):
     
     if result.get('extra_fields'):
         try:
-            result['extra_fields'] = json.loads(result['extra_fields'])
+            if isinstance(result['extra_fields'], str):
+                result['extra_fields'] = json.loads(result['extra_fields'])
         except:
             result['extra_fields'] = {}
     
@@ -194,38 +198,40 @@ def get_traveler(traveler_id):
 @bp.route('/passport/<string:passport_no>', methods=['GET'])
 def get_traveler_by_passport(passport_no):
     """Get traveler by passport number"""
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT t.*, b.batch_name, b.price as batch_price, 
                b.departure_date, b.return_date, b.status as batch_status
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
-        WHERE t.passport_no = ?
+        WHERE t.passport_no = %s
     ''', (passport_no.upper(),))
     
     traveler = cursor.fetchone()
     
     if not traveler:
-        db.close()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
     cursor.execute('''
         SELECT * FROM payments 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY payment_date DESC
     ''', (traveler['id'],))
     payments = cursor.fetchall()
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     result = dict(traveler)
     result['payments'] = [dict(p) for p in payments]
     
     if result.get('extra_fields'):
         try:
-            result['extra_fields'] = json.loads(result['extra_fields'])
+            if isinstance(result['extra_fields'], str):
+                result['extra_fields'] = json.loads(result['extra_fields'])
         except:
             result['extra_fields'] = {}
     
@@ -263,14 +269,14 @@ def create_traveler():
     if isinstance(extra_fields, dict):
         extra_fields = json.dumps(extra_fields)
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     try:
         # Check for duplicate passport
-        cursor.execute('SELECT id FROM travelers WHERE passport_no = ?', (data['passport_no'].upper(),))
+        cursor.execute('SELECT id FROM travelers WHERE passport_no = %s', (data['passport_no'].upper(),))
         if cursor.fetchone():
-            db.close()
+            cursor.close()
+            conn.close()
             return jsonify({'success': False, 'error': 'Passport number already exists'}), 400
         
         # Insert traveler first to get ID
@@ -285,7 +291,8 @@ def create_traveler():
                 father_name, mother_name, spouse_name,
                 pin, emergency_contact, emergency_phone, medical_notes,
                 extra_fields, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
         ''', (
             data['first_name'],
             data['last_name'],
@@ -315,11 +322,12 @@ def create_traveler():
             data.get('emergency_phone'),
             data.get('medical_notes'),
             extra_fields,
-            datetime.now().isoformat(),
-            datetime.now().isoformat()
+            datetime.now(),
+            datetime.now()
         ))
         
-        traveler_id = cursor.lastrowid
+        result = cursor.fetchone()
+        traveler_id = result['id'] if result else None
         
         # Handle file uploads
         document_fields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
@@ -332,22 +340,23 @@ def create_traveler():
                 if file and file.filename:
                     filename = save_uploaded_file(file, traveler_id, doc_field)
                     if filename:
-                        document_updates.append(f"{doc_field} = ?")
+                        document_updates.append(f"{doc_field} = %s")
                         document_values.append(filename)
         
         if document_updates:
-            update_query = f"UPDATE travelers SET {', '.join(document_updates)} WHERE id = ?"
+            update_query = f"UPDATE travelers SET {', '.join(document_updates)} WHERE id = %s"
             document_values.append(traveler_id)
             cursor.execute(update_query, document_values)
         
         # Update batch booked seats
-        cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (batch_id,))
+        cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = %s', (batch_id,))
         
         # Log activity
         log_activity(session['user_id'], 'create', 'traveler', f'Created traveler: {data["first_name"]} {data["last_name"]}', request.remote_addr)
         
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return jsonify({
             'success': True,
@@ -356,8 +365,9 @@ def create_traveler():
         })
         
     except Exception as e:
-        db.rollback()
-        db.close()
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @bp.route('/<int:traveler_id>', methods=['PUT'])
@@ -374,14 +384,14 @@ def update_traveler(traveler_id):
         data = request.json
         files = {}
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     try:
-        cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = ?', (traveler_id,))
+        cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = %s', (traveler_id,))
         existing = cursor.fetchone()
         if not existing:
-            db.close()
+            cursor.close()
+            conn.close()
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         old_batch_id = existing['batch_id']
@@ -408,7 +418,7 @@ def update_traveler(traveler_id):
         
         for field in text_fields:
             if field in data and data[field] is not None:
-                update_fields.append(f"{field} = ?")
+                update_fields.append(f"{field} = %s")
                 if field == 'passport_no':
                     values.append(data[field].upper())
                 else:
@@ -422,43 +432,45 @@ def update_traveler(traveler_id):
                 if file and file.filename:
                     filename = save_uploaded_file(file, traveler_id, doc_field)
                     if filename:
-                        update_fields.append(f"{doc_field} = ?")
+                        update_fields.append(f"{doc_field} = %s")
                         values.append(filename)
         
         # Add batch_id if changed
         if 'batch_id' in data and data['batch_id']:
-            update_fields.append("batch_id = ?")
+            update_fields.append("batch_id = %s")
             values.append(new_batch_id)
         
         # Add extra_fields
-        update_fields.append("extra_fields = ?")
+        update_fields.append("extra_fields = %s")
         values.append(extra_fields)
         
         # Add updated_at
-        update_fields.append("updated_at = ?")
-        values.append(datetime.now().isoformat())
+        update_fields.append("updated_at = %s")
+        values.append(datetime.now())
         
         if update_fields:
-            query = f"UPDATE travelers SET {', '.join(update_fields)} WHERE id = ?"
+            query = f"UPDATE travelers SET {', '.join(update_fields)} WHERE id = %s"
             values.append(traveler_id)
             cursor.execute(query, values)
         
         # Update batch seats if batch changed
         if old_batch_id != new_batch_id:
-            cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (old_batch_id,))
-            cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = ?', (new_batch_id,))
+            cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = %s', (old_batch_id,))
+            cursor.execute('UPDATE batches SET booked_seats = booked_seats + 1 WHERE id = %s', (new_batch_id,))
         
         # Log activity
         log_activity(session['user_id'], 'update', 'traveler', f'Updated traveler ID: {traveler_id}', request.remote_addr)
         
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return jsonify({'success': True, 'message': 'Traveler updated successfully'})
         
     except Exception as e:
-        db.rollback()
-        db.close()
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @bp.route('/<int:traveler_id>', methods=['DELETE'])
@@ -467,15 +479,15 @@ def delete_traveler(traveler_id):
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     try:
-        cursor.execute('SELECT id, first_name, last_name, batch_id FROM travelers WHERE id = ?', (traveler_id,))
+        cursor.execute('SELECT id, first_name, last_name, batch_id FROM travelers WHERE id = %s', (traveler_id,))
         traveler = cursor.fetchone()
         
         if not traveler:
-            db.close()
+            cursor.close()
+            conn.close()
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         # Delete associated files
@@ -486,22 +498,24 @@ def delete_traveler(traveler_id):
             shutil.rmtree(traveler_dir)
         
         # Delete traveler record
-        cursor.execute('DELETE FROM travelers WHERE id = ?', (traveler_id,))
+        cursor.execute('DELETE FROM travelers WHERE id = %s', (traveler_id,))
         
         # Update batch booked seats
-        cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = ?', (traveler['batch_id'],))
+        cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = %s', (traveler['batch_id'],))
         
         # Log activity
         log_activity(session['user_id'], 'delete', 'traveler', f'Deleted traveler: {traveler["first_name"]} {traveler["last_name"]}', request.remote_addr)
         
-        db.commit()
-        db.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         return jsonify({'success': True, 'message': 'Traveler deleted successfully'})
         
     except Exception as e:
-        db.rollback()
-        db.close()
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
 @bp.route('/<int:traveler_id>/payments', methods=['GET'])
@@ -515,12 +529,11 @@ def get_traveler_payments(traveler_id):
     if 'traveler_id' in session and session['traveler_id'] != traveler_id:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT * FROM payments 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY payment_date DESC
     ''', (traveler_id,))
     
@@ -529,16 +542,17 @@ def get_traveler_payments(traveler_id):
     cursor.execute('''
         SELECT 
             COUNT(*) as total_count,
-            SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_paid,
-            SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as total_pending,
+            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
+            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
             MAX(payment_date) as last_payment
         FROM payments 
-        WHERE traveler_id = ?
+        WHERE traveler_id = %s
     ''', (traveler_id,))
     
     summary = cursor.fetchone()
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -557,17 +571,17 @@ def get_traveler_invoices(traveler_id):
     if 'traveler_id' in session and session['traveler_id'] != traveler_id:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT * FROM invoices 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY created_at DESC
     ''', (traveler_id,))
     
     invoices = cursor.fetchall()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -585,17 +599,17 @@ def get_traveler_receipts(traveler_id):
     if 'traveler_id' in session and session['traveler_id'] != traveler_id:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT * FROM receipts 
-        WHERE traveler_id = ? 
+        WHERE traveler_id = %s 
         ORDER BY created_at DESC
     ''', (traveler_id,))
     
     receipts = cursor.fetchall()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -613,18 +627,18 @@ def get_traveler_documents(traveler_id):
     if 'traveler_id' in session and session['traveler_id'] != traveler_id:
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT 
             passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
         FROM travelers 
-        WHERE id = ?
+        WHERE id = %s
     ''', (traveler_id,))
     
     docs = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if not docs:
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
@@ -668,12 +682,12 @@ def download_document(traveler_id, doc_type):
     if doc_type not in valid_doc_types:
         return jsonify({'success': False, 'error': 'Invalid document type'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
-    cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = ?', (traveler_id,))
+    cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = %s', (traveler_id,))
     result = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if not result or not result[doc_type]:
         return jsonify({'success': False, 'error': 'Document not found'}), 404
@@ -693,8 +707,7 @@ def get_travelers_summary():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT 
@@ -740,12 +753,13 @@ def get_travelers_summary():
             COUNT(t.id) as traveler_count
         FROM batches b
         LEFT JOIN travelers t ON b.id = t.batch_id
-        GROUP BY b.id
+        GROUP BY b.id, b.batch_name
     ''')
     
     batch_dist = cursor.fetchall()
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -766,8 +780,7 @@ def search_travelers():
     if len(query) < 2:
         return jsonify({'success': False, 'error': 'Search query too short'}), 400
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     search_term = f'%{query}%'
     cursor.execute('''
@@ -778,18 +791,19 @@ def search_travelers():
         FROM travelers t
         LEFT JOIN batches b ON t.batch_id = b.id
         WHERE 
-            t.first_name LIKE ? OR 
-            t.last_name LIKE ? OR 
-            t.passport_no LIKE ? OR 
-            t.mobile LIKE ? OR 
-            t.email LIKE ? OR
-            t.passport_name LIKE ?
+            t.first_name ILIKE %s OR 
+            t.last_name ILIKE %s OR 
+            t.passport_no ILIKE %s OR 
+            t.mobile ILIKE %s OR 
+            t.email ILIKE %s OR
+            t.passport_name ILIKE %s
         ORDER BY t.created_at DESC
         LIMIT 50
     ''', [search_term] * 6)
     
     results = cursor.fetchall()
-    db.close()
+    cursor.close()
+    conn.close()
     
     return jsonify({
         'success': True,
@@ -808,8 +822,7 @@ def export_travelers():
     fields = data.get('fields', [])
     batch_id = data.get('batch_id')
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     query = '''
         SELECT 
@@ -821,14 +834,15 @@ def export_travelers():
     params = []
     
     if batch_id:
-        query += " AND t.batch_id = ?"
+        query += " AND t.batch_id = %s"
         params.append(batch_id)
     
     query += " ORDER BY t.created_at DESC"
     
     cursor.execute(query, params)
     travelers = cursor.fetchall()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if format_type == 'csv':
         output = io.StringIO()
@@ -883,53 +897,57 @@ def get_monthly_stats():
     
     year = request.args.get('year', datetime.now().year, type=int)
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
-    # Monthly registrations
+    # Monthly registrations - PostgreSQL uses EXTRACT
     cursor.execute('''
         SELECT 
-            strftime('%m', created_at) as month,
+            TO_CHAR(created_at, 'MM') as month,
             COUNT(*) as count
         FROM travelers
-        WHERE strftime('%Y', created_at) = ?
-        GROUP BY strftime('%m', created_at)
+        WHERE EXTRACT(YEAR FROM created_at) = %s
+        GROUP BY TO_CHAR(created_at, 'MM')
         ORDER BY month
-    ''', (str(year),))
+    ''', (year,))
     
     registrations = cursor.fetchall()
     
     # Monthly payments
     cursor.execute('''
         SELECT 
-            strftime('%m', payment_date) as month,
-            SUM(amount) as total,
+            TO_CHAR(payment_date, 'MM') as month,
+            COALESCE(SUM(amount), 0) as total,
             COUNT(*) as count
         FROM payments
-        WHERE strftime('%Y', payment_date) = ? AND status = 'completed'
-        GROUP BY strftime('%m', payment_date)
+        WHERE EXTRACT(YEAR FROM payment_date) = %s AND status = 'completed'
+        GROUP BY TO_CHAR(payment_date, 'MM')
         ORDER BY month
-    ''', (str(year),))
+    ''', (year,))
     
     payments = cursor.fetchall()
     
-    db.close()
+    cursor.close()
+    conn.close()
     
     # Initialize all months with zero
     months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     
+    # Convert to dictionaries for easier lookup
+    reg_dict = {r['month']: r for r in registrations}
+    pay_dict = {p['month']: p for p in payments}
+    
     registration_data = []
     payment_data = []
     
     for i, month in enumerate(months):
-        reg = next((r for r in registrations if r['month'] == month), None)
+        reg = reg_dict.get(month)
         registration_data.append({
             'month': month_names[i],
             'count': reg['count'] if reg else 0
         })
         
-        pay = next((p for p in payments if p['month'] == month), None)
+        pay = pay_dict.get(month)
         payment_data.append({
             'month': month_names[i],
             'total': float(pay['total']) if pay else 0,
