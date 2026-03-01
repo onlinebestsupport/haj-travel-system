@@ -6,3 +6,4 @@ from . import travelers
 from . import payments
 from . import company
 from . import uploads
+from . import reports
