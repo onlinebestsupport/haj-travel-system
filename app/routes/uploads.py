@@ -61,6 +61,20 @@ def get_upload_folder(doc_type='documents'):
     
     return folder_path
 
+def get_upload_subfolder(doc_type):
+    """Get upload subfolder name for URL generation"""
+    folders = {
+        'passport': 'passports',
+        'aadhaar': 'aadhaar',
+        'pan': 'pan',
+        'vaccine': 'vaccine',
+        'photo': 'photos',
+        'logo': 'company',
+        'backup': 'backups',
+        'document': 'documents'
+    }
+    return folders.get(doc_type, 'documents')
+
 @bp.route('', methods=['POST'])
 def upload_file():
     """Upload a file with document type specification"""
@@ -124,7 +138,8 @@ def upload_file():
             session['user_id'],
             'upload',
             'uploads',
-            f'Uploaded {doc_type} file: {original_filename}'
+            f'Uploaded {doc_type} file: {original_filename}',
+            request.remote_addr
         )
     
     return jsonify({
@@ -174,7 +189,8 @@ def upload_multiple_files():
             
             # Save file
             upload_folder = get_upload_folder(doc_type)
-            file.save(os.path.join(upload_folder, new_filename))
+            file_path = os.path.join(upload_folder, new_filename)
+            file.save(file_path)
             
             uploaded_files.append({
                 'filename': new_filename,
@@ -217,7 +233,8 @@ def delete_file(filename):
                 session['user_id'],
                 'delete',
                 'uploads',
-                f'Deleted {doc_type} file: {filename}'
+                f'Deleted {doc_type} file: {filename}',
+                request.remote_addr
             )
             
             return jsonify({'success': True, 'message': 'File deleted successfully'})
@@ -232,18 +249,18 @@ def get_traveler_documents(traveler_id):
     if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     cursor.execute('''
         SELECT 
             passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
         FROM travelers 
-        WHERE id = ?
+        WHERE id = %s
     ''', (traveler_id,))
     
     traveler = cursor.fetchone()
-    db.close()
+    cursor.close()
+    conn.close()
     
     if not traveler:
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
@@ -256,7 +273,8 @@ def get_traveler_documents(traveler_id):
             documents[doc_type] = {
                 'filename': filename,
                 'url': f'/uploads/{get_upload_subfolder(clean_type)}/{filename}',
-                'uploaded': True
+                'uploaded': True,
+                'exists': os.path.exists(os.path.join(get_upload_folder(clean_type), filename))
             }
         else:
             documents[doc_type] = {
@@ -270,12 +288,43 @@ def get_traveler_documents(traveler_id):
         'documents': documents
     })
 
+@bp.route('/info/<path:filename>', methods=['GET'])
+def get_file_info(filename):
+    """Get file information"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    doc_type = request.args.get('doc_type', 'document')
+    
+    try:
+        upload_folder = get_upload_folder(doc_type)
+        file_path = os.path.join(upload_folder, filename)
+        
+        if os.path.exists(file_path):
+            stat = os.stat(file_path)
+            return jsonify({
+                'success': True,
+                'file_info': {
+                    'filename': filename,
+                    'size': stat.st_size,
+                    'size_mb': round(stat.st_size / (1024 * 1024), 2),
+                    'created': datetime.fromtimestamp(stat.st_ctime).isoformat(),
+                    'modified': datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    'url': f'/uploads/{get_upload_subfolder(doc_type)}/{filename}'
+                }
+            })
+        else:
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # Helper function to update traveler document
 def update_traveler_document(traveler_id, doc_type, filename):
     """Update traveler record with document filename"""
+    conn = None
+    cursor = None
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
         field_map = {
             'passport': 'passport_scan',
@@ -289,21 +338,28 @@ def update_traveler_document(traveler_id, doc_type, filename):
         if field:
             cursor.execute(f'''
                 UPDATE travelers 
-                SET {field} = ?, updated_at = ?
-                WHERE id = ?
-            ''', (filename, datetime.now().isoformat(), traveler_id))
-            db.commit()
+                SET {field} = %s, updated_at = %s
+                WHERE id = %s
+            ''', (filename, datetime.now(), traveler_id))
+            conn.commit()
         
-        db.close()
     except Exception as e:
-        print(f"Error updating traveler document: {e}")
+        print(f"❌ Error updating traveler document: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # Helper function to clear traveler document
 def clear_traveler_document(traveler_id, doc_type):
     """Clear traveler document field"""
+    conn = None
+    cursor = None
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         
         field_map = {
             'passport': 'passport_scan',
@@ -317,42 +373,39 @@ def clear_traveler_document(traveler_id, doc_type):
         if field:
             cursor.execute(f'''
                 UPDATE travelers 
-                SET {field} = NULL, updated_at = ?
-                WHERE id = ?
-            ''', (datetime.now().isoformat(), traveler_id))
-            db.commit()
+                SET {field} = NULL, updated_at = %s
+                WHERE id = %s
+            ''', (datetime.now(), traveler_id))
+            conn.commit()
         
-        db.close()
     except Exception as e:
-        print(f"Error clearing traveler document: {e}")
+        print(f"❌ Error clearing traveler document: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-def get_upload_subfolder(doc_type):
-    """Get upload subfolder name for URL generation"""
-    folders = {
-        'passport': 'passports',
-        'aadhaar': 'aadhaar',
-        'pan': 'pan',
-        'vaccine': 'vaccine',
-        'photo': 'photos',
-        'logo': 'company',
-        'backup': 'backups',
-        'document': 'documents'
-    }
-    return folders.get(doc_type, 'documents')
-
-def log_activity(user_id, action, module, description):
+def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
+    conn = None
+    cursor = None
     try:
-        db = get_db()
-        cursor = db.cursor()
+        conn, cursor = get_db()
         cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address) VALUES (?, ?, ?, ?, ?)',
-            (user_id, action, module, description, request.remote_addr)
+            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
+            (user_id, action, module, description, ip_address, datetime.now())
         )
-        db.commit()
-        db.close()
-    except:
-        pass  # Fail silently
+        conn.commit()
+    except Exception as e:
+        print(f"⚠️ Activity log error: {e}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @bp.route('/cleanup', methods=['POST'])
 def cleanup_orphaned_files():
@@ -360,9 +413,7 @@ def cleanup_orphaned_files():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    # This would require admin privileges
-    db = get_db()
-    cursor = db.cursor()
+    conn, cursor = get_db()
     
     # Get all referenced files from database
     cursor.execute('''
@@ -377,23 +428,106 @@ def cleanup_orphaned_files():
         SELECT photo FROM travelers WHERE photo IS NOT NULL
     ''')
     
-    referenced_files = set(row[0] for row in cursor.fetchall())
+    rows = cursor.fetchall()
+    referenced_files = set()
+    for row in rows:
+        for key, value in row.items():
+            if value:
+                referenced_files.add(value)
+    
+    cursor.close()
+    conn.close()
     
     # Get all files in upload directories
     base_folder = current_app.config['UPLOAD_FOLDER']
     orphaned = []
+    orphaned_by_folder = {}
     
-    for doc_type in ['passports', 'aadhaar', 'pan', 'vaccine', 'photos']:
-        folder = os.path.join(base_folder, doc_type)
+    for doc_type, folder_name in [
+        ('passports', 'passport'),
+        ('aadhaar', 'aadhaar'),
+        ('pan', 'pan'),
+        ('vaccine', 'vaccine'),
+        ('photos', 'photo'),
+        ('documents', 'document'),
+        ('company', 'logo'),
+        ('backups', 'backup')
+    ]:
+        folder = os.path.join(base_folder, folder_name)
         if os.path.exists(folder):
+            orphaned_by_folder[folder_name] = []
             for filename in os.listdir(folder):
-                if filename not in referenced_files:
-                    orphaned.append(os.path.join(folder, filename))
-    
-    db.close()
+                filepath = os.path.join(folder, filename)
+                if os.path.isfile(filepath) and filename not in referenced_files:
+                    orphaned.append(filepath)
+                    orphaned_by_folder[folder_name].append(filename)
     
     return jsonify({
         'success': True,
         'orphaned_count': len(orphaned),
-        'orphaned_files': orphaned
+        'orphaned_by_folder': orphaned_by_folder,
+        'orphaned_files': orphaned[:100],  # Limit to first 100 for response
+        'message': f'Found {len(orphaned)} orphaned files. Use POST /cleanup/delete to remove them.'
+    })
+
+@bp.route('/cleanup/delete', methods=['POST'])
+def delete_orphaned_files():
+    """Delete orphaned files (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    confirm = data.get('confirm', False)
+    files_to_delete = data.get('files', [])
+    
+    if not confirm:
+        return jsonify({'success': False, 'error': 'Confirmation required'}), 400
+    
+    deleted = []
+    errors = []
+    
+    for filepath in files_to_delete:
+        try:
+            if os.path.exists(filepath) and os.path.isfile(filepath):
+                os.remove(filepath)
+                deleted.append(filepath)
+            else:
+                errors.append(f"File not found: {filepath}")
+        except Exception as e:
+            errors.append(f"Error deleting {filepath}: {str(e)}")
+    
+    # Log activity
+    log_activity(
+        session['user_id'],
+        'cleanup',
+        'uploads',
+        f'Deleted {len(deleted)} orphaned files',
+        request.remote_addr
+    )
+    
+    return jsonify({
+        'success': True,
+        'deleted_count': len(deleted),
+        'deleted': deleted[:50],  # Limit response
+        'errors': errors,
+        'message': f'Successfully deleted {len(deleted)} files'
+    })
+
+@bp.route('/types', methods=['GET'])
+def get_upload_types():
+    """Get allowed upload types and their configurations"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    config = {}
+    for doc_type in ALLOWED_EXTENSIONS:
+        config[doc_type] = {
+            'extensions': list(ALLOWED_EXTENSIONS[doc_type]),
+            'max_size_mb': MAX_FILE_SIZES.get(doc_type, 5),
+            'folder': get_upload_subfolder(doc_type)
+        }
+    
+    return jsonify({
+        'success': True,
+        'config': config
     })
