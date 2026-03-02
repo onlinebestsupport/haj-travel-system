@@ -20,14 +20,52 @@ def verify_password(plain_password, hashed_password):
 
 @bp.route('/login', methods=['POST'])
 def login():
-    """Admin login with enhanced security"""
-    data = request.json
-    username = data.get('username', '').strip()
-    password = data.get('password', '')
-    remember_me = data.get('remember_me', False)
-    
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password required'}), 400
+    try:
+        # Get data from request
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Validate input
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        # Connect to database
+        conn, cursor = get_db()
+        
+        # Find user
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = cursor.fetchone()
+        
+        # Check if user exists and password matches
+        if user and user['password'] == password:
+            # Set session
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            
+            # Close connection
+            cursor.close()
+            conn.close()
+            
+            # Return success
+            return jsonify({
+                'success': True,
+                'user': {
+                    'id': user['id'],
+                    'username': user['username'],
+                    'name': user['full_name'],
+                    'role': user['role']
+                }
+            })
+        else:
+            cursor.close()
+            conn.close()
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+            
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
     
     conn, cursor = get_db()
     
