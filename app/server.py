@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import get_db, init_db
 
 # Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports
+from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts
 
 # ==================== FLASK APP INITIALIZATION ====================
 app = Flask(__name__)
@@ -82,6 +82,8 @@ app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
 app.register_blueprint(reports.bp)
+app.register_blueprint(invoices.bp)	
+app.register_blueprint(receipts.bp)
 
 # ==================== HEALTH ENDPOINTS (Always work) ====================
 @app.route('/')
