@@ -512,6 +512,11 @@
         .doc-icon.missing {
             color: #e74c3c;
             opacity: 0.5;
+            cursor: default;
+        }
+
+        .doc-icon.missing:hover {
+            transform: none;
         }
 
         /* Icon Buttons */
@@ -675,6 +680,10 @@
             font-size: 2rem;
             color: #27ae60;
             margin-bottom: 10px;
+        }
+
+        .document-card i.missing {
+            color: #e74c3c;
         }
 
         .document-card p {
@@ -1636,13 +1645,11 @@
                     emergency_phone: '9876543211',
                     medical_notes: 'No allergies',
                     created_at: '2026-01-15T10:30:00',
-                    documents: {
-                        passport: 'doc1',
-                        aadhaar: 'doc2',
-                        pan: 'doc3',
-                        vaccine: 'doc4',
-                        photo: 'doc5'
-                    }
+                    passport_scan: 'passport_1_demo.pdf',
+                    aadhaar_scan: 'aadhaar_1_demo.pdf',
+                    pan_scan: 'pan_1_demo.pdf',
+                    vaccine_scan: 'vaccine_1_demo.pdf',
+                    photo: 'photo_1_demo.jpg'
                 },
                 { 
                     id: 2, 
@@ -1673,10 +1680,11 @@
                     emergency_phone: '8765432100',
                     medical_notes: 'Diabetic',
                     created_at: '2026-01-20T14:30:00',
-                    documents: {
-                        passport: 'doc6',
-                        aadhaar: 'doc7'
-                    }
+                    passport_scan: 'passport_2_demo.pdf',
+                    aadhaar_scan: 'aadhaar_2_demo.pdf',
+                    pan_scan: 'pan_2_demo.pdf',
+                    vaccine_scan: null,
+                    photo: 'photo_2_demo.jpg'
                 },
                 { 
                     id: 3, 
@@ -1707,7 +1715,11 @@
                     emergency_phone: '7654321000',
                     medical_notes: 'Requires wheelchair assistance',
                     created_at: '2026-02-01T09:15:00',
-                    documents: {}
+                    passport_scan: null,
+                    aadhaar_scan: null,
+                    pan_scan: null,
+                    vaccine_scan: null,
+                    photo: null
                 }
             ];
         }
@@ -1730,21 +1742,24 @@
                 const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
                 const batchName = t.batch_name || 'Not Assigned';
                 
-                // Document icons
+                // Document icons with proper click handlers
                 const docIcons = `
                     <div class="doc-icons">
-                        <i class="fas fa-passport doc-icon ${t.documents?.passport ? 'available' : 'missing'}" 
-                           onclick="${t.documents?.passport ? `viewDocument('${t.documents.passport}')` : ''}" 
-                           title="Passport Scan ${t.documents?.passport ? '(Click to view)' : '(Missing)'}"></i>
-                        <i class="fas fa-id-card doc-icon ${t.documents?.aadhaar ? 'available' : 'missing'}" 
-                           onclick="${t.documents?.aadhaar ? `viewDocument('${t.documents.aadhaar}')` : ''}" 
-                           title="Aadhaar Scan ${t.documents?.aadhaar ? '(Click to view)' : '(Missing)'}"></i>
-                        <i class="fas fa-credit-card doc-icon ${t.documents?.pan ? 'available' : 'missing'}" 
-                           onclick="${t.documents?.pan ? `viewDocument('${t.documents.pan}')` : ''}" 
-                           title="PAN Scan ${t.documents?.pan ? '(Click to view)' : '(Missing)'}"></i>
-                        <i class="fas fa-syringe doc-icon ${t.documents?.vaccine ? 'available' : 'missing'}" 
-                           onclick="${t.documents?.vaccine ? `viewDocument('${t.documents.vaccine}')` : ''}" 
-                           title="Vaccine Certificate ${t.documents?.vaccine ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
+                           onclick="${t.passport_scan ? `viewUploadedDocument('passport', ${t.id})` : ''}" 
+                           title="Passport Scan ${t.passport_scan ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}" 
+                           onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', ${t.id})` : ''}" 
+                           title="Aadhaar Scan ${t.aadhaar_scan ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}" 
+                           onclick="${t.pan_scan ? `viewUploadedDocument('pan', ${t.id})` : ''}" 
+                           title="PAN Scan ${t.pan_scan ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}" 
+                           onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', ${t.id})` : ''}" 
+                           title="Vaccine Certificate ${t.vaccine_scan ? '(Click to view)' : '(Missing)'}"></i>
+                        <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}" 
+                           onclick="${t.photo ? `viewUploadedDocument('photo', ${t.id})` : ''}" 
+                           title="Photo ${t.photo ? '(Click to view)' : '(Missing)'}"></i>
                     </div>
                 `;
                 
@@ -1772,6 +1787,42 @@
             
             tableBody.innerHTML = html;
             updatePaginationInfo(travelersData.length);
+        }
+
+        // New function to view uploaded documents via API
+        function viewUploadedDocument(docType, travelerId) {
+            fetch(`/api/travelers/${travelerId}`, {
+                credentials: 'include'
+            })
+            .then(r => r.json())
+            .then(data => {
+                const traveler = data.traveler;
+                let filename;
+                
+                switch(docType) {
+                    case 'passport': filename = traveler.passport_scan; break;
+                    case 'aadhaar': filename = traveler.aadhaar_scan; break;
+                    case 'pan': filename = traveler.pan_scan; break;
+                    case 'vaccine': filename = traveler.vaccine_scan; break;
+                    case 'photo': filename = traveler.photo; break;
+                    default: return;
+                }
+                
+                if (filename) {
+                    // Determine the correct folder
+                    let folder = docType + 's';
+                    if (docType === 'photo') folder = 'photos';
+                    
+                    // Open the file in a new tab
+                    window.open(`/uploads/${folder}/${filename}`, '_blank');
+                } else {
+                    showNotification(`No ${docType} document uploaded for this traveler`, 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching traveler:', err);
+                showNotification('Error loading document', 'error');
+            });
         }
 
         function escapeHtml(text) {
@@ -1876,8 +1927,7 @@
                 pin: document.getElementById('add_pin').value || '0000',
                 emergency_contact: document.getElementById('add_emergency_contact').value || null,
                 emergency_phone: document.getElementById('add_emergency_phone').value || null,
-                medical_notes: document.getElementById('add_medical_notes').value || null,
-                documents: documents
+                medical_notes: document.getElementById('add_medical_notes').value || null
             };
             
             if (!travelerData.first_name || !travelerData.last_name || !travelerData.passport_no || !travelerData.mobile) {
@@ -1913,22 +1963,6 @@
                 travelerData.id = newId;
                 travelerData.batch_name = batch ? batch.batch_name : 'Selected Batch';
                 travelerData.created_at = new Date().toISOString();
-                
-                // Rename document IDs with traveler ID prefix
-                if (travelerData.documents) {
-                    Object.keys(travelerData.documents).forEach(key => {
-                        const oldId = travelerData.documents[key];
-                        if (oldId) {
-                            const newId = `${travelerData.id}_${oldId.split('_').pop()}`;
-                            const doc = documentStore.get(oldId);
-                            if (doc) {
-                                documentStore.delete(oldId);
-                                documentStore.set(newId, doc);
-                                travelerData.documents[key] = newId;
-                            }
-                        }
-                    });
-                }
                 
                 travelersData.push(travelerData);
                 showNotification('Traveler created (demo mode)', 'success');
@@ -2101,35 +2135,35 @@
             
             // Document cards with click handlers
             const documentCards = `
-                <div class="document-card" onclick="${t.documents?.passport ? `viewDocument('${t.documents.passport}')` : ''}">
-                    <i class="fas fa-passport ${t.documents?.passport ? 'available' : 'missing'}"></i>
+                <div class="document-card" onclick="${t.passport_scan ? `viewUploadedDocument('passport', ${t.id})` : ''}">
+                    <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
                     <p><strong>Passport</strong></p>
-                    <p>${t.documents?.passport ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.documents?.passport ? '<small>Click to view</small>' : ''}
+                    <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.passport_scan ? '<small>Click to view</small>' : ''}
                 </div>
-                <div class="document-card" onclick="${t.documents?.aadhaar ? `viewDocument('${t.documents.aadhaar}')` : ''}">
-                    <i class="fas fa-id-card ${t.documents?.aadhaar ? 'available' : 'missing'}"></i>
+                <div class="document-card" onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', ${t.id})` : ''}">
+                    <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
                     <p><strong>Aadhaar</strong></p>
-                    <p>${t.documents?.aadhaar ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.documents?.aadhaar ? '<small>Click to view</small>' : ''}
+                    <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
                 </div>
-                <div class="document-card" onclick="${t.documents?.pan ? `viewDocument('${t.documents.pan}')` : ''}">
-                    <i class="fas fa-credit-card ${t.documents?.pan ? 'available' : 'missing'}"></i>
+                <div class="document-card" onclick="${t.pan_scan ? `viewUploadedDocument('pan', ${t.id})` : ''}">
+                    <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
                     <p><strong>PAN</strong></p>
-                    <p>${t.documents?.pan ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.documents?.pan ? '<small>Click to view</small>' : ''}
+                    <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.pan_scan ? '<small>Click to view</small>' : ''}
                 </div>
-                <div class="document-card" onclick="${t.documents?.vaccine ? `viewDocument('${t.documents.vaccine}')` : ''}">
-                    <i class="fas fa-syringe ${t.documents?.vaccine ? 'available' : 'missing'}"></i>
+                <div class="document-card" onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', ${t.id})` : ''}">
+                    <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
                     <p><strong>Vaccine</strong></p>
-                    <p>${t.documents?.vaccine ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.documents?.vaccine ? '<small>Click to view</small>' : ''}
+                    <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
                 </div>
-                <div class="document-card" onclick="${t.documents?.photo ? `viewDocument('${t.documents.photo}')` : ''}">
-                    <i class="fas fa-image ${t.documents?.photo ? 'available' : 'missing'}"></i>
+                <div class="document-card" onclick="${t.photo ? `viewUploadedDocument('photo', ${t.id})` : ''}">
+                    <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
                     <p><strong>Photo</strong></p>
-                    <p>${t.documents?.photo ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.documents?.photo ? '<small>Click to view</small>' : ''}
+                    <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
+                    ${t.photo ? '<small>Click to view</small>' : ''}
                 </div>
             `;
             
@@ -2382,7 +2416,7 @@
             
             // Data rows
             travelersData.forEach(t => {
-                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.documents?.passport || ''}","${t.documents?.aadhaar || ''}","${t.documents?.pan || ''}","${t.documents?.vaccine || ''}","${t.documents?.photo || ''}","${t.created_at || ''}"`);
+                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.passport_scan || ''}","${t.aadhaar_scan || ''}","${t.pan_scan || ''}","${t.vaccine_scan || ''}","${t.photo || ''}","${t.created_at || ''}"`);
             });
             
             const csvContent = csv.join('\n');
@@ -2462,7 +2496,11 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                             passport_no: cells[4]?.replace(/"/g, '') || '',
                             mobile: cells[10]?.replace(/"/g, '') || '',
                             email: cells[11]?.replace(/"/g, '') || '',
-                            documents: {}
+                            passport_scan: null,
+                            aadhaar_scan: null,
+                            pan_scan: null,
+                            vaccine_scan: null,
+                            photo: null
                         };
                         
                         // Get batch name
