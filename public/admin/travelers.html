@@ -2696,5 +2696,143 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
             displayTravelers();
         }
     </script>
+<script>
+// ==================== PERMANENT 33-FIELD VIEWER FIX ====================
+// This will run automatically when page loads
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Applying permanent 33-field viewer fix...');
+    
+    // Wait a bit for travelers to load
+    setTimeout(function() {
+        if (typeof travelersData !== 'undefined' && travelersData.length > 0) {
+            enhanceViewFunction();
+        } else {
+            // Try again after travelers load
+            const checkInterval = setInterval(function() {
+                if (typeof travelersData !== 'undefined' && travelersData.length > 0) {
+                    clearInterval(checkInterval);
+                    enhanceViewFunction();
+                }
+            }, 500);
+        }
+    }, 1000);
+    
+    function enhanceViewFunction() {
+        // Save original function
+        const originalView = window.viewTraveler;
+        
+        // Create enhanced version
+        window.viewTraveler = function(id) {
+            const t = travelersData.find(x => x.id === id);
+            if (!t) {
+                alert('Traveler not found');
+                return;
+            }
+            
+            // Helper function
+            const f = (val) => (val && val !== 'null' && val !== 'undefined' && val !== '') ? val : '—';
+            const fd = (date) => {
+                if (!date || date === 'null') return '—';
+                try { return new Date(date).toLocaleDateString(); } 
+                catch { return date; }
+            };
+            
+            // Create popup
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: white; width: 95%; max-width: 1200px; max-height: 90vh;
+                overflow-y: auto; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                z-index: 10000; padding: 30px; font-family: Arial, sans-serif;
+            `;
+            
+            popup.innerHTML = \`
+                <div style="position: sticky; top: -30px; background: white; padding-bottom: 15px; border-bottom: 3px solid #2c3e50; display: flex; justify-content: space-between;">
+                    <h2 style="margin:0;"><i class="fas fa-user-circle"></i> Traveler Details (ID: \${t.id})</h2>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#e74c3c; color:white; border:none; width:40px; height:40px; border-radius:50%; font-size:24px;">&times;</button>
+                </div>
+                
+                <!-- Quick view of key fields -->
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:15px; margin:20px 0; padding:15px; background:#f0f8ff; border-radius:10px;">
+                    <div><strong>Name:</strong> \${f(t.first_name)} \${f(t.last_name)}</div>
+                    <div><strong>Passport:</strong> \${f(t.passport_no)}</div>
+                    <div><strong>Mobile:</strong> \${f(t.mobile)}</div>
+                    <div><strong>Batch:</strong> \${f(t.batch_name)}</div>
+                </div>
+                
+                <!-- All fields in expandable sections -->
+                <details open style="margin-bottom:10px;">
+                    <summary style="background:#3498db; color:white; padding:10px; border-radius:5px; cursor:pointer;">📋 Personal Information</summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;">
+                        <div><strong>First Name:</strong> \${f(t.first_name)}</div>
+                        <div><strong>Last Name:</strong> \${f(t.last_name)}</div>
+                        <div><strong>Passport Name:</strong> \${f(t.passport_name)}</div>
+                        <div><strong>Gender:</strong> \${f(t.gender)}</div>
+                        <div><strong>DOB:</strong> \${fd(t.dob)}</div>
+                        <div><strong>Birth Place:</strong> \${f(t.place_of_birth)}</div>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom:10px;">
+                    <summary style="background:#e74c3c; color:white; padding:10px; border-radius:5px; cursor:pointer;">🛂 Passport Details</summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;">
+                        <div><strong>Passport No:</strong> \${f(t.passport_no)}</div>
+                        <div><strong>Issue Date:</strong> \${fd(t.passport_issue_date)}</div>
+                        <div><strong>Expiry Date:</strong> \${fd(t.passport_expiry_date)}</div>
+                        <div><strong>Issue Place:</strong> \${f(t.place_of_issue)}</div>
+                        <div><strong>Status:</strong> \${f(t.passport_status)}</div>
+                        <div><strong>Address:</strong> \${f(t.passport_address)}</div>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom:10px;">
+                    <summary style="background:#f39c12; color:white; padding:10px; border-radius:5px; cursor:pointer;">📞 Contact & ID</summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;">
+                        <div><strong>Mobile:</strong> \${f(t.mobile)}</div>
+                        <div><strong>Email:</strong> \${f(t.email)}</div>
+                        <div><strong>Aadhaar:</strong> \${f(t.aadhaar)}</div>
+                        <div><strong>PAN:</strong> \${f(t.pan)}</div>
+                        <div><strong>Aadhaar-PAN Linked:</strong> \${f(t.aadhaar_pan_linked)}</div>
+                        <div><strong>PIN:</strong> \${f(t.pin)}</div>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom:10px;">
+                    <summary style="background:#27ae60; color:white; padding:10px; border-radius:5px; cursor:pointer;">👪 Family & Emergency</summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;">
+                        <div><strong>Father:</strong> \${f(t.father_name)}</div>
+                        <div><strong>Mother:</strong> \${f(t.mother_name)}</div>
+                        <div><strong>Spouse:</strong> \${f(t.spouse_name)}</div>
+                        <div><strong>Emergency Contact:</strong> \${f(t.emergency_contact)}</div>
+                        <div><strong>Emergency Phone:</strong> \${f(t.emergency_phone)}</div>
+                        <div><strong>Medical Notes:</strong> \${f(t.medical_notes)}</div>
+                    </div>
+                </details>
+                
+                <details style="margin-bottom:10px;">
+                    <summary style="background:#9b59b6; color:white; padding:10px; border-radius:5px; cursor:pointer;">💉 Medical & Batch</summary>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:15px;">
+                        <div><strong>Vaccine Status:</strong> \${f(t.vaccine_status)}</div>
+                        <div><strong>Wheelchair:</strong> \${f(t.wheelchair)}</div>
+                        <div><strong>Batch ID:</strong> \${f(t.batch_id)}</div>
+                        <div><strong>Batch Name:</strong> \${f(t.batch_name)}</div>
+                        <div><strong>Created:</strong> \${fd(t.created_at)}</div>
+                        <div><strong>Updated:</strong> \${fd(t.updated_at)}</div>
+                    </div>
+                </details>
+                
+                <div style="text-align:right; margin-top:20px;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="background:#3498db; color:white; border:none; padding:10px 30px; border-radius:5px;">Close</button>
+                </div>
+            \`;
+            
+            document.body.appendChild(popup);
+        };
+        
+        console.log('✅ 33-field viewer permanently enabled!');
+    }
+});
+</script>
 </body>
 </html>
