@@ -1590,28 +1590,6 @@ async function logout() {
                 document.getElementById('modalOverlay').style.display = 'none';
             }
         }
-    
-    // ==================== LOADING STATES ====================
-    function showLoading() {
-        const tableBody = document.getElementById('batchesTableBody');
-        if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading batches...</td></tr>';
-        }
-    }
-
-    // ==================== DATE VALIDATION ====================
-    function validateDates(departureDate, returnDate) {
-        if (!departureDate || !returnDate) return true;
-        
-        const depart = new Date(departureDate);
-        const ret = new Date(returnDate);
-        
-        if (ret <= depart) {
-            showNotification('Return date must be after departure date', 'error');
-            return false;
-        }
-        return true;
-    }
-</script>
+    </script>
 </body>
 </html>
