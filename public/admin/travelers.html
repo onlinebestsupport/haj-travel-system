@@ -2242,131 +2242,135 @@ async function logout() {
         }
 
         // ==================== VIEW TRAVELER ====================
-        function viewTraveler(id) {
-            const traveler = travelersData.find(t => t.id === id);
-            if (!traveler) {
-                showNotification('Traveler not found', 'error');
-                return;
-            }
-            
-            displayTravelerDetails(traveler);
-        }
+function viewTraveler(id) {
+    const traveler = travelersData.find(t => t.id === id);
+    if (!traveler) {
+        showNotification('Traveler not found', 'error');
+        return;
+    }
+    
+    displayTravelerDetails(traveler);
+}
 
-        function displayTravelerDetails(t) {
-            const formatValue = (val) => val && val !== '' ? val : '<span style="color: #95a5a6;">Not specified</span>';
-            const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'Not specified';
-            
-            // Document cards with click handlers
-            const documentCards = `
-                <div class="document-card" onclick="${t.passport_scan ? `viewUploadedDocument('passport', ${t.id})` : ''}">
-                    <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
-                    <p><strong>Passport</strong></p>
-                    <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.passport_scan ? '<small>Click to view</small>' : ''}
-                </div>
-                <div class="document-card" onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', ${t.id})` : ''}">
-                    <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
-                    <p><strong>Aadhaar</strong></p>
-                    <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
-                </div>
-                <div class="document-card" onclick="${t.pan_scan ? `viewUploadedDocument('pan', ${t.id})` : ''}">
-                    <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
-                    <p><strong>PAN</strong></p>
-                    <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.pan_scan ? '<small>Click to view</small>' : ''}
-                </div>
-                <div class="document-card" onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', ${t.id})` : ''}">
-                    <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
-                    <p><strong>Vaccine</strong></p>
-                    <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
-                </div>
-                <div class="document-card" onclick="${t.photo ? `viewUploadedDocument('photo', ${t.id})` : ''}">
-                    <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
-                    <p><strong>Photo</strong></p>
-                    <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
-                    ${t.photo ? '<small>Click to view</small>' : ''}
-                </div>
-            `;
-            
-            const detailsHtml = `
-                <div style="max-height: 70vh; overflow-y: auto; padding: 10px;">
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                        <i class="fas fa-user"></i> Personal Information
-                    </h4>
-                    <div class="detail-grid">
-                        <div class="detail-item"><strong>Full Name:</strong> <span>${t.first_name || ''} ${t.last_name || ''}</span></div>
-                        <div class="detail-item"><strong>Passport Name:</strong> <span>${formatValue(t.passport_name)}</span></div>
-                        <div class="detail-item"><strong>Batch:</strong> <span>${formatValue(t.batch_name)}</span></div>
-                        <div class="detail-item"><strong>Passport Number:</strong> <span>${formatValue(t.passport_no)}</span></div>
-                        <div class="detail-item"><strong>Passport Issue Date:</strong> <span>${formatDate(t.passport_issue_date)}</span></div>
-                        <div class="detail-item"><strong>Passport Expiry Date:</strong> <span>${formatDate(t.passport_expiry_date)}</span></div>
-                        <div class="detail-item"><strong>Passport Status:</strong> <span class="status-badge status-active">${formatValue(t.passport_status)}</span></div>
-                        <div class="detail-item"><strong>Gender:</strong> <span>${formatValue(t.gender)}</span></div>
-                        <div class="detail-item"><strong>Date of Birth:</strong> <span>${formatDate(t.dob)}</span></div>
-                    </div>
+function displayTravelerDetails(t) {
+    const formatValue = (val) => {
+        return val && val !== '' ? val : '<span style="color: #95a5a6;">Not specified</span>';
+    };
+    
+    const formatDate = (date) => {
+        return date ? new Date(date).toLocaleDateString() : 'Not specified';
+    };
+    
+    // Document cards with click handlers - FIXED
+    const documentCards = `
+        <div class="document-card" ${t.passport_scan ? 'onclick="viewUploadedDocument(\'passport\', ' + t.id + ')"' : ''}>
+            <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
+            <p><strong>Passport</strong></p>
+            <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+            ${t.passport_scan ? '<small>Click to view</small>' : ''}
+        </div>
+        <div class="document-card" ${t.aadhaar_scan ? 'onclick="viewUploadedDocument(\'aadhaar\', ' + t.id + ')"' : ''}>
+            <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
+            <p><strong>Aadhaar</strong></p>
+            <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+            ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
+        </div>
+        <div class="document-card" ${t.pan_scan ? 'onclick="viewUploadedDocument(\'pan\', ' + t.id + ')"' : ''}>
+            <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
+            <p><strong>PAN</strong></p>
+            <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+            ${t.pan_scan ? '<small>Click to view</small>' : ''}
+        </div>
+        <div class="document-card" ${t.vaccine_scan ? 'onclick="viewUploadedDocument(\'vaccine\', ' + t.id + ')"' : ''}>
+            <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
+            <p><strong>Vaccine</strong></p>
+            <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+            ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
+        </div>
+        <div class="document-card" ${t.photo ? 'onclick="viewUploadedDocument(\'photo\', ' + t.id + ')"' : ''}>
+            <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
+            <p><strong>Photo</strong></p>
+            <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
+            ${t.photo ? '<small>Click to view</small>' : ''}
+        </div>
+    `;
+    
+    const detailsHtml = `
+        <div style="max-height: 70vh; overflow-y: auto; padding: 10px;">
+            <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                <i class="fas fa-user"></i> Personal Information
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item"><strong>Full Name:</strong> <span>${(t.first_name || '') + ' ' + (t.last_name || '')}</span></div>
+                <div class="detail-item"><strong>Passport Name:</strong> <span>${formatValue(t.passport_name)}</span></div>
+                <div class="detail-item"><strong>Batch:</strong> <span>${formatValue(t.batch_name)}</span></div>
+                <div class="detail-item"><strong>Passport Number:</strong> <span>${formatValue(t.passport_no)}</span></div>
+                <div class="detail-item"><strong>Passport Issue Date:</strong> <span>${formatDate(t.passport_issue_date)}</span></div>
+                <div class="detail-item"><strong>Passport Expiry Date:</strong> <span>${formatDate(t.passport_expiry_date)}</span></div>
+                <div class="detail-item"><strong>Passport Status:</strong> <span class="status-badge status-active">${formatValue(t.passport_status)}</span></div>
+                <div class="detail-item"><strong>Gender:</strong> <span>${formatValue(t.gender)}</span></div>
+                <div class="detail-item"><strong>Date of Birth:</strong> <span>${formatDate(t.dob)}</span></div>
+            </div>
 
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                        <i class="fas fa-address-book"></i> Contact Information
-                    </h4>
-                    <div class="detail-grid">
-                        <div class="detail-item"><strong>Mobile:</strong> <span>${formatValue(t.mobile)}</span></div>
-                        <div class="detail-item"><strong>Email:</strong> <span>${formatValue(t.email)}</span></div>
-                        <div class="detail-item"><strong>Aadhaar:</strong> <span>${formatValue(t.aadhaar)}</span></div>
-                        <div class="detail-item"><strong>PAN:</strong> <span>${formatValue(t.pan)}</span></div>
-                        <div class="detail-item"><strong>Aadhaar-PAN Linked:</strong> <span>${formatValue(t.aadhaar_pan_linked)}</span></div>
-                        <div class="detail-item"><strong>Vaccine Status:</strong> <span>${formatValue(t.vaccine_status)}</span></div>
-                        <div class="detail-item"><strong>Wheelchair Required:</strong> <span>${formatValue(t.wheelchair)}</span></div>
-                    </div>
+            <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                <i class="fas fa-address-book"></i> Contact Information
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item"><strong>Mobile:</strong> <span>${formatValue(t.mobile)}</span></div>
+                <div class="detail-item"><strong>Email:</strong> <span>${formatValue(t.email)}</span></div>
+                <div class="detail-item"><strong>Aadhaar:</strong> <span>${formatValue(t.aadhaar)}</span></div>
+                <div class="detail-item"><strong>PAN:</strong> <span>${formatValue(t.pan)}</span></div>
+                <div class="detail-item"><strong>Aadhaar-PAN Linked:</strong> <span>${formatValue(t.aadhaar_pan_linked)}</span></div>
+                <div class="detail-item"><strong>Vaccine Status:</strong> <span>${formatValue(t.vaccine_status)}</span></div>
+                <div class="detail-item"><strong>Wheelchair Required:</strong> <span>${formatValue(t.wheelchair)}</span></div>
+            </div>
 
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                        <i class="fas fa-home"></i> Address & Family
-                    </h4>
-                    <div class="detail-grid">
-                        <div class="detail-item"><strong>Place of Birth:</strong> <span>${formatValue(t.place_of_birth)}</span></div>
-                        <div class="detail-item"><strong>Place of Issue:</strong> <span>${formatValue(t.place_of_issue)}</span></div>
-                        <div class="detail-item full-width"><strong>Passport Address:</strong> <span>${formatValue(t.passport_address)}</span></div>
-                        <div class="detail-item"><strong>Father's Name:</strong> <span>${formatValue(t.father_name)}</span></div>
-                        <div class="detail-item"><strong>Mother's Name:</strong> <span>${formatValue(t.mother_name)}</span></div>
-                        <div class="detail-item"><strong>Spouse's Name:</strong> <span>${formatValue(t.spouse_name)}</span></div>
-                    </div>
+            <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                <i class="fas fa-home"></i> Address & Family
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item"><strong>Place of Birth:</strong> <span>${formatValue(t.place_of_birth)}</span></div>
+                <div class="detail-item"><strong>Place of Issue:</strong> <span>${formatValue(t.place_of_issue)}</span></div>
+                <div class="detail-item full-width"><strong>Passport Address:</strong> <span>${formatValue(t.passport_address)}</span></div>
+                <div class="detail-item"><strong>Father's Name:</strong> <span>${formatValue(t.father_name)}</span></div>
+                <div class="detail-item"><strong>Mother's Name:</strong> <span>${formatValue(t.mother_name)}</span></div>
+                <div class="detail-item"><strong>Spouse's Name:</strong> <span>${formatValue(t.spouse_name)}</span></div>
+            </div>
 
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                        <i class="fas fa-file-alt"></i> Documents
-                    </h4>
-                    <div class="document-grid">
-                        ${documentCards}
-                    </div>
+            <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                <i class="fas fa-file-alt"></i> Documents
+            </h4>
+            <div class="document-grid">
+                ${documentCards}
+            </div>
 
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                        <i class="fas fa-cog"></i> Additional Information
-                    </h4>
-                    <div class="detail-grid">
-                        <div class="detail-item"><strong>PIN:</strong> <span>${formatValue(t.pin)}</span></div>
-                        <div class="detail-item"><strong>Emergency Contact:</strong> <span>${formatValue(t.emergency_contact)}</span></div>
-                        <div class="detail-item"><strong>Emergency Phone:</strong> <span>${formatValue(t.emergency_phone)}</span></div>
-                        <div class="detail-item"><strong>Medical Notes:</strong> <span>${formatValue(t.medical_notes)}</span></div>
-                        <div class="detail-item"><strong>Created:</strong> <span>${t.created_at ? new Date(t.created_at).toLocaleString() : '-'}</span></div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('travelerDetails').innerHTML = detailsHtml;
-            document.getElementById('viewTravelerModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-        }
+            <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                <i class="fas fa-cog"></i> Additional Information
+            </h4>
+            <div class="detail-grid">
+                <div class="detail-item"><strong>PIN:</strong> <span>${formatValue(t.pin)}</span></div>
+                <div class="detail-item"><strong>Emergency Contact:</strong> <span>${formatValue(t.emergency_contact)}</span></div>
+                <div class="detail-item"><strong>Emergency Phone:</strong> <span>${formatValue(t.emergency_phone)}</span></div>
+                <div class="detail-item"><strong>Medical Notes:</strong> <span>${formatValue(t.medical_notes)}</span></div>
+                <div class="detail-item"><strong>Created:</strong> <span>${t.created_at ? new Date(t.created_at).toLocaleString() : '-'}</span></div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('travelerDetails').innerHTML = detailsHtml;
+    document.getElementById('viewTravelerModal').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'block';
+}
 
-        function closeTravelerModal() {
-            document.getElementById('viewTravelerModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
+function closeTravelerModal() {
+    document.getElementById('viewTravelerModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+}
 
-        function closeAllModals() {
-            closeTravelerModal();
-            closeDocumentViewer();
-        }
-
+function closeAllModals() {
+    closeTravelerModal();
+    closeDocumentViewer();
+}
         // ==================== PRINT FUNCTIONS ====================
         function printTravelerDetails() {
             const content = document.getElementById('travelerDetails')?.innerHTML;
