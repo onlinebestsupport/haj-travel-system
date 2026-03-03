@@ -1359,13 +1359,24 @@
         // Document storage (in-memory for demo)
         const documentStore = new Map();
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadBatches();
-            loadTravelers();
-            setupPassportNameAutoFill();
-        });
+       // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check session first
+    const session = await fetch('/api/check-session', {
+        credentials: 'include'
+    }).then(r => r.json());
+    
+    if (!session.authenticated) {
+        console.log('⚠️ Not logged in, redirecting to login...');
+        window.location.href = '/admin.login.html';
+        return;
+    }
+    
+    checkAuth();
+    loadBatches();
+    loadTravelers();
+    setupPassportNameAutoFill();
+});
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
@@ -1598,7 +1609,9 @@
             tableBody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
             
             try {
-                const response = await fetch('/api/travelers');
+                const response = await fetch('/api/travelers', {
+    credentials: 'include'
+});
                 const data = await response.json();
                 
                 if (data.success && data.travelers) {
