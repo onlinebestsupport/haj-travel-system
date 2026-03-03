@@ -1734,5 +1734,40 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     </script>
+<script>
+// Emergency fix for invoices - Add to bottom of invoices.html
+(function() {
+    window.addEventListener('load', function() {
+        console.log('Loading invoices directly...');
+        
+        fetch('/api/invoices')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.invoices) {
+                    const tbody = document.querySelector('tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                        data.invoices.forEach(inv => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${inv.id}</td>
+                                    <td>${inv.invoice_number || inv.number}</td>
+                                    <td>${inv.traveler_name || inv.traveler}</td>
+                                    <td>${inv.amount || 0}</td>
+                                    <td>${inv.status || 'pending'}</td>
+                                    <td>${inv.date || new Date().toLocaleDateString()}</td>
+                                    <td>
+                                        <button onclick="alert('View ${inv.id}')">View</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        console.log('✅ Invoices loaded:', data.invoices.length);
+                    }
+                }
+            });
+    });
+})();
+</script>
 </body>
 </html>
