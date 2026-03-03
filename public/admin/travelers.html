@@ -1348,10 +1348,20 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+     // ==================== GLOBAL VARIABLES ====================
+let currentEditId = null;
+let travelersData = [];
+let batchesData = [];
+let currentPage = 1;
+let itemsPerPage = 10;
+let currentDocument = null;
+let currentDocumentName = '';
+
+// Document storage (in-memory for demo)
+const documentStore = new Map();
 
 // ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
-// ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
+
 
 // Session check function
 async function checkAdminSession() {
@@ -1431,33 +1441,37 @@ if (typeof showNotification !== 'function') {
 }
 
 // ==================== INITIALIZATION ====================
+// This is the ONLY initialization block you need
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading page...');
-    await SessionManager.initPage(loadData || function(){});
-});
+    console.log('🚀 Loading travelers page...');
     
-    // Check session first - this will redirect if not authenticated
-    const isValid = await checkAdminSession();
-    if (!isValid) return;
-    
-    // Load page-specific data
-    if (typeof loadPageData === 'function') {
-        loadPageData();
-    } else if (typeof loadTravelers === 'function') {
-        loadTravelers();
-    } else if (typeof loadBatches === 'function') {
-        loadBatches();
-    } else if (typeof loadPayments === 'function') {
-        loadPayments();
-    } else {
-        console.log('ℹ️ No data loading function found');
+    try {
+        // Check session first
+        const session = await fetch('/api/check-session', {
+            credentials: 'include'
+        }).then(r => r.json());
+        
+        if (!session.authenticated) {
+            console.log('⚠️ Not logged in, redirecting to login...');
+            window.location.href = '/admin.login.html';
+            return;
+        }
+        
+        // Initialize the page
+        checkAuth();
+        await loadBatches();
+        await loadTravelers();
+        setupPassportNameAutoFill();
+        
+        console.log('✅ Page initialized successfully with', travelersData.length, 'travelers');
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        showNotification('Error loading page', 'error');
     }
 });
 
 // ==================== LOGOUT FUNCTION ====================
 async function logout() {
-    await SessionManager.logout();
-}
     try {
         if (typeof showNotification === 'function') {
             showNotification('Logging out...', 'info');
@@ -1473,35 +1487,6 @@ async function logout() {
         window.location.href = '/admin.login.html';
     }
 }
-        let currentEditId = null;
-        let travelersData = [];
-        let batchesData = [];
-        let currentPage = 1;
-        let itemsPerPage = 10;
-        let currentDocument = null;
-        let currentDocumentName = '';
-
-        // Document storage (in-memory for demo)
-        const documentStore = new Map();
-
-       // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', async function() {
-    // Check session first
-    const session = await fetch('/api/check-session', {
-        credentials: 'include'
-    }).then(r => r.json());
-    
-    if (!session.authenticated) {
-        console.log('⚠️ Not logged in, redirecting to login...');
-        window.location.href = '/admin.login.html';
-        return;
-    }
-    
-    checkAuth();
-    loadBatches();
-    loadTravelers();
-    setupPassportNameAutoFill();
-});
 
         // ==================== AUTHENTICATION ====================
         function checkAuth() {
