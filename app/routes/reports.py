@@ -21,8 +21,69 @@ def generate_report():
     conn, cursor = get_db()
     
     try:
-        # Traveler Report
-        if report_type == 'traveler':
+        # ==================== SUMMARY REPORT (ALWAYS WORKS) ====================
+        if report_type == 'summary' or not report_type:
+            # Get counts from all tables
+            cursor.execute("SELECT COUNT(*) as count FROM travelers")
+            traveler_count = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) as count FROM batches")
+            batch_count = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'completed'")
+            payment_total = cursor.fetchone()['total']
+            
+            cursor.execute("SELECT COUNT(*) as count FROM payments WHERE status = 'pending'")
+            pending_count = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_active = true")
+            active_users = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) as count FROM invoices")
+            invoice_count = cursor.fetchone()['count']
+            
+            cursor.execute("SELECT COUNT(*) as count FROM receipts")
+            receipt_count = cursor.fetchone()['count']
+            
+            # Get recent activity
+            cursor.execute("""
+                (SELECT 'traveler' as type, 
+                        CONCAT(first_name, ' ', last_name) as name, 
+                        created_at as date 
+                 FROM travelers 
+                 ORDER BY created_at DESC 
+                 LIMIT 5)
+                UNION ALL
+                (SELECT 'payment' as type, 
+                        CONCAT(t.first_name, ' ', t.last_name) as name, 
+                        p.created_at as date 
+                 FROM payments p 
+                 JOIN travelers t ON p.traveler_id = t.id 
+                 ORDER BY p.created_at DESC 
+                 LIMIT 5)
+                ORDER BY date DESC 
+                LIMIT 10
+            """)
+            recent_activity = cursor.fetchall()
+            
+            return jsonify({
+                'success': True,
+                'report': {
+                    'summary': {
+                        'totalTravelers': traveler_count,
+                        'totalBatches': batch_count,
+                        'totalPayments': float(payment_total),
+                        'pendingPayments': pending_count,
+                        'activeUsers': active_users,
+                        'totalInvoices': invoice_count,
+                        'totalReceipts': receipt_count
+                    },
+                    'recentActivity': recent_activity
+                }
+            })
+        
+        # ==================== TRAVELER REPORT ====================
+        elif report_type == 'traveler':
             query = """
                 SELECT t.*, b.batch_name
                 FROM travelers t
@@ -48,17 +109,25 @@ def generate_report():
             travelers = cursor.fetchall()
             
             # Get summary statistics
-            cursor.execute("""
+            summary_query = """
                 SELECT 
                     COUNT(*) as total,
                     COUNT(DISTINCT batch_id) as total_batches,
                     SUM(CASE WHEN passport_status = 'Active' THEN 1 ELSE 0 END) as active_count
                 FROM travelers
                 WHERE 1=1
-            """ + (" AND created_at BETWEEN %s AND %s" if start_date and end_date else "") + 
-            (f" AND batch_id = {batch_id}" if batch_id and batch_id != 'all' else ""), 
-            (params if start_date and end_date else []))
+            """
+            summary_params = []
             
+            if start_date and end_date:
+                summary_query += " AND created_at BETWEEN %s AND %s"
+                summary_params.extend([start_date, end_date])
+            
+            if batch_id and batch_id != 'all':
+                summary_query += " AND batch_id = %s"
+                summary_params.append(batch_id)
+            
+            cursor.execute(summary_query, summary_params)
             summary = cursor.fetchone()
             
             return jsonify({
@@ -73,7 +142,7 @@ def generate_report():
                 }
             })
         
-        # Payment Report
+        # ==================== PAYMENT REPORT ====================
         elif report_type == 'payment':
             query = """
                 SELECT 
@@ -106,31 +175,48 @@ def generate_report():
             payments = cursor.fetchall()
             
             # Get payment summary by method
-            cursor.execute("""
+            method_query = """
                 SELECT 
                     payment_method,
                     COUNT(*) as count,
                     COALESCE(SUM(amount), 0) as total
                 FROM payments
                 WHERE 1=1
-            """ + (" AND payment_date BETWEEN %s AND %s" if start_date and end_date else "") + 
-            (f" AND batch_id = {batch_id}" if batch_id and batch_id != 'all' else "") +
-            " GROUP BY payment_method",
-            (params if start_date and end_date else []))
+            """
+            method_params = []
             
+            if start_date and end_date:
+                method_query += " AND payment_date BETWEEN %s AND %s"
+                method_params.extend([start_date, end_date])
+            
+            if batch_id and batch_id != 'all':
+                method_query += " AND batch_id = %s"
+                method_params.append(batch_id)
+            
+            method_query += " GROUP BY payment_method"
+            
+            cursor.execute(method_query, method_params)
             by_method = cursor.fetchall()
             
             # Get totals
-            cursor.execute("""
+            totals_query = """
                 SELECT 
                     COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as collected,
                     COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending
                 FROM payments
                 WHERE 1=1
-            """ + (" AND payment_date BETWEEN %s AND %s" if start_date and end_date else "") + 
-            (f" AND batch_id = {batch_id}" if batch_id and batch_id != 'all' else ""),
-            (params if start_date and end_date else []))
+            """
+            totals_params = []
             
+            if start_date and end_date:
+                totals_query += " AND payment_date BETWEEN %s AND %s"
+                totals_params.extend([start_date, end_date])
+            
+            if batch_id and batch_id != 'all':
+                totals_query += " AND batch_id = %s"
+                totals_params.append(batch_id)
+            
+            cursor.execute(totals_query, totals_params)
             totals = cursor.fetchone()
             
             return jsonify({
@@ -145,7 +231,7 @@ def generate_report():
                 }
             })
         
-        # Batch Report
+        # ==================== BATCH REPORT ====================
         elif report_type == 'batch':
             query = """
                 SELECT 
@@ -165,62 +251,34 @@ def generate_report():
             cursor.execute(query, params)
             batches = cursor.fetchall()
             
+            total_seats = 0
+            booked_seats = 0
+            total_collected = 0
+            
+            for b in batches:
+                total_seats += b['total_seats']
+                booked_seats += b['booked_seats']
+                total_collected += float(b['total_collected']) if b['total_collected'] else 0
+            
             return jsonify({
                 'success': True,
                 'report': {
                     'batches': batches,
                     'summary': {
                         'total': len(batches),
-                        'total_seats': sum(b['total_seats'] for b in batches),
-                        'booked_seats': sum(b['booked_seats'] for b in batches),
-                        'total_collected': sum(float(b['total_collected']) for b in batches)
+                        'total_seats': total_seats,
+                        'booked_seats': booked_seats,
+                        'total_collected': total_collected
                     }
                 }
             })
         
-        # Daily/Summary Report
+        # ==================== DEFAULT / UNKNOWN REPORT TYPE ====================
         else:
-            # Get counts from all tables
-            cursor.execute("SELECT COUNT(*) as count FROM travelers")
-            traveler_count = cursor.fetchone()['count']
-            
-            cursor.execute("SELECT COUNT(*) as count FROM batches")
-            batch_count = cursor.fetchone()['count']
-            
-            cursor.execute("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'completed'")
-            payment_total = cursor.fetchone()['total']
-            
-            cursor.execute("SELECT COUNT(*) as count FROM payments WHERE status = 'pending'")
-            pending_count = cursor.fetchone()['count']
-            
-            cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_active = true")
-            active_users = cursor.fetchone()['count']
-            
-            # Get recent activity
-            cursor.execute("""
-                (SELECT 'traveler' as type, first_name || ' ' || last_name as name, created_at as date 
-                 FROM travelers ORDER BY created_at DESC LIMIT 5)
-                UNION ALL
-                (SELECT 'payment' as type, CONCAT(t.first_name, ' ', t.last_name) as name, p.created_at as date 
-                 FROM payments p JOIN travelers t ON p.traveler_id = t.id 
-                 ORDER BY p.created_at DESC LIMIT 5)
-                ORDER BY date DESC LIMIT 10
-            """)
-            recent_activity = cursor.fetchall()
-            
             return jsonify({
-                'success': True,
-                'report': {
-                    'summary': {
-                        'totalTravelers': traveler_count,
-                        'totalBatches': batch_count,
-                        'totalPayments': float(payment_total),
-                        'pendingPayments': pending_count,
-                        'activeUsers': active_users
-                    },
-                    'recentActivity': recent_activity
-                }
-            })
+                'success': False,
+                'error': f'Unknown report type: {report_type}'
+            }), 400
         
     except Exception as e:
         print(f"❌ Report generation error: {e}")
