@@ -275,22 +275,32 @@ def get_invoice_stats():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     conn, cursor = get_db()
-    
-    cursor.execute('''
-        SELECT 
-            COUNT(*) as total_invoices,
-            SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-            SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue_count,
-            COALESCE(SUM(total_amount), 0) as total_amount,
-            COALESCE(SUM(paid_amount), 0) as total_paid,
-            COALESCE(SUM(total_amount - paid_amount), 0) as total_due
-        FROM invoices
-    ''')
-    
-    stats = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as total_invoices,
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue_count,
+                COALESCE(SUM(total_amount), 0) as total_amount,
+                COALESCE(SUM(paid_amount), 0) as total_paid
+            FROM invoices
+        ''')
+        stats = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if stats:
+            stats_dict = dict(stats)
+            for key in ['total_amount', 'total_paid']:
+                if key in stats_dict and stats_dict[key] is not None:
+                    stats_dict[key] = float(stats_dict[key])
+        else:
+            stats_dict = {}
+        
+        return jsonify({'success': True, 'stats': stats_dict})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
     
     # Convert Decimal to float for JSON serialization
     if stats:

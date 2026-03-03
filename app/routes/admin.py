@@ -501,6 +501,7 @@ def get_dashboard_stats():
     conn, cursor = get_db()
     
     try:
+        # Get counts from all tables
         cursor.execute('SELECT COUNT(*) as count FROM travelers')
         travelers_count = cursor.fetchone()['count']
         
@@ -529,6 +530,25 @@ def get_dashboard_stats():
         ''')
         
         user_stats = cursor.fetchone()
+        
+        # ===== INVOICE STATS - FIXED POSITION =====
+        # Get total invoice count
+        cursor.execute('SELECT COUNT(*) as count FROM invoices')
+        invoice_result = cursor.fetchone()
+        invoice_count = invoice_result['count'] if invoice_result else 0
+        
+        # Get invoice status counts
+        cursor.execute('''
+            SELECT 
+                COUNT(CASE WHEN status = 'paid' THEN 1 END) as paid_count,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN status = 'overdue' THEN 1 END) as overdue_count
+            FROM invoices
+        ''')
+        invoice_stats = cursor.fetchone()
+        if not invoice_stats:
+            invoice_stats = {'paid_count': 0, 'pending_count': 0, 'overdue_count': 0}
+        # ===========================================
         
         cursor.execute('''
             SELECT id, first_name, last_name, passport_no, created_at 
@@ -582,11 +602,13 @@ def get_dashboard_stats():
                 'paid_count': payment_stats['paid_count'] or 0,
                 'pending_count': payment_stats['pending_count'] or 0,
                 'total_users': user_stats['total_users'] or 0,
+                'active_users': user_stats['active_users'] or 0,
+                # ===== INVOICE STATS IN RESPONSE =====
                 'total_invoices': invoice_count,
                 'paid_invoices': invoice_stats['paid_count'] or 0,
                 'pending_invoices': invoice_stats['pending_count'] or 0,
-                'overdue_invoices': invoice_stats['overdue_count'] or 0,
-                'active_users': user_stats['active_users'] or 0
+                'overdue_invoices': invoice_stats['overdue_count'] or 0
+                # =====================================
             },
             'recent_travelers': [dict(rt) for rt in recent_travelers],
             'recent_payments': [dict(rp) for rp in recent_payments],
@@ -595,6 +617,7 @@ def get_dashboard_stats():
         })
         
     except Exception as e:
+        print(f"❌ Dashboard stats error: {e}")
         cursor.close()
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 500
