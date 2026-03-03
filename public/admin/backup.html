@@ -704,6 +704,7 @@
             }
         }
     </style>
+<script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="admin-header">
@@ -933,8 +934,11 @@
         let currentRestoreId = null;
         let userRole = '';
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
+     // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Loading backup page...');
+    await SessionManager.initPage(loadBackupData || function(){});
+});
             checkAuth();
             loadBackupStats();
             loadBackupList();
@@ -964,7 +968,10 @@
         }
 
         // ==================== LOGOUT WITH AUTO BACKUP ====================
-        async function logout() {
+    // ==================== LOGOUT ====================
+async function logout() {
+    await SessionManager.logout();
+}
             // Create auto backup before logout
             showNotification('Creating auto backup before logout...', 'info');
             

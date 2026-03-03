@@ -854,6 +854,7 @@
             }
         }
     </style>
+    <script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="admin-header">
@@ -1429,10 +1430,11 @@ if (typeof showNotification !== 'function') {
     };
 }
 
-// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
-// REPLACE YOUR EXISTING DOMContentLoaded WITH THIS
+// ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Initializing page...');
+    console.log('🚀 Loading page...');
+    await SessionManager.initPage(loadData || function(){});
+});
     
     // Check session first - this will redirect if not authenticated
     const isValid = await checkAdminSession();
@@ -1453,8 +1455,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ==================== LOGOUT FUNCTION ====================
-// REPLACE YOUR EXISTING logout FUNCTION WITH THIS
 async function logout() {
+    await SessionManager.logout();
+}
     try {
         if (typeof showNotification === 'function') {
             showNotification('Logging out...', 'info');

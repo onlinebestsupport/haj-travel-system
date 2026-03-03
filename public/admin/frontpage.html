@@ -732,6 +732,7 @@
             }
         }
     </style>
+<script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="admin-header">
@@ -1266,8 +1267,11 @@
         let features = [];
         let companyDetails = {};
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
+       // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Loading frontpage...');
+    await SessionManager.initPage(loadFrontpageData || function(){});
+});
             checkAuth();
             loadSavedSettings();
             loadPackagesFromDatabase();
@@ -1300,8 +1304,10 @@
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
-        function logout() {
+     // ==================== LOGOUT ====================
+async function logout() {
+    await SessionManager.logout();
+}
             // Auto-save before logout
             saveChanges();
             sessionStorage.clear();

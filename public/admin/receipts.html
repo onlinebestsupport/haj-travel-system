@@ -836,6 +836,7 @@
             }
         }
     </style>
+<script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="admin-header">
@@ -1673,8 +1674,10 @@
             showNotification('Address template saved successfully!', 'success');
         }
 
-        // ==================== LOGOUT ====================
-        async function logout() {
+     // ==================== LOGOUT ====================
+async function logout() {
+    await SessionManager.logout();
+}
             await fetch('/api/logout', { method: 'POST', credentials: 'include' });
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
@@ -1685,9 +1688,11 @@
             document.getElementById('receiptModal').style.display = 'none';
         }
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Initializing receipts page...');
+      // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Loading page...');
+    await SessionManager.initPage(loadData || function(){});
+});
             
             const isValid = await checkAdminSession();
             if (isValid) {

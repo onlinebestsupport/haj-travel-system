@@ -1,86 +1,56 @@
-// ==================== MASTER SESSION MANAGER ====================
-// This file handles session for ALL admin pages
+// ==================== FIXED SESSION MANAGER - NO AUTO REDIRECT ====================
 
 const SessionManager = {
-    // Check if user is authenticated
-    checkSession: async function(redirect = true) {
+    checkSession: async function() {
         try {
             const response = await fetch('/api/check-session', {
-                credentials: 'include',
-                headers: { 'Cache-Control': 'no-cache' }
+                credentials: 'include'
             });
-            
-            if (response.status === 401) {
-                console.log('🔒 Session expired (401)');
-                if (redirect) this.redirectToLogin();
-                return false;
-            }
-            
             const data = await response.json();
             console.log('🔐 Session:', data);
             
-            if (!data.authenticated) {
-                console.log('⚠️ Not authenticated');
-                if (redirect) this.redirectToLogin();
-                return false;
+            if (data.authenticated && data.user) {
+                const roleBadge = document.getElementById('roleBadge');
+                if (roleBadge) roleBadge.textContent = data.user.role.toUpperCase();
             }
-            
-            // Update role badge
-            const roleBadge = document.getElementById('roleBadge');
-            if (roleBadge && data.user) {
-                roleBadge.textContent = data.user.role.toUpperCase();
-            }
-            
-            // Store in sessionStorage
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            sessionStorage.setItem('adminName', data.user?.name || 'Admin');
-            sessionStorage.setItem('adminRole', data.user?.role || 'admin');
-            
-            return true;
+            return data;
         } catch (error) {
-            console.error('❌ Session check failed:', error);
-            
-            // Try local storage as fallback
-            const localLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (localLoggedIn === 'true') {
-                console.log('⚠️ Using local session fallback');
-                return true;
-            }
-            
-            if (redirect) this.redirectToLogin();
-            return false;
+            console.error('Session check failed:', error);
+            return { authenticated: false };
         }
     },
 
-    redirectToLogin: function() {
-        console.log('🚪 Redirecting to login...');
-        sessionStorage.clear();
-        window.location.href = '/admin.login.html';
+    initPage: async function(loadFunction) {
+        console.log('Loading page...');
+        const session = await this.checkSession();
+        
+        if (session.authenticated && loadFunction) {
+            await loadFunction();
+        } else {
+            this.showLoginMessage();
+            if (loadFunction) setTimeout(loadFunction, 1000);
+        }
+    },
+
+    showLoginMessage: function() {
+        const msg = document.createElement('div');
+        msg.style.cssText = `
+            position: fixed; top: 20px; right: 20px; 
+            background: #f39c12; color: white; padding: 15px 25px;
+            border-radius: 5px; z-index: 9999; cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        msg.innerHTML = '⚠️ Not logged in. <a href="/admin.login.html" style="color:white;">Login</a>';
+        msg.onclick = () => window.location.href = '/admin.login.html';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 8000);
     },
 
     logout: async function() {
-        try {
-            await fetch('/api/logout', { 
-                method: 'POST', 
-                credentials: 'include' 
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-        }
-    },
-
-    initPage: async function(loadDataFunction) {
-        console.log('🚀 Initializing page...');
-        
-        const isValid = await this.checkSession(true);
-        if (isValid && typeof loadDataFunction === 'function') {
-            await loadDataFunction();
-        }
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        sessionStorage.clear();
+        window.location.href = '/admin.login.html';
     }
 };
 
-// Make it global
 window.SessionManager = SessionManager;

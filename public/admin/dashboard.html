@@ -828,6 +828,7 @@
             animation: fadeInUp 0.5s ease forwards;
         }
     </style>
+<script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="app-wrapper">
@@ -1351,8 +1352,11 @@
             }
         }
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
+      // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Loading dashboard...');
+    await SessionManager.initPage(loadDashboardStats || function(){});
+});
             // Initialize session management
             resetSessionTimer();
             
