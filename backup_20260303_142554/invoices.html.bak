@@ -900,17 +900,6 @@
             </button>
         </div>
 
-        <!-- Bulk Actions -->
-        <div style="display: flex; gap: 10px; margin: 10px 0; align-items: center;">
-            <input type="checkbox" id="selectAllInvoices" onchange="toggleSelectAll()">
-            <label for="selectAllInvoices">Select All</label>
-            <button class="action-btn btn-secondary" onclick="bulkEmail()" id="bulkEmailBtn" disabled>
-                <i class="fas fa-envelope"></i> Email Selected
-            </button>
-            <button class="action-btn btn-warning" onclick="bulkReminder()" id="bulkReminderBtn" disabled>
-                <i class="fas fa-bell"></i> Send Reminders
-            </button>
-        </div>
         <!-- Invoices Table -->
         <div class="table-container">
             <table>
@@ -926,7 +915,7 @@
                         <th>Total</th>
                         <th>Paid</th>
                         <th>Due</th>
-                        <th>Payment</th><th>Status</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -1914,161 +1903,6 @@ async function logout() {
             currentPage++;
             displayInvoices();
         }
-    }
-
-
-    // ==================== EMAIL INVOICE ====================
-    async function emailInvoice(invoiceId, travelerName) {
-        try {
-            showNotification('Preparing invoice email...', 'info');
-            
-            const response = await fetch(`/api/invoices/${invoiceId}`, {
-                credentials: 'include'
-            });
-            const data = await response.json();
-            
-            if (data.success && data.invoice) {
-                const invoice = data.invoice;
-                
-                // Get traveler email
-                const travelerRes = await fetch(`/api/travelers/${invoice.traveler_id}`, {
-                    credentials: 'include'
-                });
-                const travelerData = await travelerRes.json();
-                const traveler = travelerData.traveler;
-                
-                if (!traveler.email) {
-                    showNotification('Traveler has no email address', 'error');
-                    return;
-                }
-                
-                // Create email content
-                const subject = `Invoice ${invoice.invoice_number} from Alhudha Haj Travel`;
-                const body = `Dear ${traveler.first_name},\n\nPlease find your invoice attached below:\n\n`;
-                body += `Invoice Number: ${invoice.invoice_number}\n`;
-                body += `Date: ${new Date(invoice.invoice_date).toLocaleDateString()}\n`;
-                body += `Amount: ₹${invoice.total_amount.toLocaleString()}\n`;
-                body += `Status: ${invoice.status}\n\n`;
-                body += `Thank you for choosing Alhudha Haj Travel.\n\nJazakAllah Khair,\nAlhudha Haj Travel Team`;
-                
-                // Open in email client
-                window.location.href = `mailto:${traveler.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                
-                showNotification('Email client opened', 'success');
-            } else {
-                showNotification('Invoice not found', 'error');
-            }
-        } catch (error) {
-            console.error('Error emailing invoice:', error);
-            showNotification('Error preparing email', 'error');
-        }
-    }
-
-
-    // ==================== DUE DATE HIGHLIGHTING ====================
-    function getDueDateStatus(dueDate) {
-        if (!dueDate) return 'normal';
-        
-        const today = new Date();
-        const due = new Date(dueDate);
-        const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) return 'overdue';
-        if (diffDays <= 7) return 'warning';
-        return 'normal';
-    }
-
-    function getDueDateStyle(status) {
-        switch(status) {
-            case 'overdue':
-                return 'color: #e74c3c; font-weight: bold;';
-            case 'warning':
-                return 'color: #f39c12; font-weight: bold;';
-            default:
-                return '';
-        }
-    }
-
-
-    // ==================== BULK ACTIONS ====================
-    let selectedInvoices = new Set();
-
-    function toggleSelectAll() {
-        const checkboxes = document.querySelectorAll('.invoice-checkbox');
-        const selectAll = document.getElementById('selectAllInvoices');
-        
-        checkboxes.forEach(cb => {
-            cb.checked = selectAll.checked;
-            const invoiceId = cb.value;
-            if (selectAll.checked) {
-                selectedInvoices.add(invoiceId);
-            } else {
-                selectedInvoices.delete(invoiceId);
-            }
-        });
-        
-        updateBulkButtons();
-    }
-
-    function toggleInvoiceSelection(checkbox, invoiceId) {
-        if (checkbox.checked) {
-            selectedInvoices.add(invoiceId);
-        } else {
-            selectedInvoices.delete(invoiceId);
-            document.getElementById('selectAllInvoices').checked = false;
-        }
-        updateBulkButtons();
-    }
-
-    function updateBulkButtons() {
-        const hasSelection = selectedInvoices.size > 0;
-        document.getElementById('bulkEmailBtn').disabled = !hasSelection;
-        document.getElementById('bulkReminderBtn').disabled = !hasSelection;
-    }
-
-    async function bulkEmail() {
-        if (selectedInvoices.size === 0) return;
-        
-        showNotification(`Preparing to email ${selectedInvoices.size} invoices...`, 'info');
-        
-        // Get first invoice as sample
-        const firstId = Array.from(selectedInvoices)[0];
-        const response = await fetch(`/api/invoices/${firstId}`, {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            const invoice = data.invoice;
-            // Open mailto with multiple recipients? This is complex
-            alert(`Please email invoices individually for now.
-Selected: ${selectedInvoices.size} invoices`);
-        }
-    }
-
-    async function bulkReminder() {
-        if (selectedInvoices.size === 0) return;
-        
-        showNotification(`Sending reminders for ${selectedInvoices.size} invoices...`, 'info');
-        
-        for (const invoiceId of selectedInvoices) {
-            try {
-                const response = await fetch(`/api/invoices/${invoiceId}`, {
-                    credentials: 'include'
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    const invoice = data.invoice;
-                    // Send reminder logic here
-                    console.log(`Reminder sent for invoice ${invoice.invoice_number}`);
-                }
-            } catch (error) {
-                console.error('Error sending reminder:', error);
-            }
-        }
-        
-        showNotification('Reminders sent successfully!', 'success');
     }
 </script>
 </body>
