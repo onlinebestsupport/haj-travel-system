@@ -1348,6 +1348,128 @@
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
+
+// ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
+// ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
+
+// Session check function
+async function checkAdminSession() {
+    try {
+        const response = await fetch('/api/check-session', {
+            credentials: 'include',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+            console.log('⚠️ Session expired or not authenticated');
+            sessionStorage.clear();
+            window.location.href = '/admin.login.html';
+            return false;
+        }
+        
+        // Update role badge if exists
+        const roleBadge = document.getElementById('roleBadge');
+        if (roleBadge && data.user) {
+            roleBadge.textContent = data.user.role.toUpperCase();
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Session check failed:', error);
+        window.location.href = '/admin.login.html';
+        return false;
+    }
+}
+
+// Wrapper for authenticated API calls
+async function authenticatedFetch(url, options = {}) {
+    // First check if we're still authenticated
+    const isAuthenticated = await checkAdminSession();
+    if (!isAuthenticated) return null;
+    
+    // Make the actual API call with credentials
+    const response = await fetch(url, {
+        ...options,
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+    
+    // Handle 401 specifically
+    if (response.status === 401) {
+        console.log('🔒 Session expired during API call');
+        window.location.href = '/admin.login.html';
+        return null;
+    }
+    
+    return response;
+}
+
+// Show notification function (if not exists)
+if (typeof showNotification !== 'function') {
+    window.showNotification = function(message, type = 'success') {
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = 'notification';
+            document.body.appendChild(notification);
+        }
+        
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    };
+}
+
+// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
+// REPLACE YOUR EXISTING DOMContentLoaded WITH THIS
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Initializing page...');
+    
+    // Check session first - this will redirect if not authenticated
+    const isValid = await checkAdminSession();
+    if (!isValid) return;
+    
+    // Load page-specific data
+    if (typeof loadPageData === 'function') {
+        loadPageData();
+    } else if (typeof loadTravelers === 'function') {
+        loadTravelers();
+    } else if (typeof loadBatches === 'function') {
+        loadBatches();
+    } else if (typeof loadPayments === 'function') {
+        loadPayments();
+    } else {
+        console.log('ℹ️ No data loading function found');
+    }
+});
+
+// ==================== LOGOUT FUNCTION ====================
+// REPLACE YOUR EXISTING logout FUNCTION WITH THIS
+async function logout() {
+    try {
+        if (typeof showNotification === 'function') {
+            showNotification('Logging out...', 'info');
+        }
+        await fetch('/api/logout', { 
+            method: 'POST', 
+            credentials: 'include' 
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        sessionStorage.clear();
+        window.location.href = '/admin.login.html';
+    }
+}
         let currentEditId = null;
         let travelersData = [];
         let batchesData = [];
@@ -1560,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // ==================== LOAD BATCHES ====================
         async function loadBatches() {
             try {
-                const response = await fetch('/api/batches');
+                const response = await fetch(/api/batches, { credentials: \'include\' });
                 const data = await response.json();
                 
                 if (data.success && data.batches) {
