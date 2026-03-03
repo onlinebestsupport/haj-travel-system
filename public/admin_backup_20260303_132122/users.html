@@ -805,36 +805,7 @@
 
     <script>
         // ==================== GLOBAL VARIABLES SECTION ====================
-
-    // ==================== ENHANCED SESSION CHECK ====================
-    async function checkSessionAndLoad() {
-        try {
-            const response = await fetch('/api/check-session', {
-                credentials: 'include',
-                headers: { 'Cache-Control': 'no-cache' }
-            });
-            const data = await response.json();
-            
-            if (!data.authenticated) {
-                console.log('⚠️ Session expired');
-                window.location.href = '/admin.login.html';
-                return false;
-            }
-            
-            // Update role badge
-            const roleBadge = document.getElementById('roleBadge');
-            if (roleBadge && data.user) {
-                roleBadge.textContent = data.user.role.toUpperCase();
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('❌ Session check failed:', error);
-            window.location.href = '/admin.login.html';
-            return false;
-        }
-    }
-            let allUsers = [];
+        let allUsers = [];
         let currentUserId = null;
         let sessionCheckInProgress = false;
         let sessionValid = false;
@@ -1066,31 +1037,20 @@ function startSessionMonitoring() {
 }
 
 // Initialize on page load
-
-    // ==================== PAGE INITIALIZATION ====================
-    document.addEventListener('DOMContentLoaded', async function() {
-        console.log('🚀 Initializing users page...');
-        
-        // Show loading state
-        const tbody = document.getElementById('usersTableBody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking session...</td></tr>';
+document.addEventListener('DOMContentLoaded', function() {
+    // Create warning banner
+    createSessionWarning();
+    
+    // Start monitoring
+    startSessionMonitoring();
+    
+    // Initial session check
+    setTimeout(async () => {
+        const isValid = await checkUserSession();
+        if (isValid && typeof loadUsers === 'function') {
+            loadUsers();
         }
-        
-        // Check session first
-        const isValid = await checkSessionAndLoad();
-        
-        if (isValid) {
-            console.log('✅ Session valid, loading users...');
-            // Load users
-            if (typeof loadUsers === 'function') {
-                await loadUsers();
-            } else {
-                console.error('❌ loadUsers function not found');
-            }
-        }
-    });
-    ;
+    }, 500);
 });
 
 // Handle page visibility change
@@ -1277,120 +1237,76 @@ document.head.appendChild(style);
             }
         }
 
-     // ==================== LOAD USERS SECTION ====================
-async function loadUsers() {
-    console.log('📡 Loading users...');
-    const tbody = document.getElementById('usersTableBody');
-    
-    // Show loading state
-    tbody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>';
-    
-    try {
-        // Use direct fetch with credentials instead of apiCall
-        const response = await fetch('/api/admin/users', {
-            credentials: 'include',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        });
-        
-        // Handle 401 Unauthorized
-        if (response.status === 401) {
-            console.log('🔒 Session expired');
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-            return;
-        }
-        
-        // Handle other errors
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.users) {
-            // Store in global variable
-            window.allUsers = data.users;
+        // ==================== LOAD USERS SECTION ====================
+        async function loadUsers() {
+            console.log('📡 Loading users...');
+            const tbody = document.getElementById('usersTableBody');
             
-            let html = '';
-            data.users.forEach(user => {
-                let permCount = 0;
-                if (user.permissions) {
-                    if (typeof user.permissions === 'object') {
-                        permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
-                    } else if (Array.isArray(user.permissions)) {
-                        permCount = user.permissions.length;
-                    }
+            try {
+                const response = await apiCall('/api/admin/users');
+                if (!response) return;
+                
+                const data = await response.json();
+                
+                if (data.success && data.users) {
+                    window.allUsers = data.users;
+                    
+                    let html = '';
+                    data.users.forEach(user => {
+                        let permCount = 0;
+                        if (user.permissions) {
+                            if (typeof user.permissions === 'object') {
+                                permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
+                            } else if (Array.isArray(user.permissions)) {
+                                permCount = user.permissions.length;
+                            }
+                        }
+                        
+                        html += `<tr>
+                            <td>${user.id}</td>
+                            <td><strong>${escapeHtml(user.username)}</strong></td>
+                            <td>${escapeHtml(user.full_name || '-')}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
+                            <td>${permCount}</td>
+                            <td>${escapeHtml(user.department || '-')}</td>
+                            <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                            <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                            <td>
+                                <button class="icon-btn" onclick="viewUserDetails(${user.id})" title="View Details"><i class="fas fa-eye"></i></button>
+                                <button class="icon-btn" onclick="editUser(${user.id})" title="Edit User"><i class="fas fa-edit"></i></button>
+                                <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                                    <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    tbody.innerHTML = html;
+                    
+                    document.getElementById('totalUsers').textContent = data.users.length;
+                    document.getElementById('activeUsers').textContent = data.users.filter(u => u.is_active).length;
+                    document.getElementById('inactiveUsers').textContent = data.users.filter(u => !u.is_active).length;
+                    document.getElementById('adminCount').textContent = data.users.filter(u => u.role === 'super_admin' || u.role === 'admin').length;
+                    
+                    console.log(`✅ Loaded ${data.users.length} users`);
                 }
-                
-                // Format date
-                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
-                const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString() : '-';
-                
-                html += `<tr>
-                    <td>${user.id}</td>
-                    <td><strong>${escapeHtml(user.username)}</strong></td>
-                    <td>${escapeHtml(user.full_name || '-')}</td>
-                    <td>${escapeHtml(user.email)}</td>
-                    <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
-                    <td>${permCount}</td>
-                    <td>${escapeHtml(user.department || '-')}</td>
-                    <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
-                    <td>${lastLogin}</td>
-                    <td>${createdDate}</td>
-                    <td>
-                        <button class="icon-btn" onclick="viewUserDetails(${user.id})" title="View Details"><i class="fas fa-eye"></i></button>
-                        <button class="icon-btn" onclick="editUser(${user.id})" title="Edit User"><i class="fas fa-edit"></i></button>
-                        <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
-                            <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
-                        </button>
-                    </td>
-                </tr>`;
-            });
-            
-            tbody.innerHTML = html;
-            
-            // Update statistics
-            document.getElementById('totalUsers').textContent = data.users.length;
-            document.getElementById('activeUsers').textContent = data.users.filter(u => u.is_active).length;
-            document.getElementById('inactiveUsers').textContent = data.users.filter(u => !u.is_active).length;
-            document.getElementById('adminCount').textContent = data.users.filter(u => u.role === 'super_admin' || u.role === 'admin').length;
-            
-            console.log(`✅ Loaded ${data.users.length} users`);
-        } else {
-            throw new Error(data.error || 'Failed to load users');
+            } catch (error) {
+                console.error('❌ Error:', error);
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error.message}
+                    <br><button class="retry-btn" onclick="loadUsers()"><i class="fas fa-redo"></i> Retry</button>
+                </td></tr>`;
+            }
         }
-    } catch (error) {
-        console.error('❌ Error loading users:', error);
-        
-        // Show error message with retry button
-        tbody.innerHTML = `<tr>
-            <td colspan="11" style="text-align: center; padding: 40px;">
-                <div style="background: #fee; padding: 20px; border-radius: 8px; display: inline-block;">
-                    <i class="fas fa-exclamation-triangle" style="color: #e74c3c; font-size: 2rem; margin-bottom: 10px;"></i>
-                    <h3 style="color: #e74c3c; margin-bottom: 10px;">Failed to Load Users</h3>
-                    <p style="color: #7f8c8d; margin-bottom: 20px;">${error.message}</p>
-                    <button class="action-btn btn-primary" onclick="loadUsers()">
-                        <i class="fas fa-redo"></i> Retry
-                    </button>
-                    <button class="action-btn btn-secondary" onclick="window.location.href='/admin.login.html'">
-                        <i class="fas fa-sign-in-alt"></i> Go to Login
-                    </button>
-                </div>
-            </td>
-        </tr>`;
-    }
-}
 
-// ==================== ESCAPE HTML FUNCTION ====================
-function escapeHtml(text) {
-    if (!text) return text;
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+        function escapeHtml(text) {
+            if (!text) return text;
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // ==================== TOGGLE USER STATUS SECTION ====================
         window.toggleUserStatus = async function(userId) {
