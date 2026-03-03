@@ -582,10 +582,6 @@ def get_dashboard_stats():
                 'paid_count': payment_stats['paid_count'] or 0,
                 'pending_count': payment_stats['pending_count'] or 0,
                 'total_users': user_stats['total_users'] or 0,
-                'total_invoices': invoice_count,
-                'paid_invoices': invoice_stats['paid_count'] or 0,
-                'pending_invoices': invoice_stats['pending_count'] or 0,
-                'overdue_invoices': invoice_stats['overdue_count'] or 0,
                 'active_users': user_stats['active_users'] or 0
             },
             'recent_travelers': [dict(rt) for rt in recent_travelers],

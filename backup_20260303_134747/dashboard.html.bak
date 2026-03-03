@@ -848,18 +848,6 @@
                     <span><i class="fas fa-shield-alt"></i> <span id="userRoleDisplay">Administrator</span></span>
                 </div>
             </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Invoices</h3>
-                        <div class="stat-number" id="totalInvoices">0</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-file-invoice"></i> <span id="paidInvoices">0</span> Paid
-                        </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
 
             <div class="nav-menu">
                 <!-- Main Navigation -->
@@ -950,18 +938,6 @@
                     </a>
                 </div>
             </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Invoices</h3>
-                        <div class="stat-number" id="totalInvoices">0</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-file-invoice"></i> <span id="paidInvoices">0</span> Paid
-                        </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
         </aside>
 
         <!-- Main Content (Keep all existing HTML structure exactly the same) -->
@@ -1039,18 +1015,6 @@
                     </div>
                 </div>
             </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Invoices</h3>
-                        <div class="stat-number" id="totalInvoices">0</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-file-invoice"></i> <span id="paidInvoices">0</span> Paid
-                        </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
 
             <!-- Quick Actions -->
             <div class="quick-actions">
@@ -1209,18 +1173,6 @@
                     </div>
                 </div>
             </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Invoices</h3>
-                        <div class="stat-number" id="totalInvoices">0</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-file-invoice"></i> <span id="paidInvoices">0</span> Paid
-                        </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
 
             <!-- Recent Activity -->
             <div class="activity-card">
@@ -1240,18 +1192,6 @@
                     </div>
                 </div>
             </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>Total Invoices</h3>
-                        <div class="stat-number" id="totalInvoices">0</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-file-invoice"></i> <span id="paidInvoices">0</span> Paid
-                        </div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
 
             <!-- Footer -->
             <div class="footer">
@@ -1566,21 +1506,7 @@
                         el.classList.add('stats-visible');
                     });
                     
-                    
-        // Fetch invoice stats
-        try {
-            const invoiceRes = await fetch('/api/invoices/stats', {
-                credentials: 'include'
-            });
-            const invoiceData = await invoiceRes.json();
-            if (invoiceData.success) {
-                document.getElementById('totalInvoices').textContent = invoiceData.stats.total_invoices || 0;
-                document.getElementById('paidInvoices').textContent = invoiceData.stats.paid_count || 0;
-            }
-        } catch (e) {
-            console.log('Invoice stats not available');
-        }
-            console.log('✅ Dashboard stats loaded:', { 
+                    console.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,

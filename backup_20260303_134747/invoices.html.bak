@@ -1870,40 +1870,6 @@ async function logout() {
                 viewModal.style.display = 'none';
             }
         }
-    
-    // ==================== PAGINATION VARIABLES ====================
-    let currentPage = 1;
-    let itemsPerPage = 10;
-    let invoicesData = [];
-
-    // ==================== PAGINATION FUNCTIONS ====================
-    function updatePaginationInfo() {
-        const total = invoicesData.length;
-        document.getElementById('totalCount').textContent = total;
-        const start = (currentPage - 1) * itemsPerPage + 1;
-        const end = Math.min(currentPage * itemsPerPage, total);
-        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
-        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
-        
-        const prevBtn = document.getElementById('prevPageBtn');
-        const nextBtn = document.getElementById('nextPageBtn');
-        if (prevBtn) prevBtn.disabled = currentPage === 1;
-        if (nextBtn) nextBtn.disabled = end >= total;
-    }
-
-    function previousPage() {
-        if (currentPage > 1) {
-            currentPage--;
-            displayInvoices();
-        }
-    }
-
-    function nextPage() {
-        if (currentPage * itemsPerPage < invoicesData.length) {
-            currentPage++;
-            displayInvoices();
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
