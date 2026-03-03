@@ -1,0 +1,98 @@
+/* ==================== FIXES FOR ALL ADMIN PAGES ==================== */
+
+/* Fix container height issues */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    min-height: 100vh;
+    padding-bottom: 30px;
+}
+
+/* Fix table containers */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Fix pagination positioning */
+.pagination {
+    margin: 20px 0;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Fix modal z-index issues */
+.modal {
+    z-index: 1050;
+}
+
+.modal-overlay {
+    z-index: 1040;
+}
+
+/* Fix loading states */
+.loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+.loading i {
+    margin-right: 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fix button spacing */
+.action-buttons {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Fix card layouts */
+.stat-card, .receipt-card, .invoice-card {
+    margin-bottom: 20px;
+}
+
+/* Fix responsive issues */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .action-btn {
+        width: 100%;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -812,8 +812,14 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="fixes.css">
+    <script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
+    <div id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 20px; color: #2c3e50;">Loading...</p>
+    </div>
     <div class="admin-header">
         <div class="container">
             <div class="header-content">
@@ -1683,7 +1689,9 @@
         }
 
         // ==================== LOGOUT ====================
-        async function logout() {
+       async function logout() {
+    await SessionManager.logout();
+}
             try {
                 showNotification('Logging out...', 'info');
                 await fetch('/api/logout', { 
@@ -1698,9 +1706,10 @@
             }
         }
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Initializing invoices page...');
+            // ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', async function() {
+    await SessionManager.initPage(loadInvoices);
+});
             
             const isValid = await checkAdminSession();
             if (isValid) {
