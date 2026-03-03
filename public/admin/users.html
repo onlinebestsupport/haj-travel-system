@@ -1350,7 +1350,46 @@ async function loadUsers() {
                 </tr>`;
             });
             
-            tbody.innerHTML = html;
+                    // Store all users globally
+        window.allUsers = data.users;
+        
+        // Apply pagination
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedUsers = data.users.slice(start, end);
+        
+        let html = '';
+        paginatedUsers.forEach(user => {
+            let permCount = 0;
+            if (user.permissions) {
+                if (typeof user.permissions === 'object') {
+                    permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
+                }
+            }
+            
+            html += `<tr>
+                <td>${user.id}</td>
+                <td><strong>${escapeHtml(user.username)}</strong></td>
+                <td>${escapeHtml(user.full_name || '-')}</td>
+                <td>${escapeHtml(user.email)}</td>
+                <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
+                <td>${permCount}</td>
+                <td>${escapeHtml(user.department || '-')}</td>
+                <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                <td>
+                    <button class="icon-btn" onclick="viewUserDetails(${user.id})" title="View Details"><i class="fas fa-eye"></i></button>
+                    <button class="icon-btn" onclick="editUser(${user.id})" title="Edit User"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                        <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+        
+        tbody.innerHTML = html;
+        updatePaginationInfo();
             
             // Update statistics
             document.getElementById('totalUsers').textContent = data.users.length;
@@ -1693,7 +1732,46 @@ function escapeHtml(text) {
                     </td>
                 </tr>`;
             });
-            tbody.innerHTML = html;
+                    // Store all users globally
+        window.allUsers = data.users;
+        
+        // Apply pagination
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedUsers = data.users.slice(start, end);
+        
+        let html = '';
+        paginatedUsers.forEach(user => {
+            let permCount = 0;
+            if (user.permissions) {
+                if (typeof user.permissions === 'object') {
+                    permCount = Object.keys(user.permissions).filter(k => user.permissions[k] === true).length;
+                }
+            }
+            
+            html += `<tr>
+                <td>${user.id}</td>
+                <td><strong>${escapeHtml(user.username)}</strong></td>
+                <td>${escapeHtml(user.full_name || '-')}</td>
+                <td>${escapeHtml(user.email)}</td>
+                <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
+                <td>${permCount}</td>
+                <td>${escapeHtml(user.department || '-')}</td>
+                <td><span class="status-badge ${user.is_active ? 'status-active' : 'status-inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                <td>
+                    <button class="icon-btn" onclick="viewUserDetails(${user.id})" title="View Details"><i class="fas fa-eye"></i></button>
+                    <button class="icon-btn" onclick="editUser(${user.id})" title="Edit User"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn" onclick="toggleUserStatus(${user.id})" title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                        <i class="fas fa-${user.is_active ? 'ban' : 'check-circle'}"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+        
+        tbody.innerHTML = html;
+        updatePaginationInfo();
         }
 
         window.resetFilters = function() {
@@ -1739,6 +1817,38 @@ function escapeHtml(text) {
             document.getElementById('editUserModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         };
-    </script>
+    
+    // ==================== PAGINATION VARIABLES ====================
+    let currentPage = 1;
+    let itemsPerPage = 10;
+
+    function updatePaginationInfo() {
+        const total = window.allUsers ? window.allUsers.length : 0;
+        document.getElementById('totalCount').textContent = total;
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
+        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
+        
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        if (prevBtn) prevBtn.disabled = currentPage === 1;
+        if (nextBtn) nextBtn.disabled = end >= total;
+    }
+
+    function previousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadUsers();
+        }
+    }
+
+    function nextPage() {
+        if (currentPage * itemsPerPage < (window.allUsers ? window.allUsers.length : 0)) {
+            currentPage++;
+            loadUsers();
+        }
+    }
+</script>
 </body>
 </html>
