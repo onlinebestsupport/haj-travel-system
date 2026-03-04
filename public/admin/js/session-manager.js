@@ -1,27 +1,24 @@
 // ==================== 🔥 ULTIMATE SESSION MANAGER ====================
-// Place this file in /public/admin/js/session-manager.js
-// Version: 2.0.0
-// Last Updated: 2026
+// File: /public/admin/js/session-manager.js
 
 const SessionManager = {
     // Session timeout in milliseconds (30 minutes)
     SESSION_TIMEOUT: 30 * 60 * 1000,
-    WARNING_BEFORE: 2 * 60 * 1000, // Show warning 2 minutes before expiry
+    WARNING_BEFORE: 2 * 60 * 1000,
     
-    // Session timers
     warningTimer: null,
     logoutTimer: null,
-    
-    // Check session with retry logic and timeout
+    notificationTimeout: null,
+
+    // Check session with retry logic
     checkSession: async function(redirect = true) {
+        console.log('🔍 Checking session...');
         const maxRetries = 2;
-        const timeout = 5000; // 5 seconds timeout
         
         for (let i = 0; i < maxRetries; i++) {
             try {
-                // Create abort controller for timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
                 
                 const response = await fetch('/api/check-session', {
                     credentials: 'include',
@@ -35,8 +32,10 @@ const SessionManager = {
                 
                 clearTimeout(timeoutId);
                 
+                console.log(`📡 Session response status: ${response.status}`);
+                
                 if (response.status === 401) {
-                    console.log(`⚠️ Unauthorized (attempt ${i+1}/${maxRetries})`);
+                    console.log('⚠️ Session expired or not authenticated');
                     if (i === maxRetries-1) {
                         if (redirect) this.redirectToLogin();
                         return false;
@@ -49,10 +48,10 @@ const SessionManager = {
                 }
                 
                 const data = await response.json();
-                console.log('🔐 Session check successful:', data);
+                console.log('🔐 Session data:', data);
                 
                 if (!data.authenticated) {
-                    console.log('⚠️ Session not authenticated');
+                    console.log('⚠️ Not authenticated in response');
                     if (i === maxRetries-1) {
                         if (redirect) this.redirectToLogin();
                         return false;
@@ -62,19 +61,12 @@ const SessionManager = {
                 
                 // Store session data
                 this.updateSessionData(data);
-                
-                // Reset session timers
                 this.resetTimers();
                 
                 return true;
                 
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log(`⏱️ Session check timeout (attempt ${i+1}/${maxRetries})`);
-                } else {
-                    console.log(`⚠️ Session check error (attempt ${i+1}/${maxRetries}):`, error.message);
-                }
-                
+                console.error(`❌ Session check error (attempt ${i+1}):`, error);
                 if (i === maxRetries-1) {
                     if (redirect) this.redirectToLogin();
                     return false;
@@ -97,6 +89,12 @@ const SessionManager = {
         sessionStorage.setItem('adminRole', user.role || 'admin');
         sessionStorage.setItem('adminUsername', user.username || '');
         sessionStorage.setItem('loginTime', Date.now().toString());
+        
+        console.log('✅ Session data stored:', {
+            name: user.name,
+            role: user.role,
+            username: user.username
+        });
         
         // Update UI elements
         this.updateUI(user);
@@ -154,11 +152,15 @@ const SessionManager = {
     redirectToLogin: function() {
         console.log('🚪 Redirecting to login...');
         
-        // Store current page for redirect after login
+        // Don't redirect if already on login page
         const currentPage = window.location.pathname;
-        if (!currentPage.includes('login') && !currentPage.includes('admin.login')) {
-            sessionStorage.setItem('redirectAfterLogin', currentPage);
+        if (currentPage.includes('login') || currentPage.includes('admin.login')) {
+            console.log('📍 Already on login page, skipping redirect');
+            return;
         }
+        
+        // Store current page for redirect after login
+        sessionStorage.setItem('redirectAfterLogin', currentPage);
         
         // Clear session storage
         sessionStorage.clear();
@@ -172,7 +174,6 @@ const SessionManager = {
         console.log('🚪 Logging out...');
         
         try {
-            // Call logout API with timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             
@@ -188,13 +189,8 @@ const SessionManager = {
             clearTimeout(timeoutId);
             
         } catch (error) {
-            if (error.name === 'AbortError') {
-                console.log('⏱️ Logout timeout');
-            } else {
-                console.error('Logout error:', error);
-            }
+            console.error('Logout error:', error);
         } finally {
-            // Always clear session and redirect
             sessionStorage.clear();
             localStorage.removeItem('rememberedUser');
             window.location.href = '/admin.login.html';
@@ -204,32 +200,36 @@ const SessionManager = {
     // Initialize page with session check
     initPage: async function(loadFunction) {
         console.log('🚀 Initializing page with session check...');
+        console.log('📍 Current path:', window.location.pathname);
+        
+        // Don't check session on login page
+        if (window.location.pathname.includes('login') || 
+            window.location.pathname.includes('admin.login')) {
+            console.log('📍 On login page, skipping session check');
+            return;
+        }
         
         try {
-            // Check session
             const isValid = await this.checkSession(true);
             
             if (isValid) {
-                // Start session timers
+                console.log('✅ Session valid, starting timers');
                 this.startTimers();
+                this.setupActivityMonitoring();
                 
-                // Load page data if function provided
                 if (typeof loadFunction === 'function') {
                     try {
                         await loadFunction();
                         console.log('✅ Page loaded successfully');
                     } catch (error) {
                         console.error('❌ Load function error:', error);
-                        this.showNotification('Error loading page data', 'error');
                     }
                 }
-                
-                // Setup activity monitoring
-                this.setupActivityMonitoring();
+            } else {
+                console.log('❌ Session invalid, redirecting...');
             }
         } catch (error) {
             console.error('❌ Session initialization error:', error);
-            this.redirectToLogin();
         }
     },
 
@@ -237,15 +237,15 @@ const SessionManager = {
     startTimers: function() {
         this.clearTimers();
         
-        // Warning timer (show warning 2 minutes before expiry)
         this.warningTimer = setTimeout(() => {
             this.showSessionWarning();
         }, this.SESSION_TIMEOUT - this.WARNING_BEFORE);
         
-        // Logout timer (force logout at expiry)
         this.logoutTimer = setTimeout(() => {
             this.forceLogout();
         }, this.SESSION_TIMEOUT);
+        
+        console.log('⏱️ Session timers started');
     },
 
     // Reset session timers on activity
@@ -279,12 +279,11 @@ const SessionManager = {
         
         warningEl.style.display = 'block';
         
-        // Auto-hide after 1.5 minutes if no interaction
         setTimeout(() => {
             if (warningEl.style.display === 'block') {
                 warningEl.style.opacity = '0.5';
             }
-        }, 90000); // 1.5 minutes
+        }, 90000);
     },
 
     // Hide session warning
@@ -327,19 +326,17 @@ const SessionManager = {
 
     // Setup activity monitoring
     setupActivityMonitoring: function() {
-        const events = ['click', 'mousemove', 'keypress', 'scroll', 'touchstart', 'touchmove'];
+        const events = ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'];
         
         const resetHandler = () => {
             this.resetTimers();
         };
         
-        // Remove existing listeners and add new ones
         events.forEach(event => {
             document.removeEventListener(event, resetHandler);
             document.addEventListener(event, resetHandler, { passive: true });
         });
         
-        // Handle visibility change
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
         document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
     },
@@ -347,7 +344,6 @@ const SessionManager = {
     // Handle page visibility change
     handleVisibilityChange: function() {
         if (!document.hidden) {
-            // Page became visible, check session
             this.checkSession(false).then(isValid => {
                 if (!isValid) {
                     this.redirectToLogin();
@@ -369,12 +365,10 @@ const SessionManager = {
         notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
         notification.style.display = 'block';
         
-        // Clear existing timeout
         if (this.notificationTimeout) {
             clearTimeout(this.notificationTimeout);
         }
         
-        // Auto hide after 3 seconds
         this.notificationTimeout = setTimeout(() => {
             notification.style.display = 'none';
         }, 3000);
@@ -392,41 +386,22 @@ const SessionManager = {
     // Check if user is authenticated (client-side)
     isAuthenticated: function() {
         return sessionStorage.getItem('adminLoggedIn') === 'true';
-    },
-
-    // Get session expiry time
-    getSessionExpiry: function() {
-        const loginTime = sessionStorage.getItem('loginTime');
-        if (!loginTime) return null;
-        
-        const expiryTime = parseInt(loginTime) + this.SESSION_TIMEOUT;
-        const remaining = expiryTime - Date.now();
-        
-        if (remaining <= 0) return 'Expired';
-        
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
-        
-        return `${minutes}m ${seconds}s`;
     }
 };
 
 // Make SessionManager globally available
 window.SessionManager = SessionManager;
 
-// Auto-initialize if page has session check
+// Auto-initialize for admin pages
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if page needs session management
-    const needsAuth = document.querySelector('[data-requires-auth="true"]') || 
-                     window.location.pathname.includes('/admin/');
+    console.log('📄 DOM loaded, checking if page needs auth');
     
-    if (needsAuth && !window.location.pathname.includes('login')) {
+    // Check if page needs authentication
+    const needsAuth = window.location.pathname.includes('/admin/') && 
+                     !window.location.pathname.includes('login');
+    
+    if (needsAuth) {
         console.log('🛡️ Page requires authentication');
         SessionManager.initPage();
     }
 });
-
-// Export for module usage if needed
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SessionManager;
-}
