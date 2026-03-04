@@ -800,6 +800,34 @@
             background: #f39c12;
         }
 
+        /* Session Warning Banner */
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        #sessionWarning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f39c12;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            z-index: 10000;
+            display: none;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.3);
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        #sessionWarning:hover {
+            background: #e67e22;
+        }
+
         /* Print Styles */
         @media print {
             .admin-header, .action-buttons, .search-box, .modal-footer, .logout-btn, .icon-btn, .csv-upload-section, .form-container {
@@ -876,9 +904,39 @@
         </div>
     </div>
 
+    <!-- Session Warning Banner -->
+    <div id="sessionWarning" onclick="extendSession()">
+        <i class="fas fa-exclamation-triangle"></i> 
+        <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
+    </div>
+
     <div class="container">
         <div class="page-header">
             <h2><i class="fas fa-users"></i> Traveler Management (33 Fields)</h2>
+        </div>
+
+        <!-- Dashboard Stats Summary - Correlated with Dashboard -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+            <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 5px;"></i>
+                <h3 style="font-size: 1.5rem;" id="totalTravelersCount">0</h3>
+                <p>Total Travelers</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #27ae60, #219a52); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 5px;"></i>
+                <h3 style="font-size: 1.5rem;" id="activeTravelersCount">0</h3>
+                <p>Active Passports</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <i class="fas fa-syringe" style="font-size: 2rem; margin-bottom: 5px;"></i>
+                <h3 style="font-size: 1.5rem;" id="vaccinatedCount">0</h3>
+                <p>Fully Vaccinated</p>
+            </div>
+            <div style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <i class="fas fa-passport" style="font-size: 2rem; margin-bottom: 5px;"></i>
+                <h3 style="font-size: 1.5rem;" id="documentsComplete">0</h3>
+                <p>Docs Complete</p>
+            </div>
         </div>
 
         <!-- Action Buttons -->
@@ -1346,19 +1404,85 @@
 
     <div id="notification" class="notification"></div>
 
+    <!-- Session Manager Script -->
     <script>
-        <script src="/admin/js/session-manager.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async function() {
-    // Replace loadPageData with your page's load function
-    await SessionManager.initPage(loadPageData);
-});
+        // Session Manager - Centralized authentication handling
+        const SessionManager = {
+            initPage: async function(callback) {
+                try {
+                    const session = await this.checkSession();
+                    
+                    if (!session.authenticated) {
+                        console.log('⚠️ Not logged in, redirecting to login...');
+                        window.location.href = '/admin.login.html';
+                        return false;
+                    }
+                    
+                    this.updateUI(session);
+                    
+                    if (callback && typeof callback === 'function') {
+                        await callback();
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Session initialization failed:', error);
+                    window.location.href = '/admin.login.html';
+                    return false;
+                }
+            },
 
-// Replace with your actual logout function
-async function logout() {
-    await SessionManager.logout();
-}
-</script>
+            checkSession: async function() {
+                const response = await fetch('/api/check-session', {
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('Session check failed');
+                return await response.json();
+            },
+
+            updateUI: function(session) {
+                const roleBadge = document.getElementById('roleBadge');
+                if (roleBadge) roleBadge.textContent = session.role || 'Admin';
+                
+                if (session.authenticated) {
+                    sessionStorage.setItem('userRole', session.role || 'Admin');
+                    sessionStorage.setItem('username', session.username || '');
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                }
+            },
+
+            logout: async function() {
+                try {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } catch (error) {
+                    console.error('Logout error:', error);
+                } finally {
+                    sessionStorage.clear();
+                    window.location.href = '/admin.login.html';
+                }
+            },
+
+            getCurrentUser: function() {
+                return {
+                    role: sessionStorage.getItem('userRole'),
+                    username: sessionStorage.getItem('username')
+                };
+            },
+
+            isAuthenticated: function() {
+                return !!sessionStorage.getItem('adminLoggedIn');
+            }
+        };
+    </script>
+
+    <!-- Main Script -->
+    <script>
         // ==================== GLOBAL VARIABLES ====================
         let currentEditId = null;
         let travelersData = [];
@@ -1367,57 +1491,119 @@ async function logout() {
         let itemsPerPage = 10;
         let currentDocument = null;
         let currentDocumentName = '';
+        let sessionWarningTimeout = null;
+        let sessionLogoutTimeout = null;
+        let warningShown = false;
+        let notificationTimeout = null;
 
         // Document storage (in-memory for demo)
         const documentStore = new Map();
 
-       // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', async function() {
-    // Check session first
-    const session = await fetch('/api/check-session', {
-        credentials: 'include'
-    }).then(r => r.json());
-    
-    if (!session.authenticated) {
-        console.log('⚠️ Not logged in, redirecting to login...');
-        window.location.href = '/admin.login.html';
-        return;
-    }
-    
-    checkAuth();
-    loadBatches();
-    loadTravelers();
-    setupPassportNameAutoFill();
-});
-
-        // ==================== AUTHENTICATION ====================
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = '/admin.login.html';
-                return;
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await SessionManager.initPage(initializePage);
+            } catch (error) {
+                console.error('Failed to initialize page:', error);
+                showNotification('Failed to load page', 'error');
             }
-            const userName = sessionStorage.getItem('adminName') || 'Admin';
-            const userRole = sessionStorage.getItem('adminRole') || 'admin';
-            document.getElementById('roleBadge').textContent = userRole;
+        });
+
+        async function initializePage() {
+            console.log('✅ User authenticated, loading travelers page...');
+            
+            // Initialize session management
+            resetSessionTimer();
+            
+            // Monitor user activity
+            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetSessionTimer);
+            });
+            
+            // Load data
+            await loadBatches();
+            await loadTravelers();
+            setupPassportNameAutoFill();
+        }
+
+        // ==================== SESSION MANAGEMENT ====================
+        function resetSessionTimer() {
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+            
+            hideSessionWarning();
+            
+            // Show warning after 25 minutes (1500000 ms)
+            sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
+            
+            // Auto logout after 30 minutes (1800000 ms)
+            sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
+        }
+
+        function showSessionWarning() {
+            if (warningShown) return;
+            
+            const warning = document.getElementById('sessionWarning');
+            const message = document.getElementById('sessionWarningMessage');
+            if (!warning || !message) return;
+            
+            message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
+            warning.style.display = 'block';
+            warningShown = true;
+        }
+
+        function hideSessionWarning() {
+            const warning = document.getElementById('sessionWarning');
+            if (warning) warning.style.display = 'none';
+            warningShown = false;
+        }
+
+        function showSessionExpiredWarning() {
+            hideSessionWarning();
+            showNotification('Your session has expired. Redirecting to login...', 'warning');
+            
+            setTimeout(() => {
+                SessionManager.logout();
+            }, 3000);
+        }
+
+        async function extendSession() {
+            try {
+                await SessionManager.checkSession();
+                hideSessionWarning();
+                resetSessionTimer();
+                showNotification('Session extended successfully', 'success');
+            } catch (error) {
+                console.error('Session extension failed:', error);
+                showSessionExpiredWarning();
+            }
         }
 
         // ==================== NOTIFICATION ====================
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
+            if (!notification) return;
+            
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'error' ? 'exclamation-circle' : 
+                        type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+            
             notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
             notification.style.display = 'block';
             
-            setTimeout(() => {
+            if (notificationTimeout) clearTimeout(notificationTimeout);
+            
+            notificationTimeout = setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
         }
 
         // ==================== LOGOUT ====================
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await SessionManager.logout();
+            }
         }
 
         // ==================== DOCUMENT HANDLING ====================
@@ -1429,13 +1615,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const file = input.files[0];
                 textElement.textContent = file.name;
                 
-                // Generate preview
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const fileData = e.target.result;
                     const fileType = file.type;
                     
-                    // Store in document store with unique ID
                     const docId = Date.now() + '_' + file.name;
                     documentStore.set(docId, {
                         name: file.name,
@@ -1443,7 +1627,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                         data: fileData
                     });
                     
-                    // Create preview HTML
                     let previewHtml = `
                         <div class="file-info">
                             <i class="fas fa-${fileType.includes('pdf') ? 'file-pdf' : 'file-image'}"></i>
@@ -1462,7 +1645,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     previewElement.innerHTML = previewHtml;
                     previewElement.style.display = 'flex';
                     
-                    // Store docId in input dataset for later retrieval
                     input.dataset.docId = docId;
                 };
                 reader.readAsDataURL(file);
@@ -1516,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             input.value = '';
             delete input.dataset.docId;
             
-            document.getElementById(textElementId).textContent = 'Click to upload';
+            document.getElementById(textElementId).textContent = textElementId.includes('edit') ? 'Click to update' : 'Click to upload';
             document.getElementById(previewElementId).style.display = 'none';
             
             showNotification('Document removed', 'success');
@@ -1526,16 +1708,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('documentViewerModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
             currentDocument = null;
-        }
-
-        function getAllDocumentsForTraveler(travelerId) {
-            const docs = [];
-            for (let [docId, doc] of documentStore.entries()) {
-                if (docId.startsWith(travelerId + '_')) {
-                    docs.push({ id: docId, ...doc });
-                }
-            }
-            return docs;
         }
 
         // ==================== AUTO-FILL PASSPORT NAME ====================
@@ -1572,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // ==================== LOAD BATCHES ====================
         async function loadBatches() {
             try {
-                const response = await fetch('/api/batches');
+                const response = await fetch('/api/batches', { credentials: 'include' });
                 const data = await response.json();
                 
                 if (data.success && data.batches) {
@@ -1621,9 +1793,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             tableBody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
             
             try {
-                const response = await fetch('/api/travelers', {
-    credentials: 'include'
-});
+                const response = await fetch('/api/travelers', { credentials: 'include' });
                 const data = await response.json();
                 
                 if (data.success && data.travelers) {
@@ -1637,6 +1807,21 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             displayTravelers();
+            updateDashboardStats();
+        }
+
+        function updateDashboardStats() {
+            const total = travelersData.length;
+            const active = travelersData.filter(t => t.passport_status === 'Active').length;
+            const vaccinated = travelersData.filter(t => t.vaccine_status === 'Fully Vaccinated').length;
+            const docsComplete = travelersData.filter(t => 
+                t.passport_scan && t.aadhaar_scan && t.pan_scan && t.photo
+            ).length;
+            
+            document.getElementById('totalTravelersCount').textContent = total;
+            document.getElementById('activeTravelersCount').textContent = active;
+            document.getElementById('vaccinatedCount').textContent = vaccinated;
+            document.getElementById('documentsComplete').textContent = docsComplete;
         }
 
         function useFallbackTravelers() {
@@ -1747,6 +1932,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     photo: null
                 }
             ];
+            updateDashboardStats();
         }
 
         function displayTravelers() {
@@ -1757,7 +1943,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
             
-            // Apply pagination
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const paginatedData = travelersData.slice(start, end);
@@ -1767,7 +1952,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
                 const batchName = t.batch_name || 'Not Assigned';
                 
-                // Document icons with proper click handlers
                 const docIcons = `
                     <div class="doc-icons">
                         <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
@@ -1814,40 +1998,34 @@ document.addEventListener('DOMContentLoaded', async function() {
             updatePaginationInfo(travelersData.length);
         }
 
-        // New function to view uploaded documents via API
         function viewUploadedDocument(docType, travelerId) {
-            fetch(`/api/travelers/${travelerId}`, {
-                credentials: 'include'
-            })
-            .then(r => r.json())
-            .then(data => {
-                const traveler = data.traveler;
-                let filename;
-                
-                switch(docType) {
-                    case 'passport': filename = traveler.passport_scan; break;
-                    case 'aadhaar': filename = traveler.aadhaar_scan; break;
-                    case 'pan': filename = traveler.pan_scan; break;
-                    case 'vaccine': filename = traveler.vaccine_scan; break;
-                    case 'photo': filename = traveler.photo; break;
-                    default: return;
-                }
-                
-                if (filename) {
-                    // Determine the correct folder
-                    let folder = docType + 's';
-                    if (docType === 'photo') folder = 'photos';
+            fetch(`/api/travelers/${travelerId}`, { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    const traveler = data.traveler;
+                    let filename;
                     
-                    // Open the file in a new tab
-                    window.open(`/uploads/${folder}/${filename}`, '_blank');
-                } else {
-                    showNotification(`No ${docType} document uploaded for this traveler`, 'error');
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching traveler:', err);
-                showNotification('Error loading document', 'error');
-            });
+                    switch(docType) {
+                        case 'passport': filename = traveler.passport_scan; break;
+                        case 'aadhaar': filename = traveler.aadhaar_scan; break;
+                        case 'pan': filename = traveler.pan_scan; break;
+                        case 'vaccine': filename = traveler.vaccine_scan; break;
+                        case 'photo': filename = traveler.photo; break;
+                        default: return;
+                    }
+                    
+                    if (filename) {
+                        let folder = docType + 's';
+                        if (docType === 'photo') folder = 'photos';
+                        window.open(`/uploads/${folder}/${filename}`, '_blank');
+                    } else {
+                        showNotification(`No ${docType} document uploaded for this traveler`, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching traveler:', err);
+                    showNotification('Error loading document', 'error');
+                });
         }
 
         function escapeHtml(text) {
@@ -1885,7 +2063,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // ==================== ADD TRAVELER FORM ====================
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
-            loadBatches(); // Refresh batches
+            loadBatches();
             document.getElementById('addTravelerForm').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -1893,7 +2071,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('addTravelerForm').style.display = 'none';
             document.getElementById('travelerAddForm').reset();
             
-            // Reset file uploads
             const previewIds = [
                 'add_passport_scan_preview', 'add_aadhaar_scan_preview', 
                 'add_pan_scan_preview', 'add_vaccine_scan_preview', 'add_photo_preview'
@@ -1916,15 +2093,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // ==================== CREATE TRAVELER ====================
         async function createTraveler() {
-            // Collect document IDs
-            const documents = {
-                passport: document.getElementById('add_passport_scan').dataset.docId,
-                aadhaar: document.getElementById('add_aadhaar_scan').dataset.docId,
-                pan: document.getElementById('add_pan_scan').dataset.docId,
-                vaccine: document.getElementById('add_vaccine_scan').dataset.docId,
-                photo: document.getElementById('add_photo').dataset.docId
-            };
-
             const travelerData = {
                 first_name: document.getElementById('add_first_name').value,
                 last_name: document.getElementById('add_last_name').value,
@@ -1969,6 +2137,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const response = await fetch('/api/travelers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(travelerData)
                 });
                 
@@ -1982,7 +2151,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     showNotification('Error: ' + (data.error || 'Could not create traveler'), 'error');
                 }
             } catch (error) {
-                // Demo mode
                 const newId = Math.max(...travelersData.map(t => t.id), 0) + 1;
                 const batch = batchesData.find(b => b.id == travelerData.batch_id);
                 travelerData.id = newId;
@@ -1993,6 +2161,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 showNotification('Traveler created (demo mode)', 'success');
                 hideAddTravelerForm();
                 displayTravelers();
+                updateDashboardStats();
             }
         }
 
@@ -2085,6 +2254,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const response = await fetch(`/api/travelers/${currentEditId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(travelerData)
                 });
                 
@@ -2098,7 +2268,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     showNotification('Error: ' + (data.error || 'Update failed'), 'error');
                 }
             } catch (error) {
-                // Demo mode
                 const index = travelersData.findIndex(t => t.id === currentEditId);
                 if (index !== -1) {
                     const batch = batchesData.find(b => b.id == travelerData.batch_id);
@@ -2110,6 +2279,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     showNotification('Traveler updated (demo mode)', 'success');
                     hideEditTravelerForm();
                     displayTravelers();
+                    updateDashboardStats();
                 } else {
                     showNotification('Error updating traveler', 'error');
                 }
@@ -2124,7 +2294,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             try {
                 const response = await fetch(`/api/travelers/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 
                 const data = await response.json();
@@ -2136,10 +2307,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     showNotification('Error: ' + (data.error || 'Could not delete traveler'), 'error');
                 }
             } catch (error) {
-                // Demo mode
                 travelersData = travelersData.filter(t => t.id !== id);
                 showNotification('Traveler deleted (demo mode)', 'success');
                 displayTravelers();
+                updateDashboardStats();
             }
         }
 
@@ -2158,7 +2329,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const formatValue = (val) => val && val !== '' ? val : '<span style="color: #95a5a6;">Not specified</span>';
             const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'Not specified';
             
-            // Document cards with click handlers
             const documentCards = `
                 <div class="document-card" onclick="${t.passport_scan ? `viewUploadedDocument('passport', ${t.id})` : ''}">
                     <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
@@ -2350,13 +2520,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape');
             
-            // Add title
             doc.setFontSize(18);
             doc.text('Alhudha Haj Travel - Travelers List', 14, 22);
             doc.setFontSize(11);
             doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
             
-            // Prepare table data
             const tableColumn = ['ID', 'Name', 'Passport', 'Mobile', 'Email', 'Batch', 'Status'];
             const tableRows = [];
             
@@ -2374,7 +2542,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 tableRows.push(travelerData);
             });
             
-            // Generate table
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
@@ -2383,7 +2550,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 headStyles: { fillColor: [44, 62, 80] }
             });
             
-            // Save PDF
             doc.save(`travelers_list_${new Date().toISOString().slice(0,10)}.pdf`);
             showNotification('PDF exported successfully!', 'success');
         }
@@ -2392,10 +2558,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             const content = document.getElementById('travelerDetails')?.innerHTML;
             if (!content) return;
             
-            const { jsPDF } = window.jspDF;
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Extract traveler name from content
             const nameMatch = content.match(/Full Name:<\/strong> <span>([^<]+)/);
             const travelerName = nameMatch ? nameMatch[1].trim() : 'Traveler';
             
@@ -2405,7 +2570,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             doc.text(`Traveler: ${travelerName}`, 14, 30);
             doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 37);
             
-            // Add personal info
             doc.setFontSize(12);
             doc.text('Personal Information', 14, 47);
             doc.setFontSize(10);
@@ -2436,10 +2600,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         function exportTravelersToExcel() {
             let csv = [];
             
-            // Headers - 33 columns
             csv.push('"ID","First Name","Last Name","Passport Name","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Passport Status","Gender","Date of Birth","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Father\'s Name","Mother\'s Name","Spouse\'s Name","PIN","Emergency Contact","Emergency Phone","Medical Notes","Passport Scan","Aadhaar Scan","PAN Scan","Vaccine Scan","Photo","Created At"');
             
-            // Data rows
             travelersData.forEach(t => {
                 csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.passport_scan || ''}","${t.aadhaar_scan || ''}","${t.pan_scan || ''}","${t.vaccine_scan || ''}","${t.photo || ''}","${t.created_at || ''}"`);
             });
@@ -2496,7 +2658,6 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                 const lines = csv.split('\n');
                 const headers = lines[0].split(',');
                 
-                // Show preview
                 const previewDiv = document.getElementById('csvPreview');
                 const previewContent = document.getElementById('csvPreviewContent');
                 
@@ -2507,7 +2668,6 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                 });
                 previewHtml += '<th>...</th></tr>';
                 
-                // Parse and add travelers
                 const newTravelers = [];
                 for (let i = 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
@@ -2528,13 +2688,11 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                             photo: null
                         };
                         
-                        // Get batch name
                         const batch = batchesData.find(b => b.id === traveler.batch_id);
                         traveler.batch_name = batch ? batch.batch_name : 'Unknown Batch';
                         
                         newTravelers.push(traveler);
                         
-                        // Add to preview
                         if (i < 6) {
                             previewHtml += '<tr>';
                             for (let j = 0; j < Math.min(10, cells.length); j++) {
@@ -2549,13 +2707,13 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                 previewContent.innerHTML = previewHtml;
                 previewDiv.style.display = 'block';
                 
-                // Add to travelers data
                 travelersData.push(...newTravelers);
                 
                 showNotification(`CSV uploaded successfully! Added ${newTravelers.length} travelers.`, 'success');
                 setTimeout(() => {
                     hideCSVUploadSection();
                     displayTravelers();
+                    updateDashboardStats();
                 }, 2000);
             };
             
