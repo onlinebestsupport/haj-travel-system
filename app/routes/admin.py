@@ -1,11 +1,50 @@
 from flask import Blueprint, request, jsonify, session, send_file
 from app.database import get_db, release_db  # ✅ POOL COMPATIBLE
 from app.middleware import role_required, safe_db_operation, log_critical_action, get_client_ip  # ✅ FIXED IMPORTS
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
+import hashlib
 
 bp = Blueprint('admin', __name__, url_prefix='/api/admin')
+
+# ==================== 🔐 SESSION MANAGEMENT ====================
+@bp.route('/check-session', methods=['GET'])
+def check_session():
+    """Check if user is authenticated - Used by SessionManager"""
+    if 'user_id' not in session:
+        return jsonify({'authenticated': False}), 401
+    
+    def get_user_info(conn, cursor):
+        cursor.execute('''
+            SELECT id, username, full_name as name, email, role, last_login 
+            FROM users WHERE id = %s AND is_active = true
+        ''', (session['user_id'],))
+        return cursor.fetchone()
+    
+    user = safe_db_operation(get_user_info)()
+    if not user:
+        session.clear()
+        return jsonify({'authenticated': False}), 401
+    
+    # Update last activity timestamp
+    session['last_activity'] = datetime.now().isoformat()
+    
+    return jsonify({
+        'authenticated': True,
+        'user': dict(user),
+        'session_expiry': (datetime.now() + timedelta(minutes=30)).isoformat()
+    })
+
+@bp.route('/logout', methods=['POST'])
+def logout():
+    """Logout user"""
+    user_id = session.get('user_id')
+    if user_id:
+        log_critical_action(user_id, 'LOGOUT', 'User logged out', get_client_ip())
+    
+    session.clear()
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
 
 # ==================== 👥 USER MANAGEMENT ====================
 @bp.route('/users', methods=['GET'])
@@ -21,7 +60,7 @@ def get_users():
         return cursor.fetchall()
     
     users = safe_db_operation(fetch_users)()
-    if not users:
+    if users is None:
         return jsonify({'success': False, 'error': 'Failed to fetch users'}), 500
     
     # Parse permissions
@@ -57,6 +96,214 @@ def get_user(user_id):
         user_dict['permissions'] = {}
     
     return jsonify({'success': True, 'user': user_dict})
+
+@bp.route('/users', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def create_user():
+    """Create new user"""
+    data = request.json
+    
+    required = ['username', 'password', 'email', 'role']
+    for field in required:
+        if not data.get(field):
+            return jsonify({'success': False, 'error': f'{field} required'}), 400
+    
+    # Hash password (in production, use proper password hashing)
+    password_hash = hashlib.sha256(data['password'].encode()).hexdigest()
+    permissions = json.dumps(data.get('permissions', {}))
+    
+    def create(conn, cursor):
+        # Check duplicates
+        cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
+        if cursor.fetchone():
+            return {'error': 'Username exists'}
+        
+        cursor.execute('SELECT id FROM users WHERE email = %s', (data['email'],))
+        if cursor.fetchone():
+            return {'error': 'Email exists'}
+        
+        cursor.execute('''
+            INSERT INTO users (username, password, full_name, email, phone, department,
+                             role, permissions, is_active, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        ''', (data['username'], password_hash, data.get('full_name'), data['email'],
+              data.get('phone'), data.get('department'), data['role'], permissions,
+              True, datetime.now(), datetime.now()))
+        
+        return {'id': cursor.fetchone()['id']}
+    
+    result = safe_db_operation(create)()
+    if result and 'error' in result:
+        return jsonify({'success': False, 'error': result['error']}), 400
+    
+    log_critical_action(session['user_id'], 'CREATE_USER', 
+                       f'Created user: {data["username"]}', get_client_ip())
+    
+    return jsonify({'success': True, 'user_id': result['id']})
+
+@bp.route('/users/<int:user_id>', methods=['PUT'])
+@role_required(['super_admin', 'admin'])
+def update_user(user_id):
+    """Update user"""
+    data = request.json
+    
+    def update(conn, cursor, uid):
+        cursor.execute('SELECT username FROM users WHERE id = %s', (uid,))
+        user = cursor.fetchone()
+        if not user:
+            return None
+        
+        permissions = json.dumps(data.get('permissions', {}))
+        cursor.execute('''
+            UPDATE users SET full_name = %s, email = %s, phone = %s,
+                department = %s, role = %s, permissions = %s, updated_at = %s
+            WHERE id = %s
+        ''', (data.get('full_name'), data['email'], data.get('phone'),
+              data.get('department'), data['role'], permissions, datetime.now(), uid))
+        return user['username']
+    
+    username = safe_db_operation(update)(user_id)
+    if username is None:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+    
+    log_critical_action(session['user_id'], 'UPDATE_USER', 
+                       f'Updated user: {username}', get_client_ip())
+    
+    return jsonify({'success': True})
+
+@bp.route('/users/<int:user_id>/toggle', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def toggle_user_status(user_id):
+    """Toggle user active status"""
+    def toggle(conn, cursor, uid):
+        cursor.execute('SELECT is_active, username FROM users WHERE id = %s', (uid,))
+        user = cursor.fetchone()
+        if not user:
+            return None
+        new_status = not user['is_active']
+        cursor.execute('UPDATE users SET is_active = %s, updated_at = %s WHERE id = %s', 
+                      (new_status, datetime.now(), uid))
+        return {'username': user['username'], 'new_status': new_status}
+    
+    result = safe_db_operation(toggle)(user_id)
+    if not result:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+    
+    status_text = 'activated' if result['new_status'] else 'deactivated'
+    log_critical_action(session['user_id'], f'{status_text.upper()}_USER', 
+                       f'{status_text} user: {result["username"]}', get_client_ip())
+    
+    return jsonify({'success': True, 'is_active': result['new_status']})
+
+@bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
+@role_required(['super_admin', 'admin'])
+def reset_password(user_id):
+    """Reset user password"""
+    data = request.json
+    new_password = data.get('password')
+    
+    if not new_password or len(new_password) < 6:
+        return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
+    
+    password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+    
+    def reset(conn, cursor, uid):
+        cursor.execute('SELECT username FROM users WHERE id = %s', (uid,))
+        user = cursor.fetchone()
+        if not user:
+            return None
+        cursor.execute('UPDATE users SET password = %s, updated_at = %s WHERE id = %s',
+                      (password_hash, datetime.now(), uid))
+        return user['username']
+    
+    username = safe_db_operation(reset)(user_id)
+    if not username:
+        return jsonify({'success': False, 'error': 'User not found'}), 404
+    
+    log_critical_action(session['user_id'], 'RESET_PASSWORD', 
+                       f'Reset password for: {username}', get_client_ip())
+    
+    return jsonify({'success': True})
+
+# ==================== 📊 DASHBOARD STATS ====================
+@bp.route('/dashboard/stats', methods=['GET'])
+@role_required(['super_admin', 'admin', 'manager'])
+def get_dashboard_stats():
+    """🔥 FIXED - Single pooled query with recent activity"""
+    def fetch_stats(conn, cursor):
+        stats = {}
+        
+        # Basic counts
+        cursor.execute('SELECT COUNT(*) as count FROM travelers')
+        stats['total_travelers'] = cursor.fetchone()['count']
+        
+        cursor.execute('SELECT COUNT(*) as count FROM batches')
+        stats['total_batches'] = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM batches WHERE status = 'Open'")
+        stats['active_batches'] = cursor.fetchone()['count']
+        
+        cursor.execute('SELECT COUNT(*) as count FROM users')
+        stats['total_users'] = cursor.fetchone()['count']
+        
+        # Payment stats
+        cursor.execute('SELECT COUNT(*) as count FROM payments WHERE status = \'completed\'')
+        stats['paid_count'] = cursor.fetchone()['count']
+        
+        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = \'completed\'')
+        stats['total_collected'] = float(cursor.fetchone()['total'])
+        
+        cursor.execute('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = \'pending\'')
+        stats['pending_amount'] = float(cursor.fetchone()['total'])
+        
+        # Recent travelers (last 5)
+        cursor.execute('''
+            SELECT id, first_name, last_name, passport_no, created_at 
+            FROM travelers ORDER BY created_at DESC LIMIT 5
+        ''')
+        stats['recent_travelers'] = [dict(row) for row in cursor.fetchall()]
+        
+        # Recent payments (last 5)
+        cursor.execute('''
+            SELECT p.id, p.amount, p.payment_date, t.first_name, t.last_name
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            ORDER BY p.payment_date DESC LIMIT 5
+        ''')
+        stats['recent_payments'] = [dict(row) for row in cursor.fetchall()]
+        
+        # Upcoming batches (next 3)
+        cursor.execute('''
+            SELECT id, batch_name, departure_date, total_seats, booked_seats
+            FROM batches WHERE departure_date > NOW()
+            ORDER BY departure_date ASC LIMIT 3
+        ''')
+        stats['upcoming_batches'] = [dict(row) for row in cursor.fetchall()]
+        
+        return stats
+    
+    stats = safe_db_operation(fetch_stats)()
+    if stats is None:
+        return jsonify({'success': False, 'error': 'Failed to fetch stats'}), 500
+    
+    return jsonify({'success': True, 'stats': stats})
+
+@bp.route('/table-counts', methods=['GET'])
+@role_required(['super_admin', 'admin'])
+def get_table_counts():
+    """Quick table counts"""
+    def count_tables(conn, cursor):
+        tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
+        counts = {}
+        for table in tables:
+            cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
+            result = cursor.fetchone()
+            counts[table] = result['count'] if result else 0
+        return counts
+    
+    counts = safe_db_operation(count_tables)() or {}
+    return jsonify({'success': True, 'counts': counts})
 
 # ==================== 💾 BACKUP MANAGEMENT ====================
 @bp.route('/backups', methods=['GET'])
@@ -140,6 +387,8 @@ def create_backup():
         return backup_data
     
     data = safe_db_operation(create_json_backup)()
+    if data is None:
+        return jsonify({'success': False, 'error': 'Failed to create backup'}), 500
     
     # Write JSON backup
     with open(backup_path, 'w') as f:
@@ -148,13 +397,13 @@ def create_backup():
     file_size = os.path.getsize(backup_path)
     
     # Log to database
-    def log_backup(conn, cursor, name, size, path):
+    def log_backup(conn, cursor):
         cursor.execute("""
             INSERT INTO backup_history (backup_name, backup_type, file_size, tables_count, status, location, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (name, 'manual', format_bytes(size), len(data['tables']), 'completed', path, datetime.now()))
+        """, (backup_name, 'manual', file_size, len(data['tables']), 'completed', backup_path, datetime.now()))
     
-    safe_db_operation(log_backup)(backup_name, file_size, backup_path)
+    safe_db_operation(log_backup)()
     
     log_critical_action(session['user_id'], 'CREATE_BACKUP', f'Created: {backup_name}', get_client_ip())
     
@@ -195,58 +444,10 @@ def delete_backup(backup_id):
     
     backup = safe_db_operation(get_delete_info)(backup_id)
     if backup:
-        log_critical_action(session['user_id'], 'DELETE_BACKUP', f'Deleted: {backup["backup_name"]}')
+        log_critical_action(session['user_id'], 'DELETE_BACKUP', 
+                           f'Deleted: {backup["backup_name"]}', get_client_ip())
         return jsonify({'success': True, 'message': 'Deleted'})
     return jsonify({'success': False, 'error': 'Not found'}), 404
-
-# ==================== 📊 DASHBOARD STATS ====================
-@bp.route('/dashboard/stats', methods=['GET'])
-@role_required(['super_admin', 'admin', 'manager'])
-def get_dashboard_stats():
-    """🔥 FIXED - Single pooled query"""
-    def fetch_stats(conn, cursor):
-        stats = {}
-        cursor.execute('SELECT COUNT(*) as count FROM travelers')
-        stats['travelers'] = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM batches')
-        stats['batches'] = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) as count FROM batches WHERE status = 'Open'")
-        stats['active_batches'] = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM users')
-        stats['users'] = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM invoices')
-        stats['invoices'] = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM receipts')
-        stats['receipts'] = cursor.fetchone()['count']
-        
-        cursor.execute('SELECT COUNT(*) as count FROM payments WHERE status = \'completed\'')
-        stats['payments'] = cursor.fetchone()['count']
-        
-        return stats
-    
-    stats = safe_db_operation(fetch_stats)() or {}
-    return jsonify({'success': True, 'stats': stats})
-
-@bp.route('/table-counts', methods=['GET'])
-@role_required(['super_admin', 'admin'])
-def get_table_counts():
-    """Quick table counts"""
-    def count_tables(conn, cursor):
-        tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
-        counts = {}
-        for table in tables:
-            cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
-            result = cursor.fetchone()
-            counts[table] = result['count'] if result else 0
-        return counts
-    
-    counts = safe_db_operation(count_tables)() or {}
-    return jsonify({'success': True, 'counts': counts})
 
 # ==================== 🩺 HEALTH CHECK ====================
 @bp.route('/health', methods=['GET'])
@@ -254,15 +455,28 @@ def get_table_counts():
 def system_health():
     """Admin health check"""
     def health_check(conn, cursor):
-        tables = ['travelers', 'batches', 'payments']
+        tables = ['travelers', 'batches', 'payments', 'users']
         counts = {}
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
             result = cursor.fetchone()
             counts[table] = result['count'] if result else 0
-        return {'status': 'healthy', 'counts': counts}
+        
+        # Check connection pool
+        cursor.execute('SELECT 1 as healthy')
+        db_healthy = cursor.fetchone()['healthy'] == 1
+        
+        return {
+            'status': 'healthy' if db_healthy else 'degraded',
+            'timestamp': datetime.now().isoformat(),
+            'counts': counts,
+            'session_active': bool(session.get('user_id'))
+        }
     
-    health = safe_db_operation(health_check)() or {'status': 'error'}
+    health = safe_db_operation(health_check)()
+    if health is None:
+        return jsonify({'success': False, 'error': 'Health check failed'}), 500
+    
     return jsonify({'success': True, 'health': health})
 
 # ==================== 🔧 UTILITY ====================
@@ -276,94 +490,3 @@ def format_bytes(size_bytes):
             return f"{size_bytes:.1f}{unit}"
         size_bytes /= 1024
     return f"{size_bytes:.1f}TB"
-
-# ==================== 📋 USER MANAGEMENT EXTENSIONS ====================
-@bp.route('/users/<int:user_id>/toggle', methods=['POST'])
-@role_required(['super_admin', 'admin'])
-def toggle_user_status(user_id):
-    """Toggle user active status"""
-    def toggle(conn, cursor, uid):
-        cursor.execute('SELECT is_active, username FROM users WHERE id = %s', (uid,))
-        user = cursor.fetchone()
-        if not user:
-            return None
-        new_status = not user['is_active']
-        cursor.execute('UPDATE users SET is_active = %s, updated_at = %s WHERE id = %s', 
-                      (new_status, datetime.now(), uid))
-        return {'username': user['username'], 'new_status': new_status}
-    
-    result = safe_db_operation(toggle)(user_id)
-    if not result:
-        return jsonify({'success': False, 'error': 'User not found'}), 404
-    
-    status_text = 'activated' if result['new_status'] else 'deactivated'
-    log_critical_action(session['user_id'], f'{status_text.upper()}_USER', 
-                       f'{status_text} user: {result["username"]}')
-    
-    return jsonify({'success': True, 'is_active': result['new_status']})
-
-@bp.route('/users', methods=['POST'])
-@role_required(['super_admin', 'admin'])
-def create_user():
-    """Create new user"""
-    data = request.json
-    
-    required = ['username', 'password', 'email', 'role']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'success': False, 'error': f'{field} required'}), 400
-    
-    permissions = json.dumps(data.get('permissions', {}))
-    
-    def create(conn, cursor):
-        # Check duplicates
-        cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
-        if cursor.fetchone():
-            return {'error': 'Username exists'}
-        
-        cursor.execute('SELECT id FROM users WHERE email = %s', (data['email'],))
-        if cursor.fetchone():
-            return {'error': 'Email exists'}
-        
-        cursor.execute('''
-            INSERT INTO users (username, password, full_name, email, phone, department,
-                             role, permissions, is_active, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
-        ''', (data['username'], data['password'], data.get('full_name'), data['email'],
-              data.get('phone'), data.get('department'), data['role'], permissions,
-              True, datetime.now(), datetime.now()))
-        
-        return {'id': cursor.fetchone()['id']}
-    
-    result = safe_db_operation(create)()
-    if result and 'error' in result:
-        return jsonify({'success': False, 'error': result['error']}), 400
-    
-    return jsonify({'success': True, 'user_id': result['id']})
-
-@bp.route('/users/<int:user_id>', methods=['PUT'])
-@role_required(['super_admin', 'admin'])
-def update_user(user_id):
-    """Update user"""
-    data = request.json
-    
-    def update(conn, cursor, uid):
-        cursor.execute('SELECT username FROM users WHERE id = %s', (uid,))
-        if not cursor.fetchone():
-            return None
-        
-        permissions = json.dumps(data.get('permissions', {}))
-        cursor.execute('''
-            UPDATE users SET full_name = %s, email = %s, phone = %s,
-                department = %s, role = %s, permissions = %s, updated_at = %s
-            WHERE id = %s
-        ''', (data.get('full_name'), data['email'], data.get('phone'),
-              data.get('department'), data['role'], permissions, datetime.now(), uid))
-        return True
-    
-    result = safe_db_operation(update)(user_id)
-    if result is None:
-        return jsonify({'success': False, 'error': 'User not found'}), 404
-    
-    return jsonify({'success': True})
