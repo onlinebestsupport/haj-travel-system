@@ -5,11 +5,9 @@
 ✅ SESSION PERSISTENT (No auto-logout) - 🔥 FIXED!
 ✅ 15+ EMERGENCY APIs (Blueprints optional)
 ✅ RAILWAY OPTIMIZED (2 workers)
-✅ ALL BLUEPRINTS PROPERLY REGISTERED
-✅ POSTGRESQL SYNTAX FIXED
 """
 
-from flask import Flask, send_from_directory, jsonify, request, session, g
+from flask import Flask, send_from_directory, jsonify, request, session
 from flask_cors import CORS
 import os
 import sys
@@ -19,7 +17,7 @@ import threading
 import logging
 import json
 
-# ==================== 🔧 MINIMAL GUNICORN-SAFE STARTUP ====================
+# ==================== 🔧 LOGGING ====================
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -63,12 +61,12 @@ app = Flask(__name__)
 # ==================== 🔥 CRITICAL SESSION CONFIGURATION ====================
 app.config.update({
     'SECRET_KEY': os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026-v2.6'),
-    'SESSION_COOKIE_SECURE': False,  # Railway uses HTTP, not HTTPS
+    'SESSION_COOKIE_SECURE': False,  # Railway uses HTTP
     'SESSION_COOKIE_HTTPONLY': True,
-    'SESSION_COOKIE_SAMESITE': 'Lax',  # CRITICAL - must be Lax or None
+    'SESSION_COOKIE_SAMESITE': 'Lax',  # CRITICAL - must be Lax
     'SESSION_COOKIE_NAME': 'alhudha_session',
     'PERMANENT_SESSION_LIFETIME': timedelta(days=30),
-    'SESSION_REFRESH_EACH_REQUEST': True,  # 🔥 ADDED - Forces session refresh
+    'SESSION_REFRESH_EACH_REQUEST': True,  # 🔥 KEY FIX - Refreshes session on every request
     'SESSION_TYPE': 'filesystem',
     'MAX_CONTENT_LENGTH': 16 * 1024 * 1024
 })
@@ -91,11 +89,11 @@ CORS(app, supports_credentials=True)
 @app.before_request
 def refresh_session():
     """🔥 Force session refresh on every request - PREVENTS AUTO-LOGOUT"""
-    if session.get('user_id'):
+    if session.get('user_id') or session.get('traveler_id'):
         session.modified = True
         session.permanent = True
-        # Optional: Log session refresh for debugging
-        # print(f"🔄 Session refreshed for user: {session.get('username')}")
+        # Optional debug - remove in production
+        # print(f"🔄 Session refreshed for user: {session.get('username', 'unknown')}")
 
 # ==================== 🌍 LAZY DATABASE ====================
 _db_initialized = False
@@ -141,7 +139,6 @@ def register_blueprints():
         except Exception as e:
             print(f"⚠️ Failed to register {name}: {e}")
 
-# Register blueprints at startup
 register_blueprints()
 
 # =============================================================================
@@ -159,24 +156,6 @@ def health():
         'session_persistent': True
     })
 
-@app.route('/force-db-init', methods=['POST'])
-def force_db_init():
-    success = initialize_database()
-    return jsonify({
-        'success': success,
-        'db_ready': _db_initialized,
-        'message': 'Database ready' if success else 'Database unavailable'
-    })
-
-@app.route('/debug/paths')
-def debug_paths():
-    return jsonify({
-        'public': os.path.exists(PUBLIC_DIR),
-        'admin': os.path.exists(ADMIN_DIR),
-        'uploads': os.path.exists(UPLOAD_DIR),
-        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0
-    })
-
 @app.route('/debug/session')
 def debug_session():
     return jsonify({
@@ -188,198 +167,9 @@ def debug_session():
     })
 
 # =============================================================================
-# 🔥 #2 AUTHENTICATION ENDPOINTS (Emergency - Always Work)
+# 🔥 #2 STATIC FILE SERVING
 # =============================================================================
-@app.route('/api/login', methods=['POST'])
-def emergency_login():
-    """🔥 MAIN LOGIN - Bulletproof with session persistence"""
-    if not initialize_database():
-        return jsonify({'success': False, 'error': 'Database unavailable'}), 503
-    
-    data = request.json or {}
-    username = data.get('username', '').strip()
-    password = data.get('password', '').strip()
-    remember = data.get('remember_me', True)
-    
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password required'}), 400
-    
-    if not get_db_func:
-        return jsonify({'success': False, 'error': 'Database error'}), 500
-    
-    try:
-        conn, cursor = get_db_func()
-        # FIXED: PostgreSQL syntax with %s and include password
-        cursor.execute("""
-            SELECT id, username, full_name, email, role, permissions, password
-            FROM users WHERE username = %s AND password = %s AND is_active = true
-        """, (username, password))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        if user:
-            # 🔥 CRITICAL: Clear any existing session first
-            session.clear()
-            
-            # Set session with persistence
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['role'] = user['role']
-            session['permissions'] = user.get('permissions', {})
-            session.permanent = remember
-            
-            # 🔥 FORCE SESSION TO SAVE
-            session.modified = True
-            
-            return jsonify({
-                'success': True,
-                'authenticated': True,
-                'user': {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'name': user['full_name'] or username,
-                    'email': user.get('email', ''),
-                    'role': user['role'],
-                    'permissions': user.get('permissions', {})
-                }
-            })
-        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-        
-    except Exception as e:
-        print(f"❌ Login error: {e}")
-        return jsonify({'success': False, 'error': 'Login failed'}), 500
-
-@app.route('/api/check-session', methods=['GET'])
-def emergency_check_session():
-    """🔥 SESSION VALIDATION - No auto-logout"""
-    if not session.get('user_id'):
-        return jsonify({'success': True, 'authenticated': False})
-    
-    if not get_db_func:
-        # Still return authenticated if session exists but DB is down
-        return jsonify({
-            'success': True, 
-            'authenticated': True,
-            'user': {
-                'id': session.get('user_id'),
-                'username': session.get('username'),
-                'role': session.get('role')
-            }
-        })
-    
-    try:
-        conn, cursor = get_db_func()
-        cursor.execute("""
-            SELECT id, username, full_name, role, permissions 
-            FROM users WHERE id = %s AND is_active = true
-        """, (session['user_id'],))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        
-        if user:
-            # Refresh session
-            session['username'] = user['username']
-            session['role'] = user['role']
-            session.permanent = True
-            session.modified = True
-            
-            return jsonify({
-                'success': True,
-                'authenticated': True,
-                'user_type': 'admin',
-                'user': {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'name': user['full_name'] or user['username'],
-                    'role': user['role'],
-                    'permissions': user.get('permissions', {})
-                }
-            })
-    except Exception as e:
-        print(f"❌ Session check error: {e}")
-        # If DB error but session exists, still consider authenticated
-        if session.get('user_id'):
-            return jsonify({
-                'success': True,
-                'authenticated': True,
-                'user': {
-                    'id': session.get('user_id'),
-                    'username': session.get('username'),
-                    'role': session.get('role')
-                }
-            })
-    
-    session.clear()
-    return jsonify({'success': True, 'authenticated': False})
-
-@app.route('/api/logout', methods=['POST'])
-def emergency_logout():
-    session.clear()
-    return jsonify({'success': True, 'message': 'Logged out successfully'})
-
-# =============================================================================
-# 🔥 #3 DASHBOARD DATA ENDPOINTS
-# =============================================================================
-@app.route('/api/dashboard-data', methods=['GET'])
-def emergency_dashboard_data():
-    """🔥 MAIN DASHBOARD"""
-    if not session.get('user_id'):
-        return jsonify({'success': False, 'error': 'Login required'}), 401
-    
-    if not _db_initialized:
-        initialize_database()
-    
-    if not get_db_func:
-        return jsonify({'success': False, 'error': 'Database unavailable'}), 500
-    
-    try:
-        conn, cursor = get_db_func()
-        
-        cursor.execute("SELECT COUNT(*) as count FROM users WHERE is_active = true")
-        result = cursor.fetchone()
-        users = int(result['count']) if result else 0
-        
-        cursor.execute("SELECT COUNT(*) as count FROM batches WHERE status IN ('Open', 'Closing Soon')")
-        result = cursor.fetchone()
-        active_batches = int(result['count']) if result else 0
-        
-        cursor.execute("SELECT COUNT(*) as count FROM travelers")
-        result = cursor.fetchone()
-        travelers = int(result['count']) if result else 0
-        
-        cursor.execute("""
-            SELECT 
-                COUNT(*) as total_payments,
-                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending
-            FROM payments
-        """)
-        payments = cursor.fetchone()
-        
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'data': {
-                'users': users,
-                'active_batches': active_batches,
-                'total_travelers': travelers,
-                'total_payments': int(payments['total_payments'] or 0),
-                'total_revenue': float(payments['total_paid'] or 0),
-                'total_pending': float(payments['total_pending'] or 0)
-            }
-        })
-    except Exception as e:
-        print(f"❌ Dashboard error: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# =============================================================================
-# 🔥 #4 STATIC FILE SERVING
-# =============================================================================
-@app.route('/', methods=['GET'])
+@app.route('/')
 @app.route('/index.html')
 def serve_index():
     return send_from_directory(PUBLIC_DIR, 'index.html')
@@ -410,19 +200,13 @@ def serve_admin(filename):
 
 @app.route('/style.css')
 def serve_css():
-    try:
-        return send_from_directory(PUBLIC_DIR, 'style.css')
-    except:
-        return jsonify({'error': 'CSS not found'}), 404
+    return send_from_directory(PUBLIC_DIR, 'style.css')
 
 @app.route('/uploads/<path:filename>')
 def serve_uploads(filename):
     if '..' in filename:
         return jsonify({'error': 'Invalid path'}), 400
-    try:
-        return send_from_directory(UPLOAD_DIR, filename)
-    except:
-        return jsonify({'error': 'File not found'}), 404
+    return send_from_directory(UPLOAD_DIR, filename)
 
 @app.route('/<path:filename>')
 def serve_public(filename):
@@ -437,7 +221,7 @@ def serve_public(filename):
             return jsonify({'error': f'Public file not found: {filename}'}), 404
 
 # =============================================================================
-# 🔥 #5 ERROR HANDLERS
+# 🔥 #3 ERROR HANDLERS
 # =============================================================================
 @app.errorhandler(404)
 def not_found(e):
@@ -454,7 +238,6 @@ if __name__ == '__main__':
     print("=" * 80)
     print("🚀 ALHUDHA HAJ PORTAL v2.6 - PRODUCTION READY")
     print("✅ Gunicorn: 2 workers ✓")
-    print("✅ Dashboard: /api/dashboard-data ✓")
     print("✅ Session: Persistent 30 days - 🔥 FIXED! ✓") 
     print("✅ Session Refresh: Every request ✓")
     print("✅ Login: superadmin/admin123 ✓")
