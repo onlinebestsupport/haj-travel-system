@@ -9,54 +9,48 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ==================== SECURE DATABASE CONFIGURATION ====================
-# NEVER hardcode passwords! Always use environment variables.
+# ==================== DATABASE CONFIGURATION ====================
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if not DATABASE_URL:
-    # NO FALLBACK WITH PASSWORD! Force environment variable.
-    error_msg = """
-    ╔══════════════════════════════════════════════════════════════╗
-    ║  ❌ CRITICAL: DATABASE_URL environment variable not set!     ║
-    ║  Please set it in Railway dashboard or .env file.           ║
-    ║                                                              ║
-    ║  Railway: Add DATABASE_URL in Variables tab                 ║
-    ║  Local:   Create .env file with DATABASE_URL=postgresql://  ║
-    ╚══════════════════════════════════════════════════════════════╝
-    """
-    print(error_msg)
-    raise ValueError("❌ DATABASE_URL environment variable is REQUIRED for security!")
+    raise ValueError("❌ DATABASE_URL environment variable is REQUIRED!")
 
-# Safely print connection info without exposing password
-try:
-    # Extract host for logging only (safe)
-    db_host = DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'
-    print(f"📡 Connecting to database: {db_host}")
-except:
-    print("📡 Connecting to PostgreSQL database")
+print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
 
 # Global flags to prevent double initialization
 _INITIALIZED = False
 _INITIALIZING = False
 _init_lock = threading.Lock()
 
-# ==================== SECURE DATABASE CONNECTION ====================
+# ==================== DATABASE CONNECTION ====================
 
 def get_db():
-    """Get PostgreSQL database connection - SECURE version"""
+    """Get PostgreSQL database connection"""
     try:
         conn = psycopg2.connect(DATABASE_URL)
         conn.autocommit = False
-        # Return rows as dictionaries
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         return conn, cursor
     except Exception as e:
         print(f"❌ Database connection error: {e}")
-        # Don't expose connection details in error
         raise e
 
+# ==================== 🔥 ADD MISSING release_db FUNCTION ====================
+def release_db(conn=None, cursor=None):
+    """🔥 Release database connection back to pool / close it"""
+    if cursor:
+        try:
+            cursor.close()
+        except:
+            pass
+    if conn:
+        try:
+            conn.close()
+        except:
+            pass
+
 # ==================== TABLE CREATION FUNCTIONS ====================
-# (ALL YOUR EXISTING TABLE FUNCTIONS REMAIN EXACTLY THE SAME)
+
 def create_users_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -229,7 +223,6 @@ def create_critical_logs_table(cursor):
     """)
 
 def create_backup_history_table(cursor):
-    """Create backup_history table for storing backup metadata"""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_history (
             id SERIAL PRIMARY KEY,
@@ -247,7 +240,6 @@ def create_backup_history_table(cursor):
     """)
 
 def create_backup_settings_table(cursor):
-    """Create backup_settings table for storing backup configuration"""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_settings (
             id SERIAL PRIMARY KEY,
@@ -261,7 +253,6 @@ def create_backup_settings_table(cursor):
         )
     """)
     
-    # Insert default settings
     cursor.execute("""
         INSERT INTO backup_settings (id, schedule, retention_days, location, compression, encryption)
         VALUES (1, 'weekly', 30, 'both', 'normal', 'aes256')
@@ -301,7 +292,6 @@ def create_frontpage_settings_table(cursor):
         )
     """)
     
-    # Insert default record
     cursor.execute("""
         INSERT INTO frontpage_settings (id, hero_heading, hero_subheading, footer_text)
         VALUES (1, 'Welcome to Alhudha Haj Travel', 'Your trusted partner for Haj and Umrah', '© 2026 Alhudha Haj Travel')
@@ -355,26 +345,18 @@ def create_company_settings_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS company_settings (
             id SERIAL PRIMARY KEY,
-            
-            -- Company Details
             legal_name VARCHAR(255),
             display_name VARCHAR(255),
-            
-            -- Address
             address_line1 VARCHAR(255),
             address_line2 VARCHAR(255),
             city VARCHAR(100),
             state VARCHAR(100),
             country VARCHAR(100),
             pin_code VARCHAR(20),
-            
-            -- Contact
             phone VARCHAR(50),
             mobile VARCHAR(50),
             email VARCHAR(255),
             website VARCHAR(255),
-            
-            -- Tax Information
             gstin VARCHAR(50),
             pan VARCHAR(50),
             tan VARCHAR(50),
@@ -383,8 +365,6 @@ def create_company_settings_table(cursor):
             cin VARCHAR(50),
             iec VARCHAR(50),
             msme VARCHAR(50),
-            
-            -- Bank Details
             bank_name VARCHAR(255),
             bank_branch VARCHAR(255),
             account_name VARCHAR(255),
@@ -393,17 +373,12 @@ def create_company_settings_table(cursor):
             micr_code VARCHAR(50),
             upi_id VARCHAR(100),
             qr_code TEXT,
-            
-            -- Logo
             logo TEXT,
-            
-            -- Metadata
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     
-    # Insert default record if not exists
     cursor.execute("""
         INSERT INTO company_settings (id, legal_name, display_name, country)
         VALUES (1, 'Alhudha Haj Service P Ltd.', 'Alhudha Haj Travel', 'India')
@@ -441,7 +416,6 @@ def migrate_receipts_table():
     """Add invoice_id column to receipts table if not exists"""
     conn, cursor = get_db()
     try:
-        # Check if column exists
         cursor.execute("""
             SELECT column_name 
             FROM information_schema.columns 
@@ -464,8 +438,7 @@ def migrate_receipts_table():
         print(f"⚠️ Migration error: {e}")
         conn.rollback()
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 # ==================== MAIN INITIALIZATION ====================
 
@@ -473,7 +446,6 @@ def init_db():
     """Initialize database with all tables and seed data"""
     global _INITIALIZED, _INITIALIZING
     
-    # Prevent concurrent initialization
     with _init_lock:
         if _INITIALIZED:
             print("✅ Database already initialized, skipping...")
@@ -481,8 +453,7 @@ def init_db():
         
         if _INITIALIZING:
             print("⏳ Database initialization already in progress, waiting...")
-            # Wait for initialization to complete
-            for i in range(30):  # Wait up to 30 seconds
+            for i in range(30):
                 if _INITIALIZED:
                     return True
                 time.sleep(1)
@@ -498,7 +469,6 @@ def init_db():
         print("🚀 Starting database initialization...")
         conn, cursor = get_db()
         
-        # Create all tables in order
         create_users_table(cursor)
         create_batches_table(cursor)
         create_travelers_table(cursor)
@@ -517,18 +487,13 @@ def init_db():
         conn.commit()
         print("✅ All tables created")
         
-        # Seed default users
         seed_default_users(conn, cursor)
-        
-        # Run migrations
         migrate_receipts_table()
         
-        # Verify connection
         cursor.execute("SELECT version()")
         version = cursor.fetchone()
         print(f"✅ PostgreSQL connected: {version['version'][:50]}...")
         
-        # Count tables
         cursor.execute("""
             SELECT COUNT(*) as count FROM information_schema.tables 
             WHERE table_schema = 'public'
@@ -550,10 +515,7 @@ def init_db():
         return False
         
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        release_db(conn, cursor)
 
 # ==================== HELPER FUNCTIONS ====================
 
@@ -571,10 +533,7 @@ def execute_query(query, params=None):
             conn.commit()
             return cursor.rowcount
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        release_db(conn, cursor)
 
 def get_table_counts():
     """Get count of records in all tables"""
@@ -588,8 +547,7 @@ def get_table_counts():
             counts[table] = result['count'] if result else 0
         return counts
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 def get_backup_settings():
     """Get backup settings"""
@@ -599,8 +557,7 @@ def get_backup_settings():
         settings = cursor.fetchone()
         return dict(settings) if settings else None
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 def update_backup_settings(schedule, retention_days, location, compression, encryption, updated_by):
     """Update backup settings"""
@@ -624,13 +581,13 @@ def update_backup_settings(schedule, retention_days, location, compression, encr
         conn.rollback()
         return False
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 # ==================== EXPORTED FUNCTIONS ====================
 
 __all__ = [
     'get_db', 
+    'release_db',  # 🔥 NOW INCLUDED
     'init_db', 
     'execute_query', 
     'get_table_counts', 
