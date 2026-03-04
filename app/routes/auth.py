@@ -60,6 +60,9 @@ def login():
     
     # Verify credentials
     if user and verify_password(password, user['password']):  # ✅ Now user['password'] exists
+        # 🔥 CRITICAL: Clear any existing session first
+        session.clear()
+        
         # Set session
         session['user_id'] = user['id']
         session['username'] = user['username']
@@ -67,6 +70,9 @@ def login():
         if remember_me:
             session.permanent = True
             session.permanent_session_lifetime = timedelta(days=30)
+        
+        # 🔥 FORCE SESSION TO SAVE
+        session.modified = True
         
         # Parse permissions
         permissions = {}
@@ -139,6 +145,7 @@ def traveler_login():
         session['traveler_passport'] = traveler['passport_no']
         session.permanent = True
         session.permanent_session_lifetime = timedelta(hours=2)
+        session.modified = True
         
         # Payment summary
         def get_payment_summary(conn, cursor, tid):
