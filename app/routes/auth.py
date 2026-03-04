@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from app.database import get_db, release_db  # ✅ POOL SAFE
-from app.middleware import role_required, safe_db_operation, log_critical_action, get_client_ip  # ✅ MIDDLEWARE
+from app.middleware import role_required, log_critical_action, get_client_ip  # ✅ MIDDLEWARE
 from datetime import datetime, timedelta
 import json
 import hashlib
@@ -48,10 +48,10 @@ def login():
     if not username or not password:
         return jsonify({'success': False, 'error': 'Username and password required'}), 400
     
-    # 🔥 POOL SAFE USER LOOKUP
+    # 🔥 POOL SAFE USER LOOKUP - FIXED: Added password to SELECT
     def find_user(conn, cursor, uname):
         cursor.execute("""
-            SELECT id, username, full_name, email, role, permissions, is_active 
+            SELECT id, username, full_name, email, role, permissions, is_active, password 
             FROM users WHERE username = %s AND is_active = true
         """, (uname,))
         return cursor.fetchone()
@@ -59,7 +59,7 @@ def login():
     user = safe_db_operation(find_user)(username)
     
     # Verify credentials
-    if user and verify_password(password, user['password']):  # ✅ Plain text match
+    if user and verify_password(password, user['password']):  # ✅ Now user['password'] exists
         # Set session
         session['user_id'] = user['id']
         session['username'] = user['username']
@@ -268,9 +268,11 @@ def check_session():
 
 # ==================== 🔑 PASSWORD MANAGEMENT ====================
 @bp.route('/change-password', methods=['POST'])
-@role_required(['super_admin', 'admin', 'manager', 'staff'])
 def change_password():
     """Change password for authenticated user"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
     data = request.json or {}
     old_password = data.get('old_password', '').strip()
     new_password = data.get('new_password', '').strip()
@@ -336,29 +338,38 @@ def forgot_password():
 
 # ==================== 🔐 API TOKENS (Optional) ====================
 @bp.route('/api-token', methods=['POST'])
-@role_required(['super_admin', 'admin'])
 def create_api_token():
     """Generate API token for integrations"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
     token = secrets.token_hex(32)
     
     def create_token_record(conn, cursor, uid, tkn):
+        # Create table with proper unique constraint
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS api_tokens (
-                id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id),
-                token TEXT UNIQUE NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 days')
+                id SERIAL PRIMARY KEY, 
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                token TEXT UNIQUE NOT NULL, 
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP + INTERVAL '30 days'
             )
         """)
         cursor.execute("""
             INSERT INTO api_tokens (user_id, token) VALUES (%s, %s)
-            ON CONFLICT (token) DO NOTHING
         """, (uid, tkn))
         return True
     
     success = safe_db_operation(create_token_record)(session['user_id'], token)
     
     if success:
-        log_critical_action(session['user_id'], 'API_TOKEN_CREATED', f'Token: {token[:16]}...', get_client_ip())
+        log_critical_action(
+            session['user_id'], 
+            'API_TOKEN_CREATED', 
+            f'Token: {token[:16]}...', 
+            get_client_ip()
+        )
         return jsonify({'success': True, 'token': token, 'expires': '30 days'})
     
     return jsonify({'success': False, 'error': 'Token creation failed'}), 500
