@@ -32,7 +32,7 @@
             position: relative;
         }
 
-        /* Animated Background - Fixed positioning */
+        /* Animated Background */
         body::before {
             content: '';
             position: fixed;
@@ -199,6 +199,23 @@
             75% { transform: translateX(5px); }
         }
 
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #27ae60;
+            font-size: 0.95rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .form-group {
             margin-bottom: 25px;
         }
@@ -237,7 +254,7 @@
             padding: 16px 16px 16px 45px;
             border: 2px solid #ecf0f1;
             border-radius: 12px;
-            font-size: 16px; /* Prevents zoom on mobile */
+            font-size: 16px;
             transition: all 0.3s;
             background: #f8f9fa;
             -webkit-appearance: none;
@@ -371,6 +388,38 @@
             text-decoration: none;
         }
 
+        /* Session Info */
+        .session-info {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .session-info i {
+            color: #3498db;
+            font-size: 1.5rem;
+        }
+
+        .session-info .info-text {
+            flex: 1;
+        }
+
+        .session-info .info-text strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .session-info .info-text small {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -413,31 +462,6 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-
-        /* Two Factor Authentication */
-        .two-factor-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .two-factor-section h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .two-factor-section input {
-            text-align: center;
-            letter-spacing: 4px;
-            font-size: 1.3rem;
-            font-weight: 600;
-            padding: 12px;
         }
 
         /* Responsive */
@@ -530,7 +554,6 @@
             }
         }
 
-        /* Fix for very small screens */
         @media (max-width: 360px) {
             .login-container {
                 padding: 20px 15px;
@@ -553,7 +576,6 @@
             }
         }
 
-        /* Landscape mode optimization */
         @media (max-height: 600px) and (orientation: landscape) {
             body {
                 align-items: flex-start;
@@ -582,7 +604,7 @@
             }
 
             .demo-credentials {
-                display: none; /* Hide demo credentials in landscape to save space */
+                display: none;
             }
 
             .form-group {
@@ -594,7 +616,6 @@
             }
         }
 
-        /* Input focus styles */
         .input-wrapper.focused i {
             color: #3498db;
         }
@@ -635,8 +656,24 @@
                 </div>
             </div>
             
+            <!-- Session Info (Shows if already logged in) -->
+            <div id="sessionInfo" class="session-info" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <div class="info-text">
+                    <strong>Already logged in as <span id="sessionUserName"></span></strong>
+                    <small>Session will expire in <span id="sessionExpiry">30 minutes</span></small>
+                </div>
+                <button onclick="window.location.href='/admin/dashboard.html'" class="login-btn" style="width: auto; padding: 10px 20px; margin: 0;">
+                    Go to Dashboard
+                </button>
+            </div>
+            
             <div id="errorMessage" class="error-message">
                 <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+            </div>
+            
+            <div id="successMessage" class="success-message">
+                <i class="fas fa-check-circle"></i> <span id="successText"></span>
             </div>
             
             <form id="loginForm">
@@ -667,13 +704,6 @@
                     </label>
                     <a href="#" class="forgot-password" onclick="showForgotPassword(event)">Forgot Password?</a>
                 </div>
-
-                <!-- Two Factor Authentication Section (Hidden by default) -->
-                <div id="twoFactorSection" class="two-factor-section">
-                    <h4><i class="fas fa-shield-alt"></i> Two-Factor Authentication</h4>
-                    <p style="color: #7f8c8d; margin-bottom: 10px;">Enter the 6-digit code from your authenticator app</p>
-                    <input type="text" id="twoFactorCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}" inputmode="numeric">
-                </div>
                 
                 <button type="submit" class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i> <span>Login</span>
@@ -687,158 +717,15 @@
     </div>
 
     <script>
-        // Function to fill credentials from demo cards
-        function fillCredentials(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
-            
-            // Highlight the fields briefly
-            document.getElementById('username').style.backgroundColor = '#e8f4f8';
-            document.getElementById('password').style.backgroundColor = '#e8f4f8';
-            
-            setTimeout(() => {
-                document.getElementById('username').style.backgroundColor = '';
-                document.getElementById('password').style.backgroundColor = '';
-            }, 500);
-            
-            // Focus on password field
-            document.getElementById('password').focus();
-        }
-
-        // Password visibility toggle with improved touch handling
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('togglePassword');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-            
-            // Keep focus on input
-            passwordInput.focus();
-        }
-
-        // Show forgot password message
-        function showForgotPassword(event) {
-            event.preventDefault();
-            alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
-        }
-
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorDiv.style.display = 'block';
-            
-            // Scroll to error
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Validate form
-        function validateForm(username, password) {
-            if (!username || !password) {
-                showError('Please enter both username and password');
-                return false;
-            }
-            if (password.length < 6) {
-                showError('Password must be at least 6 characters');
-                return false;
-            }
-            return true;
-        }
-
-        // Handle login with debounce to prevent double submission
-        let isSubmitting = false;
-        
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (isSubmitting) return;
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            // Validate form
-            if (!validateForm(username, password)) {
-                return;
-            }
-            
-            isSubmitting = true;
-            
-            // Show loading state
-            const loginBtn = document.getElementById('loginBtn');
-            const btnText = loginBtn.querySelector('span');
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
-            
-            try {
-                // Simulate network delay
-                await new Promise(resolve => setTimeout(resolve, 800));
-                
-                // Demo credentials check
-                const validUsers = {
-                    'superadmin': { name: 'Super Admin', role: 'super_admin' },
-                    'admin1': { name: 'Admin User', role: 'admin' },
-                    'manager1': { name: 'Manager User', role: 'manager' },
-                    'staff1': { name: 'Staff User', role: 'staff' },
-                    'viewer1': { name: 'Viewer User', role: 'viewer' }
-                };
-                
-                if (validUsers[username] && password === 'admin123') {
-                    // Store session data
-                    sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', validUsers[username].name);
-                    sessionStorage.setItem('adminRole', validUsers[username].role);
-                    sessionStorage.setItem('adminUsername', username);
-                    
-                    // Set remember me cookie if checked
-                    if (rememberMe) {
-                        localStorage.setItem('rememberedUser', username);
-                    } else {
-                        localStorage.removeItem('rememberedUser');
-                    }
-                    
-                    // Show success message
-                    showError('Login successful! Redirecting...');
-                    
-                    // Redirect to dashboard
-                    setTimeout(() => {
-                        window.location.href = '/admin/dashboard.html';
-                    }, 1000);
-                } else {
-                    showError('Invalid username or password');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
-                    isSubmitting = false;
-                }
-            } catch (error) {
-                showError('Connection error. Please try again.');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
-                isSubmitting = false;
-            }
-        });
-
-        // Check for remembered user
+        // ==================== SESSION CHECK ====================
+        // Check if already logged in on page load
         document.addEventListener('DOMContentLoaded', function() {
+            checkExistingSession();
+            
             const rememberedUser = localStorage.getItem('rememberedUser');
             if (rememberedUser) {
                 document.getElementById('username').value = rememberedUser;
                 document.getElementById('rememberMe').checked = true;
-                // Focus on password field
                 setTimeout(() => {
                     document.getElementById('password').focus();
                 }, 100);
@@ -867,6 +754,189 @@
             });
         });
 
+        // Check if user is already logged in
+        function checkExistingSession() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            const userName = sessionStorage.getItem('adminName');
+            
+            if (isLoggedIn === 'true' && userName) {
+                // Show session info and hide login form
+                document.getElementById('sessionInfo').style.display = 'flex';
+                document.getElementById('sessionUserName').textContent = userName;
+                
+                // Calculate session expiry (30 minutes from login)
+                const loginTime = sessionStorage.getItem('loginTime');
+                if (loginTime) {
+                    const elapsed = Math.floor((Date.now() - parseInt(loginTime)) / 1000 / 60);
+                    const remaining = 30 - elapsed;
+                    if (remaining > 0) {
+                        document.getElementById('sessionExpiry').textContent = 
+                            remaining + ' minute' + (remaining > 1 ? 's' : '');
+                    }
+                }
+                
+                // Optionally hide the login form
+                document.getElementById('loginForm').style.opacity = '0.5';
+                document.getElementById('loginForm').style.pointerEvents = 'none';
+            }
+        }
+
+        // Function to fill credentials from demo cards
+        function fillCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            
+            document.getElementById('username').style.backgroundColor = '#e8f4f8';
+            document.getElementById('password').style.backgroundColor = '#e8f4f8';
+            
+            setTimeout(() => {
+                document.getElementById('username').style.backgroundColor = '';
+                document.getElementById('password').style.backgroundColor = '';
+            }, 500);
+            
+            document.getElementById('password').focus();
+        }
+
+        // Password visibility toggle
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePassword');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+            
+            passwordInput.focus();
+        }
+
+        // Show forgot password message
+        function showForgotPassword(event) {
+            event.preventDefault();
+            alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide success message if visible
+            document.getElementById('successMessage').style.display = 'none';
+            
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+            successText.textContent = message;
+            successDiv.style.display = 'block';
+            
+            // Hide error message if visible
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Validate form
+        function validateForm(username, password) {
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return false;
+            }
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters');
+                return false;
+            }
+            return true;
+        }
+
+        // Handle login with debounce
+        let isSubmitting = false;
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            if (!validateForm(username, password)) {
+                return;
+            }
+            
+            isSubmitting = true;
+            
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+            
+            try {
+                // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Valid users for demo
+                const validUsers = {
+                    'superadmin': { name: 'Super Admin', role: 'super_admin' },
+                    'admin1': { name: 'Admin User', role: 'admin' },
+                    'manager1': { name: 'Manager User', role: 'manager' },
+                    'staff1': { name: 'Staff User', role: 'staff' },
+                    'viewer1': { name: 'Viewer User', role: 'viewer' }
+                };
+                
+                if (validUsers[username] && password === 'admin123') {
+                    // Clear any existing session first
+                    sessionStorage.clear();
+                    
+                    // Store session data
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    sessionStorage.setItem('adminName', validUsers[username].name);
+                    sessionStorage.setItem('adminRole', validUsers[username].role);
+                    sessionStorage.setItem('adminUsername', username);
+                    sessionStorage.setItem('loginTime', Date.now().toString());
+                    
+                    // Set remember me
+                    if (rememberMe) {
+                        localStorage.setItem('rememberedUser', username);
+                    } else {
+                        localStorage.removeItem('rememberedUser');
+                    }
+                    
+                    showSuccess('Login successful! Redirecting to dashboard...');
+                    
+                    // Redirect to dashboard after showing success
+                    setTimeout(() => {
+                        window.location.href = '/admin/dashboard.html';
+                    }, 1000);
+                } else {
+                    showError('Invalid username or password. Please try again.');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
+                    isSubmitting = false;
+                }
+            } catch (error) {
+                showError('Connection error. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
+                isSubmitting = false;
+            }
+        });
+
         // Handle paste events for better input
         document.getElementById('password').addEventListener('paste', function(e) {
             e.preventDefault();
@@ -886,6 +956,14 @@
 
         document.getElementById('password').addEventListener('focus', function() {
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Clear session on logout if coming from logout
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was loaded from cache (like back button)
+                checkExistingSession();
+            }
         });
     </script>
 </body>
