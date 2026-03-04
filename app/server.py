@@ -60,53 +60,76 @@ for folder in ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'backups', 'c
 # =============================================================================
 # 🔥 #1 STATIC ROUTES FIRST - NO CONFLICTS
 # =============================================================================
+# =============================================================================
+# 🔥 FIXED STATIC ROUTES - Bulletproof file serving
+# =============================================================================
 @app.route('/', methods=['GET'])
 @app.route('/index.html', methods=['GET'])
 def serve_index():
-    """Landing page - NO session interference"""
     return send_from_directory(PUBLIC_DIR, 'index.html')
 
-@app.route('/admin/<path:filename>')
-def serve_admin(filename):
-    """Admin dashboard - NO session check interference"""
-    if '..' in filename:
-        return jsonify({'error': 'Invalid path'}), 400
-    try:
-        return send_from_directory(ADMIN_DIR, filename)
-    except:
-        try:
-            return send_from_directory(ADMIN_DIR, filename + '.html')
-        except:
-            return jsonify({'error': 'Admin file not found'}), 404
-
-@app.route('/<path:filename>')
-def serve_static(filename):
-    """Public static files"""
-    if '..' in filename:
-        return jsonify({'error': 'Invalid path'}), 400
-    try:
-        return send_from_directory(PUBLIC_DIR, filename)
-    except:
-        try:
-            return send_from_directory(PUBLIC_DIR, filename + '.html')
-        except:
-            return jsonify({'error': 'File not found'}), 404
-
-# Specific routes
-@app.route('/admin.login.html', methods=['GET'])
-@app.route('/admin/login', methods=['GET'])
+@app.route('/admin/login')
+@app.route('/admin.login.html')
 def serve_admin_login():
     return send_from_directory(PUBLIC_DIR, 'admin.login.html')
 
-@app.route('/style.css')
-def serve_css():
-    return send_from_directory(PUBLIC_DIR, 'style.css')
+@app.route('/admin/dashboard.html')
+@app.route('/admin/dashboard')
+def serve_admin_dashboard():
+    """🔥 DIRECT ROUTE - No path resolution issues"""
+    dashboard_path = os.path.join(ADMIN_DIR, 'dashboard.html')
+    if os.path.exists(dashboard_path):
+        return send_from_directory(ADMIN_DIR, 'dashboard.html')
+    return jsonify({'error': 'Dashboard not found'}), 404
 
-@app.route('/uploads/<path:filename>')
-def serve_uploads(filename):
-    if '..' in filename:
+@app.route('/admin/<path:filename>')
+def serve_admin(filename):
+    """🔥 Admin files with .html fallback"""
+    if '..' in filename or filename.startswith('/'):
         return jsonify({'error': 'Invalid path'}), 400
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
+    # Try exact filename first
+    admin_file = os.path.join(ADMIN_DIR, filename)
+    if os.path.exists(admin_file):
+        return send_from_directory(ADMIN_DIR, filename)
+    
+    # Try .html extension
+    html_file = filename + '.html'
+    html_path = os.path.join(ADMIN_DIR, html_file)
+    if os.path.exists(html_path):
+        return send_from_directory(ADMIN_DIR, html_file)
+    
+    return jsonify({'error': f'Admin file "{filename}" not found'}), 404
+
+@app.route('/traveler/<path:filename>')
+def serve_traveler(filename):
+    return send_from_directory(TRAVELER_DIR, filename)
+
+@app.route('/style.css')
+@app.route('/css/<path:filename>')
+def serve_css(filename='style.css'):
+    css_path = os.path.join(PUBLIC_DIR, 'style.css')
+    if os.path.exists(css_path):
+        return send_from_directory(PUBLIC_DIR, 'style.css')
+    return jsonify({'error': 'CSS not found'}), 404
+
+@app.route('/<path:filename>')
+def serve_public(filename):
+    """Catch-all for public files"""
+    if '..' in filename or filename.startswith('/'):
+        return jsonify({'error': 'Invalid path'}), 400
+    
+    public_file = os.path.join(PUBLIC_DIR, filename)
+    if os.path.exists(public_file):
+        return send_from_directory(PUBLIC_DIR, filename)
+    
+    # Try .html extension
+    html_file = filename + '.html'
+    html_path = os.path.join(PUBLIC_DIR, html_file)
+    if os.path.exists(html_path):
+        return send_from_directory(PUBLIC_DIR, html_file)
+    
+    return jsonify({'error': f'Public file "{filename}" not found'}), 404
 
 # =============================================================================
 # 🔥 #2 BLUEPRINTS REGISTERED AFTER STATIC (No conflicts)
