@@ -1347,6 +1347,18 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        <script src="/admin/js/session-manager.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Replace loadPageData with your page's load function
+    await SessionManager.initPage(loadPageData);
+});
+
+// Replace with your actual logout function
+async function logout() {
+    await SessionManager.logout();
+}
+</script>
         // ==================== GLOBAL VARIABLES ====================
         let currentEditId = null;
         let travelersData = [];
