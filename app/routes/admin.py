@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, send_file
+from flask import Blueprint, request, jsonify, session, send_file, current_app
 from app.database import get_db, release_db  # ✅ POOL COMPATIBLE
 from app.middleware import role_required, safe_db_operation, log_critical_action, get_client_ip  # ✅ FIXED IMPORTS
 from datetime import datetime, timedelta
@@ -29,19 +29,35 @@ def check_session():
     
     # Update last activity timestamp
     session['last_activity'] = datetime.now().isoformat()
+    session.modified = True  # Refresh session
+    
+    # Calculate session expiry based on remember_me setting
+    if session.permanent:
+        expiry = (datetime.now() + current_app.config['PERMANENT_SESSION_LIFETIME']).isoformat()
+    else:
+        expiry = (datetime.now() + timedelta(minutes=30)).isoformat()
     
     return jsonify({
         'authenticated': True,
         'user': dict(user),
-        'session_expiry': (datetime.now() + timedelta(minutes=30)).isoformat()
+        'session_expiry': expiry
     })
 
 @bp.route('/logout', methods=['POST'])
 def logout():
-    """Logout user"""
+    """Logout user - Matches server.py and auth.py"""
     user_id = session.get('user_id')
+    
     if user_id:
-        log_critical_action(user_id, 'LOGOUT', 'User logged out', get_client_ip())
+        # Log logout to activity_log table
+        def log_logout(conn, cursor, uid):
+            cursor.execute("""
+                INSERT INTO activity_log (user_id, action, description, ip_address, created_at)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (uid, 'LOGOUT', f'User logged out from admin panel', get_client_ip(), datetime.now()))
+        
+        safe_db_operation(log_logout)(user_id)
+        log_critical_action(user_id, 'LOGOUT', f'Admin user logged out from {get_client_ip()}')
     
     session.clear()
     return jsonify({'success': True, 'message': 'Logged out successfully'})
@@ -108,7 +124,7 @@ def create_user():
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} required'}), 400
     
-    # Hash password (in production, use proper password hashing)
+    # Hash password (using SHA256 for demo - use proper hashing in production)
     password_hash = hashlib.sha256(data['password'].encode()).hexdigest()
     permissions = json.dumps(data.get('permissions', {}))
     
@@ -230,7 +246,7 @@ def reset_password(user_id):
 @bp.route('/dashboard/stats', methods=['GET'])
 @role_required(['super_admin', 'admin', 'manager'])
 def get_dashboard_stats():
-    """🔥 FIXED - Single pooled query with recent activity"""
+    """🔥 FIXED - Single pooled query with recent activity - Matches dashboard.html expectations"""
     def fetch_stats(conn, cursor):
         stats = {}
         
@@ -292,7 +308,7 @@ def get_dashboard_stats():
 @bp.route('/table-counts', methods=['GET'])
 @role_required(['super_admin', 'admin'])
 def get_table_counts():
-    """Quick table counts"""
+    """Quick table counts - Used by dashboard"""
     def count_tables(conn, cursor):
         tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts']
         counts = {}
@@ -304,6 +320,48 @@ def get_table_counts():
     
     counts = safe_db_operation(count_tables)() or {}
     return jsonify({'success': True, 'counts': counts})
+
+@bp.route('/recent-activity', methods=['GET'])
+@role_required(['super_admin', 'admin', 'manager'])
+def get_recent_activity():
+    """Get recent activity for dashboard feed"""
+    def fetch_activity(conn, cursor):
+        cursor.execute("""
+            SELECT * FROM (
+                -- Recent travelers
+                SELECT 'traveler' as type, id, 
+                       CONCAT(first_name, ' ', last_name) as title,
+                       'New traveler added' as description,
+                       created_at as timestamp
+                FROM travelers
+                
+                UNION ALL
+                
+                -- Recent payments
+                SELECT 'payment' as type, p.id,
+                       CONCAT(t.first_name, ' ', t.last_name) as title,
+                       CONCAT('Payment of ₹', p.amount) as description,
+                       p.payment_date as timestamp
+                FROM payments p
+                JOIN travelers t ON p.traveler_id = t.id
+                
+                UNION ALL
+                
+                -- Recent batches
+                SELECT 'batch' as type, id,
+                       batch_name as title,
+                       'New batch created' as description,
+                       created_at as timestamp
+                FROM batches
+                
+                ORDER BY timestamp DESC
+                LIMIT 10
+            ) as activity
+        """)
+        return cursor.fetchall()
+    
+    activity = safe_db_operation(fetch_activity)()
+    return jsonify({'success': True, 'activity': [dict(a) for a in activity or []]})
 
 # ==================== 💾 BACKUP MANAGEMENT ====================
 @bp.route('/backups', methods=['GET'])
@@ -478,6 +536,52 @@ def system_health():
         return jsonify({'success': False, 'error': 'Health check failed'}), 500
     
     return jsonify({'success': True, 'health': health})
+
+# ==================== 🔧 SESSION DEBUG ====================
+@bp.route('/session/status', methods=['GET'])
+@role_required(['super_admin', 'admin'])
+def session_status():
+    """Get current session status (for debugging)"""
+    if not session.get('user_id'):
+        return jsonify({
+            'authenticated': False,
+            'message': 'No active session'
+        }), 401
+    
+    # Calculate session expiry
+    expiry = None
+    if session.permanent:
+        if hasattr(session, '_permanent_session_expiry'):
+            expiry = datetime.fromtimestamp(session._permanent_session_expiry).isoformat()
+        else:
+            expiry = (datetime.now() + current_app.config['PERMANENT_SESSION_LIFETIME']).isoformat()
+    
+    # Calculate time remaining
+    remaining = None
+    if expiry:
+        try:
+            expiry_dt = datetime.fromisoformat(expiry)
+            remaining_seconds = (expiry_dt - datetime.now()).total_seconds()
+            if remaining_seconds > 0:
+                minutes = int(remaining_seconds // 60)
+                seconds = int(remaining_seconds % 60)
+                remaining = f"{minutes}m {seconds}s"
+            else:
+                remaining = "Expired"
+        except:
+            pass
+    
+    return jsonify({
+        'authenticated': True,
+        'user_id': session.get('user_id'),
+        'username': session.get('username'),
+        'name': session.get('name'),
+        'role': session.get('role'),
+        'session_permanent': session.permanent,
+        'last_activity': session.get('last_activity'),
+        'session_expiry': expiry,
+        'time_remaining': remaining
+    })
 
 # ==================== 🔧 UTILITY ====================
 def format_bytes(size_bytes):
