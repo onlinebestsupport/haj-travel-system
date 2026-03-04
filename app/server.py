@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, jsonify, request, session
+from flask import Flask, send_from_directory, jsonify, request, session, make_response
 from flask_cors import CORS
 import os
 import sys
@@ -37,13 +37,18 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+# 🔥 CRITICAL SESSION FIXES - UPDATED
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minutes default
-app.config['REMEMBER_ME_DURATION'] = timedelta(days=7)  # 7 days for remember me
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains
+app.config['SESSION_COOKIE_PATH'] = '/'  # Cookie valid for entire site
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True only with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Changed from 'Strict' to 'Lax'
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minutes default
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+app.config['SESSION_COOKIE_PERSISTENT'] = True  # Keep cookie after browser close
 
 # ==================== DIRECTORY PATHS ====================
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -69,7 +74,12 @@ if os.path.exists(ADMIN_DIR):
     print(f"📄 Files in admin: {os.listdir(ADMIN_DIR)}")
 
 # ==================== CORS CONFIGURATION ====================
-CORS(app, supports_credentials=True, origins=['*'])
+# 🔥 UPDATED: More specific CORS for Railway
+CORS(app, 
+     supports_credentials=True, 
+     origins=['https://alhudhahajportal.up.railway.app', 'http://localhost:8080', '*'],
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     expose_headers=['Set-Cookie', 'Content-Type'])
 
 # ==================== UPLOAD DIRECTORIES ====================
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -92,6 +102,20 @@ app.register_blueprint(uploads.bp)
 app.register_blueprint(reports.bp)
 app.register_blueprint(invoices.bp)	
 app.register_blueprint(receipts.bp)
+
+# ==================== SESSION DEBUGGING MIDDLEWARE ====================
+@app.after_request
+def after_request(response):
+    """Log session info after each request for debugging"""
+    if request.path.startswith('/api/'):
+        print(f"📝 Session after {request.path}:")
+        print(f"  - User ID: {session.get('user_id')}")
+        print(f"  - Session keys: {list(session.keys())}")
+        print(f"  - Session permanent: {session.permanent}")
+        print(f"  - Cookie in response: {'Set-Cookie' in response.headers}")
+        if 'Set-Cookie' in response.headers:
+            print(f"  - Cookie value: {response.headers['Set-Cookie']}")
+    return response
 
 # ==================== STATIC FILE ROUTES (MUST COME FIRST) ====================
 
@@ -388,7 +412,21 @@ def debug_session():
         'has_user': 'user_id' in session,
         'has_traveler': 'traveler_id' in session,
         'session_permanent': session.permanent,
+        'cookie_in_request': request.cookies.get(app.config['SESSION_COOKIE_NAME']) is not None,
+        'cookie_value': request.cookies.get(app.config['SESSION_COOKIE_NAME']),
         'session_expiry': (datetime.now() + app.config['PERMANENT_SESSION_LIFETIME']).isoformat() if session.permanent else None
+    })
+
+@app.route('/debug/session-test')
+def session_test():
+    """Test if session is persisting"""
+    return jsonify({
+        'has_session': bool(session),
+        'session_keys': list(session.keys()),
+        'user_id': session.get('user_id'),
+        'username': session.get('username'),
+        'cookie_in_request': request.cookies.get(app.config['SESSION_COOKIE_NAME']) is not None,
+        'cookie_name': app.config['SESSION_COOKIE_NAME']
     })
 
 @app.route('/debug/routes')
@@ -445,12 +483,14 @@ if __name__ == '__main__':
     print(f"📁 Debug mode: {debug}")
     print(f"📁 Binding to: 0.0.0.0:{port}")
     print(f"📁 Session timeout: 30 minutes (7 days with remember me)")
+    print(f"📁 Session cookie name: {app.config['SESSION_COOKIE_NAME']}")
     print("=" * 60)
     print("🌐 ROOT URL: / → serves index.html")
     print("📡 API Health: /api/health")
     print("📡 API Info: /api")
     print("📡 Debug paths: /debug/paths")
     print("📡 Debug session: /debug/session")
+    print("📡 Session test: /debug/session-test")
     print("📡 Admin Login: /admin.login.html")
     print("📡 Admin Dashboard: /admin/")
     print("📡 Traveler Login: /traveler_login.html")
