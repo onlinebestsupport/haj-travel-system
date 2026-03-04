@@ -20,7 +20,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     
     <style>
-        /* Root variables remain the same */
+        /* Root variables */
         * {
             margin: 0;
             padding: 0;
@@ -61,7 +61,6 @@
             overflow-x: hidden;
         }
 
-        /* All your existing CSS remains exactly the same */
         /* Modern Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -831,7 +830,7 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- Sidebar (Keep all existing HTML structure exactly the same) -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
@@ -940,7 +939,7 @@
             </div>
         </aside>
 
-        <!-- Main Content (Keep all existing HTML structure exactly the same) -->
+        <!-- Main Content -->
         <main class="main-content">
             <!-- Top Header -->
             <header class="top-header">
@@ -1209,19 +1208,112 @@
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
+    <!-- Session Manager Script (Create this file at /admin/js/session-manager.js) -->
     <script>
-        <script src="/admin/js/session-manager.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async function() {
-    // Replace loadPageData with your page's load function
-    await SessionManager.initPage(loadPageData);
-});
+        // Session Manager - Centralized authentication handling
+        const SessionManager = {
+            // Check session and redirect if not authenticated
+            initPage: async function(callback) {
+                try {
+                    const session = await this.checkSession();
+                    
+                    if (!session.authenticated) {
+                        console.log('⚠️ Not logged in, redirecting to login...');
+                        window.location.href = '/admin.login.html';
+                        return false;
+                    }
+                    
+                    // Update UI with user info
+                    this.updateUI(session);
+                    
+                    // Execute page-specific callback
+                    if (callback && typeof callback === 'function') {
+                        await callback();
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Session initialization failed:', error);
+                    window.location.href = '/admin.login.html';
+                    return false;
+                }
+            },
 
-// Replace with your actual logout function
-async function logout() {
-    await SessionManager.logout();
-}
-</script>
+            // Check session with backend
+            checkSession: async function() {
+                const response = await fetch('/api/check-session', {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Session check failed');
+                }
+                
+                return await response.json();
+            },
+
+            // Update UI based on session data
+            updateUI: function(session) {
+                // Update role badge if it exists
+                const roleBadge = document.getElementById('roleBadge');
+                if (roleBadge) {
+                    roleBadge.textContent = session.role || 'Admin';
+                }
+                
+                // Store session data if needed
+                if (session.authenticated) {
+                    sessionStorage.setItem('userRole', session.role || 'Admin');
+                    sessionStorage.setItem('username', session.username || '');
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                }
+            },
+
+            // Logout function
+            logout: async function() {
+                try {
+                    const response = await fetch('/api/logout', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    // Clear session storage
+                    sessionStorage.removeItem('userRole');
+                    sessionStorage.removeItem('username');
+                    sessionStorage.removeItem('adminLoggedIn');
+                    
+                    // Redirect to login
+                    window.location.href = '/admin.login.html';
+                    
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Still redirect even if logout fails
+                    window.location.href = '/admin.login.html';
+                }
+            },
+
+            // Get current session data from storage
+            getCurrentUser: function() {
+                return {
+                    role: sessionStorage.getItem('userRole'),
+                    username: sessionStorage.getItem('username')
+                };
+            },
+
+            // Check if user is authenticated (client-side)
+            isAuthenticated: function() {
+                return !!sessionStorage.getItem('adminLoggedIn');
+            }
+        };
+    </script>
+
+    <!-- Main Dashboard Script -->
+    <script>
         // ==================== OPTIMIZED JAVASCRIPT WITH FIXES ====================
         
         // Use strict mode to catch errors
@@ -1238,6 +1330,106 @@ async function logout() {
         let sessionLogoutTimeout = null;
         let warningShown = false;
         let notificationTimeout = null;
+
+        // ==================== PAGE INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize with SessionManager
+                await SessionManager.initPage(initializeDashboard);
+            } catch (error) {
+                console.error('Failed to initialize dashboard:', error);
+                showNotification('Failed to load dashboard', 'error');
+            }
+        });
+
+        // Dashboard initialization function (called after auth check)
+        async function initializeDashboard() {
+            console.log('✅ User authenticated, loading dashboard...');
+            
+            // Update UI with user info from session
+            updateUserInterface();
+            
+            // Initialize session management
+            resetSessionTimer();
+            
+            // Monitor user activity
+            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+                document.addEventListener(event, resetSessionTimer);
+            });
+            
+            // Load dashboard data
+            await loadDashboardStats();
+            updateDateTime();
+            await loadRecentActivity();
+            
+            // Initialize charts after Chart.js loads
+            if (typeof Chart !== 'undefined') {
+                initializeCharts();
+            } else {
+                // Wait for Chart.js to load
+                const checkChart = setInterval(() => {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        initializeCharts();
+                    }
+                }, 100);
+                intervals.push(checkChart);
+            }
+            
+            // Update time every second (optimized with requestAnimationFrame)
+            const timeInterval = setInterval(() => {
+                if (!document.hidden) {
+                    window.requestAnimationFrame(updateDateTime);
+                }
+            }, 1000);
+            intervals.push(timeInterval);
+            
+            // Handle visibility change
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    loadDashboardStats();
+                    loadRecentActivity();
+                }
+            });
+        }
+
+        // Update UI with user info from session
+        function updateUserInterface() {
+            try {
+                const user = SessionManager.getCurrentUser();
+                const userName = user.username || 'Admin';
+                const userRole = user.role || 'admin';
+                
+                const greetingName = document.getElementById('greetingName');
+                const userDisplayName = document.getElementById('userDisplayName');
+                const userRoleDisplay = document.getElementById('userRoleDisplay');
+                const userAvatar = document.getElementById('userAvatar');
+                
+                if (greetingName) greetingName.textContent = userName;
+                if (userDisplayName) userDisplayName.textContent = userName;
+                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
+                
+                // Set avatar initials
+                if (userAvatar) {
+                    const nameParts = userName.split(' ');
+                    let initials = '';
+                    for (let i = 0; i < Math.min(2, nameParts.length); i++) {
+                        if (nameParts[i] && nameParts[i].length > 0) {
+                            initials += nameParts[i][0].toUpperCase();
+                        }
+                    }
+                    userAvatar.textContent = initials || 'AD';
+                }
+                
+                // Update role badge in sidebar if exists
+                const roleBadge = document.getElementById('roleBadge');
+                if (roleBadge) {
+                    roleBadge.textContent = formatRole(userRole);
+                }
+            } catch (e) {
+                console.error('Error updating user interface:', e);
+            }
+        }
 
         // ==================== SESSION MANAGEMENT ====================
         function resetSessionTimer() {
@@ -1277,8 +1469,6 @@ async function logout() {
             hideSessionWarning();
             showNotification('Your session has expired. Redirecting to login...', 'warning');
             
-            sessionStorage.clear();
-            
             setTimeout(() => {
                 window.location.href = '/admin.login.html';
             }, 3000);
@@ -1286,71 +1476,17 @@ async function logout() {
 
         async function extendSession() {
             try {
-                const response = await fetch('/api/check-session', {
-                    credentials: 'include'
-                });
-                const data = await response.json();
-                
-                if (data.authenticated) {
-                    hideSessionWarning();
-                    resetSessionTimer();
-                    showNotification('Session extended successfully', 'success');
-                } else {
-                    showSessionExpiredWarning();
-                }
+                await SessionManager.checkSession();
+                hideSessionWarning();
+                resetSessionTimer();
+                showNotification('Session extended successfully', 'success');
             } catch (error) {
                 console.error('Session extension failed:', error);
+                showSessionExpiredWarning();
             }
         }
 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize session management
-            resetSessionTimer();
-            
-            // Monitor user activity
-            ['click', 'mousemove', 'keypress', 'scroll'].forEach(event => {
-                document.addEventListener(event, resetSessionTimer);
-            });
-            
-            // Load dashboard data
-            checkAuth();
-            loadDashboardStats();
-            updateDateTime();
-            loadRecentActivity();
-            
-            // Initialize charts after Chart.js loads
-            if (typeof Chart !== 'undefined') {
-                initializeCharts();
-            } else {
-                // Wait for Chart.js to load
-                const checkChart = setInterval(() => {
-                    if (typeof Chart !== 'undefined') {
-                        clearInterval(checkChart);
-                        initializeCharts();
-                    }
-                }, 100);
-            }
-            
-            // Update time every second (optimized with requestAnimationFrame)
-            const timeInterval = setInterval(() => {
-                if (!document.hidden) {
-                    window.requestAnimationFrame(updateDateTime);
-                }
-            }, 1000);
-            
-            intervals.push(timeInterval);
-            
-            // Handle visibility change
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) {
-                    loadDashboardStats();
-                    loadRecentActivity();
-                }
-            });
-        });
-
-        // Clean up intervals on page unload
+        // ==================== CLEANUP ====================
         window.addEventListener('beforeunload', function() {
             intervals.forEach(interval => clearInterval(interval));
             
@@ -1367,53 +1503,6 @@ async function logout() {
                 }
             });
         });
-
-        // ==================== AUTHENTICATION ====================
-        function checkAuth() {
-            try {
-                const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-                if (!isLoggedIn) {
-                    window.location.href = '/admin.login.html';
-                    return;
-                }
-                
-                const userName = sessionStorage.getItem('adminName') || 'Admin';
-                const userRole = sessionStorage.getItem('adminRole') || 'admin';
-                
-                const greetingName = document.getElementById('greetingName');
-                const userDisplayName = document.getElementById('userDisplayName');
-                const userRoleDisplay = document.getElementById('userRoleDisplay');
-                const userAvatar = document.getElementById('userAvatar');
-                
-                if (greetingName) greetingName.textContent = userName;
-                if (userDisplayName) userDisplayName.textContent = userName;
-                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
-                
-                // Set avatar initials
-                if (userAvatar) {
-                    const nameParts = userName.split(' ');
-                    let initials = '';
-                    for (let i = 0; i < Math.min(2, nameParts.length); i++) {
-                        if (nameParts[i] && nameParts[i].length > 0) {
-                            initials += nameParts[i][0].toUpperCase();
-                        }
-                    }
-                    userAvatar.textContent = initials || 'AD';
-                }
-            } catch (e) {
-                console.error('Auth check error:', e);
-            }
-        }
-
-        function formatRole(role) {
-            try {
-                return role.split('_').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ');
-            } catch (e) {
-                return role;
-            }
-        }
 
         // ==================== DATE/TIME ====================
         function updateDateTime() {
@@ -1442,9 +1531,9 @@ async function logout() {
         // ==================== LOAD DASHBOARD STATS ====================
         async function loadDashboardStats() {
             try {
-                // Hide stats initially
+                // Show loading skeletons
                 document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
-                    el.classList.remove('stats-visible');
+                    el.classList.add('skeleton');
                 });
                 
                 const response = await fetch('/api/admin/dashboard/stats', { 
@@ -1513,9 +1602,9 @@ async function logout() {
                     if (moduleReceipt) moduleReceipt.textContent = stats.paid_count || 0;
                     if (moduleUser) moduleUser.textContent = userCount;
                     
-                    // Show all stats
+                    // Remove skeletons
                     document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
-                        el.classList.add('stats-visible');
+                        el.classList.remove('skeleton');
                     });
                     
                     console.log('✅ Dashboard stats loaded:', { 
@@ -1710,15 +1799,9 @@ async function logout() {
         }
 
         // ==================== LOGOUT ====================
-        function logout() {
+        async function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                showNotification('Logging out...', 'info');
-                
-                setTimeout(() => {
-                    sessionStorage.clear();
-                    localStorage.removeItem('token');
-                    window.location.href = '/admin.login.html';
-                }, 1000);
+                await SessionManager.logout();
             }
         }
 
@@ -1743,6 +1826,18 @@ async function logout() {
             notificationTimeout = setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function formatRole(role) {
+            try {
+                if (!role) return 'Administrator';
+                return role.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            } catch (e) {
+                return role || 'Administrator';
+            }
         }
 
         // ==================== CHART PERIOD CHANGE ====================
