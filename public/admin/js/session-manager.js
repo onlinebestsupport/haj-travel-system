@@ -1,55 +1,97 @@
-// ==================== FIXED SESSION MANAGER - NO AUTO REDIRECT ====================
+// ==================== 🔥 ULTIMATE SESSION MANAGER ====================
+// Place this file in /public/admin/js/session-manager.js
 
 const SessionManager = {
-    checkSession: async function() {
-        try {
-            const response = await fetch('/api/check-session', {
-                credentials: 'include'
-            });
-            const data = await response.json();
-            console.log('🔐 Session:', data);
-            
-            if (data.authenticated && data.user) {
+    // Check session with retry logic
+    checkSession: async function(redirect = true) {
+        const maxRetries = 2;
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                const response = await fetch('/api/check-session', {
+                    credentials: 'include',
+                    headers: { 
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    if (i === maxRetries-1) {
+                        if (redirect) this.redirectToLogin();
+                        return false;
+                    }
+                    continue;
+                }
+                
+                const data = await response.json();
+                console.log('🔐 Session check:', data);
+                
+                if (!data.authenticated) {
+                    if (i === maxRetries-1) {
+                        if (redirect) this.redirectToLogin();
+                        return false;
+                    }
+                    continue;
+                }
+                
+                // Update role badge
                 const roleBadge = document.getElementById('roleBadge');
-                if (roleBadge) roleBadge.textContent = data.user.role.toUpperCase();
+                if (roleBadge && data.user) {
+                    roleBadge.textContent = data.user.role.toUpperCase();
+                }
+                
+                // Store in sessionStorage as backup
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminName', data.user?.name || 'Admin');
+                sessionStorage.setItem('adminRole', data.user?.role || 'admin');
+                
+                return true;
+            } catch (error) {
+                console.log(`⚠️ Session check attempt ${i+1} failed:`, error);
+                if (i === maxRetries-1) {
+                    if (redirect) this.redirectToLogin();
+                    return false;
+                }
+                await new Promise(r => setTimeout(r, 500));
             }
-            return data;
+        }
+        return false;
+    },
+
+    redirectToLogin: function() {
+        console.log('🚪 Redirecting to login...');
+        const currentPage = window.location.pathname;
+        if (!currentPage.includes('login')) {
+            sessionStorage.setItem('redirectAfterLogin', currentPage);
+        }
+        window.location.href = '/admin.login.html';
+    },
+
+    logout: async function() {
+        try {
+            await fetch('/api/logout', { 
+                method: 'POST', 
+                credentials: 'include' 
+            });
         } catch (error) {
-            console.error('Session check failed:', error);
-            return { authenticated: false };
+            console.error('Logout error:', error);
+        } finally {
+            sessionStorage.clear();
+            window.location.href = '/admin.login.html';
         }
     },
 
     initPage: async function(loadFunction) {
-        console.log('Loading page...');
-        const session = await this.checkSession();
+        console.log('🚀 Initializing page with session check...');
         
-        if (session.authenticated && loadFunction) {
-            await loadFunction();
-        } else {
-            this.showLoginMessage();
-            if (loadFunction) setTimeout(loadFunction, 1000);
+        const isValid = await this.checkSession(true);
+        if (isValid && typeof loadFunction === 'function') {
+            try {
+                await loadFunction();
+            } catch (error) {
+                console.error('❌ Load function error:', error);
+            }
         }
-    },
-
-    showLoginMessage: function() {
-        const msg = document.createElement('div');
-        msg.style.cssText = `
-            position: fixed; top: 20px; right: 20px; 
-            background: #f39c12; color: white; padding: 15px 25px;
-            border-radius: 5px; z-index: 9999; cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        `;
-        msg.innerHTML = '⚠️ Not logged in. <a href="/admin.login.html" style="color:white;">Login</a>';
-        msg.onclick = () => window.location.href = '/admin.login.html';
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 8000);
-    },
-
-    logout: async function() {
-        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-        sessionStorage.clear();
-        window.location.href = '/admin.login.html';
     }
 };
 
