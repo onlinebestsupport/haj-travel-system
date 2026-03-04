@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool  # 🔥 NEW: Connection pooling
 from datetime import datetime
 import json
 import threading
@@ -9,38 +10,58 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ==================== DATABASE CONFIGURATION ====================
-# Get database URL from environment variables
+# ==================== 🔥 DATABASE CONFIGURATION ====================
 DATABASE_URL = os.environ.get('DATABASE_URL')
-
 if not DATABASE_URL:
-    # Fallback for local development
-    DATABASE_URL = 'postgresql://postgres:jeWsXcYVvlcoWFfCYYCBDKOqJnJiQTEs@postgres.railway.internal:5432/railway'
-    print("⚠️ Using fallback database URL")
+    raise ValueError("❌ CRITICAL: DATABASE_URL environment variable REQUIRED")
 
-print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'unknown'}")
+print(f"📡 PostgreSQL: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
 
-# Global flags to prevent double initialization
+# ==================== 🔥 GLOBAL CONNECTION POOL ====================
+_pool = None
+_init_lock = threading.Lock()
 _INITIALIZED = False
 _INITIALIZING = False
-_init_lock = threading.Lock()
 
-# ==================== DATABASE CONNECTION ====================
+def get_connection_pool():
+    """🔥 Initialize/reuse connection pool (Railway production essential)"""
+    global _pool
+    if _pool is None:
+        with _init_lock:
+            if _pool is None:  # Double-check locking
+                _pool = psycopg2.pool.ThreadedConnectionPool(
+                    minconn=1,      # Minimum connections
+                    maxconn=20,     # Maximum connections (Railway safe)
+                    dsn=DATABASE_URL,
+                    idle_timeout=300  # 5 minutes idle timeout
+                )
+                print("✅ Connection pool initialized (1-20 connections)")
+    return _pool
 
 def get_db():
-    """Get PostgreSQL database connection"""
+    """🔥 Get pooled connection - Railway session safe"""
+    pool = get_connection_pool()
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = pool.getconn()
         conn.autocommit = False
-        # Return rows as dictionaries
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         return conn, cursor
     except Exception as e:
-        print(f"❌ Database connection error: {e}")
+        print(f"❌ Pool connection error: {e}")
         raise e
 
-# ==================== TABLE CREATION FUNCTIONS ====================
+def release_db(conn=None, cursor=None):
+    """🔥 CRITICAL: Return connection to pool (session saver!)"""
+    if cursor:
+        cursor.close()
+    if conn:
+        try:
+            pool = get_connection_pool()
+            pool.putconn(conn)
+        except Exception as e:
+            print(f"⚠️ Pool return error: {e}")
 
+# ==================== 🗄️ TABLE CREATION FUNCTIONS (UNCHANGED) ====================
 def create_users_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -213,7 +234,6 @@ def create_critical_logs_table(cursor):
     """)
 
 def create_backup_history_table(cursor):
-    """Create backup_history table for storing backup metadata"""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_history (
             id SERIAL PRIMARY KEY,
@@ -231,7 +251,6 @@ def create_backup_history_table(cursor):
     """)
 
 def create_backup_settings_table(cursor):
-    """Create backup_settings table for storing backup configuration"""
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_settings (
             id SERIAL PRIMARY KEY,
@@ -244,8 +263,6 @@ def create_backup_settings_table(cursor):
             updated_by INTEGER REFERENCES users(id)
         )
     """)
-    
-    # Insert default settings
     cursor.execute("""
         INSERT INTO backup_settings (id, schedule, retention_days, location, compression, encryption)
         VALUES (1, 'weekly', 30, 'both', 'normal', 'aes256')
@@ -284,8 +301,6 @@ def create_frontpage_settings_table(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
-    # Insert default record
     cursor.execute("""
         INSERT INTO frontpage_settings (id, hero_heading, hero_subheading, footer_text)
         VALUES (1, 'Welcome to Alhudha Haj Travel', 'Your trusted partner for Haj and Umrah', '© 2026 Alhudha Haj Travel')
@@ -308,7 +323,6 @@ def create_email_settings_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
     cursor.execute("""
         INSERT INTO email_settings (id, from_email, reply_to, subject_prefix)
         VALUES (1, 'noreply@alhudha.com', 'info@alhudha.com', '[Alhudha Haj]')
@@ -328,7 +342,6 @@ def create_whatsapp_settings_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
     cursor.execute("""
         INSERT INTO whatsapp_settings (id, number, message_template, enabled)
         VALUES (1, '+919876543210', 'Hello! Thank you for contacting Alhudha Haj Travel. How can we help you?', false)
@@ -339,26 +352,18 @@ def create_company_settings_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS company_settings (
             id SERIAL PRIMARY KEY,
-            
-            -- Company Details
             legal_name VARCHAR(255),
             display_name VARCHAR(255),
-            
-            -- Address
             address_line1 VARCHAR(255),
             address_line2 VARCHAR(255),
             city VARCHAR(100),
             state VARCHAR(100),
             country VARCHAR(100),
             pin_code VARCHAR(20),
-            
-            -- Contact
             phone VARCHAR(50),
             mobile VARCHAR(50),
             email VARCHAR(255),
             website VARCHAR(255),
-            
-            -- Tax Information
             gstin VARCHAR(50),
             pan VARCHAR(50),
             tan VARCHAR(50),
@@ -367,8 +372,6 @@ def create_company_settings_table(cursor):
             cin VARCHAR(50),
             iec VARCHAR(50),
             msme VARCHAR(50),
-            
-            -- Bank Details
             bank_name VARCHAR(255),
             bank_branch VARCHAR(255),
             account_name VARCHAR(255),
@@ -377,25 +380,18 @@ def create_company_settings_table(cursor):
             micr_code VARCHAR(50),
             upi_id VARCHAR(100),
             qr_code TEXT,
-            
-            -- Logo
             logo TEXT,
-            
-            -- Metadata
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
-    # Insert default record if not exists
     cursor.execute("""
         INSERT INTO company_settings (id, legal_name, display_name, country)
         VALUES (1, 'Alhudha Haj Service P Ltd.', 'Alhudha Haj Travel', 'India')
         ON CONFLICT (id) DO NOTHING
     """)
 
-# ==================== SEED DEFAULT USERS ====================
-
+# ==================== 🌱 SEED DEFAULT USERS ====================
 def seed_default_users(conn, cursor):
     """Insert default users if table is empty"""
     cursor.execute("SELECT COUNT(*) as count FROM users")
@@ -417,15 +413,13 @@ def seed_default_users(conn, cursor):
             """, (username, password, name, email, role, '{}'))
         
         conn.commit()
-        print("✅ Default users seeded")
+        print("✅ Default users seeded: superadmin/admin123")
 
-# ==================== MIGRATION FUNCTIONS ====================
-
+# ==================== 🔄 MIGRATION FUNCTIONS ====================
 def migrate_receipts_table():
-    """Add invoice_id column to receipts table if not exists"""
+    """🔥 FIXED: Migration with pool cleanup"""
     conn, cursor = get_db()
     try:
-        # Check if column exists
         cursor.execute("""
             SELECT column_name 
             FROM information_schema.columns 
@@ -435,54 +429,45 @@ def migrate_receipts_table():
         
         if not result:
             cursor.execute("""
-                ALTER TABLE receipts 
-                ADD COLUMN invoice_id INTEGER 
-                REFERENCES invoices(id) ON DELETE SET NULL
+                ALTER TABLE receipts ADD COLUMN IF NOT EXISTS 
+                invoice_id INTEGER REFERENCES invoices(id) ON DELETE SET NULL
             """)
             conn.commit()
             print("✅ Added invoice_id column to receipts table")
         else:
-            print("✅ invoice_id column already exists")
-            
+            print("✅ invoice_id column exists")
     except Exception as e:
         print(f"⚠️ Migration error: {e}")
         conn.rollback()
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
-# ==================== MAIN INITIALIZATION ====================
-
+# ==================== 🚀 MAIN INITIALIZATION ====================
 def init_db():
-    """Initialize database with all tables and seed data"""
+    """🔥 Thread-safe initialization with pooling"""
     global _INITIALIZED, _INITIALIZING
     
-    # Prevent concurrent initialization
     with _init_lock:
         if _INITIALIZED:
-            print("✅ Database already initialized, skipping...")
+            print("✅ Database already initialized")
             return True
         
         if _INITIALIZING:
-            print("⏳ Database initialization already in progress, waiting...")
-            # Wait for initialization to complete
-            for i in range(30):  # Wait up to 30 seconds
+            print("⏳ Initialization in progress, waiting...")
+            for i in range(30):
                 if _INITIALIZED:
                     return True
                 time.sleep(1)
-            print("⚠️ Initialization timeout, continuing...")
             return False
         
         _INITIALIZING = True
     
-    conn = None
-    cursor = None
-    
+    conn = cursor = None
     try:
-        print("🚀 Starting database initialization...")
+        print("🚀 Initializing Alhudha Haj Database...")
         conn, cursor = get_db()
         
-        # Create all tables in order
+        # Create ALL tables (your existing perfect schema)
         create_users_table(cursor)
         create_batches_table(cursor)
         create_travelers_table(cursor)
@@ -499,125 +484,103 @@ def init_db():
         create_company_settings_table(cursor)
         
         conn.commit()
-        print("✅ All tables created")
+        print("✅ All 14 tables created")
         
-        # Seed default users
+        # Seed users
         seed_default_users(conn, cursor)
         
         # Run migrations
         migrate_receipts_table()
         
-        # Verify connection
+        # Verify pool + PostgreSQL
         cursor.execute("SELECT version()")
         version = cursor.fetchone()
-        print(f"✅ PostgreSQL connected: {version['version'][:50]}...")
+        print(f"✅ PostgreSQL: {version['version'][:50]}")
         
-        # Count tables
         cursor.execute("""
             SELECT COUNT(*) as count FROM information_schema.tables 
             WHERE table_schema = 'public'
         """)
         tables_count = cursor.fetchone()['count']
-        print(f"📊 Tables created: {tables_count}")
+        print(f"📊 {tables_count} tables ready")
         
         with _init_lock:
             _INITIALIZED = True
             _INITIALIZING = False
         
-        print("✅ Database initialization complete")
+        print("✅ 🔥 DATABASE FULLY INITIALIZED - SESSION SAFE")
         return True
         
     except Exception as e:
-        print(f"❌ Database initialization error: {e}")
-        with _init_lock:
-            _INITIALIZING = False
-        return False
-        
-    finally:
-        if cursor:
-            cursor.close()
+        print(f"❌ Init failed: {e}")
         if conn:
-            conn.close()
+            conn.rollback()
+        _INITIALIZING = False
+        return False
+    finally:
+        release_db(conn, cursor)
 
-# ==================== HELPER FUNCTIONS ====================
-
+# ==================== 🛠️ HELPER FUNCTIONS (POOL SAFE) ====================
 def execute_query(query, params=None):
-    """Execute a query and return results"""
-    conn = None
-    cursor = None
+    """🔥 Pool-safe query execution"""
+    conn = cursor = None
     try:
         conn, cursor = get_db()
         cursor.execute(query, params or ())
         if query.strip().upper().startswith('SELECT'):
-            results = cursor.fetchall()
-            return results
-        else:
-            conn.commit()
-            return cursor.rowcount
+            return cursor.fetchall()
+        conn.commit()
+        return cursor.rowcount
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        release_db(conn, cursor)
 
 def get_table_counts():
-    """Get count of records in all tables"""
+    """🔥 Pool-safe table counts"""
     conn, cursor = get_db()
     try:
         tables = ['users', 'batches', 'travelers', 'payments', 'invoices', 'receipts', 'backup_history']
         counts = {}
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) as count FROM {table}")
-            result = cursor.fetchone()
-            counts[table] = result['count'] if result else 0
+            counts[table] = cursor.fetchone()['count']
         return counts
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 def get_backup_settings():
-    """Get backup settings"""
+    """🔥 Pool-safe backup settings"""
     conn, cursor = get_db()
     try:
         cursor.execute("SELECT * FROM backup_settings WHERE id = 1")
         settings = cursor.fetchone()
         return dict(settings) if settings else None
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
 def update_backup_settings(schedule, retention_days, location, compression, encryption, updated_by):
-    """Update backup settings"""
+    """🔥 Pool-safe backup settings update"""
     conn, cursor = get_db()
     try:
         cursor.execute("""
-            UPDATE backup_settings SET
-                schedule = %s,
-                retention_days = %s,
-                location = %s,
-                compression = %s,
-                encryption = %s,
-                updated_at = %s,
-                updated_by = %s
-            WHERE id = 1
+            UPDATE backup_settings SET schedule=%s, retention_days=%s, location=%s,
+            compression=%s, encryption=%s, updated_at=%s, updated_by=%s WHERE id=1
         """, (schedule, retention_days, location, compression, encryption, datetime.now(), updated_by))
         conn.commit()
         return True
     except Exception as e:
-        print(f"❌ Error updating backup settings: {e}")
+        print(f"❌ Backup settings error: {e}")
         conn.rollback()
         return False
     finally:
-        cursor.close()
-        conn.close()
+        release_db(conn, cursor)
 
-# ==================== EXPORTED FUNCTIONS ====================
-
+# ==================== 📤 EXPORTED FUNCTIONS ====================
 __all__ = [
-    'get_db', 
-    'init_db', 
-    'execute_query', 
-    'get_table_counts', 
+    'get_db',           # ✅ Pooled connection
+    'release_db',       # 🔥 NEW: Pool cleanup (middleware/server critical)
+    'init_db',          # ✅ Thread-safe init
+    'execute_query',    # ✅ Pool-safe query
+    'get_table_counts', # ✅ Pool-safe counts
     'migrate_receipts_table',
     'get_backup_settings',
     'update_backup_settings'
