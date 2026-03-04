@@ -38,10 +38,12 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minutes default
+app.config['REMEMBER_ME_DURATION'] = timedelta(days=7)  # 7 days for remember me
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
 
 # ==================== DIRECTORY PATHS ====================
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -59,6 +61,12 @@ print(f"📁 Uploads directory: {app.config['UPLOAD_FOLDER']}")
 print(f"📁 Public exists: {os.path.exists(PUBLIC_DIR)}")
 print(f"📁 Admin exists: {os.path.exists(ADMIN_DIR)}")
 print(f"📁 Traveler exists: {os.path.exists(TRAVELER_DIR)}")
+
+# List files in public directory for debugging
+if os.path.exists(PUBLIC_DIR):
+    print(f"📄 Files in public: {os.listdir(PUBLIC_DIR)}")
+if os.path.exists(ADMIN_DIR):
+    print(f"📄 Files in admin: {os.listdir(ADMIN_DIR)}")
 
 # ==================== CORS CONFIGURATION ====================
 CORS(app, supports_credentials=True, origins=['*'])
@@ -145,10 +153,14 @@ def initialize_database():
 
 @app.before_request
 def before_request():
-    if request.path in ['/', '/health', '/api/health']:
+    if request.path in ['/', '/health', '/api/health', '/debug/paths', '/debug/test']:
         return
     if not _db_initialized:
         initialize_database()
+    
+    # Refresh session if user is logged in
+    if session.get('user_id'):
+        session.modified = True
 
 # ==================== API ROUTES - AUTH ====================
 @app.route('/api/login', methods=['POST'])
@@ -156,6 +168,7 @@ def api_login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    remember_me = data.get('remember_me', False)
     
     if not username or not password:
         return jsonify({'success': False, 'error': 'Username and password required'}), 400
@@ -167,10 +180,26 @@ def api_login():
         user = cursor.fetchone()
         
         if user:
+            # Clear any existing session
+            session.clear()
+            
+            # Set session with proper expiry
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
+            session['name'] = user['full_name']
+            
+            # Set session permanent based on remember_me
             session.permanent = True
+            if remember_me:
+                # 7 days for remember me
+                app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+            else:
+                # 30 minutes for regular session
+                app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+            
+            # Force session to save
+            session.modified = True
             
             cursor.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s', (user['id'],))
             conn.commit()
@@ -180,13 +209,15 @@ def api_login():
             
             return jsonify({
                 'success': True,
+                'authenticated': True,
                 'user': {
                     'id': user['id'],
                     'username': user['username'],
                     'name': user['full_name'],
                     'role': user['role'],
                     'permissions': json.loads(user['permissions']) if user['permissions'] else {}
-                }
+                },
+                'session_expiry': (datetime.now() + (timedelta(days=7) if remember_me else timedelta(minutes=30))).isoformat()
             })
         else:
             cursor.close()
@@ -237,17 +268,32 @@ def api_traveler_login():
 
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
+    user_id = session.get('user_id')
+    if user_id:
+        try:
+            conn, cursor = get_db()
+            cursor.execute(
+                "INSERT INTO activity_log (user_id, action, description, created_at) VALUES (%s, %s, %s, %s)",
+                (user_id, 'LOGOUT', f'User logged out', datetime.now())
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except:
+            pass
+    
     session.clear()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
 
 @app.route('/api/check-session', methods=['GET'])
 def check_session():
+    """Session check endpoint used by SessionManager"""
     if session.get('user_id'):
         try:
             initialize_database()
             conn, cursor = get_db()
             cursor.execute(
-                'SELECT id, username, full_name, role FROM users WHERE id = %s', 
+                'SELECT id, username, full_name as name, email, role FROM users WHERE id = %s', 
                 (session['user_id'],)
             )
             user = cursor.fetchone()
@@ -255,30 +301,39 @@ def check_session():
             conn.close()
             
             if user:
+                # Refresh session
+                session.modified = True
+                
+                # Calculate session expiry
+                expiry = None
+                if session.permanent:
+                    # Get session expiry from cookie if available
+                    expiry = (datetime.now() + app.config['PERMANENT_SESSION_LIFETIME']).isoformat()
+                
                 return jsonify({
-                    'success': True,
                     'authenticated': True,
-                    'user': {
-                        'id': user['id'],
-                        'username': user['username'],
-                        'name': user['full_name'],
-                        'role': user['role']
-                    }
+                    'user': dict(user),
+                    'session_expiry': expiry
                 })
+            else:
+                # User not found in database, clear session
+                session.clear()
+                return jsonify({'authenticated': False}), 401
         except Exception as e:
-            return jsonify({'success': False, 'error': str(e)}), 500
+            print(f"Session check error: {e}")
+            return jsonify({'authenticated': False}), 401
     elif session.get('traveler_id'):
         return jsonify({
-            'success': True,
             'authenticated': True,
-            'traveler': {
+            'user': {
                 'id': session['traveler_id'],
                 'name': session['traveler_name'],
-                'passport': session['traveler_passport']
+                'passport': session['traveler_passport'],
+                'role': 'traveler'
             }
         })
     
-    return jsonify({'success': True, 'authenticated': False})
+    return jsonify({'authenticated': False}), 401
 
 # ==================== API ROUTES - FRONTPAGE ====================
 @app.route('/api/frontpage/config', methods=['GET'])
@@ -555,39 +610,57 @@ def migrate_receipts():
 # ==================== STATIC FILE ROUTES ====================
 @app.route('/')
 def serve_index():
-    return send_from_directory(PUBLIC_DIR, 'index.html')
+    """Serve the main index page"""
+    index_path = os.path.join(PUBLIC_DIR, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(PUBLIC_DIR, 'index.html')
+    return jsonify({'success': False, 'error': 'Index page not found'}), 404
 
 @app.route('/<path:filename>')
 def serve_static(filename):
+    """Serve static files from public directory"""
+    # Security check
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     
-    if '.' in filename:
-        try:
-            return send_from_directory(PUBLIC_DIR, filename)
-        except:
-            pass
+    # Try exact file match
+    file_path = os.path.join(PUBLIC_DIR, filename)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(PUBLIC_DIR, filename)
     
-    try:
+    # Try with .html extension
+    html_path = os.path.join(PUBLIC_DIR, filename + '.html')
+    if os.path.exists(html_path) and os.path.isfile(html_path):
         return send_from_directory(PUBLIC_DIR, filename + '.html')
-    except:
-        return jsonify({'success': False, 'error': 'File not found'}), 404
+    
+    return jsonify({'success': False, 'error': 'File not found'}), 404
+
+@app.route('/admin/')
+@app.route('/admin')
+def serve_admin_index():
+    """Serve admin dashboard"""
+    dashboard_path = os.path.join(ADMIN_DIR, 'dashboard.html')
+    if os.path.exists(dashboard_path):
+        return send_from_directory(ADMIN_DIR, 'dashboard.html')
+    return jsonify({'success': False, 'error': 'Dashboard not found'}), 404
 
 @app.route('/admin/<path:filename>')
 def serve_admin(filename):
+    """Serve admin panel files"""
+    # Security check
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
 
+    # Try exact file match
     file_path = os.path.join(ADMIN_DIR, filename)
-
-    if os.path.exists(file_path):
+    if os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(ADMIN_DIR, filename)
 
+    # Try with .html extension
     if '.' not in filename:
         html_file = filename + '.html'
         html_path = os.path.join(ADMIN_DIR, html_file)
-
-        if os.path.exists(html_path):
+        if os.path.exists(html_path) and os.path.isfile(html_path):
             return send_from_directory(ADMIN_DIR, html_file)
 
     return jsonify({'success': False, 'error': 'Admin file not found'}), 404
@@ -595,48 +668,85 @@ def serve_admin(filename):
 @app.route('/traveler/')
 @app.route('/traveler')
 def serve_traveler_index():
-    return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+    """Serve traveler dashboard"""
+    traveler_dashboard = os.path.join(PUBLIC_DIR, 'traveler_dashboard.html')
+    if os.path.exists(traveler_dashboard):
+        return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+    return jsonify({'success': False, 'error': 'Traveler dashboard not found'}), 404
 
 @app.route('/traveler/<path:filename>')
 def serve_traveler(filename):
+    """Serve traveler files"""
+    # Security check
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     
-    try:
+    # Try exact file match
+    file_path = os.path.join(PUBLIC_DIR, filename)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(PUBLIC_DIR, filename)
-    except:
-        try:
-            return send_from_directory(PUBLIC_DIR, filename + '.html')
-        except:
-            return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
+    
+    # Try with .html extension
+    html_path = os.path.join(PUBLIC_DIR, filename + '.html')
+    if os.path.exists(html_path) and os.path.isfile(html_path):
+        return send_from_directory(PUBLIC_DIR, filename + '.html')
+    
+    return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
 
 @app.route('/admin.login.html')
 @app.route('/admin/login')
 def serve_admin_login():
-    return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+    """Serve admin login page"""
+    login_path = os.path.join(PUBLIC_DIR, 'admin.login.html')
+    if os.path.exists(login_path):
+        return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+    return jsonify({'success': False, 'error': 'Login page not found'}), 404
 
 @app.route('/traveler_login.html')
 @app.route('/traveler/login')
 def serve_traveler_login():
-    return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+    """Serve traveler login page"""
+    login_path = os.path.join(PUBLIC_DIR, 'traveler_login.html')
+    if os.path.exists(login_path):
+        return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+    return jsonify({'success': False, 'error': 'Traveler login page not found'}), 404
 
 @app.route('/frontpage.html')
 @app.route('/admin/frontpage.html')
 def serve_frontpage():
-    return send_from_directory(ADMIN_DIR, 'frontpage.html')
+    """Serve frontpage editor"""
+    frontpage_path = os.path.join(ADMIN_DIR, 'frontpage.html')
+    if os.path.exists(frontpage_path):
+        return send_from_directory(ADMIN_DIR, 'frontpage.html')
+    return jsonify({'success': False, 'error': 'Frontpage editor not found'}), 404
 
 @app.route('/style.css')
 def serve_css():
-    return send_from_directory(PUBLIC_DIR, 'style.css')
+    """Serve main CSS file"""
+    css_path = os.path.join(PUBLIC_DIR, 'style.css')
+    if os.path.exists(css_path):
+        return send_from_directory(PUBLIC_DIR, 'style.css')
+    return jsonify({'success': False, 'error': 'CSS file not found'}), 404
+
+@app.route('/admin/js/<path:filename>')
+def serve_admin_js(filename):
+    """Serve admin JavaScript files"""
+    js_dir = os.path.join(ADMIN_DIR, 'js')
+    js_path = os.path.join(js_dir, filename)
+    if os.path.exists(js_path) and os.path.isfile(js_path):
+        return send_from_directory(js_dir, filename)
+    return jsonify({'success': False, 'error': 'JS file not found'}), 404
 
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
+    """Serve uploaded files"""
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/uploads/company/<path:filename>')
 def serve_company_upload(filename):
+    """Serve company uploaded files"""
     if '..' in filename or filename.startswith('/'):
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
     company_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'company')
@@ -645,16 +755,27 @@ def serve_company_upload(filename):
 # ==================== DEBUG ROUTES ====================
 @app.route('/debug/paths')
 def debug_paths():
+    """Debug endpoint to check file paths"""
     files_in_public = []
     files_in_admin = []
+    files_in_admin_js = []
     
     try:
-        files_in_public = os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else []
+        if os.path.exists(PUBLIC_DIR):
+            files_in_public = os.listdir(PUBLIC_DIR)
     except:
         pass
     
     try:
-        files_in_admin = os.listdir(ADMIN_DIR) if os.path.exists(ADMIN_DIR) else []
+        if os.path.exists(ADMIN_DIR):
+            files_in_admin = os.listdir(ADMIN_DIR)
+    except:
+        pass
+    
+    try:
+        js_dir = os.path.join(ADMIN_DIR, 'js')
+        if os.path.exists(js_dir):
+            files_in_admin_js = os.listdir(js_dir)
     except:
         pass
     
@@ -666,9 +787,11 @@ def debug_paths():
         'admin_exists': os.path.exists(ADMIN_DIR),
         'files_in_public': files_in_public,
         'files_in_admin': files_in_admin,
+        'files_in_admin_js': files_in_admin_js,
+        'login_page_exists': os.path.exists(os.path.join(PUBLIC_DIR, 'admin.login.html')),
+        'login_page_path': os.path.join(PUBLIC_DIR, 'admin.login.html') if os.path.exists(os.path.join(PUBLIC_DIR, 'admin.login.html')) else None,
         'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
-        'dashboard_size': os.path.getsize(os.path.join(ADMIN_DIR, 'dashboard.html')) if os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')) else 0,
-        'frontpage_exists': os.path.exists(os.path.join(ADMIN_DIR, 'frontpage.html'))
+        'session_manager_exists': os.path.exists(os.path.join(ADMIN_DIR, 'js', 'session-manager.js'))
     })
 
 @app.route('/debug/test')
@@ -680,7 +803,9 @@ def debug_session():
     return jsonify({
         'session': dict(session),
         'has_user': 'user_id' in session,
-        'has_traveler': 'traveler_id' in session
+        'has_traveler': 'traveler_id' in session,
+        'session_permanent': session.permanent,
+        'session_expiry': (datetime.now() + app.config['PERMANENT_SESSION_LIFETIME']).isoformat() if session.permanent else None
     })
 
 @app.route('/debug/routes')
@@ -729,12 +854,15 @@ if __name__ == '__main__':
     print(f"📁 Server starting on port {port}")
     print(f"📁 Debug mode: {debug}")
     print(f"📁 Binding to: 0.0.0.0:{port}")
+    print(f"📁 Session timeout: 30 minutes (7 days with remember me)")
     print("=" * 60)
     print("📡 Health check: /health")
-    print("📡 API Endpoints ready (lazy DB init)")
+    print("📡 Debug paths: /debug/paths")
+    print("📡 Debug session: /debug/session")
+    print("📡 Admin Login: /admin.login.html")
+    print("📡 Admin Dashboard: /admin/")
+    print("📡 Traveler Login: /traveler_login.html")
     print("📡 Frontpage Editor: /admin/frontpage.html")
-    print("📡 Frontpage API: /api/frontpage/config")
-    print("📡 Publish API: /api/frontpage/publish")
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=port, debug=debug)
