@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Font Awesome 6 (optimized load) -->
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
     
     <!-- Google Fonts (optimized) -->
@@ -1200,7 +1201,7 @@
     </div>
 
     <!-- Session Warning Banner -->
-    <div id="sessionWarning" onclick="extendSession()">
+    <div id="sessionWarning" onclick="SessionManager.extendSession()">
         <i class="fas fa-exclamation-triangle"></i> 
         <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
     </div>
@@ -1215,10 +1216,10 @@
             // Check session and redirect if not authenticated
             initPage: async function(callback) {
                 try {
-                    const session = await this.checkSession();
+                    const session = await this.SessionManager.checkSession();
                     
                     if (!session.authenticated) {
-                        console.log('⚠️ Not logged in, redirecting to login...');
+                        console.SessionManager.log('⚠️ Not logged in, redirecting to login...');
                         window.location.href = '/admin.login.html';
                         return false;
                     }
@@ -1326,10 +1327,10 @@
         };
         
         let intervals = [];
-        let sessionWarningTimeout = null;
-        let sessionLogoutTimeout = null;
+        let sessionWarningTimeout = undefined;
+        let sessionLogoutTimeout = undefined;
         let warningShown = false;
-        let notificationTimeout = null;
+        let notificationTimeout = undefined;
 
         // ==================== PAGE INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1338,19 +1339,19 @@
                 await SessionManager.initPage(initializeDashboard);
             } catch (error) {
                 console.error('Failed to initialize dashboard:', error);
-                showNotification('Failed to load dashboard', 'error');
+                SessionManager.showNotification('Failed to load dashboard', 'error');
             }
         });
 
         // Dashboard initialization function (called after auth check)
         async function initializeDashboard() {
-            console.log('✅ User authenticated, loading dashboard...');
+            console.SessionManager.log('✅ User authenticated, loading dashboard...');
             
             // Update UI with user info from session
             updateUserInterface();
             
             // Initialize session management
-            resetSessionTimer();
+            SessionManager.resetSessionTimer();
             
             // Monitor user activity
             ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
@@ -1432,11 +1433,11 @@
         }
 
         // ==================== SESSION MANAGEMENT ====================
-        function resetSessionTimer() {
+        function SessionManager.resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             
-            hideSessionWarning();
+            SessionManager.hideSessionWarning();
             
             // Show warning after 25 minutes (1500000 ms)
             sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
@@ -1445,7 +1446,7 @@
             sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
         }
 
-        function showSessionWarning() {
+        function SessionManager.showSessionWarning() {
             if (warningShown) return;
             
             const warning = document.getElementById('sessionWarning');
@@ -1457,7 +1458,7 @@
             warningShown = true;
         }
 
-        function hideSessionWarning() {
+        function SessionManager.hideSessionWarning() {
             const warning = document.getElementById('sessionWarning');
             if (warning) {
                 warning.style.display = 'none';
@@ -1465,24 +1466,24 @@
             warningShown = false;
         }
 
-        function showSessionExpiredWarning() {
-            hideSessionWarning();
-            showNotification('Your session has expired. Redirecting to login...', 'warning');
+        function SessionManager.showSessionExpiredWarning() {
+            SessionManager.hideSessionWarning();
+            SessionManager.showNotification('Your session has expired. Redirecting to login...', 'warning');
             
             setTimeout(() => {
                 window.location.href = '/admin.login.html';
             }, 3000);
         }
 
-        async function extendSession() {
+        async function SessionManager.extendSession() {
             try {
-                await SessionManager.checkSession();
-                hideSessionWarning();
-                resetSessionTimer();
-                showNotification('Session extended successfully', 'success');
+                await SessionManager.SessionManager.checkSession();
+                SessionManager.hideSessionWarning();
+                SessionManager.resetSessionTimer();
+                SessionManager.showNotification('Session extended successfully', 'success');
             } catch (error) {
                 console.error('Session extension failed:', error);
-                showSessionExpiredWarning();
+                SessionManager.showSessionExpiredWarning();
             }
         }
 
@@ -1607,7 +1608,7 @@
                         el.classList.remove('skeleton');
                     });
                     
-                    console.log('✅ Dashboard stats loaded:', { 
+                    console.SessionManager.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,
@@ -1616,7 +1617,7 @@
                 }
             } catch (error) {
                 console.error('❌ Error loading dashboard stats:', error);
-                showNotification('Error loading dashboard data', 'error');
+                SessionManager.showNotification('Error loading dashboard data', 'error');
             }
         }
 
@@ -1626,12 +1627,12 @@
                 // Destroy existing charts
                 if (chartInstances.paymentsChart) {
                     chartInstances.paymentsChart.destroy();
-                    chartInstances.paymentsChart = null;
+                    chartInstances.paymentsChart = undefined;
                 }
                 
                 if (chartInstances.travelersChart) {
                     chartInstances.travelersChart.destroy();
-                    chartInstances.travelersChart = null;
+                    chartInstances.travelersChart = undefined;
                 }
                 
                 // Use requestAnimationFrame for smoother rendering
@@ -1806,7 +1807,7 @@
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
             
@@ -1847,14 +1848,14 @@
             
             if (paymentSelect) {
                 paymentSelect.addEventListener('change', (e) => {
-                    showNotification(`Updating payment chart for ${e.target.value}`, 'info');
+                    SessionManager.showNotification(`Updating payment chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
                 });
             }
 
             if (travelersSelect) {
                 travelersSelect.addEventListener('change', (e) => {
-                    showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+                    SessionManager.showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
                 });
             }

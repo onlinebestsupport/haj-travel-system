@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alhudha Haj Travel - Your Journey to the Holy Land</title>
     <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -1154,10 +1155,10 @@
             }
             
             // Apply features
-            renderFeatures(config.features);
+            SessionManager.renderFeatures(config.features);
             
             // Apply packages
-            renderPackages(config.packages, config.contact);
+            SessionManager.renderPackages(config.packages, config.contact);
             
             // Apply contact info
             renderContactInfo(config.contact);
@@ -1188,7 +1189,7 @@
             linkEl.href = alert.link || '#';
             
             // Apply color
-            banner.style.background = `linear-gradient(135deg, ${alert.color}, ${adjustColor(alert.color, -20)})`;
+            banner.style.background = `linear-gradient(135deg, ${alert.color}, ${SessionManager.adjustColor(alert.color, -20)})`;
             
             // Apply animation style
             banner.className = 'alert-banner active ' + alert.style;
@@ -1216,13 +1217,13 @@
             }
         }
 
-        function adjustColor(hex, percent) {
+        function SessionManager.adjustColor(hex, percent) {
             // Simple color adjustment
             return hex; // In production, use a proper color library
         }
 
         // ==================== FEATURES RENDERING ====================
-        function renderFeatures(features) {
+        function SessionManager.renderFeatures(features) {
             const grid = document.getElementById('featuresGrid');
             
             if (!features || features.length === 0) {
@@ -1261,7 +1262,7 @@
         }
 
         // ==================== PACKAGES RENDERING ====================
-        function renderPackages(packages, contact) {
+        function SessionManager.renderPackages(packages, contact) {
             const grid = document.getElementById('packagesGrid');
             
             if (!packages || packages.length === 0) {
@@ -1389,10 +1390,10 @@
                         email: localStorage.getItem('bookingEmail') || 'bookings@alhudha.com'
                     };
                     
-                    renderPackages(packages, contact);
+                    SessionManager.renderPackages(packages, contact);
                 }
             } catch (error) {
-                console.log('Using demo packages');
+                console.SessionManager.log('Using demo packages');
             }
         }
 

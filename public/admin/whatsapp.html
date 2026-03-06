@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -734,32 +734,32 @@
                 </button>
             </div>
             <div class="template-grid" id="templatesGrid">
-                <div class="template-card" onclick="useTemplate('payment')">
+                <div class="template-card" onclick="SessionManager.useTemplate('payment')">
                     <i class="fas fa-credit-card"></i>
                     <h4>Payment Reminder</h4>
                     <p>Send payment due reminders to travelers</p>
                 </div>
-                <div class="template-card" onclick="useTemplate('document')">
+                <div class="template-card" onclick="SessionManager.useTemplate('document')">
                     <i class="fas fa-file-alt"></i>
                     <h4>Document Request</h4>
                     <p>Request missing documents from travelers</p>
                 </div>
-                <div class="template-card" onclick="useTemplate('visa')">
+                <div class="template-card" onclick="SessionManager.useTemplate('visa')">
                     <i class="fas fa-passport"></i>
                     <h4>Visa Update</h4>
                     <p>Send visa status updates</p>
                 </div>
-                <div class="template-card" onclick="useTemplate('flight')">
+                <div class="template-card" onclick="SessionManager.useTemplate('flight')">
                     <i class="fas fa-plane"></i>
                     <h4>Flight Details</h4>
                     <p>Share flight schedules and updates</p>
                 </div>
-                <div class="template-card" onclick="useTemplate('welcome')">
+                <div class="template-card" onclick="SessionManager.useTemplate('welcome')">
                     <i class="fas fa-hand-peace"></i>
                     <h4>Welcome Message</h4>
                     <p>Welcome new travelers</p>
                 </div>
-                <div class="template-card" onclick="useTemplate('thankyou')">
+                <div class="template-card" onclick="SessionManager.useTemplate('thankyou')">
                     <i class="fas fa-heart"></i>
                     <h4>Thank You</h4>
                     <p>Thank travelers for their payment</p>
@@ -832,7 +832,7 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
@@ -959,7 +959,7 @@
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
-async function checkAdminSession() {
+async function SessionManager.checkAdminSession() {
     try {
         const response = await fetch('/api/check-session', {
             credentials: 'include',
@@ -968,7 +968,7 @@ async function checkAdminSession() {
         const data = await response.json();
         
         if (!data.authenticated) {
-            console.log('⚠️ Session expired or not authenticated');
+            console.SessionManager.log('⚠️ Session expired or not authenticated');
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
             return false;
@@ -989,9 +989,9 @@ async function checkAdminSession() {
 }
 
 // Wrapper for authenticated API calls
-async function authenticatedFetch(url, options = {}) {
+async function SessionManager.authenticatedFetch(url, options = {}) {
     // First check if we're still authenticated
-    const isAuthenticated = await checkAdminSession();
+    const isAuthenticated = await SessionManager.checkAdminSession();
     if (!isAuthenticated) return null;
     
     // Make the actual API call with credentials
@@ -1006,7 +1006,7 @@ async function authenticatedFetch(url, options = {}) {
     
     // Handle 401 specifically
     if (response.status === 401) {
-        console.log('🔒 Session expired during API call');
+        console.SessionManager.log('🔒 Session expired during API call');
         window.location.href = '/admin.login.html';
         return null;
     }
@@ -1038,25 +1038,25 @@ if (typeof showNotification !== 'function') {
 // ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading whatsapp page...');
+    console.SessionManager.log('🚀 Loading whatsapp page...');
     await SessionManager.initPage(loadWhatsApp || function(){});
 });
     
     // Check session first - this will redirect if not authenticated
-    const isValid = await checkAdminSession();
+    const isValid = await SessionManager.checkAdminSession();
     if (!isValid) return;
     
     // Load page-specific data
     if (typeof loadPageData === 'function') {
         loadPageData();
     } else if (typeof loadTravelers === 'function') {
-        loadTravelers();
+        SessionManager.loadTravelers();
     } else if (typeof loadBatches === 'function') {
-        loadBatches();
+        SessionManager.loadBatches();
     } else if (typeof loadPayments === 'function') {
         loadPayments();
     } else {
-        console.log('ℹ️ No data loading function found');
+        console.SessionManager.log('ℹ️ No data loading function found');
     }
 });
 
@@ -1067,7 +1067,7 @@ async function logout() {
 }
     try {
         if (typeof showNotification === 'function') {
-            showNotification('Logging out...', 'info');
+            SessionManager.showNotification('Logging out...', 'info');
         }
         await fetch('/api/logout', { 
             method: 'POST', 
@@ -1086,14 +1086,14 @@ async function logout() {
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
+            SessionManager.SessionManager.checkAuth();
             loadWhatsAppNumber();
             loadContacts();
             loadCustomTemplates();
         });
 
         // ==================== AUTHENTICATION ====================
-        function checkAuth() {
+        function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -1111,7 +1111,7 @@ async function logout() {
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1140,7 +1140,7 @@ async function logout() {
                         localStorage.setItem('whatsappNumber', data.whatsappNumber);
                     }
                 })
-                .catch(err => console.log('Using localStorage WhatsApp number'));
+                .catch(err => console.SessionManager.log('Using localStorage WhatsApp number'));
         }
 
         function formatPhoneNumber(number) {
@@ -1155,7 +1155,7 @@ async function logout() {
 
         function refreshNumber() {
             loadWhatsAppNumber();
-            showNotification('WhatsApp number refreshed from frontpage settings', 'success');
+            SessionManager.showNotification('WhatsApp number refreshed from frontpage settings', 'success');
         }
 
         // ==================== LOAD CONTACTS ====================
@@ -1307,7 +1307,7 @@ async function logout() {
             
             // Check if WhatsApp number is configured
             if (!whatsappNumber) {
-                showNotification('WhatsApp number not configured. Please set it in Frontpage settings.', 'error');
+                SessionManager.showNotification('WhatsApp number not configured. Please set it in Frontpage settings.', 'error');
                 return;
             }
             
@@ -1387,16 +1387,16 @@ async function logout() {
 
         // ==================== SYNC CONTACTS ====================
         function syncContacts() {
-            showNotification('Syncing WhatsApp contacts...', 'info');
+            SessionManager.showNotification('Syncing WhatsApp contacts...', 'info');
             
             setTimeout(() => {
                 loadContacts();
-                showNotification('Contacts synced successfully!', 'success');
+                SessionManager.showNotification('Contacts synced successfully!', 'success');
             }, 2000);
         }
 
         // ==================== MESSAGE TEMPLATES ====================
-        function useTemplate(type) {
+        function SessionManager.useTemplate(type) {
             const input = document.getElementById('messageInput');
             
             const templates = {
@@ -1411,7 +1411,7 @@ async function logout() {
             input.value = templates[type] || '';
             input.focus();
             
-            showNotification('Template loaded', 'success');
+            SessionManager.showNotification('Template loaded', 'success');
         }
 
         function loadCustomTemplates() {
@@ -1441,7 +1441,7 @@ async function logout() {
             const template = customTemplates.find(t => t.name === name);
             if (template) {
                 document.getElementById('messageInput').value = template.message;
-                showNotification(`Template "${name}" loaded`, 'success');
+                SessionManager.showNotification(`Template "${name}" loaded`, 'success');
             }
         }
 
@@ -1461,7 +1461,7 @@ async function logout() {
             const icon = document.getElementById('templateIcon').value;
             
             if (!name || !message) {
-                showNotification('Please fill all fields', 'error');
+                SessionManager.showNotification('Please fill all fields', 'error');
                 return;
             }
             
@@ -1472,7 +1472,7 @@ async function logout() {
             
             displayCustomTemplates();
             closeTemplateModal();
-            showNotification('Template saved successfully!', 'success');
+            SessionManager.showNotification('Template saved successfully!', 'success');
         }
 
         // ==================== BROADCAST FUNCTIONS ====================
@@ -1491,20 +1491,20 @@ async function logout() {
             const message = document.getElementById('broadcastMessage').value;
             
             if (!message) {
-                showNotification('Please enter a message', 'error');
+                SessionManager.showNotification('Please enter a message', 'error');
                 return;
             }
             
             if (!whatsappNumber) {
-                showNotification('WhatsApp number not configured', 'error');
+                SessionManager.showNotification('WhatsApp number not configured', 'error');
                 return;
             }
             
-            showNotification(`Sending broadcast to ${groupName}...`, 'info');
+            SessionManager.showNotification(`Sending broadcast to ${groupName}...`, 'info');
             
             // Simulate sending
             setTimeout(() => {
-                showNotification(`Broadcast sent to ${groupName} successfully!`, 'success');
+                SessionManager.showNotification(`Broadcast sent to ${groupName} successfully!`, 'success');
                 hideBroadcast();
                 document.getElementById('broadcastMessage').value = '';
             }, 3000);
@@ -1522,14 +1522,6 @@ async function logout() {
                 } else {
                     contact.style.display = 'none';
                 }
-            });
-        });
-
-        // ==================== CLOSE MODALS ====================
-        function closeAllModals() {
-            document.getElementById('templateModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-    </script>
+            </script>
 </body>
 </html>

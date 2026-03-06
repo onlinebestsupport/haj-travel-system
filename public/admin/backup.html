@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Backup & Restore - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -922,7 +922,7 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
@@ -931,15 +931,15 @@
         // ==================== GLOBAL VARIABLES ====================
         let backupSchedule = 'weekly';
         let backupData = [];
-        let currentRestoreId = null;
+        let currentRestoreId = undefined;
         let userRole = '';
 
      // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading backup page...');
+    console.SessionManager.log('🚀 Loading backup page...');
     await SessionManager.initPage(loadBackupData || function(){});
 });
-            checkAuth();
+            SessionManager.SessionManager.checkAuth();
             loadBackupStats();
             loadBackupList();
             loadSettings();
@@ -949,7 +949,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         // ==================== AUTHENTICATION ====================
-        function checkAuth() {
+        function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -973,14 +973,14 @@ async function logout() {
     await SessionManager.logout();
 }
             // Create auto backup before logout
-            showNotification('Creating auto backup before logout...', 'info');
+            SessionManager.showNotification('Creating auto backup before logout...', 'info');
             
             try {
                 await createAutoBackup();
                 
                 // Clear session after backup
                 sessionStorage.clear();
-                showNotification('Backup created. Logging out...', 'success');
+                SessionManager.showNotification('Backup created. Logging out...', 'success');
                 
                 setTimeout(() => {
                     window.location.href = '/admin.login.html';
@@ -994,7 +994,7 @@ async function logout() {
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1198,7 +1198,7 @@ async function logout() {
 
         // ==================== BACKUP FUNCTIONS ====================
         async function createBackup(type = 'manual') {
-            showNotification('Creating backup...', 'info');
+            SessionManager.showNotification('Creating backup...', 'info');
             
             // Show progress
             const progress = document.createElement('div');
@@ -1230,11 +1230,11 @@ async function logout() {
                     progress.remove();
                     
                     if (data.success) {
-                        showNotification(data.message || 'Backup created successfully!', 'success');
+                        SessionManager.showNotification(data.message || 'Backup created successfully!', 'success');
                         loadBackupList();
                         loadBackupStats();
                     } else {
-                        showNotification('Error: ' + (data.error || 'Backup failed'), 'error');
+                        SessionManager.showNotification('Error: ' + (data.error || 'Backup failed'), 'error');
                     }
                 }, 500);
                 
@@ -1261,7 +1261,7 @@ async function logout() {
                     displayBackupList(backupData);
                     loadBackupStats();
                     
-                    showNotification('Backup created (demo mode)!', 'success');
+                    SessionManager.showNotification('Backup created (demo mode)!', 'success');
                 }, 1000);
             }
         }
@@ -1270,7 +1270,7 @@ async function logout() {
             return new Promise((resolve) => {
                 // Simulate auto backup
                 setTimeout(() => {
-                    console.log('Auto backup created');
+                    console.SessionManager.log('Auto backup created');
                     resolve();
                 }, 2000);
             });
@@ -1287,7 +1287,7 @@ async function logout() {
         // ==================== RESTORE FUNCTIONS ====================
         function showRestorePreview(backupId) {
             if (userRole !== 'super_admin') {
-                showNotification('Only Super Admin can restore backups', 'error');
+                SessionManager.showNotification('Only Super Admin can restore backups', 'error');
                 return;
             }
             
@@ -1327,12 +1327,12 @@ async function logout() {
             if (!currentRestoreId) return;
             
             if (userRole !== 'super_admin') {
-                showNotification('Only Super Admin can restore backups', 'error');
+                SessionManager.showNotification('Only Super Admin can restore backups', 'error');
                 closeRestoreModal();
                 return;
             }
             
-            showNotification('Restoring backup...', 'info');
+            SessionManager.showNotification('Restoring backup...', 'info');
             
             try {
                 const response = await fetch(`/api/admin/backup/restore/${currentRestoreId}`, {
@@ -1343,13 +1343,13 @@ async function logout() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Backup restored successfully!', 'success');
+                    SessionManager.showNotification('Backup restored successfully!', 'success');
                 } else {
-                    showNotification('Error: ' + (data.error || 'Restore failed'), 'error');
+                    SessionManager.showNotification('Error: ' + (data.error || 'Restore failed'), 'error');
                 }
             } catch (error) {
                 console.error('Restore error:', error);
-                showNotification('Restore failed (demo mode)', 'error');
+                SessionManager.showNotification('Restore failed (demo mode)', 'error');
             }
             
             closeRestoreModal();
@@ -1358,7 +1358,7 @@ async function logout() {
         function closeRestoreModal() {
             document.getElementById('restoreModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
-            currentRestoreId = null;
+            currentRestoreId = undefined;
         }
 
         // ==================== RESTORE POINT FUNCTIONS ====================
@@ -1385,11 +1385,11 @@ async function logout() {
             const description = document.getElementById('restorePointDesc').value;
             
             if (!name) {
-                showNotification('Please enter a restore point name', 'error');
+                SessionManager.showNotification('Please enter a restore point name', 'error');
                 return;
             }
             
-            showNotification('Creating restore point...', 'info');
+            SessionManager.showNotification('Creating restore point...', 'info');
             
             try {
                 const response = await fetch('/api/admin/backup/create', {
@@ -1406,11 +1406,11 @@ async function logout() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Restore point created successfully!', 'success');
+                    SessionManager.showNotification('Restore point created successfully!', 'success');
                     closeRestorePointModal();
                     loadBackupList();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Creation failed'), 'error');
+                    SessionManager.showNotification('Error: ' + (data.error || 'Creation failed'), 'error');
                 }
             } catch (error) {
                 console.error('Error creating restore point:', error);
@@ -1434,7 +1434,7 @@ async function logout() {
                     displayBackupList(backupData);
                     
                     closeRestorePointModal();
-                    showNotification('Restore point created (demo mode)!', 'success');
+                    SessionManager.showNotification('Restore point created (demo mode)!', 'success');
                 }, 2000);
             }
         }
@@ -1444,16 +1444,16 @@ async function logout() {
             const backup = backupData.find(b => b.id == backupId);
             if (!backup) return;
             
-            showNotification(`Downloading ${backup.backup_name}...`, 'info');
+            SessionManager.showNotification(`Downloading ${backup.backup_name}...`, 'info');
             
             try {
                 window.location.href = `/api/admin/backup/${backupId}/download`;
                 setTimeout(() => {
-                    showNotification('Download started', 'success');
+                    SessionManager.showNotification('Download started', 'success');
                 }, 1000);
             } catch (error) {
                 console.error('Download error:', error);
-                showNotification('Download failed (demo mode)', 'error');
+                SessionManager.showNotification('Download failed (demo mode)', 'error');
             }
         }
 
@@ -1488,11 +1488,11 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Backup deleted successfully!', 'success');
+                    SessionManager.showNotification('Backup deleted successfully!', 'success');
                     loadBackupList();
                     loadBackupStats();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Delete failed'), 'error');
+                    SessionManager.showNotification('Error: ' + (data.error || 'Delete failed'), 'error');
                 }
             } catch (error) {
                 console.error('Delete error:', error);
@@ -1500,7 +1500,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
                 // Demo mode
                 backupData = backupData.filter(b => b.id != backupId);
                 displayBackupList(backupData);
-                showNotification('Backup deleted (demo mode)!', 'success');
+                SessionManager.showNotification('Backup deleted (demo mode)!', 'success');
             }
         }
 
@@ -1508,7 +1508,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             const backup = backupData.find(b => b.id == backupId);
             if (!backup) return;
             
-            showNotification(`Verifying ${backup.backup_name}...`, 'info');
+            SessionManager.showNotification(`Verifying ${backup.backup_name}...`, 'info');
             
             try {
                 const response = await fetch(`/api/admin/backup/verify/${backupId}`, {
@@ -1519,14 +1519,14 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification(`Backup verified: ${data.fileSize}`, 'success');
+                    SessionManager.showNotification(`Backup verified: ${data.fileSize}`, 'success');
                 } else {
-                    showNotification('Verification failed: ' + (data.error || 'Corrupted'), 'error');
+                    SessionManager.showNotification('Verification failed: ' + (data.error || 'Corrupted'), 'error');
                 }
             } catch (error) {
                 console.error('Verify error:', error);
                 setTimeout(() => {
-                    showNotification('Backup verified successfully (demo mode)', 'success');
+                    SessionManager.showNotification('Backup verified successfully (demo mode)', 'success');
                 }, 2000);
             }
         }
@@ -1572,7 +1572,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             // Save to localStorage
             localStorage.setItem('backupSchedule', type);
             
-            showNotification(`Backup schedule set to ${type}`, 'success');
+            SessionManager.showNotification(`Backup schedule set to ${type}`, 'success');
         }
 
         // ==================== SETTINGS FUNCTIONS ====================
@@ -1621,9 +1621,9 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification('Backup settings saved successfully!', 'success');
+                    SessionManager.showNotification('Backup settings saved successfully!', 'success');
                 } else {
-                    showNotification('Error saving settings', 'error');
+                    SessionManager.showNotification('Error saving settings', 'error');
                 }
             } catch (error) {
                 console.error('Save settings error:', error);
@@ -1634,40 +1634,31 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
                 localStorage.setItem('backupCompression', settings.compression);
                 localStorage.setItem('backupEncryption', settings.encryption);
                 
-                showNotification('Settings saved (demo mode)!', 'success');
+                SessionManager.showNotification('Settings saved (demo mode)!', 'success');
             }
         }
 
         function testBackupConnection() {
-            showNotification('Testing backup connection...', 'info');
+            SessionManager.showNotification('Testing backup connection...', 'info');
             
             setTimeout(() => {
-                showNotification('Connection successful! Backup location is accessible.', 'success');
+                SessionManager.showNotification('Connection successful! Backup location is accessible.', 'success');
             }, 2000);
         }
 
         async function verifyBackupIntegrity() {
-            showNotification('Verifying all backups...', 'info');
+            SessionManager.showNotification('Verifying all backups...', 'info');
             
             try {
                 // Verify first backup as sample
                 if (backupData.length > 0) {
                     await verifyBackup(backupData[0].id);
                 }
-                showNotification('All backups verified successfully!', 'success');
+                SessionManager.showNotification('All backups verified successfully!', 'success');
             } catch (error) {
                 setTimeout(() => {
-                    showNotification('All backups verified successfully (demo mode)!', 'success');
+                    SessionManager.showNotification('All backups verified successfully (demo mode)!', 'success');
                 }, 3000);
-            }
-        }
-
-        // ==================== MODAL FUNCTIONS ====================
-        function closeAllModals() {
-            document.getElementById('restoreModal').style.display = 'none';
-            document.getElementById('restorePointModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-    </script>
+            </script>
 </body>
 </html>

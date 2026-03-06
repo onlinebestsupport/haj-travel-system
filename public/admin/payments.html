@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payments - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -905,7 +905,7 @@
                     
                     <div class="form-group">
                         <label for="amount"><i class="fas fa-rupee-sign"></i> Amount (₹) *</label>
-                        <input type="text" id="amount" class="amount-input" placeholder="Enter amount" onkeypress="return allowNumbersOnly(event)" oninput="updateSummary()" required>
+                        <input type="text" id="amount" class="amount-input" placeholder="Enter amount" onkeypress="return SessionManager.allowNumbersOnly(event)" oninput="updateSummary()" required>
                     </div>
                     
                     <div class="form-group">
@@ -995,7 +995,7 @@
             <button class="action-btn btn-primary" onclick="filterPayments()">
                 <i class="fas fa-filter"></i> Apply Filters
             </button>
-            <button class="action-btn btn-secondary" onclick="resetFilters()">
+            <button class="action-btn btn-secondary" onclick="SessionManager.resetFilters()">
                 <i class="fas fa-undo"></i> Reset
             </button>
         </div>
@@ -1030,8 +1030,8 @@
                 Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalCount">0</span> payments
             </div>
             <div class="pagination-buttons">
-                <button class="action-btn btn-secondary" onclick="previousPage()" id="prevPageBtn"><i class="fas fa-chevron-left"></i> Previous</button>
-                <button class="action-btn btn-primary" onclick="nextPage()" id="nextPageBtn">Next <i class="fas fa-chevron-right"></i></button>
+                <button class="action-btn btn-secondary" onclick="SessionManager.previousPage()" id="prevPageBtn"><i class="fas fa-chevron-left"></i> Previous</button>
+                <button class="action-btn btn-primary" onclick="SessionManager.nextPage()" id="nextPageBtn">Next <i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
     </div>
@@ -1085,14 +1085,14 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
 
     <div id="notification" class="notification"></div>
 
     <script>
         // ==================== GLOBAL VARIABLES ====================
-        let currentTravelerData = null;
-        let currentPaymentId = null;
+        let currentTravelerData = undefined;
+        let currentPaymentId = undefined;
         let paymentsData = [];
         let travelersData = [];
         let batchesData = [];
@@ -1101,16 +1101,16 @@
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadTravelers();
-            loadBatches();
+            SessionManager.SessionManager.checkAuth();
+            SessionManager.loadTravelers();
+            SessionManager.loadBatches();
             loadPayments();
             loadPaymentStats();
             setTodayDate();
         });
 
         // ==================== AUTHENTICATION ====================
-        function checkAuth() {
+        function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -1128,7 +1128,7 @@
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1146,7 +1146,7 @@
         }
 
         // ==================== ALLOW NUMBERS ONLY ====================
-        function allowNumbersOnly(e) {
+        function SessionManager.allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
             
             // Allow numbers, backspace, delete, tab, escape, enter
@@ -1159,7 +1159,7 @@
         }
 
         // ==================== LOAD TRAVELERS ====================
-        async function loadTravelers() {
+        async function SessionManager.loadTravelers() {
             try {
                 const response = await fetch('/api/travelers', {
                     credentials: 'include'
@@ -1189,7 +1189,7 @@
         }
 
         // ==================== LOAD BATCHES ====================
-        async function loadBatches() {
+        async function SessionManager.loadBatches() {
             try {
                 const response = await fetch('/api/batches', {
                     credentials: 'include'
@@ -1237,7 +1237,7 @@
             document.getElementById('summary_paid').innerHTML = '₹0';
             document.getElementById('summary_new').innerHTML = '₹0';
             document.getElementById('summary_balance').innerHTML = '₹0';
-            currentTravelerData = null;
+            currentTravelerData = undefined;
             setTodayDate();
         }
 
@@ -1271,7 +1271,7 @@
         async function verifyTraveler() {
             const search = document.getElementById('payment_search').value.trim();
             if (!search) {
-                showNotification('Please enter Traveler ID or Passport Number', 'error');
+                SessionManager.showNotification('Please enter Traveler ID or Passport Number', 'error');
                 return;
             }
             
@@ -1301,7 +1301,7 @@
                     }
                     
                     if (response.status === 401) {
-                        showNotification('Session expired. Please login again', 'error');
+                        SessionManager.showNotification('Session expired. Please login again', 'error');
                         setTimeout(() => {
                             window.location.href = '/admin.login.html';
                         }, 2000);
@@ -1314,12 +1314,12 @@
                         traveler = data.traveler;
                         await loadTravelerDetails(traveler);
                     } else {
-                        showNotification('Traveler not found', 'error');
+                        SessionManager.showNotification('Traveler not found', 'error');
                     }
                 }
             } catch (error) {
                 console.error('Error verifying traveler:', error);
-                showNotification('Error verifying traveler', 'error');
+                SessionManager.showNotification('Error verifying traveler', 'error');
             }
         }
 
@@ -1402,12 +1402,12 @@
             const amount = parseFloat(amountText);
             
             if (amount <= 0) {
-                showNotification('Please enter a valid amount greater than 0', 'error');
+                SessionManager.showNotification('Please enter a valid amount greater than 0', 'error');
                 return;
             }
             
             if (!currentTravelerData) {
-                showNotification('Please verify traveler first', 'error');
+                SessionManager.showNotification('Please verify traveler first', 'error');
                 return;
             }
             
@@ -1425,7 +1425,7 @@
             };
             
             if (!paymentData.traveler_id || !paymentData.amount || !paymentData.payment_date || !paymentData.payment_method) {
-                showNotification('Please fill all required fields', 'error');
+                SessionManager.showNotification('Please fill all required fields', 'error');
                 return;
             }
             
@@ -1443,7 +1443,7 @@
                 });
                 
                 if (response.status === 401) {
-                    showNotification('Session expired. Please login again', 'error');
+                    SessionManager.showNotification('Session expired. Please login again', 'error');
                     setTimeout(() => {
                         window.location.href = '/admin.login.html';
                     }, 2000);
@@ -1453,16 +1453,16 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification(`Payment of ₹${amount.toLocaleString()} recorded successfully!`, 'success');
+                    SessionManager.showNotification(`Payment of ₹${amount.toLocaleString()} recorded successfully!`, 'success');
                     hideAddPaymentForm();
                     loadPayments();
                     loadPaymentStats();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Could not record payment'), 'error');
+                    SessionManager.showNotification('Error: ' + (data.error || 'Could not record payment'), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showNotification('Error creating payment', 'error');
+                SessionManager.showNotification('Error creating payment', 'error');
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -1497,7 +1497,7 @@
             
             if (!paymentsData || paymentsData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No payments found</td></tr>';
-                updatePaginationInfo(0);
+                SessionManager.updatePaginationInfo(0);
                 return;
             }
             
@@ -1549,10 +1549,10 @@
             });
             
             tbody.innerHTML = html;
-            updatePaginationInfo(paymentsData.length);
+            SessionManager.updatePaginationInfo(paymentsData.length);
         }
 
-        function updatePaginationInfo(total) {
+        function SessionManager.updatePaginationInfo(total) {
             document.getElementById('totalCount').textContent = total;
             const start = (currentPage - 1) * itemsPerPage + 1;
             const end = Math.min(currentPage * itemsPerPage, total);
@@ -1563,14 +1563,14 @@
             document.getElementById('nextPageBtn').disabled = end >= total;
         }
 
-        function previousPage() {
+        function SessionManager.previousPage() {
             if (currentPage > 1) {
                 currentPage--;
                 displayPayments();
             }
         }
 
-        function nextPage() {
+        function SessionManager.nextPage() {
             if (currentPage * itemsPerPage < paymentsData.length) {
                 currentPage++;
                 displayPayments();
@@ -1618,7 +1618,7 @@
         function viewPaymentDetails(id) {
             const payment = paymentsData.find(p => p.id === id);
             if (!payment) {
-                showNotification('Payment not found', 'error');
+                SessionManager.showNotification('Payment not found', 'error');
                 return;
             }
             
@@ -1724,7 +1724,16 @@
                     </div>
                     ${content}
                     <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">This is a computer generated receipt</p>
-                </body>
+                
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof SessionManager !== 'undefined') {
+                SessionManager.initPage();
+            }
+        });
+    </script>
+    
+</body>
                 </html>
             `);
             printWindow.document.close();
@@ -1744,12 +1753,12 @@
             document.getElementById('reverseModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
             document.getElementById('reverseForm').reset();
-            currentPaymentId = null;
+            currentPaymentId = undefined;
         }
 
         function reversePayment() {
             if (!currentPaymentId) {
-                showNotification('No payment selected', 'error');
+                SessionManager.showNotification('No payment selected', 'error');
                 return;
             }
             closePaymentModal();
@@ -1764,11 +1773,11 @@
             };
             
             if (!reversalData.reason) {
-                showNotification('Please select a reason for reversal', 'error');
+                SessionManager.showNotification('Please select a reason for reversal', 'error');
                 return;
             }
             
-            showNotification('Payment reversed successfully (demo)', 'success');
+            SessionManager.showNotification('Payment reversed successfully (demo)', 'success');
             closeReverseModal();
             loadPayments();
             loadPaymentStats();
@@ -1828,7 +1837,7 @@
             paymentsData = originalData;
         }
 
-        function resetFilters() {
+        function SessionManager.resetFilters() {
             document.getElementById('searchPayments').value = '';
             document.getElementById('paymentStatusFilter').value = 'all';
             document.getElementById('paymentMethodFilter').value = 'all';
@@ -1859,7 +1868,7 @@
             a.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
             
-            showNotification('Payments exported successfully!', 'success');
+            SessionManager.showNotification('Payments exported successfully!', 'success');
         }
 
         function printPaymentsTable() {
@@ -1884,14 +1893,23 @@
                     <h2>Alhudha Haj Travel - Payments List</h2>
                     <p>Generated on: ${new Date().toLocaleString()}</p>
                     ${table.outerHTML}
-                </body>
+                
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof SessionManager !== 'undefined') {
+                SessionManager.initPage();
+            }
+        });
+    </script>
+    
+</body>
                 </html>
             `);
             printWindow.print();
         }
 
         // ==================== CLOSE ALL MODALS ====================
-        function closeAllModals() {
+        function SessionManager.closeAllModals() {
             document.getElementById('paymentModal').style.display = 'none';
             document.getElementById('reverseModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
@@ -1900,5 +1918,14 @@
         // ==================== AUTO-COMPLETE ====================
         document.getElementById('amount').addEventListener('input', updateSummary);
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof SessionManager !== 'undefined') {
+                SessionManager.initPage();
+            }
+        });
+    </script>
+    
 </body>
 </html>

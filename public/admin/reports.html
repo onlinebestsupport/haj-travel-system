@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
@@ -12,24 +12,24 @@
     // ==================== REPORT SAVING FUNCTIONS ====================
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
-    function showSaveReportModal() {
+    function SessionManager.showSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function closeSaveReportModal() {
+    function SessionManager.closeSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'none';
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    function saveReportConfig() {
+    function SessionManager.saveReportConfig() {
         const name = document.getElementById('savedReportName').value;
         const desc = document.getElementById('savedReportDesc').value;
         const schedule = document.getElementById('reportSchedule').value;
         const email = document.getElementById('reportEmail').value;
         
         if (!name) {
-            showNotification('Please enter a report name', 'error');
+            SessionManager.showNotification('Please enter a report name', 'error');
             return;
         }
         
@@ -53,12 +53,12 @@
         savedReports.push(reportConfig);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
         
-        refreshSavedReports();
-        closeSaveReportModal();
-        showNotification('Report configuration saved!', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.closeSaveReportModal();
+        SessionManager.showNotification('Report configuration saved!', 'success');
     }
 
-    function refreshSavedReports() {
+    function SessionManager.refreshSavedReports() {
         const container = document.getElementById('savedReportsList');
         if (!container) return;
         
@@ -84,10 +84,10 @@
                         <small>${report.type} report • ${new Date(report.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="icon-btn" onclick="loadSavedReport(${report.id})" title="Load Report">
+                        <button class="icon-btn" onclick="SessionManager.loadSavedReport(${report.id})" title="Load Report">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="icon-btn" onclick="deleteSavedReport(${report.id})" title="Delete">
+                        <button class="icon-btn" onclick="SessionManager.deleteSavedReport(${report.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                         ${report.schedule !== 'none' ? '<span class="status-badge status-active">Auto</span>' : ''}
@@ -99,7 +99,7 @@
         container.innerHTML = html;
     }
 
-    function loadSavedReport(reportId) {
+    function SessionManager.loadSavedReport(reportId) {
         const report = savedReports.find(r => r.id === reportId);
         if (!report) return;
         
@@ -113,29 +113,29 @@
         toggleDateInputs();
         generateReport();
         
-        showNotification(`Loaded report: ${report.name}`, 'success');
+        SessionManager.showNotification(`Loaded report: ${report.name}`, 'success');
     }
 
-    function deleteSavedReport(reportId) {
+    function SessionManager.deleteSavedReport(reportId) {
         if (!confirm('Delete this saved report?')) return;
         
         savedReports = savedReports.filter(r => r.id !== reportId);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
-        refreshSavedReports();
-        showNotification('Report deleted', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.showNotification('Report deleted', 'success');
     }
 
     // ==================== EMAIL REPORT ====================
-    function emailReport() {
+    function SessionManager.emailReport() {
         if (!currentReportData) {
-            showNotification('No report data to email', 'error');
+            SessionManager.showNotification('No report data to email', 'error');
             return;
         }
         
         const email = prompt('Enter email address(es) - separate multiple with commas:');
         if (!email) return;
         
-        showNotification('Preparing email...', 'info');
+        SessionManager.showNotification('Preparing email...', 'info');
         
         // Create email content
         const subject = `Alhudha Haj Report - ${new Date().toLocaleDateString()}`;
@@ -148,15 +148,15 @@
         
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        showNotification('Email client opened', 'success');
+        SessionManager.showNotification('Email client opened', 'success');
     }
 
     // ==================== CHART TYPE CHANGE ====================
-    function changeChartType() {
+    function SessionManager.changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
         if (!currentReportData) {
-            showNotification('Generate a report first', 'warning');
+            SessionManager.showNotification('Generate a report first', 'warning');
             return;
         }
         
@@ -173,22 +173,22 @@
     }
 
     // ==================== LOADING INDICATOR ====================
-    function showReportLoading() {
+    function SessionManager.showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
 
-    function hideReportLoading() {
+    function SessionManager.hideReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'none';
     }
 
     // Override generateReport to show loading
     const originalGenerateReport = generateReport;
     generateReport = async function() {
-        showReportLoading();
+        SessionManager.showReportLoading();
         try {
             await originalGenerateReport();
         } finally {
-            hideReportLoading();
+            SessionManager.hideReportLoading();
         }
     };
 
@@ -203,24 +203,24 @@
     // ==================== REPORT SAVING FUNCTIONS ====================
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
-    function showSaveReportModal() {
+    function SessionManager.showSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function closeSaveReportModal() {
+    function SessionManager.closeSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'none';
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    function saveReportConfig() {
+    function SessionManager.saveReportConfig() {
         const name = document.getElementById('savedReportName').value;
         const desc = document.getElementById('savedReportDesc').value;
         const schedule = document.getElementById('reportSchedule').value;
         const email = document.getElementById('reportEmail').value;
         
         if (!name) {
-            showNotification('Please enter a report name', 'error');
+            SessionManager.showNotification('Please enter a report name', 'error');
             return;
         }
         
@@ -244,12 +244,12 @@
         savedReports.push(reportConfig);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
         
-        refreshSavedReports();
-        closeSaveReportModal();
-        showNotification('Report configuration saved!', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.closeSaveReportModal();
+        SessionManager.showNotification('Report configuration saved!', 'success');
     }
 
-    function refreshSavedReports() {
+    function SessionManager.refreshSavedReports() {
         const container = document.getElementById('savedReportsList');
         if (!container) return;
         
@@ -275,10 +275,10 @@
                         <small>${report.type} report • ${new Date(report.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="icon-btn" onclick="loadSavedReport(${report.id})" title="Load Report">
+                        <button class="icon-btn" onclick="SessionManager.loadSavedReport(${report.id})" title="Load Report">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="icon-btn" onclick="deleteSavedReport(${report.id})" title="Delete">
+                        <button class="icon-btn" onclick="SessionManager.deleteSavedReport(${report.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                         ${report.schedule !== 'none' ? '<span class="status-badge status-active">Auto</span>' : ''}
@@ -290,7 +290,7 @@
         container.innerHTML = html;
     }
 
-    function loadSavedReport(reportId) {
+    function SessionManager.loadSavedReport(reportId) {
         const report = savedReports.find(r => r.id === reportId);
         if (!report) return;
         
@@ -304,29 +304,29 @@
         toggleDateInputs();
         generateReport();
         
-        showNotification(`Loaded report: ${report.name}`, 'success');
+        SessionManager.showNotification(`Loaded report: ${report.name}`, 'success');
     }
 
-    function deleteSavedReport(reportId) {
+    function SessionManager.deleteSavedReport(reportId) {
         if (!confirm('Delete this saved report?')) return;
         
         savedReports = savedReports.filter(r => r.id !== reportId);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
-        refreshSavedReports();
-        showNotification('Report deleted', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.showNotification('Report deleted', 'success');
     }
 
     // ==================== EMAIL REPORT ====================
-    function emailReport() {
+    function SessionManager.emailReport() {
         if (!currentReportData) {
-            showNotification('No report data to email', 'error');
+            SessionManager.showNotification('No report data to email', 'error');
             return;
         }
         
         const email = prompt('Enter email address(es) - separate multiple with commas:');
         if (!email) return;
         
-        showNotification('Preparing email...', 'info');
+        SessionManager.showNotification('Preparing email...', 'info');
         
         // Create email content
         const subject = `Alhudha Haj Report - ${new Date().toLocaleDateString()}`;
@@ -339,15 +339,15 @@
         
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        showNotification('Email client opened', 'success');
+        SessionManager.showNotification('Email client opened', 'success');
     }
 
     // ==================== CHART TYPE CHANGE ====================
-    function changeChartType() {
+    function SessionManager.changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
         if (!currentReportData) {
-            showNotification('Generate a report first', 'warning');
+            SessionManager.showNotification('Generate a report first', 'warning');
             return;
         }
         
@@ -364,22 +364,22 @@
     }
 
     // ==================== LOADING INDICATOR ====================
-    function showReportLoading() {
+    function SessionManager.showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
 
-    function hideReportLoading() {
+    function SessionManager.hideReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'none';
     }
 
     // Override generateReport to show loading
     const originalGenerateReport = generateReport;
     generateReport = async function() {
-        showReportLoading();
+        SessionManager.showReportLoading();
         try {
             await originalGenerateReport();
         } finally {
-            hideReportLoading();
+            SessionManager.hideReportLoading();
         }
     };
 
@@ -394,24 +394,24 @@
     // ==================== REPORT SAVING FUNCTIONS ====================
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
-    function showSaveReportModal() {
+    function SessionManager.showSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function closeSaveReportModal() {
+    function SessionManager.closeSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'none';
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    function saveReportConfig() {
+    function SessionManager.saveReportConfig() {
         const name = document.getElementById('savedReportName').value;
         const desc = document.getElementById('savedReportDesc').value;
         const schedule = document.getElementById('reportSchedule').value;
         const email = document.getElementById('reportEmail').value;
         
         if (!name) {
-            showNotification('Please enter a report name', 'error');
+            SessionManager.showNotification('Please enter a report name', 'error');
             return;
         }
         
@@ -435,12 +435,12 @@
         savedReports.push(reportConfig);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
         
-        refreshSavedReports();
-        closeSaveReportModal();
-        showNotification('Report configuration saved!', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.closeSaveReportModal();
+        SessionManager.showNotification('Report configuration saved!', 'success');
     }
 
-    function refreshSavedReports() {
+    function SessionManager.refreshSavedReports() {
         const container = document.getElementById('savedReportsList');
         if (!container) return;
         
@@ -466,10 +466,10 @@
                         <small>${report.type} report • ${new Date(report.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="icon-btn" onclick="loadSavedReport(${report.id})" title="Load Report">
+                        <button class="icon-btn" onclick="SessionManager.loadSavedReport(${report.id})" title="Load Report">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="icon-btn" onclick="deleteSavedReport(${report.id})" title="Delete">
+                        <button class="icon-btn" onclick="SessionManager.deleteSavedReport(${report.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                         ${report.schedule !== 'none' ? '<span class="status-badge status-active">Auto</span>' : ''}
@@ -481,7 +481,7 @@
         container.innerHTML = html;
     }
 
-    function loadSavedReport(reportId) {
+    function SessionManager.loadSavedReport(reportId) {
         const report = savedReports.find(r => r.id === reportId);
         if (!report) return;
         
@@ -495,29 +495,29 @@
         toggleDateInputs();
         generateReport();
         
-        showNotification(`Loaded report: ${report.name}`, 'success');
+        SessionManager.showNotification(`Loaded report: ${report.name}`, 'success');
     }
 
-    function deleteSavedReport(reportId) {
+    function SessionManager.deleteSavedReport(reportId) {
         if (!confirm('Delete this saved report?')) return;
         
         savedReports = savedReports.filter(r => r.id !== reportId);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
-        refreshSavedReports();
-        showNotification('Report deleted', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.showNotification('Report deleted', 'success');
     }
 
     // ==================== EMAIL REPORT ====================
-    function emailReport() {
+    function SessionManager.emailReport() {
         if (!currentReportData) {
-            showNotification('No report data to email', 'error');
+            SessionManager.showNotification('No report data to email', 'error');
             return;
         }
         
         const email = prompt('Enter email address(es) - separate multiple with commas:');
         if (!email) return;
         
-        showNotification('Preparing email...', 'info');
+        SessionManager.showNotification('Preparing email...', 'info');
         
         // Create email content
         const subject = `Alhudha Haj Report - ${new Date().toLocaleDateString()}`;
@@ -530,15 +530,15 @@
         
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        showNotification('Email client opened', 'success');
+        SessionManager.showNotification('Email client opened', 'success');
     }
 
     // ==================== CHART TYPE CHANGE ====================
-    function changeChartType() {
+    function SessionManager.changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
         if (!currentReportData) {
-            showNotification('Generate a report first', 'warning');
+            SessionManager.showNotification('Generate a report first', 'warning');
             return;
         }
         
@@ -555,22 +555,22 @@
     }
 
     // ==================== LOADING INDICATOR ====================
-    function showReportLoading() {
+    function SessionManager.showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
 
-    function hideReportLoading() {
+    function SessionManager.hideReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'none';
     }
 
     // Override generateReport to show loading
     const originalGenerateReport = generateReport;
     generateReport = async function() {
-        showReportLoading();
+        SessionManager.showReportLoading();
         try {
             await originalGenerateReport();
         } finally {
-            hideReportLoading();
+            SessionManager.hideReportLoading();
         }
     };
 
@@ -584,24 +584,24 @@
     // ==================== REPORT SAVING FUNCTIONS ====================
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
-    function showSaveReportModal() {
+    function SessionManager.showSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function closeSaveReportModal() {
+    function SessionManager.closeSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'none';
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    function saveReportConfig() {
+    function SessionManager.saveReportConfig() {
         const name = document.getElementById('savedReportName').value;
         const desc = document.getElementById('savedReportDesc').value;
         const schedule = document.getElementById('reportSchedule').value;
         const email = document.getElementById('reportEmail').value;
         
         if (!name) {
-            showNotification('Please enter a report name', 'error');
+            SessionManager.showNotification('Please enter a report name', 'error');
             return;
         }
         
@@ -625,12 +625,12 @@
         savedReports.push(reportConfig);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
         
-        refreshSavedReports();
-        closeSaveReportModal();
-        showNotification('Report configuration saved!', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.closeSaveReportModal();
+        SessionManager.showNotification('Report configuration saved!', 'success');
     }
 
-    function refreshSavedReports() {
+    function SessionManager.refreshSavedReports() {
         const container = document.getElementById('savedReportsList');
         if (!container) return;
         
@@ -656,10 +656,10 @@
                         <small>${report.type} report • ${new Date(report.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="icon-btn" onclick="loadSavedReport(${report.id})" title="Load Report">
+                        <button class="icon-btn" onclick="SessionManager.loadSavedReport(${report.id})" title="Load Report">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="icon-btn" onclick="deleteSavedReport(${report.id})" title="Delete">
+                        <button class="icon-btn" onclick="SessionManager.deleteSavedReport(${report.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                         ${report.schedule !== 'none' ? '<span class="status-badge status-active">Auto</span>' : ''}
@@ -671,7 +671,7 @@
         container.innerHTML = html;
     }
 
-    function loadSavedReport(reportId) {
+    function SessionManager.loadSavedReport(reportId) {
         const report = savedReports.find(r => r.id === reportId);
         if (!report) return;
         
@@ -685,29 +685,29 @@
         toggleDateInputs();
         generateReport();
         
-        showNotification(`Loaded report: ${report.name}`, 'success');
+        SessionManager.showNotification(`Loaded report: ${report.name}`, 'success');
     }
 
-    function deleteSavedReport(reportId) {
+    function SessionManager.deleteSavedReport(reportId) {
         if (!confirm('Delete this saved report?')) return;
         
         savedReports = savedReports.filter(r => r.id !== reportId);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
-        refreshSavedReports();
-        showNotification('Report deleted', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.showNotification('Report deleted', 'success');
     }
 
     // ==================== EMAIL REPORT ====================
-    function emailReport() {
+    function SessionManager.emailReport() {
         if (!currentReportData) {
-            showNotification('No report data to email', 'error');
+            SessionManager.showNotification('No report data to email', 'error');
             return;
         }
         
         const email = prompt('Enter email address(es) - separate multiple with commas:');
         if (!email) return;
         
-        showNotification('Preparing email...', 'info');
+        SessionManager.showNotification('Preparing email...', 'info');
         
         // Create email content
         const subject = `Alhudha Haj Report - ${new Date().toLocaleDateString()}`;
@@ -720,15 +720,15 @@
         
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        showNotification('Email client opened', 'success');
+        SessionManager.showNotification('Email client opened', 'success');
     }
 
     // ==================== CHART TYPE CHANGE ====================
-    function changeChartType() {
+    function SessionManager.changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
         if (!currentReportData) {
-            showNotification('Generate a report first', 'warning');
+            SessionManager.showNotification('Generate a report first', 'warning');
             return;
         }
         
@@ -745,22 +745,22 @@
     }
 
     // ==================== LOADING INDICATOR ====================
-    function showReportLoading() {
+    function SessionManager.showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
 
-    function hideReportLoading() {
+    function SessionManager.hideReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'none';
     }
 
     // Override generateReport to show loading
     const originalGenerateReport = generateReport;
     generateReport = async function() {
-        showReportLoading();
+        SessionManager.showReportLoading();
         try {
             await originalGenerateReport();
         } finally {
-            hideReportLoading();
+            SessionManager.hideReportLoading();
         }
     };
 
@@ -1481,7 +1481,7 @@
                 <button class="action-btn btn-primary" onclick="generateReport()">
                     <i class="fas fa-chart-bar"></i> Generate Report
                 </button>
-                <button class="action-btn btn-secondary" onclick="resetFilters()">
+                <button class="action-btn btn-secondary" onclick="SessionManager.resetFilters()">
                     <i class="fas fa-undo"></i> Reset Filters
                 </button>
             </div>
@@ -1518,7 +1518,7 @@
                             <i class="fas fa-file-csv"></i> Export CSV
                         </button>
                         
-                        <button class="action-btn btn-warning" onclick="showSaveReportModal()" id="saveReportBtn">
+                        <button class="action-btn btn-warning" onclick="SessionManager.showSaveReportModal()" id="saveReportBtn">
                             <i class="fas fa-save"></i> Save Report
                         </button>
                         <button class="action-btn btn-secondary" onclick="printReport()">
@@ -1581,7 +1581,7 @@
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
-async function checkAdminSession() {
+async function SessionManager.checkAdminSession() {
     try {
         const response = await fetch('/api/check-session', {
             credentials: 'include',
@@ -1590,7 +1590,7 @@ async function checkAdminSession() {
         const data = await response.json();
         
         if (!data.authenticated) {
-            console.log('⚠️ Session expired or not authenticated');
+            console.SessionManager.log('⚠️ Session expired or not authenticated');
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
             return false;
@@ -1611,9 +1611,9 @@ async function checkAdminSession() {
 }
 
 // Wrapper for authenticated API calls
-async function authenticatedFetch(url, options = {}) {
+async function SessionManager.authenticatedFetch(url, options = {}) {
     // First check if we're still authenticated
-    const isAuthenticated = await checkAdminSession();
+    const isAuthenticated = await SessionManager.checkAdminSession();
     if (!isAuthenticated) return null;
     
     // Make the actual API call with credentials
@@ -1628,7 +1628,7 @@ async function authenticatedFetch(url, options = {}) {
     
     // Handle 401 specifically
     if (response.status === 401) {
-        console.log('🔒 Session expired during API call');
+        console.SessionManager.log('🔒 Session expired during API call');
         window.location.href = '/admin.login.html';
         return null;
     }
@@ -1660,24 +1660,24 @@ if (typeof showNotification !== 'function') {
 // ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading reports page...');
+    console.SessionManager.log('🚀 Loading reports page...');
     await SessionManager.initPage(loadReports || function(){});
 });
     // Check session first - this will redirect if not authenticated
-    const isValid = await checkAdminSession();
+    const isValid = await SessionManager.checkAdminSession();
     if (!isValid) return;
     
     // Load page-specific data
     if (typeof loadPageData === 'function') {
         loadPageData();
     } else if (typeof loadTravelers === 'function') {
-        loadTravelers();
+        SessionManager.loadTravelers();
     } else if (typeof loadBatches === 'function') {
-        loadBatches();
+        SessionManager.loadBatches();
     } else if (typeof loadPayments === 'function') {
         loadPayments();
     } else {
-        console.log('ℹ️ No data loading function found');
+        console.SessionManager.log('ℹ️ No data loading function found');
     }
 });
 
@@ -1688,7 +1688,7 @@ async function logout() {
 }
     try {
         if (typeof showNotification === 'function') {
-            showNotification('Logging out...', 'info');
+            SessionManager.showNotification('Logging out...', 'info');
         }
         await fetch('/api/logout', { 
             method: 'POST', 
@@ -1701,9 +1701,9 @@ async function logout() {
         window.location.href = '/admin.login.html';
     }
 }
-        let paymentsChart = null;
-        let travelersChart = null;
-        let currentReportData = null;
+        let paymentsChart = undefined;
+        let travelersChart = undefined;
+        let currentReportData = undefined;
         let currentReportType = 'custom';
         let allColumns = [];
         let selectedColumns = [];
@@ -1774,14 +1774,14 @@ async function logout() {
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
+            SessionManager.SessionManager.checkAuth();
             loadBatchesForReport();
             loadTravelersForReport();
             loadPaymentsForReport();
         });
 
         // ==================== AUTHENTICATION ====================
-        function checkAuth() {
+        function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -1799,7 +1799,7 @@ async function logout() {
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1825,18 +1825,18 @@ async function logout() {
                             select.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
                         });
                     } else {
-                        useDemoBatches();
+                        SessionManager.useDemoBatches();
                     }
                 } else {
-                    useDemoBatches();
+                    SessionManager.useDemoBatches();
                 }
             } catch (error) {
                 console.error('Error loading batches:', error);
-                useDemoBatches();
+                SessionManager.useDemoBatches();
             }
         }
 
-        function useDemoBatches() {
+        function SessionManager.useDemoBatches() {
             const select = document.getElementById('reportBatch');
             select.innerHTML = `
                 <option value="all">All Batches</option>
@@ -2469,10 +2469,10 @@ async function logout() {
                 });
                 
                 doc.save(`report_${new Date().toISOString().slice(0,10)}.pdf`);
-                showNotification('PDF exported successfully!', 'success');
+                SessionManager.showNotification('PDF exported successfully!', 'success');
             } catch (error) {
                 console.error('PDF export error:', error);
-                showNotification('Error exporting PDF', 'error');
+                SessionManager.showNotification('Error exporting PDF', 'error');
             }
         }
 
@@ -2502,10 +2502,10 @@ async function logout() {
                 XLSX.utils.book_append_sheet(wb, ws, 'Report');
                 XLSX.writeFile(wb, `report_${new Date().toISOString().slice(0,10)}.xlsx`);
                 
-                showNotification('Excel exported successfully!', 'success');
+                SessionManager.showNotification('Excel exported successfully!', 'success');
             } catch (error) {
                 console.error('Excel export error:', error);
-                showNotification('Error exporting Excel', 'error');
+                SessionManager.showNotification('Error exporting Excel', 'error');
             }
         }
 
@@ -2545,10 +2545,10 @@ async function logout() {
                 a.download = `report_${new Date().toISOString().slice(0,10)}.csv`;
                 a.click();
                 
-                showNotification('CSV exported successfully!', 'success');
+                SessionManager.showNotification('CSV exported successfully!', 'success');
             } catch (error) {
                 console.error('CSV export error:', error);
-                showNotification('Error exporting CSV', 'error');
+                SessionManager.showNotification('Error exporting CSV', 'error');
             }
         }
 
@@ -2591,7 +2591,7 @@ async function logout() {
         <div id="saveReportModal" class="modal" style="display: none;">
             <div class="modal-header">
                 <h3><i class="fas fa-save"></i> Save Report Configuration</h3>
-                <button class="modal-close" onclick="closeSaveReportModal()">&times;</button>
+                <button class="modal-close" onclick="SessionManager.closeSaveReportModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -2618,10 +2618,10 @@ async function logout() {
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="action-btn btn-success" onclick="saveReportConfig()">
+                <button class="action-btn btn-success" onclick="SessionManager.saveReportConfig()">
                     <i class="fas fa-save"></i> Save Report
                 </button>
-                <button class="action-btn btn-secondary" onclick="closeSaveReportModal()">
+                <button class="action-btn btn-secondary" onclick="SessionManager.closeSaveReportModal()">
                     Cancel
                 </button>
             </div>
@@ -2634,7 +2634,7 @@ async function logout() {
         }
 
         // ==================== FILTER FUNCTIONS ====================
-        function resetFilters() {
+        function SessionManager.resetFilters() {
             document.getElementById('dateRange').value = 'today';
             document.getElementById('reportBatch').value = 'all';
             document.getElementById('reportStatus').value = 'all';
@@ -2645,7 +2645,7 @@ async function logout() {
         }
 
         // ==================== CLOSE MODALS ====================
-        function closeAllModals() {
+        function SessionManager.closeAllModals() {
             document.getElementById('reportModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
@@ -2654,24 +2654,24 @@ async function logout() {
     // ==================== REPORT SAVING FUNCTIONS ====================
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
-    function showSaveReportModal() {
+    function SessionManager.showSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function closeSaveReportModal() {
+    function SessionManager.closeSaveReportModal() {
         document.getElementById('saveReportModal').style.display = 'none';
         document.getElementById('modalOverlay').style.display = 'none';
     }
 
-    function saveReportConfig() {
+    function SessionManager.saveReportConfig() {
         const name = document.getElementById('savedReportName').value;
         const desc = document.getElementById('savedReportDesc').value;
         const schedule = document.getElementById('reportSchedule').value;
         const email = document.getElementById('reportEmail').value;
         
         if (!name) {
-            showNotification('Please enter a report name', 'error');
+            SessionManager.showNotification('Please enter a report name', 'error');
             return;
         }
         
@@ -2695,12 +2695,12 @@ async function logout() {
         savedReports.push(reportConfig);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
         
-        refreshSavedReports();
-        closeSaveReportModal();
-        showNotification('Report configuration saved!', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.closeSaveReportModal();
+        SessionManager.showNotification('Report configuration saved!', 'success');
     }
 
-    function refreshSavedReports() {
+    function SessionManager.refreshSavedReports() {
         const container = document.getElementById('savedReportsList');
         if (!container) return;
         
@@ -2726,10 +2726,10 @@ async function logout() {
                         <small>${report.type} report • ${new Date(report.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button class="icon-btn" onclick="loadSavedReport(${report.id})" title="Load Report">
+                        <button class="icon-btn" onclick="SessionManager.loadSavedReport(${report.id})" title="Load Report">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <button class="icon-btn" onclick="deleteSavedReport(${report.id})" title="Delete">
+                        <button class="icon-btn" onclick="SessionManager.deleteSavedReport(${report.id})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                         ${report.schedule !== 'none' ? '<span class="status-badge status-active">Auto</span>' : ''}
@@ -2741,7 +2741,7 @@ async function logout() {
         container.innerHTML = html;
     }
 
-    function loadSavedReport(reportId) {
+    function SessionManager.loadSavedReport(reportId) {
         const report = savedReports.find(r => r.id === reportId);
         if (!report) return;
         
@@ -2755,29 +2755,29 @@ async function logout() {
         toggleDateInputs();
         generateReport();
         
-        showNotification(`Loaded report: ${report.name}`, 'success');
+        SessionManager.showNotification(`Loaded report: ${report.name}`, 'success');
     }
 
-    function deleteSavedReport(reportId) {
+    function SessionManager.deleteSavedReport(reportId) {
         if (!confirm('Delete this saved report?')) return;
         
         savedReports = savedReports.filter(r => r.id !== reportId);
         localStorage.setItem('savedReports', JSON.stringify(savedReports));
-        refreshSavedReports();
-        showNotification('Report deleted', 'success');
+        SessionManager.refreshSavedReports();
+        SessionManager.showNotification('Report deleted', 'success');
     }
 
     // ==================== EMAIL REPORT ====================
-    function emailReport() {
+    function SessionManager.emailReport() {
         if (!currentReportData) {
-            showNotification('No report data to email', 'error');
+            SessionManager.showNotification('No report data to email', 'error');
             return;
         }
         
         const email = prompt('Enter email address(es) - separate multiple with commas:');
         if (!email) return;
         
-        showNotification('Preparing email...', 'info');
+        SessionManager.showNotification('Preparing email...', 'info');
         
         // Create email content
         const subject = `Alhudha Haj Report - ${new Date().toLocaleDateString()}`;
@@ -2790,15 +2790,15 @@ async function logout() {
         
         window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         
-        showNotification('Email client opened', 'success');
+        SessionManager.showNotification('Email client opened', 'success');
     }
 
     // ==================== CHART TYPE CHANGE ====================
-    function changeChartType() {
+    function SessionManager.changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
         if (!currentReportData) {
-            showNotification('Generate a report first', 'warning');
+            SessionManager.showNotification('Generate a report first', 'warning');
             return;
         }
         
@@ -2815,36 +2815,29 @@ async function logout() {
     }
 
     // ==================== LOADING INDICATOR ====================
-    function showReportLoading() {
+    function SessionManager.showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
 
-    function hideReportLoading() {
+    function SessionManager.hideReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'none';
     }
 
     // Override generateReport to show loading
     const originalGenerateReport = generateReport;
     generateReport = async function() {
-        showReportLoading();
+        SessionManager.showReportLoading();
         try {
             await originalGenerateReport();
         } finally {
-            hideReportLoading();
-        }
-    };
-
-    // Initialize saved reports on load
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(refreshSavedReports, 500);
-    });
-</script>
+            SessionManager.hideReportLoading();
+        </script>
 
         <!-- Save Report Modal -->
         <div id="saveReportModal" class="modal" style="display: none;">
             <div class="modal-header">
                 <h3><i class="fas fa-save"></i> Save Report Configuration</h3>
-                <button class="modal-close" onclick="closeSaveReportModal()">&times;</button>
+                <button class="modal-close" onclick="SessionManager.closeSaveReportModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -2871,10 +2864,10 @@ async function logout() {
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="action-btn btn-success" onclick="saveReportConfig()">
+                <button class="action-btn btn-success" onclick="SessionManager.saveReportConfig()">
                     <i class="fas fa-save"></i> Save Report
                 </button>
-                <button class="action-btn btn-secondary" onclick="closeSaveReportModal()">
+                <button class="action-btn btn-secondary" onclick="SessionManager.closeSaveReportModal()">
                     Cancel
                 </button>
             </div>

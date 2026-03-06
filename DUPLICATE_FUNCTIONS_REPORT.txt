@@ -1,0 +1,211 @@
+DUPLICATE FUNCTIONS REPORT
+==================================================
+
+📌 showNotification appears in 12 files:
+   • backup.html
+   • batches.html
+   • dashboard.html
+   • email.html
+   • frontpage.html
+   • ... and 7 more
+
+📌 checkAuth appears in 7 files:
+   • backup.html
+   • batches.html
+   • email.html
+   • frontpage.html
+   • payments.html
+   • ... and 2 more
+
+📌 previousPage appears in 5 files:
+   • batches.html
+   • invoices.html
+   • payments.html
+   • receipts.html
+   • travelers.html
+
+📌 nextPage appears in 5 files:
+   • batches.html
+   • invoices.html
+   • payments.html
+   • receipts.html
+   • travelers.html
+
+📌 checkAdminSession appears in 5 files:
+   • email.html
+   • invoices.html
+   • receipts.html
+   • reports.html
+   • whatsapp.html
+
+📌 showSaveReportModal appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 closeSaveReportModal appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 saveReportConfig appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 refreshSavedReports appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 loadSavedReport appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 deleteSavedReport appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 emailReport appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 changeChartType appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 showReportLoading appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 hideReportLoading appears in 5 files:
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+   • reports.html
+
+📌 updatePaginationInfo appears in 4 files:
+   • batches.html
+   • payments.html
+   • receipts.html
+   • travelers.html
+
+📌 authenticatedFetch appears in 4 files:
+   • email.html
+   • invoices.html
+   • reports.html
+   • whatsapp.html
+
+📌 closeAllModals appears in 4 files:
+   • email.html
+   • payments.html
+   • reports.html
+   • travelers.html
+
+📌 resetFilters appears in 4 files:
+   • invoices.html
+   • payments.html
+   • receipts.html
+   • reports.html
+
+📌 loadBatches appears in 3 files:
+   • batches.html
+   • payments.html
+   • travelers.html
+
+📌 allowNumbersOnly appears in 2 files:
+   • batches.html
+   • payments.html
+
+📌 useDemoBatches appears in 2 files:
+   • batches.html
+   • reports.html
+
+📌 updateBatchDropdowns appears in 2 files:
+   • batches.html
+   • travelers.html
+
+📌 clearSearch appears in 2 files:
+   • batches.html
+   • travelers.html
+
+📌 log appears in 2 files:
+   • cookie-test.html
+   • debug_users.html
+
+📌 checkSession appears in 2 files:
+   • cookie-test.html
+   • simple-test.html
+
+📌 resetSessionTimer appears in 2 files:
+   • dashboard.html
+   • travelers.html
+
+📌 showSessionWarning appears in 2 files:
+   • dashboard.html
+   • travelers.html
+
+📌 hideSessionWarning appears in 2 files:
+   • dashboard.html
+   • travelers.html
+
+📌 showSessionExpiredWarning appears in 2 files:
+   • dashboard.html
+   • travelers.html
+
+📌 extendSession appears in 2 files:
+   • dashboard.html
+   • travelers.html
+
+📌 useTemplate appears in 2 files:
+   • email.html
+   • whatsapp.html
+
+📌 toggleSelectAll appears in 2 files:
+   • email.html
+   • receipts.html
+
+📌 loadAddressTemplate appears in 2 files:
+   • invoices.html
+   • receipts.html
+
+📌 saveAddressTemplate appears in 2 files:
+   • invoices.html
+   • receipts.html
+
+📌 closeModal appears in 2 files:
+   • invoices.html
+   • receipts.html
+
+📌 applyFilters appears in 2 files:
+   • invoices.html
+   • receipts.html
+
+📌 loadTravelers appears in 2 files:
+   • payments.html
+   • travelers.html
+

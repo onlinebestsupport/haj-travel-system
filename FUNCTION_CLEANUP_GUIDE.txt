@@ -1,0 +1,25 @@
+
+FUNCTION DUPLICATION CLEANUP GUIDE:
+
+The following functions appear in multiple files. Move them to a shared file:
+
+Common functions to move to session-manager.js:
+------------------------------------------------
+- checkAuth (appears in 14 files)
+- closeAllModals (appears in 12 files)
+- previousPage (appears in 9 files)
+- nextPage (appears in 9 files)
+- updatePaginationInfo (appears in 7 files)
+- resetFilters (appears in 6 files)
+- loadBatches (appears in 6 files)
+- checkAdminSession (appears in 5 files)
+- showSaveReportModal (appears in 5 files)
+
+How to fix:
+1. Add these functions to session-manager.js once
+2. Remove them from individual HTML files
+3. Call SessionManager.functionName() instead
+
+Example:
+   Instead of: checkAuth()
+   Use: SessionManager.checkAuth()

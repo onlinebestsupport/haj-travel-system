@@ -821,18 +821,18 @@
             
             // Try to copy just the passport first (more useful)
             navigator.clipboard.writeText(text).then(() => {
-                showNotification(`Passport ${passport} copied!`, 'success');
+                SessionManager.showNotification(`Passport ${passport} copied!`, 'success');
                 
                 // Auto-fill the passport field
                 document.getElementById('passport_no').value = passport;
                 document.getElementById('passport_no').focus();
             }).catch(() => {
-                showNotification('Failed to copy credentials', 'error');
+                SessionManager.showNotification('Failed to copy credentials', 'error');
             });
         }
 
         // Show notification with better positioning
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             // Remove any existing notification
             const existing = document.querySelector('.notification');
             if (existing) existing.remove();
@@ -867,7 +867,7 @@
         }
 
         // Show error message
-        function showError(message) {
+        function SessionManager.showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             errorText.textContent = message;
@@ -883,21 +883,21 @@
         }
 
         // Validate form
-        function validateForm(passport, pin) {
+        function SessionManager.validateForm(passport, pin) {
             if (!passport || !pin) {
-                showError('Please enter both passport number and PIN');
+                SessionManager.showError('Please enter both passport number and PIN');
                 return false;
             }
             
             const passportRegex = /^[A-Z0-9]{6,9}$/;
             if (!passportRegex.test(passport)) {
-                showError('Please enter a valid passport number (6-9 characters, letters and numbers only)');
+                SessionManager.showError('Please enter a valid passport number (6-9 characters, letters and numbers only)');
                 return false;
             }
             
             const pinRegex = /^\d{4}$/;
             if (!pinRegex.test(pin)) {
-                showError('PIN must be exactly 4 digits');
+                SessionManager.showError('PIN must be exactly 4 digits');
                 return false;
             }
             
@@ -912,7 +912,7 @@
             const pin = document.getElementById('pin').value.trim();
             
             // Validate form
-            if (!validateForm(passport_no, pin)) {
+            if (!SessionManager.validateForm(passport_no, pin)) {
                 return;
             }
             
@@ -944,19 +944,19 @@
                     sessionStorage.setItem('travelerBatch', validTravelers[passport_no].batch);
                     
                     // Show success message
-                    showNotification('Login successful! Redirecting...', 'success');
+                    SessionManager.showNotification('Login successful! Redirecting...', 'success');
                     
                     // Redirect to traveler dashboard
                     setTimeout(() => {
                         window.location.href = '/traveler_dashboard.html';
                     }, 1000);
                 } else {
-                    showError('Invalid passport number or PIN');
+                    SessionManager.showError('Invalid passport number or PIN');
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>View My Haj Details</span>';
                 }
             } catch (error) {
-                showError('Connection error. Please try again.');
+                SessionManager.showError('Connection error. Please try again.');
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>View My Haj Details</span>';
             }

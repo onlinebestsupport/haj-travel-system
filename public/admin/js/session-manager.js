@@ -1,14 +1,29 @@
 // ==================== 🔥 ULTIMATE SESSION MANAGER ====================
 // File: /public/admin/js/session-manager.js
+// Version: 2.0.1 - Fixed session timeout
 
-const SessionManager = {
-    // Session timeout in milliseconds (30 minutes)
-    SESSION_TIMEOUT: 30 * 60 * 1000,
-    WARNING_BEFORE: 2 * 60 * 1000,
+startTimers: function() {
+    // Clear any existing timers first
+    this.clearTimers();
+    
+    console.log('⏱️ Session timers started', {
+        timeout: this.SESSION_TIMEOUT / 60000 + ' minutes',
+        warning: this.WARNING_BEFORE / 60000 + ' minutes'
+    });
+    
+    this.warningTimer = setTimeout(() => {
+        this.showSessionWarning();
+    }, this.SESSION_TIMEOUT - this.WARNING_BEFORE);
+    
+    this.logoutTimer = setTimeout(() => {
+        this.forceLogout();
+    }, this.SESSION_TIMEOUT);
+},
     
     warningTimer: null,
     logoutTimer: null,
     notificationTimeout: null,
+    timerStarted: false,  // Flag to prevent multiple timer starts
 
     // Check session with retry logic
     checkSession: async function(redirect = true) {
@@ -233,9 +248,32 @@ const SessionManager = {
         }
     },
 
-    // Start session timers
-    startTimers: function() {
-        this.clearTimers();
+startTimers: function() {
+    // Clear any existing timers first
+    this.clearTimers();
+    
+    console.log('⏱️ Session timers started', {
+        timeout: this.SESSION_TIMEOUT / 60000 + ' minutes',
+        warning: this.WARNING_BEFORE / 60000 + ' minutes'
+    });
+    
+    this.warningTimer = setTimeout(() => {
+        this.showSessionWarning();
+    }, this.SESSION_TIMEOUT - this.WARNING_BEFORE);
+    
+    this.logoutTimer = setTimeout(() => {
+        this.forceLogout();
+    }, this.SESSION_TIMEOUT);
+},
+    
+    this.warningTimer = setTimeout(() => {
+        this.showSessionWarning();
+    }, this.SESSION_TIMEOUT - this.WARNING_BEFORE);
+    
+    this.logoutTimer = setTimeout(() => {
+        this.forceLogout();
+    }, this.SESSION_TIMEOUT);
+},
         
         this.warningTimer = setTimeout(() => {
             this.showSessionWarning();
@@ -244,8 +282,6 @@ const SessionManager = {
         this.logoutTimer = setTimeout(() => {
             this.forceLogout();
         }, this.SESSION_TIMEOUT);
-        
-        console.log('⏱️ Session timers started');
     },
 
     // Reset session timers on activity
@@ -403,5 +439,276 @@ document.addEventListener('DOMContentLoaded', function() {
     if (needsAuth) {
         console.log('🛡️ Page requires authentication');
         SessionManager.initPage();
+    }
+
+    checkAuth: function() {
+        const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+        if (!isLoggedIn) {
+            window.location.href = '/admin.login.html';
+            return false;
+        }
+        return true;
+    },
+
+    closeAllModals: function() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.style.display = 'none');
+        const overlay = document.getElementById('modalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    },
+
+    previousPage: function(currentPage, callback) {
+        if (currentPage > 1) {
+            callback(currentPage - 1);
+        }
+    },
+
+    nextPage: function(currentPage, totalPages, callback) {
+        if (currentPage < totalPages) {
+            callback(currentPage + 1);
+        }
+    },
+
+    resetFilters: function(searchId, roleId, statusId, displayCallback) {
+        if (searchId) document.getElementById(searchId).value = '';
+        if (roleId) document.getElementById(roleId).value = 'all';
+        if (statusId) document.getElementById(statusId).value = 'all';
+        if (displayCallback) displayCallback();
+    },
+
+    checkAdminSession: async function() {
+        try {
+            const response = await fetch('/api/check-session', {
+                credentials: 'include',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            const data = await response.json();
+            return data.authenticated || false;
+        } catch (error) {
+            console.error('Session check failed:', error);
+            return false;
+        }
+    },
+
+    showError: function(message) {
+        this.showNotification(message, 'error');
+    },
+
+    showSuccess: function(message) {
+        this.showNotification(message, 'success');
+    },
+
+    validateForm: function(fields) {
+        for (let field of fields) {
+            const value = document.getElementById(field.id)?.value;
+            if (!value || value.trim() === '') {
+                this.showError(field.name + ' is required');
+                return false;
+            }
+        }
+        return true;
+    },
+
+    formatDate: function(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleDateString('en-IN');
+    },
+
+    formatCurrency: function(amount) {
+        return '₹' + Number(amount).toLocaleString('en-IN');
+    },
+
+    getUrlParameter: function(name) {
+        const url = window.location.search;
+        const regex = new RegExp('[?&]' + name + '=([^&#]*)');
+        const results = regex.exec(url);
+        return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
+    }
+
+    adjustColor: function(color, percent) {
+        // Simple color adjustment function
+        return color;
+    },
+
+    renderFeatures: function(features) {
+        if (!features || !features.length) return '';
+        return features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('');
+    },
+
+    renderPackages: function(packages) {
+        if (!packages || !packages.length) return '';
+        return packages.map(p => `
+            <div class="package-card">
+                <h3>${p.name}</h3>
+                <div class="price">${p.price}</div>
+            </div>
+        `).join('');
+    },
+
+    allowNumbersOnly: function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    },
+
+    loadBatches: async function() {
+        try {
+            const response = await fetch('/api/batches', {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            return data.batches || [];
+        } catch (error) {
+            console.error('Error loading batches:', error);
+            return [];
+        }
+    },
+
+    useDemoBatches: function() {
+        return [
+            { id: 1, name: 'Demo Batch 1' },
+            { id: 2, name: 'Demo Batch 2' }
+        ];
+    },
+
+    updatePaginationInfo: function(currentPage, totalItems, itemsPerPage) {
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, totalItems);
+        return { start, end, total: totalItems };
+    },
+
+    updateBatchDropdowns: function(batches) {
+        const selects = document.querySelectorAll('.batch-select');
+        selects.forEach(select => {
+            select.innerHTML = '<option value="">Select Batch</option>';
+            batches.forEach(batch => {
+                select.innerHTML += `<option value="${batch.id}">${batch.name}</option>`;
+            });
+        });
+    },
+
+    clearSearch: function(searchId) {
+        const search = document.getElementById(searchId);
+        if (search) search.value = '';
+    },
+
+    resetSessionTimer: function() {
+        if (this.resetTimers) this.resetTimers();
+    },
+
+    showSessionExpiredWarning: function(message) {
+        alert(message || 'Session expired');
+        window.location.href = '/admin.login.html';
+    },
+
+    authenticatedFetch: async function(url, options = {}) {
+        options.credentials = 'include';
+        try {
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+                window.location.href = '/admin.login.html';
+                return null;
+            }
+            return response;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            return null;
+        }
+    },
+
+    useTemplate: function(templateId, data) {
+        const template = document.getElementById(templateId);
+        if (!template) return '';
+        let html = template.innerHTML;
+        for (let key in data) {
+            html = html.replace(new RegExp(`{{${key}}}`, 'g'), data[key]);
+        }
+        return html;
+    },
+
+    toggleSelectAll: function(checkboxId, itemClass) {
+        const selectAll = document.getElementById(checkboxId);
+        const checkboxes = document.querySelectorAll(itemClass);
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    },
+
+    loadAddressTemplate: function() {
+        const saved = localStorage.getItem('companyAddress');
+        return saved ? JSON.parse(saved) : null;
+    },
+
+    saveAddressTemplate: function(address) {
+        localStorage.setItem('companyAddress', JSON.stringify(address));
+    },
+
+    closeModal: function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
+        const overlay = document.getElementById('modalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    },
+
+    applyFilters: function(filterData) {
+        console.log('Applying filters:', filterData);
+    },
+
+    loadTravelers: async function() {
+        try {
+            const response = await fetch('/api/travelers', {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            return data.travelers || [];
+        } catch (error) {
+            console.error('Error loading travelers:', error);
+            return [];
+        }
+    },
+
+    showSaveReportModal: function() {
+        const modal = document.getElementById('saveReportModal');
+        if (modal) modal.style.display = 'block';
+    },
+
+    closeSaveReportModal: function() {
+        const modal = document.getElementById('saveReportModal');
+        if (modal) modal.style.display = 'none';
+    },
+
+    saveReportConfig: function(config) {
+        localStorage.setItem('reportConfig', JSON.stringify(config));
+    },
+
+    refreshSavedReports: function() {
+        const saved = localStorage.getItem('savedReports');
+        return saved ? JSON.parse(saved) : [];
+    },
+
+    loadSavedReport: function(reportId) {
+        const reports = JSON.parse(localStorage.getItem('savedReports') || '[]');
+        return reports.find(r => r.id === reportId);
+    },
+
+    deleteSavedReport: function(reportId) {
+        let reports = JSON.parse(localStorage.getItem('savedReports') || '[]');
+        reports = reports.filter(r => r.id !== reportId);
+        localStorage.setItem('savedReports', JSON.stringify(reports));
+    },
+
+    emailReport: function(reportData) {
+        console.log('Emailing report:', reportData);
+    },
+
+    changeChartType: function(type) {
+        console.log('Changing chart type to:', type);
+    },
+
+    showReportLoading: function() {
+        const loader = document.getElementById('reportLoader');
+        if (loader) loader.style.display = 'block';
+    },
+
+    hideReportLoading: function() {
+        const loader = document.getElementById('reportLoader');
+        if (loader) loader.style.display = 'none';
     }
 });

@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Admin Login - Alhudha Haj Travel System</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* ==================== 🎨 RESET & BASE STYLES ==================== */
         * {
             margin: 0;
             padding: 0;
@@ -32,7 +33,7 @@
             position: relative;
         }
 
-        /* Animated Background */
+        /* ==================== 🌀 ANIMATED BACKGROUND ==================== */
         body::before {
             content: '';
             position: fixed;
@@ -51,6 +52,7 @@
             to { transform: rotate(360deg); }
         }
 
+        /* ==================== 📦 LOGIN WRAPPER ==================== */
         .login-wrapper {
             width: 100%;
             max-width: 500px;
@@ -82,6 +84,7 @@
             }
         }
 
+        /* ==================== 🏠 LOGIN HEADER ==================== */
         .login-header {
             text-align: center;
             margin-bottom: 40px;
@@ -116,7 +119,7 @@
             font-size: 1rem;
         }
 
-        /* Demo Credentials Card */
+        /* ==================== 🔑 DEMO CREDENTIALS CARD ==================== */
         .demo-credentials {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             padding: 20px;
@@ -181,6 +184,7 @@
             color: #27ae60;
         }
 
+        /* ==================== ⚠️ MESSAGE CONTAINERS ==================== */
         .error-message {
             background: #fee;
             color: #e74c3c;
@@ -216,6 +220,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ==================== 📝 FORM ELEMENTS ==================== */
         .form-group {
             margin-bottom: 25px;
         }
@@ -293,6 +298,7 @@
             background: rgba(52, 152, 219, 0.1);
         }
 
+        /* ==================== 🚀 LOGIN BUTTON ==================== */
         .login-btn {
             width: 100%;
             padding: 18px;
@@ -349,6 +355,7 @@
             transform: none;
         }
 
+        /* ==================== ✅ REMEMBER ME SECTION ==================== */
         .remember-me {
             display: flex;
             align-items: center;
@@ -388,7 +395,7 @@
             text-decoration: none;
         }
 
-        /* Session Info */
+        /* ==================== ℹ️ SESSION INFO SECTION ==================== */
         .session-info {
             background: #e8f4f8;
             border-radius: 10px;
@@ -420,6 +427,7 @@
             font-size: 0.8rem;
         }
 
+        /* ==================== 📌 FOOTER ==================== */
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -449,7 +457,7 @@
             font-size: 0.9rem;
         }
 
-        /* Loading Spinner */
+        /* ==================== ⏳ LOADING SPINNER ==================== */
         .spinner {
             display: inline-block;
             width: 20px;
@@ -464,7 +472,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
+        /* ==================== 📱 RESPONSIVE DESIGN ==================== */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -622,8 +630,10 @@
     </style>
 </head>
 <body>
+    <!-- ==================== 📦 MAIN LOGIN CONTAINER ==================== -->
     <div class="login-wrapper">
         <div class="login-container">
+            <!-- ==================== 🏠 LOGIN HEADER ==================== -->
             <div class="login-header">
                 <div class="logo-wrapper">
                     <i class="fas fa-kaaba"></i>
@@ -632,6 +642,7 @@
                 <p>Alhudha Haj Travel System</p>
             </div>
             
+            <!-- ==================== 🔑 DEMO CREDENTIALS ==================== -->
             <div class="demo-credentials">
                 <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials:</strong></p>
                 <div class="credential-row" onclick="fillCredentials('superadmin', 'admin123')">
@@ -656,7 +667,7 @@
                 </div>
             </div>
             
-            <!-- Session Info (Shows if already logged in) -->
+            <!-- ==================== ℹ️ SESSION INFO (Shows if already logged in) ==================== -->
             <div id="sessionInfo" class="session-info" style="display: none;">
                 <i class="fas fa-info-circle"></i>
                 <div class="info-text">
@@ -668,6 +679,7 @@
                 </button>
             </div>
             
+            <!-- ==================== ⚠️ MESSAGE CONTAINERS ==================== -->
             <div id="errorMessage" class="error-message">
                 <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
             </div>
@@ -676,6 +688,7 @@
                 <i class="fas fa-check-circle"></i> <span id="successText"></span>
             </div>
             
+            <!-- ==================== 📝 LOGIN FORM ==================== -->
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username">
@@ -710,16 +723,43 @@
                 </button>
             </form>
             
+            <!-- ==================== 📌 FOOTER ==================== -->
             <div class="footer">
                 <p><a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
             </div>
         </div>
     </div>
 
+    <!-- ==================== 🚀 JAVASCRIPT SECTION ==================== -->
     <script>
-        // ==================== SESSION CHECK ====================
+        // ==================== 🚨 GLOBAL ERROR HANDLER ====================
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('🔥 GLOBAL ERROR:', {message, source, lineno, colno, error});
+            return true;
+        };
+
+        // ==================== 🔍 DOM ELEMENT VALIDATION ====================
+        function validateElements() {
+            const elements = {
+                sessionInfo: document.getElementById('sessionInfo'),
+                loginForm: document.getElementById('loginForm'),
+                username: document.getElementById('username'),
+                password: document.getElementById('password'),
+                sessionUserName: document.getElementById('sessionUserName'),
+                sessionExpiry: document.getElementById('sessionExpiry')
+            };
+            
+            console.SessionManager.log('🔍 Checking DOM elements:', elements);
+            return elements;
+        }
+
+        // ==================== 🔐 SESSION CHECK ====================
         // Check if already logged in on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.SessionManager.log('🚀 Page loaded, checking session...');
+            validateElements();
+            
+            // 🔥 CRITICAL FIX: Auto-redirect if already logged in
             checkExistingSession();
             
             const rememberedUser = localStorage.getItem('rememberedUser');
@@ -754,34 +794,49 @@
             });
         });
 
-        // Check if user is already logged in
+        // ==================== ✅ CHECK EXISTING SESSION (FIXED) ====================
         function checkExistingSession() {
+            console.SessionManager.log('🔍 Checking existing session...');
+            
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             const userName = sessionStorage.getItem('adminName');
             
+            console.SessionManager.log('📦 Session storage:', { isLoggedIn, userName });
+            
+            // 🔥 FIX: Auto-redirect if session exists
             if (isLoggedIn === 'true' && userName) {
-                // Show session info and hide login form
-                document.getElementById('sessionInfo').style.display = 'flex';
-                document.getElementById('sessionUserName').textContent = userName;
-                
-                // Calculate session expiry (30 minutes from login)
-                const loginTime = sessionStorage.getItem('loginTime');
-                if (loginTime) {
-                    const elapsed = Math.floor((Date.now() - parseInt(loginTime)) / 1000 / 60);
-                    const remaining = 30 - elapsed;
-                    if (remaining > 0) {
-                        document.getElementById('sessionExpiry').textContent = 
-                            remaining + ' minute' + (remaining > 1 ? 's' : '');
-                    }
-                }
-                
-                // Optionally hide the login form
-                document.getElementById('loginForm').style.opacity = '0.5';
-                document.getElementById('loginForm').style.pointerEvents = 'none';
+                console.SessionManager.log('✅ Session exists! Auto-redirecting to dashboard...');
+                window.location.href = '/admin/dashboard.html';
+                return true;
             }
+            
+            // Also check via API for extra validation
+            fetch('/api/check-session', { 
+                credentials: 'include',
+                headers: { 'Cache-Control': 'no-cache' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.SessionManager.log('📡 API session check:', data);
+                if (data.authenticated) {
+                    console.SessionManager.log('✅ API session valid! Storing and redirecting...');
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    sessionStorage.setItem('adminName', data.user.name);
+                    sessionStorage.setItem('adminRole', data.user.role);
+                    sessionStorage.setItem('loginTime', Date.now().toString());
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    console.SessionManager.log('ℹ️ No active session, showing login form');
+                }
+            })
+            .catch(err => {
+                console.SessionManager.log('⚠️ API session check failed:', err);
+            });
+            
+            return false;
         }
 
-        // Function to fill credentials from demo cards
+        // ==================== 🔑 FILL CREDENTIALS ====================
         function fillCredentials(username, password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
@@ -797,7 +852,7 @@
             document.getElementById('password').focus();
         }
 
-        // Password visibility toggle
+        // ==================== 👁️ PASSWORD VISIBILITY TOGGLE ====================
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePassword');
@@ -815,14 +870,14 @@
             passwordInput.focus();
         }
 
-        // Show forgot password message
+        // ==================== 🔔 FORGOT PASSWORD ====================
         function showForgotPassword(event) {
             event.preventDefault();
             alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
         }
 
-        // Show error message
-        function showError(message) {
+        // ==================== ⚠️ SHOW ERROR MESSAGE ====================
+        function SessionManager.showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             errorText.textContent = message;
@@ -838,8 +893,8 @@
             }, 5000);
         }
 
-        // Show success message
-        function showSuccess(message) {
+        // ==================== ✅ SHOW SUCCESS MESSAGE ====================
+        function SessionManager.showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
             const successText = document.getElementById('successText');
             successText.textContent = message;
@@ -851,20 +906,20 @@
             successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // Validate form
-        function validateForm(username, password) {
+        // ==================== ✅ VALIDATE FORM ====================
+        function SessionManager.validateForm(username, password) {
             if (!username || !password) {
-                showError('Please enter both username and password');
+                SessionManager.showError('Please enter both username and password');
                 return false;
             }
             if (password.length < 6) {
-                showError('Password must be at least 6 characters');
+                SessionManager.showError('Password must be at least 6 characters');
                 return false;
             }
             return true;
         }
 
-        // Handle login with debounce
+        // ==================== 🚀 HANDLE LOGIN SUBMISSION ====================
         let isSubmitting = false;
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -876,7 +931,7 @@
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             
-            if (!validateForm(username, password)) {
+            if (!SessionManager.validateForm(username, password)) {
                 return;
             }
             
@@ -887,26 +942,24 @@
             loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
             
             try {
-                // Simulate network delay
-                await new Promise(resolve => setTimeout(resolve, 800));
+                // 🔥 REAL API CALL - Remove simulation
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password, remember_me: rememberMe })
+                });
                 
-                // Valid users for demo
-                const validUsers = {
-                    'superadmin': { name: 'Super Admin', role: 'super_admin' },
-                    'admin1': { name: 'Admin User', role: 'admin' },
-                    'manager1': { name: 'Manager User', role: 'manager' },
-                    'staff1': { name: 'Staff User', role: 'staff' },
-                    'viewer1': { name: 'Viewer User', role: 'viewer' }
-                };
+                const data = await response.json();
                 
-                if (validUsers[username] && password === 'admin123') {
+                if (data.authenticated) {
                     // Clear any existing session first
                     sessionStorage.clear();
                     
                     // Store session data
                     sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', validUsers[username].name);
-                    sessionStorage.setItem('adminRole', validUsers[username].role);
+                    sessionStorage.setItem('adminName', data.user.name);
+                    sessionStorage.setItem('adminRole', data.user.role);
                     sessionStorage.setItem('adminUsername', username);
                     sessionStorage.setItem('loginTime', Date.now().toString());
                     
@@ -917,39 +970,40 @@
                         localStorage.removeItem('rememberedUser');
                     }
                     
-                    showSuccess('Login successful! Redirecting to dashboard...');
+                    SessionManager.showSuccess('Login successful! Redirecting to dashboard...');
                     
-                    // Redirect to dashboard after showing success
+                    // Redirect to dashboard
                     setTimeout(() => {
                         window.location.href = '/admin/dashboard.html';
                     }, 1000);
                 } else {
-                    showError('Invalid username or password. Please try again.');
+                    SessionManager.showError(data.error || 'Invalid username or password');
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
                     isSubmitting = false;
                 }
             } catch (error) {
-                showError('Connection error. Please try again.');
+                console.error('❌ Login error:', error);
+                SessionManager.showError('Connection error. Please try again.');
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
                 isSubmitting = false;
             }
         });
 
-        // Handle paste events for better input
+        // ==================== 📋 HANDLE PASTE EVENTS ====================
         document.getElementById('password').addEventListener('paste', function(e) {
             e.preventDefault();
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             this.value = pastedText;
         });
 
-        // Prevent form resubmission on page refresh
+        // ==================== 🔄 PREVENT FORM RESUBMISSION ====================
         if (window.history.replaceState) {
             window.history.replaceState(null, null, window.location.href);
         }
 
-        // Focus management for mobile
+        // ==================== 📱 FOCUS MANAGEMENT ====================
         document.getElementById('username').addEventListener('focus', function() {
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
@@ -958,13 +1012,23 @@
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
-        // Clear session on logout if coming from logout
+        // ==================== 🔄 PAGESHOW EVENT HANDLER ====================
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                // Page was loaded from cache (like back button)
+                console.SessionManager.log('📄 Page loaded from cache, rechecking session...');
                 checkExistingSession();
             }
         });
+
+        // ==================== 🚀 IMMEDIATE SESSION CHECK ====================
+        // This runs immediately when script loads
+        (function immediateSessionCheck() {
+            console.SessionManager.log('🚀 Immediate session check...');
+            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                console.SessionManager.log('✅ Found session, redirecting NOW');
+                window.location.href = '/admin/dashboard.html';
+            }
+        })();
     </script>
 </body>
 </html>

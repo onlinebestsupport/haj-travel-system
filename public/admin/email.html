@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -849,7 +849,7 @@
             <div class="email-list">
                 <div class="email-toolbar">
                     <div class="toolbar-left">
-                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                        <input type="checkbox" id="selectAll" onclick="SessionManager.toggleSelectAll()">
                         <button onclick="refreshEmails()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
                         <button onclick="archiveSelected()" title="Archive"><i class="fas fa-archive"></i></button>
                         <button onclick="deleteSelected()" title="Delete"><i class="fas fa-trash"></i></button>
@@ -925,31 +925,31 @@
     <!-- Template Selector -->
     <div class="template-selector" id="templateSelector">
         <h4><i class="fas fa-template"></i> Email Templates</h4>
-        <div class="template-item" onclick="useTemplate('payment')">
+        <div class="template-item" onclick="SessionManager.useTemplate('payment')">
             <strong>Payment Reminder</strong>
             <p>Remind travelers about pending payments</p>
         </div>
-        <div class="template-item" onclick="useTemplate('document')">
+        <div class="template-item" onclick="SessionManager.useTemplate('document')">
             <strong>Document Request</strong>
             <p>Request missing documents</p>
         </div>
-        <div class="template-item" onclick="useTemplate('visa')">
+        <div class="template-item" onclick="SessionManager.useTemplate('visa')">
             <strong>Visa Update</strong>
             <p>Send visa status updates</p>
         </div>
-        <div class="template-item" onclick="useTemplate('welcome')">
+        <div class="template-item" onclick="SessionManager.useTemplate('welcome')">
             <strong>Welcome Email</strong>
             <p>Welcome new travelers</p>
         </div>
-        <div class="template-item" onclick="useTemplate('thankyou')">
+        <div class="template-item" onclick="SessionManager.useTemplate('thankyou')">
             <strong>Thank You</strong>
             <p>Thank travelers for their payment</p>
         </div>
-        <div class="template-item" onclick="useTemplate('flight')">
+        <div class="template-item" onclick="SessionManager.useTemplate('flight')">
             <strong>Flight Details</strong>
             <p>Share flight schedules and updates</p>
         </div>
-        <div class="template-item" onclick="useTemplate('deadline')">
+        <div class="template-item" onclick="SessionManager.useTemplate('deadline')">
             <strong>Deadline Reminder</strong>
             <p>Remind about document submission deadlines</p>
         </div>
@@ -1019,7 +1019,7 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
@@ -1031,7 +1031,7 @@
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
-async function checkAdminSession() {
+async function SessionManager.checkAdminSession() {
     try {
         const response = await fetch('/api/check-session', {
             credentials: 'include',
@@ -1040,7 +1040,7 @@ async function checkAdminSession() {
         const data = await response.json();
         
         if (!data.authenticated) {
-            console.log('⚠️ Session expired or not authenticated');
+            console.SessionManager.log('⚠️ Session expired or not authenticated');
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
             return false;
@@ -1061,9 +1061,9 @@ async function checkAdminSession() {
 }
 
 // Wrapper for authenticated API calls
-async function authenticatedFetch(url, options = {}) {
+async function SessionManager.authenticatedFetch(url, options = {}) {
     // First check if we're still authenticated
-    const isAuthenticated = await checkAdminSession();
+    const isAuthenticated = await SessionManager.checkAdminSession();
     if (!isAuthenticated) return null;
     
     // Make the actual API call with credentials
@@ -1078,7 +1078,7 @@ async function authenticatedFetch(url, options = {}) {
     
     // Handle 401 specifically
     if (response.status === 401) {
-        console.log('🔒 Session expired during API call');
+        console.SessionManager.log('🔒 Session expired during API call');
         window.location.href = '/admin.login.html';
         return null;
     }
@@ -1110,25 +1110,25 @@ if (typeof showNotification !== 'function') {
 // ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading email page...');
+    console.SessionManager.log('🚀 Loading email page...');
     await SessionManager.initPage(loadEmail || function(){});
 });
     
     // Check session first - this will redirect if not authenticated
-    const isValid = await checkAdminSession();
+    const isValid = await SessionManager.checkAdminSession();
     if (!isValid) return;
     
     // Load page-specific data
     if (typeof loadPageData === 'function') {
         loadPageData();
     } else if (typeof loadTravelers === 'function') {
-        loadTravelers();
+        SessionManager.loadTravelers();
     } else if (typeof loadBatches === 'function') {
-        loadBatches();
+        SessionManager.loadBatches();
     } else if (typeof loadPayments === 'function') {
         loadPayments();
     } else {
-        console.log('ℹ️ No data loading function found');
+        console.SessionManager.log('ℹ️ No data loading function found');
     }
 });
 
@@ -1139,7 +1139,7 @@ async function logout() {
 }
     try {
         if (typeof showNotification === 'function') {
-            showNotification('Logging out...', 'info');
+            SessionManager.showNotification('Logging out...', 'info');
         }
         await fetch('/api/logout', { 
             method: 'POST', 
@@ -1163,14 +1163,14 @@ async function logout() {
 
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
+            SessionManager.SessionManager.checkAuth();
             loadEmailConfig();
             loadEmails('inbox');
             loadCounts();
         });
 
         // ==================== AUTHENTICATION ====================
-        function checkAuth() {
+        function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -1188,7 +1188,7 @@ async function logout() {
         }
 
         // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1252,12 +1252,12 @@ async function logout() {
                         localStorage.setItem('emailSubject', emailConfig.subjectPrefix);
                     }
                 })
-                .catch(err => console.log('Using localStorage email config'));
+                .catch(err => console.SessionManager.log('Using localStorage email config'));
         }
 
         function refreshEmailConfig() {
             loadEmailConfig();
-            showNotification('Email configuration refreshed from frontpage', 'success');
+            SessionManager.showNotification('Email configuration refreshed from frontpage', 'success');
         }
 
         // ==================== LOAD EMAILS ====================
@@ -1374,7 +1374,7 @@ async function logout() {
             event.currentTarget.classList.add('active');
             
             loadEmails(folder);
-            showNotification(`Switched to ${folder} folder`, 'info');
+            SessionManager.showNotification(`Switched to ${folder} folder`, 'info');
         }
 
         // ==================== COMPOSE FUNCTIONS ====================
@@ -1433,7 +1433,7 @@ async function logout() {
             templateSelector.style.display = templateSelector.style.display === 'block' ? 'none' : 'block';
         }
 
-        function useTemplate(type) {
+        function SessionManager.useTemplate(type) {
             const subject = document.getElementById('composeSubject');
             const body = document.getElementById('composeBody');
             
@@ -1472,7 +1472,7 @@ async function logout() {
                 subject.value = templates[type].subject;
                 body.value = templates[type].body;
                 document.getElementById('templateSelector').style.display = 'none';
-                showNotification('Template loaded', 'success');
+                SessionManager.showNotification('Template loaded', 'success');
             }
         }
 
@@ -1501,7 +1501,7 @@ async function logout() {
             draftEmails.push(draft);
             localStorage.setItem('emailDrafts', JSON.stringify(draftEmails));
             
-            showNotification('Draft saved', 'success');
+            SessionManager.showNotification('Draft saved', 'success');
             closeCompose();
         }
 
@@ -1511,21 +1511,21 @@ async function logout() {
             const body = document.getElementById('composeBody').value;
             
             if (!to || !subject || !body) {
-                showNotification('Please fill all fields', 'error');
+                SessionManager.showNotification('Please fill all fields', 'error');
                 return;
             }
             
             // Validate email configuration
             if (!emailConfig.fromEmail || !emailConfig.replyTo) {
-                showNotification('Email configuration incomplete. Please check frontpage settings.', 'error');
+                SessionManager.showNotification('Email configuration incomplete. Please check frontpage settings.', 'error');
                 return;
             }
             
-            showNotification('Sending email...', 'info');
+            SessionManager.showNotification('Sending email...', 'info');
             
             // Simulate sending
             setTimeout(() => {
-                showNotification('Email sent successfully!', 'success');
+                SessionManager.showNotification('Email sent successfully!', 'success');
                 closeCompose();
                 
                 // Update sent count
@@ -1543,7 +1543,7 @@ async function logout() {
             const subject = element.querySelector('.email-subject').textContent;
             const preview = element.querySelector('.email-preview').textContent;
             
-            showNotification(`Opening email from ${sender}`, 'info');
+            SessionManager.showNotification(`Opening email from ${sender}`, 'info');
             
             // In a real app, this would open the email in a modal
         }
@@ -1566,7 +1566,7 @@ async function logout() {
             }
         }
 
-        function toggleSelectAll() {
+        function SessionManager.toggleSelectAll() {
             const checkboxes = document.querySelectorAll('.email-checkbox');
             const selectAll = document.getElementById('selectAll');
             
@@ -1576,22 +1576,22 @@ async function logout() {
         }
 
         function refreshEmails() {
-            showNotification('Refreshing emails...', 'info');
+            SessionManager.showNotification('Refreshing emails...', 'info');
             
             setTimeout(() => {
                 loadEmails(currentFolder);
-                showNotification('Emails refreshed', 'success');
+                SessionManager.showNotification('Emails refreshed', 'success');
             }, 1500);
         }
 
         function archiveSelected() {
             const checked = document.querySelectorAll('.email-checkbox:checked');
             if (checked.length === 0) {
-                showNotification('No emails selected', 'error');
+                SessionManager.showNotification('No emails selected', 'error');
                 return;
             }
             
-            showNotification(`Archiving ${checked.length} email(s)...`, 'info');
+            SessionManager.showNotification(`Archiving ${checked.length} email(s)...`, 'info');
             
             setTimeout(() => {
                 // Remove selected emails
@@ -1599,19 +1599,19 @@ async function logout() {
                     const emailItem = cb.closest('.email-item');
                     if (emailItem) emailItem.remove();
                 });
-                showNotification('Emails archived', 'success');
+                SessionManager.showNotification('Emails archived', 'success');
             }, 1500);
         }
 
         function deleteSelected() {
             const checked = document.querySelectorAll('.email-checkbox:checked');
             if (checked.length === 0) {
-                showNotification('No emails selected', 'error');
+                SessionManager.showNotification('No emails selected', 'error');
                 return;
             }
             
             if (confirm(`Delete ${checked.length} email(s)?`)) {
-                showNotification(`Deleting ${checked.length} email(s)...`, 'info');
+                SessionManager.showNotification(`Deleting ${checked.length} email(s)...`, 'info');
                 
                 setTimeout(() => {
                     // Remove selected emails
@@ -1619,7 +1619,7 @@ async function logout() {
                         const emailItem = cb.closest('.email-item');
                         if (emailItem) emailItem.remove();
                     });
-                    showNotification('Emails deleted', 'success');
+                    SessionManager.showNotification('Emails deleted', 'success');
                 }, 1500);
             }
         }
@@ -1633,7 +1633,7 @@ async function logout() {
                 }
             });
             
-            showNotification('Marked as read', 'success');
+            SessionManager.showNotification('Marked as read', 'success');
         }
 
         function markAsUnread() {
@@ -1645,17 +1645,17 @@ async function logout() {
                 }
             });
             
-            showNotification('Marked as unread', 'success');
+            SessionManager.showNotification('Marked as unread', 'success');
         }
 
         function searchEmails() {
             const search = document.getElementById('emailSearch').value;
             if (!search) {
-                showNotification('Please enter search term', 'error');
+                SessionManager.showNotification('Please enter search term', 'error');
                 return;
             }
             
-            showNotification(`Searching for: ${search}`, 'info');
+            SessionManager.showNotification(`Searching for: ${search}`, 'info');
             
             // Simulate search
             setTimeout(() => {
@@ -1672,7 +1672,7 @@ async function logout() {
                     }
                 });
                 
-                showNotification(`Found ${found} matching emails`, 'info');
+                SessionManager.showNotification(`Found ${found} matching emails`, 'info');
             }, 1000);
         }
 
@@ -1714,24 +1714,24 @@ async function logout() {
                 if (setting === 'replyTo') localStorage.setItem('footerEmail', newValue);
                 if (setting === 'subjectPrefix') localStorage.setItem('emailSubject', newValue);
                 
-                showNotification('Setting updated', 'success');
+                SessionManager.showNotification('Setting updated', 'success');
             }
         }
 
         // ==================== CHECK EMAILS ====================
         function checkEmails() {
-            showNotification('Checking for new emails...', 'info');
+            SessionManager.showNotification('Checking for new emails...', 'info');
             
             setTimeout(() => {
                 const inboxCount = document.getElementById('inboxCount');
                 inboxCount.textContent = parseInt(inboxCount.textContent) + 1;
-                showNotification('1 new email received', 'success');
+                SessionManager.showNotification('1 new email received', 'success');
                 loadEmails('inbox');
             }, 2000);
         }
 
         // ==================== CLOSE ALL MODALS ====================
-        function closeAllModals() {
+        function SessionManager.closeAllModals() {
             document.getElementById('composeModal').style.display = 'none';
             document.getElementById('templateSelector').style.display = 'none';
             document.getElementById('settingsModal').style.display = 'none';
@@ -1759,15 +1759,6 @@ async function logout() {
             
             if (event.target == settingsModal) {
                 closeSettings();
-            }
-            
-            if (!event.target.closest('.template-selector') && !event.target.closest('[onclick="showTemplates()"]')) {
-                templateSelector.style.display = 'none';
-            }
-        }
-
-        // Load drafts on startup
-        loadDrafts();
-    </script>
+            </script>
 </body>
 </html>

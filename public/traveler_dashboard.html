@@ -1040,10 +1040,10 @@
                     document.getElementById('passportNo').textContent = t.passport_no || '-';
                     
                     // 5. Passport Issue Date
-                    document.getElementById('passportIssueDate').textContent = formatDate(t.passport_issue_date);
+                    document.getElementById('passportIssueDate').textContent = SessionManager.formatDate(t.passport_issue_date);
                     
                     // 6. Passport Expiry Date
-                    document.getElementById('passportExpiryDate').textContent = formatDate(t.passport_expiry_date);
+                    document.getElementById('passportExpiryDate').textContent = SessionManager.formatDate(t.passport_expiry_date);
                     
                     // 7. Passport Status
                     document.getElementById('passportStatusText').textContent = t.passport_status || '-';
@@ -1052,7 +1052,7 @@
                     document.getElementById('gender').textContent = t.gender || '-';
                     
                     // 9. Date of Birth
-                    document.getElementById('dob').textContent = formatDate(t.dob);
+                    document.getElementById('dob').textContent = SessionManager.formatDate(t.dob);
                     
                     // 10. Mobile
                     document.getElementById('mobile').textContent = t.mobile || '-';
@@ -1137,8 +1137,8 @@
                     
                     // Batch info
                     document.getElementById('batchName').textContent = t.batch_name || 'Not Assigned';
-                    document.getElementById('departureDate').textContent = formatDate(t.departure_date) || 'TBD';
-                    document.getElementById('returnDate').textContent = formatDate(t.return_date) || 'TBD';
+                    document.getElementById('departureDate').textContent = SessionManager.formatDate(t.departure_date) || 'TBD';
+                    document.getElementById('returnDate').textContent = SessionManager.formatDate(t.return_date) || 'TBD';
                     document.getElementById('batchStatus').textContent = t.batch_status || 'Open';
                     
                     // Load payments
@@ -1146,11 +1146,11 @@
                         loadPaymentSchedule(t.id);
                     }
                 } else {
-                    showError();
+                    SessionManager.showError();
                 }
             } catch (error) {
                 console.error('Error loading traveler data:', error);
-                showError();
+                SessionManager.showError();
             }
         }
 
@@ -1173,7 +1173,7 @@
         }
 
         // ==================== SHOW ERROR ====================
-        function showError() {
+        function SessionManager.showError() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';
             document.getElementById('dashboardContent').style.display = 'none';
@@ -1211,7 +1211,7 @@
                         <tr>
                             <td>${p.installment || '-'}</td>
                             <td class="payment-amount">₹${amount.toLocaleString('en-IN')}</td>
-                            <td>${formatDate(p.payment_date) || '-'}</td>
+                            <td>${SessionManager.formatDate(p.payment_date) || '-'}</td>
                             <td>${p.payment_method || '-'}</td>
                             <td>${p.transaction_id || '-'}</td>
                             <td><span class="${statusClass}">${statusText}</span></td>
@@ -1351,7 +1351,13 @@
                         <p>Alhudha Haj Travel System - Official Document</p>
                         <p>May Allah accept your journey</p>
                     </div>
-                </body>
+                
+// Clear interval on page unload
+window.addEventListener('beforeunload', function() {
+    if (updateTimer) clearInterval(updateTimer);
+});
+
+</body>
                 </html>
             `);
             
@@ -1368,7 +1374,7 @@
         }
 
         // ==================== HELPER FUNCTIONS ====================
-        function formatDate(dateString) {
+        function SessionManager.formatDate(dateString) {
             if (!dateString) return '-';
             try {
                 const date = new Date(dateString);
@@ -1401,10 +1407,16 @@
         // Auto-refresh every 5 minutes
         setInterval(() => {
             if (travelerId && travelerPassport) {
-                console.log('Auto-refreshing traveler data...');
+                console.SessionManager.log('Auto-refreshing traveler data...');
                 loadTravelerData();
             }
         }, 300000);
     </script>
+
+// Clear interval on page unload
+window.addEventListener('beforeunload', function() {
+    if (updateTimer) clearInterval(updateTimer);
+});
+
 </body>
 </html>

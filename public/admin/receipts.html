@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipts - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -1031,7 +1031,7 @@
                     <button type="button" class="action-btn btn-secondary" onclick="toggleCreateReceiptForm()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="button" class="action-btn btn-primary" onclick="saveAddressTemplate()">
+                    <button type="button" class="action-btn btn-primary" onclick="SessionManager.saveAddressTemplate()">
                         <i class="fas fa-save"></i> Save Address Template
                     </button>
                 </div>
@@ -1077,10 +1077,10 @@
                 <span>to</span>
                 <input type="date" id="toDate" placeholder="To">
             </div>
-            <button class="action-btn btn-primary" onclick="applyFilters()">
+            <button class="action-btn btn-primary" onclick="SessionManager.applyFilters()">
                 <i class="fas fa-search"></i> Search
             </button>
-            <button class="action-btn btn-secondary" onclick="resetFilters()">
+            <button class="action-btn btn-secondary" onclick="SessionManager.resetFilters()">
                 <i class="fas fa-undo"></i> Reset
             </button>
         </div>
@@ -1088,7 +1088,7 @@
         <!-- Bulk Actions -->
         <div class="bulk-actions">
             <label>
-                <input type="checkbox" id="selectAllReceipts" onchange="toggleSelectAll()"> Select All
+                <input type="checkbox" id="selectAllReceipts" onchange="SessionManager.toggleSelectAll()"> Select All
             </label>
             <button class="action-btn btn-success" onclick="bulkPrint()" id="bulkPrintBtn" disabled>
                 <i class="fas fa-print"></i> Print Selected
@@ -1112,10 +1112,10 @@
                 Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalCount">0</span> receipts
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="action-btn btn-secondary" onclick="previousPage()" id="prevPageBtn" disabled>
+                <button class="action-btn btn-secondary" onclick="SessionManager.previousPage()" id="prevPageBtn" disabled>
                     <i class="fas fa-chevron-left"></i> Previous
                 </button>
-                <button class="action-btn btn-primary" onclick="nextPage()" id="nextPageBtn">
+                <button class="action-btn btn-primary" onclick="SessionManager.nextPage()" id="nextPageBtn">
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -1127,7 +1127,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-receipt"></i> Receipt Details</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <span class="close" onclick="SessionManager.closeModal()">&times;</span>
             </div>
             <div id="receiptDetails" class="modal-body">
                 <!-- Dynamic content will be loaded here -->
@@ -1139,7 +1139,7 @@
                 <button class="action-btn btn-info" onclick="downloadReceiptPDF()">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </button>
-                <button class="action-btn btn-secondary" onclick="closeModal()">
+                <button class="action-btn btn-secondary" onclick="SessionManager.closeModal()">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
@@ -1158,7 +1158,7 @@
         let companyAddress = {};
 
         // ==================== NOTIFICATION FUNCTION ====================
-        function showNotification(message, type = 'success') {
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1167,7 +1167,7 @@
         }
 
         // ==================== SESSION CHECK ====================
-        async function checkAdminSession() {
+        async function SessionManager.checkAdminSession() {
             try {
                 const response = await fetch('/api/check-session', {
                     credentials: 'include',
@@ -1176,7 +1176,7 @@
                 const data = await response.json();
                 
                 if (!data.authenticated) {
-                    console.log('⚠️ Session expired');
+                    console.SessionManager.log('⚠️ Session expired');
                     window.location.href = '/admin.login.html';
                     return false;
                 }
@@ -1223,7 +1223,7 @@
                     currentPage = 1;
                     displayReceipts();
                     
-                    console.log(`✅ Loaded ${allReceipts.length} receipts`);
+                    console.SessionManager.log(`✅ Loaded ${allReceipts.length} receipts`);
                 } else {
                     throw new Error(data.error || 'Failed to load receipts');
                 }
@@ -1272,7 +1272,7 @@
             
             if (!filteredReceipts || filteredReceipts.length === 0) {
                 container.innerHTML = '<div style="text-align: center; padding: 40px;">No receipts found</div>';
-                updatePaginationInfo();
+                SessionManager.updatePaginationInfo();
                 return;
             }
             
@@ -1347,11 +1347,11 @@
             });
             
             container.innerHTML = html;
-            updatePaginationInfo();
+            SessionManager.updatePaginationInfo();
         }
 
         // ==================== PAGINATION FUNCTIONS ====================
-        function updatePaginationInfo() {
+        function SessionManager.updatePaginationInfo() {
             const total = filteredReceipts.length;
             document.getElementById('totalCount').textContent = total;
             
@@ -1372,14 +1372,14 @@
             document.getElementById('nextPageBtn').disabled = end >= total;
         }
 
-        function previousPage() {
+        function SessionManager.previousPage() {
             if (currentPage > 1) {
                 currentPage--;
                 displayReceipts();
             }
         }
 
-        function nextPage() {
+        function SessionManager.nextPage() {
             if (currentPage * itemsPerPage < filteredReceipts.length) {
                 currentPage++;
                 displayReceipts();
@@ -1387,7 +1387,7 @@
         }
 
         // ==================== FILTER FUNCTIONS ====================
-        function applyFilters() {
+        function SessionManager.applyFilters() {
             const search = document.getElementById('searchReceipt').value.toLowerCase();
             const type = document.getElementById('receiptTypeFilter').value;
             const fromDate = document.getElementById('fromDate').value;
@@ -1421,10 +1421,10 @@
             
             currentPage = 1;
             displayReceipts();
-            showNotification('Filters applied', 'success');
+            SessionManager.showNotification('Filters applied', 'success');
         }
 
-        function resetFilters() {
+        function SessionManager.resetFilters() {
             document.getElementById('searchReceipt').value = '';
             document.getElementById('receiptTypeFilter').value = 'all';
             document.getElementById('fromDate').value = '';
@@ -1432,11 +1432,11 @@
             filteredReceipts = allReceipts;
             currentPage = 1;
             displayReceipts();
-            showNotification('Filters reset', 'info');
+            SessionManager.showNotification('Filters reset', 'info');
         }
 
         // ==================== BULK ACTIONS ====================
-        function toggleSelectAll() {
+        function SessionManager.toggleSelectAll() {
             const checkboxes = document.querySelectorAll('.receipt-checkbox');
             const selectAll = document.getElementById('selectAllReceipts');
             
@@ -1472,24 +1472,24 @@
 
         function bulkPrint() {
             if (selectedReceipts.size === 0) return;
-            showNotification(`Print feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
+            SessionManager.showNotification(`Print feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
         }
 
         function bulkWhatsApp() {
             if (selectedReceipts.size === 0) return;
-            showNotification(`WhatsApp feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
+            SessionManager.showNotification(`WhatsApp feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
         }
 
         function bulkEmail() {
             if (selectedReceipts.size === 0) return;
-            showNotification(`Email feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
+            SessionManager.showNotification(`Email feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
         }
 
         // ==================== RECEIPT ACTIONS ====================
         function viewReceipt(id) {
             const receipt = allReceipts.find(r => r.id === id);
             if (!receipt) {
-                showNotification('Receipt not found', 'error');
+                SessionManager.showNotification('Receipt not found', 'error');
                 return;
             }
             
@@ -1508,24 +1508,24 @@
         }
 
         function printReceipt(id) {
-            showNotification(`Print receipt ${id}`, 'info');
+            SessionManager.showNotification(`Print receipt ${id}`, 'info');
         }
 
         function emailReceipt(id) {
-            showNotification(`Email receipt ${id}`, 'info');
+            SessionManager.showNotification(`Email receipt ${id}`, 'info');
         }
 
         function downloadReceiptPDF() {
-            showNotification('PDF download feature coming soon', 'info');
+            SessionManager.showNotification('PDF download feature coming soon', 'info');
         }
 
         function printCurrentReceipt() {
-            showNotification('Printing receipt...', 'info');
+            SessionManager.showNotification('Printing receipt...', 'info');
         }
 
         async function shareReceiptWhatsApp(receiptId, travelerName, mobile) {
             if (!mobile) {
-                showNotification('No mobile number available', 'error');
+                SessionManager.showNotification('No mobile number available', 'error');
                 return;
             }
             
@@ -1533,11 +1533,11 @@
             const message = `*Alhudha Haj Travel - Payment Receipt*\n\nThank you for your payment. Your receipt is available in the portal.`;
             const whatsappUrl = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
-            showNotification('WhatsApp opened', 'success');
+            SessionManager.showNotification('WhatsApp opened', 'success');
         }
 
         function exportReceipts() {
-            showNotification('Export feature coming soon', 'info');
+            SessionManager.showNotification('Export feature coming soon', 'info');
         }
 
         // ==================== RECEIPT FORM FUNCTIONS ====================
@@ -1626,24 +1626,24 @@
         function generateReceipt() {
             const travelerSelect = document.getElementById('receiptTravelerSelect');
             if (!travelerSelect.value) {
-                showNotification('Please select a traveler', 'error');
+                SessionManager.showNotification('Please select a traveler', 'error');
                 return;
             }
             
             const amount = document.getElementById('receiptAmount').value;
             if (!amount || amount <= 0) {
-                showNotification('Please enter a valid amount', 'error');
+                SessionManager.showNotification('Please enter a valid amount', 'error');
                 return;
             }
             
-            showNotification('Receipt generated successfully!', 'success');
+            SessionManager.showNotification('Receipt generated successfully!', 'success');
             document.getElementById('receiptCreateForm').reset();
             document.getElementById('createReceiptForm').style.display = 'none';
             loadReceipts();
         }
 
         // ==================== ADDRESS TEMPLATE FUNCTIONS ====================
-        function loadAddressTemplate() {
+        function SessionManager.loadAddressTemplate() {
             const savedAddress = localStorage.getItem('companyAddress');
             if (savedAddress) {
                 companyAddress = JSON.parse(savedAddress);
@@ -1658,7 +1658,7 @@
             }
         }
 
-        function saveAddressTemplate() {
+        function SessionManager.saveAddressTemplate() {
             companyAddress = {
                 name: document.getElementById('companyName').value,
                 address1: document.getElementById('companyAddress1').value,
@@ -1671,7 +1671,7 @@
             };
             
             localStorage.setItem('companyAddress', JSON.stringify(companyAddress));
-            showNotification('Address template saved successfully!', 'success');
+            SessionManager.showNotification('Address template saved successfully!', 'success');
         }
 
      // ==================== LOGOUT ====================
@@ -1684,34 +1684,24 @@ async function logout() {
         }
 
         // ==================== CLOSE MODAL ====================
-        function closeModal() {
+        function SessionManager.closeModal() {
             document.getElementById('receiptModal').style.display = 'none';
         }
 
       // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading page...');
+    console.SessionManager.log('🚀 Loading page...');
     await SessionManager.initPage(loadData || function(){});
 });
             
-            const isValid = await checkAdminSession();
+            const isValid = await SessionManager.checkAdminSession();
             if (isValid) {
                 await loadReceipts();
-                loadAddressTemplate();
+                SessionManager.loadAddressTemplate();
                 
                 // Set today's date
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('receiptDate').value = today;
-            }
-        });
-
-        // ==================== CLOSE MODAL ON OUTSIDE CLICK ====================
-        window.onclick = function(event) {
-            const modal = document.getElementById('receiptModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
-    </script>
+            </script>
 </body>
 </html>
