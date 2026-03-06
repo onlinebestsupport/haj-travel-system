@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import threading
 import time
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,9 +14,17 @@ load_dotenv()
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL environment variable is REQUIRED!")
+    print("⚠️  WARNING: DATABASE_URL environment variable is not set. Database operations will fail.")
+else:
+    # Railway (and some other providers) supply postgres:// but psycopg2 requires postgresql://
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
-print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
+    try:
+        _parsed = urlparse(DATABASE_URL)
+        print(f"📡 Connecting to database: {_parsed.hostname or 'unknown'}")
+    except Exception:
+        print("📡 Connecting to database: (URL parsing failed)")
 
 # Global flags to prevent double initialization
 _INITIALIZED = False
@@ -26,6 +35,8 @@ _init_lock = threading.Lock()
 
 def get_db():
     """Get PostgreSQL database connection"""
+    if not DATABASE_URL:
+        raise RuntimeError("❌ DATABASE_URL environment variable is not set. Please configure it in your environment.")
     try:
         conn = psycopg2.connect(DATABASE_URL)
         conn.autocommit = False
