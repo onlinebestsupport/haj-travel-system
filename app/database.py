@@ -12,10 +12,10 @@ load_dotenv()
 # ==================== DATABASE CONFIGURATION ====================
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL environment variable is REQUIRED!")
-
-print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
+if DATABASE_URL:
+    print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
+else:
+    print("⚠️  DATABASE_URL not set — database operations will fail until it is configured.")
 
 # Global flags to prevent double initialization
 _INITIALIZED = False
@@ -26,6 +26,8 @@ _init_lock = threading.Lock()
 
 def get_db():
     """Get PostgreSQL database connection"""
+    if not DATABASE_URL:
+        raise RuntimeError("❌ DATABASE_URL environment variable is not set. Please configure it in your deployment environment.")
     try:
         conn = psycopg2.connect(DATABASE_URL)
         conn.autocommit = False
