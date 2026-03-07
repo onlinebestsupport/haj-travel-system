@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Keep ALL your existing CSS styles exactly as they are */
         /* ==================== 🎨 RESET & BASE STYLES ==================== */
         * {
             margin: 0;
@@ -730,113 +731,16 @@
         </div>
     </div>
 
-    <!-- ==================== 🚀 JAVASCRIPT SECTION ==================== -->
+    <!-- ==================== 🚀 EXTERNAL SCRIPTS (CRITICAL FIX) ==================== -->
+    <!-- Load login.js first, then session-manager.js -->
+    <script src="/js/login.js"></script>
+    <script src="/admin/js/session-manager.js"></script>
+    
+    <!-- Minimal inline script for global functions only -->
     <script>
-        // ==================== 🚨 GLOBAL ERROR HANDLER ====================
-        window.onerror = function(message, source, lineno, colno, error) {
-            console.error('🔥 GLOBAL ERROR:', {message, source, lineno, colno, error});
-            return true;
-        };
-
-        // ==================== 🔍 DOM ELEMENT VALIDATION ====================
-        function validateElements() {
-            const elements = {
-                sessionInfo: document.getElementById('sessionInfo'),
-                loginForm: document.getElementById('loginForm'),
-                username: document.getElementById('username'),
-                password: document.getElementById('password'),
-                sessionUserName: document.getElementById('sessionUserName'),
-                sessionExpiry: document.getElementById('sessionExpiry')
-            };
-            
-            console.SessionManager.log('🔍 Checking DOM elements:', elements);
-            return elements;
-        }
-
-        // ==================== 🔐 SESSION CHECK ====================
-        // Check if already logged in on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.SessionManager.log('🚀 Page loaded, checking session...');
-            validateElements();
-            
-            // 🔥 CRITICAL FIX: Auto-redirect if already logged in
-            checkExistingSession();
-            
-            const rememberedUser = localStorage.getItem('rememberedUser');
-            if (rememberedUser) {
-                document.getElementById('username').value = rememberedUser;
-                document.getElementById('rememberMe').checked = true;
-                setTimeout(() => {
-                    document.getElementById('password').focus();
-                }, 100);
-            }
-            
-            // Add focus/blur animation
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.closest('.input-wrapper').classList.add('focused');
-                });
-                input.addEventListener('blur', function() {
-                    this.closest('.input-wrapper').classList.remove('focused');
-                });
-            });
-            
-            // Prevent zoom on double tap
-            let lastTap = 0;
-            document.addEventListener('touchend', function(e) {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTap;
-                if (tapLength < 500 && tapLength > 0) {
-                    e.preventDefault();
-                }
-                lastTap = currentTime;
-            });
-        });
-
-        // ==================== ✅ CHECK EXISTING SESSION (FIXED) ====================
-        function checkExistingSession() {
-            console.SessionManager.log('🔍 Checking existing session...');
-            
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            const userName = sessionStorage.getItem('adminName');
-            
-            console.SessionManager.log('📦 Session storage:', { isLoggedIn, userName });
-            
-            // 🔥 FIX: Auto-redirect if session exists
-            if (isLoggedIn === 'true' && userName) {
-                console.SessionManager.log('✅ Session exists! Auto-redirecting to dashboard...');
-                window.location.href = '/admin/dashboard.html';
-                return true;
-            }
-            
-            // Also check via API for extra validation
-            fetch('/api/check-session', { 
-                credentials: 'include',
-                headers: { 'Cache-Control': 'no-cache' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.SessionManager.log('📡 API session check:', data);
-                if (data.authenticated) {
-                    console.SessionManager.log('✅ API session valid! Storing and redirecting...');
-                    sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', data.user.name);
-                    sessionStorage.setItem('adminRole', data.user.role);
-                    sessionStorage.setItem('loginTime', Date.now().toString());
-                    window.location.href = '/admin/dashboard.html';
-                } else {
-                    console.SessionManager.log('ℹ️ No active session, showing login form');
-                }
-            })
-            .catch(err => {
-                console.SessionManager.log('⚠️ API session check failed:', err);
-            });
-            
-            return false;
-        }
-
-        // ==================== 🔑 FILL CREDENTIALS ====================
+        // ==================== 🔑 GLOBAL FUNCTIONS (These need to be global) ====================
+        
+        // Fill credentials from demo cards
         function fillCredentials(username, password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
@@ -852,7 +756,7 @@
             document.getElementById('password').focus();
         }
 
-        // ==================== 👁️ PASSWORD VISIBILITY TOGGLE ====================
+        // Toggle password visibility
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePassword');
@@ -866,169 +770,31 @@
                 toggleIcon.classList.remove('fa-eye-slash');
                 toggleIcon.classList.add('fa-eye');
             }
-            
-            passwordInput.focus();
         }
 
-        // ==================== 🔔 FORGOT PASSWORD ====================
+        // Forgot password handler
         function showForgotPassword(event) {
             event.preventDefault();
             alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
         }
 
-        // ==================== ⚠️ SHOW ERROR MESSAGE ====================
-        function SessionManager.showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorDiv.style.display = 'block';
+        // DOM element validation (for debugging)
+        function validateElements() {
+            const elements = {
+                sessionInfo: document.getElementById('sessionInfo'),
+                loginForm: document.getElementById('loginForm'),
+                username: document.getElementById('username'),
+                password: document.getElementById('password'),
+                sessionUserName: document.getElementById('sessionUserName'),
+                sessionExpiry: document.getElementById('sessionExpiry')
+            };
             
-            // Hide success message if visible
-            document.getElementById('successMessage').style.display = 'none';
-            
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+            console.log('🔍 DOM elements:', elements);
+            return elements;
         }
 
-        // ==================== ✅ SHOW SUCCESS MESSAGE ====================
-        function SessionManager.showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            const successText = document.getElementById('successText');
-            successText.textContent = message;
-            successDiv.style.display = 'block';
-            
-            // Hide error message if visible
-            document.getElementById('errorMessage').style.display = 'none';
-            
-            successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        // ==================== ✅ VALIDATE FORM ====================
-        function SessionManager.validateForm(username, password) {
-            if (!username || !password) {
-                SessionManager.showError('Please enter both username and password');
-                return false;
-            }
-            if (password.length < 6) {
-                SessionManager.showError('Password must be at least 6 characters');
-                return false;
-            }
-            return true;
-        }
-
-        // ==================== 🚀 HANDLE LOGIN SUBMISSION ====================
-        let isSubmitting = false;
-        
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (isSubmitting) return;
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            if (!SessionManager.validateForm(username, password)) {
-                return;
-            }
-            
-            isSubmitting = true;
-            
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
-            
-            try {
-                // 🔥 REAL API CALL - Remove simulation
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ username, password, remember_me: rememberMe })
-                });
-                
-                const data = await response.json();
-                
-                if (data.authenticated) {
-                    // Clear any existing session first
-                    sessionStorage.clear();
-                    
-                    // Store session data
-                    sessionStorage.setItem('adminLoggedIn', 'true');
-                    sessionStorage.setItem('adminName', data.user.name);
-                    sessionStorage.setItem('adminRole', data.user.role);
-                    sessionStorage.setItem('adminUsername', username);
-                    sessionStorage.setItem('loginTime', Date.now().toString());
-                    
-                    // Set remember me
-                    if (rememberMe) {
-                        localStorage.setItem('rememberedUser', username);
-                    } else {
-                        localStorage.removeItem('rememberedUser');
-                    }
-                    
-                    SessionManager.showSuccess('Login successful! Redirecting to dashboard...');
-                    
-                    // Redirect to dashboard
-                    setTimeout(() => {
-                        window.location.href = '/admin/dashboard.html';
-                    }, 1000);
-                } else {
-                    SessionManager.showError(data.error || 'Invalid username or password');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
-                    isSubmitting = false;
-                }
-            } catch (error) {
-                console.error('❌ Login error:', error);
-                SessionManager.showError('Connection error. Please try again.');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
-                isSubmitting = false;
-            }
-        });
-
-        // ==================== 📋 HANDLE PASTE EVENTS ====================
-        document.getElementById('password').addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            this.value = pastedText;
-        });
-
-        // ==================== 🔄 PREVENT FORM RESUBMISSION ====================
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
-        }
-
-        // ==================== 📱 FOCUS MANAGEMENT ====================
-        document.getElementById('username').addEventListener('focus', function() {
-            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-
-        document.getElementById('password').addEventListener('focus', function() {
-            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-
-        // ==================== 🔄 PAGESHOW EVENT HANDLER ====================
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                console.SessionManager.log('📄 Page loaded from cache, rechecking session...');
-                checkExistingSession();
-            }
-        });
-
-        // ==================== 🚀 IMMEDIATE SESSION CHECK ====================
-        // This runs immediately when script loads
-        (function immediateSessionCheck() {
-            console.SessionManager.log('🚀 Immediate session check...');
-            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-                console.SessionManager.log('✅ Found session, redirecting NOW');
-                window.location.href = '/admin/dashboard.html';
-            }
-        })();
+        // Simple console log wrapper to avoid SessionManager errors
+        console.log('✅ Login page loaded - waiting for scripts...');
     </script>
 </body>
 </html>
