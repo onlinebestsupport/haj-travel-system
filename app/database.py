@@ -5,13 +5,19 @@ from datetime import datetime
 import json
 import threading
 import time
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ==================== DATABASE CONFIGURATION ====================
 DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Optional: explicitly set SSL mode via environment variable.
+# Accepted values: 'require', 'verify-ca', 'verify-full', 'prefer', 'allow', 'disable'
+# Defaults to 'require' when connecting to a public Railway host (*.up.railway.app)
+# because the postgres-ssl Railway image mandates SSL on public connections.
+DATABASE_SSL_MODE = os.environ.get('DATABASE_SSL_MODE', '')
 
 if not DATABASE_URL:
     print("⚠️  WARNING: DATABASE_URL environment variable is not set. Database operations will fail.")
@@ -22,7 +28,21 @@ else:
 
     try:
         _parsed = urlparse(DATABASE_URL)
-        print(f"📡 Connecting to database: {_parsed.hostname or 'unknown'}")
+        _hostname = _parsed.hostname or ''
+        print(f"📡 Connecting to database: {_hostname if _hostname else 'unknown'}")
+
+        # Add sslmode to the URL when it is not already present as a query parameter.
+        # Public Railway PostgreSQL hosts (*.up.railway.app) require SSL;
+        # the postgres-ssl image enforces this on every public connection.
+        _query_params = parse_qs(_parsed.query)
+        if 'sslmode' not in _query_params:
+            _ssl_mode = DATABASE_SSL_MODE or (
+                'require' if _hostname.endswith('.up.railway.app') else ''
+            )
+            if _ssl_mode:
+                _sep = '&' if _parsed.query else '?'
+                DATABASE_URL = f"{DATABASE_URL}{_sep}sslmode={_ssl_mode}"
+                print(f"🔒 SSL mode set to '{_ssl_mode}' for database connection")
     except Exception:
         print("📡 Connecting to database: (URL parsing failed)")
 
