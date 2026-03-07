@@ -297,3 +297,29 @@ def refresh_session():
         'message': 'Session refreshed',
         'session_expiry': expiry
     })
+@bp.route('/me', methods=['GET'])
+def get_current_user():
+    """Get current user information"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        try:
+            cursor.execute("""
+                SELECT id, username, full_name, email, role 
+                FROM users WHERE id = %s AND is_active = true
+            """, (session['user_id'],))
+            
+            user = cursor.fetchone()
+            
+            if user:
+                return jsonify({'success': True, 'user': dict(user)}), 200
+            else:
+                session.clear()
+                return jsonify({'success': False, 'error': 'User not found'}), 404
+        finally:
+            release_db(conn, cursor)
+    except Exception as e:
+        logger.error(f"Get user error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500

@@ -5,6 +5,43 @@ import json
 
 bp = Blueprint('reports', __name__, url_prefix='/api/reports')
 
+# ==================== SUMMARY REPORT ====================
+@bp.route('/summary', methods=['GET'])
+def summary_report():
+    """Get summary statistics"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
+        conn, cursor = get_db()
+        
+        try:
+            cursor.execute('SELECT COUNT(*) as count FROM travelers')
+            travelers_count = cursor.fetchone()['count']
+            
+            cursor.execute('SELECT COUNT(*) as count FROM batches')
+            batches_count = cursor.fetchone()['count']
+            
+            cursor.execute('SELECT SUM(amount) as total FROM payments WHERE status = %s', ('completed',))
+            total_payments = cursor.fetchone()['total'] or 0
+            
+            return jsonify({
+                'success': True,
+                'data': {
+                    'total_travelers': travelers_count,
+                    'total_batches': batches_count,
+                    'total_payments': float(total_payments)
+                }
+            }), 200
+        
+        finally:
+            release_db(conn, cursor)
+    
+    except Exception as e:
+        logger.error(f"Summary report error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @bp.route('/generate', methods=['POST'])
 def generate_report():
     """Generate report based on parameters"""
