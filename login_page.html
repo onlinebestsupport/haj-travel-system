@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-
-        /* Keep ALL your existing CSS styles exactly as they are */
-
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         /* ==================== 🎨 RESET & BASE STYLES ==================== */
         * {
             margin: 0;
@@ -734,18 +730,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-    <!-- ==================== 🚀 EXTERNAL SCRIPTS (CRITICAL FIX) ==================== -->
-    <!-- Load login.js first, then session-manager.js -->
-    <script src="/js/login.js"></script>
-    <script src="/admin/js/session-manager.js"></script>
-    
-    <!-- Minimal inline script for global functions only -->
-    <script>
-        // ==================== 🔑 GLOBAL FUNCTIONS (These need to be global) ====================
-        
-        // Fill credentials from demo cards
-=======
     <!-- ==================== 🚀 JAVASCRIPT SECTION ==================== -->
     <script>
         // ==================== 🚨 GLOBAL ERROR HANDLER ====================
@@ -765,14 +749,14 @@
                 sessionExpiry: document.getElementById('sessionExpiry')
             };
             
-            console.log('🔍 Checking DOM elements:', elements);
+            console.SessionManager.log('🔍 Checking DOM elements:', elements);
             return elements;
         }
 
         // ==================== 🔐 SESSION CHECK ====================
         // Check if already logged in on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Page loaded, checking session...');
+            console.SessionManager.log('🚀 Page loaded, checking session...');
             validateElements();
             
             // 🔥 CRITICAL FIX: Auto-redirect if already logged in
@@ -812,16 +796,16 @@
 
         // ==================== ✅ CHECK EXISTING SESSION (FIXED) ====================
         function checkExistingSession() {
-            console.log('🔍 Checking existing session...');
+            console.SessionManager.log('🔍 Checking existing session...');
             
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             const userName = sessionStorage.getItem('adminName');
             
-            console.log('📦 Session storage:', { isLoggedIn, userName });
+            console.SessionManager.log('📦 Session storage:', { isLoggedIn, userName });
             
             // 🔥 FIX: Auto-redirect if session exists
             if (isLoggedIn === 'true' && userName) {
-                console.log('✅ Session exists! Auto-redirecting to dashboard...');
+                console.SessionManager.log('✅ Session exists! Auto-redirecting to dashboard...');
                 window.location.href = '/admin/dashboard.html';
                 return true;
             }
@@ -833,27 +817,26 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('📡 API session check:', data);
+                console.SessionManager.log('📡 API session check:', data);
                 if (data.authenticated) {
-                    console.log('✅ API session valid! Storing and redirecting...');
+                    console.SessionManager.log('✅ API session valid! Storing and redirecting...');
                     sessionStorage.setItem('adminLoggedIn', 'true');
                     sessionStorage.setItem('adminName', data.user.name);
                     sessionStorage.setItem('adminRole', data.user.role);
                     sessionStorage.setItem('loginTime', Date.now().toString());
                     window.location.href = '/admin/dashboard.html';
                 } else {
-                    console.log('ℹ️ No active session, showing login form');
+                    console.SessionManager.log('ℹ️ No active session, showing login form');
                 }
             })
             .catch(err => {
-                console.log('⚠️ API session check failed:', err);
+                console.SessionManager.log('⚠️ API session check failed:', err);
             });
             
             return false;
         }
 
         // ==================== 🔑 FILL CREDENTIALS ====================
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         function fillCredentials(username, password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
@@ -869,11 +852,7 @@
             document.getElementById('password').focus();
         }
 
-<<<<<<< HEAD
-        // Toggle password visibility
-=======
         // ==================== 👁️ PASSWORD VISIBILITY TOGGLE ====================
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePassword');
@@ -887,48 +866,35 @@
                 toggleIcon.classList.remove('fa-eye-slash');
                 toggleIcon.classList.add('fa-eye');
             }
+            
+            passwordInput.focus();
         }
 
-<<<<<<< HEAD
-        // Forgot password handler
-=======
         // ==================== 🔔 FORGOT PASSWORD ====================
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         function showForgotPassword(event) {
             event.preventDefault();
             alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
         }
 
-<<<<<<< HEAD
-        // DOM element validation (for debugging)
-        function validateElements() {
-            const elements = {
-                sessionInfo: document.getElementById('sessionInfo'),
-                loginForm: document.getElementById('loginForm'),
-                username: document.getElementById('username'),
-                password: document.getElementById('password'),
-                sessionUserName: document.getElementById('sessionUserName'),
-                sessionExpiry: document.getElementById('sessionExpiry')
-            };
-=======
         // ==================== ⚠️ SHOW ERROR MESSAGE ====================
-        function showError(message) {
+        function SessionManager.showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
             errorText.textContent = message;
             errorDiv.style.display = 'block';
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
             
-            console.log('🔍 DOM elements:', elements);
-            return elements;
+            // Hide success message if visible
+            document.getElementById('successMessage').style.display = 'none';
+            
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
         }
 
-<<<<<<< HEAD
-        // Simple console log wrapper to avoid SessionManager errors
-        console.log('✅ Login page loaded - waiting for scripts...');
-=======
         // ==================== ✅ SHOW SUCCESS MESSAGE ====================
-        function showSuccess(message) {
+        function SessionManager.showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
             const successText = document.getElementById('successText');
             successText.textContent = message;
@@ -941,13 +907,13 @@
         }
 
         // ==================== ✅ VALIDATE FORM ====================
-        function validateForm(username, password) {
+        function SessionManager.validateForm(username, password) {
             if (!username || !password) {
-                showError('Please enter both username and password');
+                SessionManager.showError('Please enter both username and password');
                 return false;
             }
             if (password.length < 6) {
-                showError('Password must be at least 6 characters');
+                SessionManager.showError('Password must be at least 6 characters');
                 return false;
             }
             return true;
@@ -965,7 +931,7 @@
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             
-            if (!validateForm(username, password)) {
+            if (!SessionManager.validateForm(username, password)) {
                 return;
             }
             
@@ -1004,21 +970,21 @@
                         localStorage.removeItem('rememberedUser');
                     }
                     
-                    showSuccess('Login successful! Redirecting to dashboard...');
+                    SessionManager.showSuccess('Login successful! Redirecting to dashboard...');
                     
                     // Redirect to dashboard
                     setTimeout(() => {
                         window.location.href = '/admin/dashboard.html';
                     }, 1000);
                 } else {
-                    showError(data.error || 'Invalid username or password');
+                    SessionManager.showError(data.error || 'Invalid username or password');
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
                     isSubmitting = false;
                 }
             } catch (error) {
                 console.error('❌ Login error:', error);
-                showError('Connection error. Please try again.');
+                SessionManager.showError('Connection error. Please try again.');
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
                 isSubmitting = false;
@@ -1049,7 +1015,7 @@
         // ==================== 🔄 PAGESHOW EVENT HANDLER ====================
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                console.log('📄 Page loaded from cache, rechecking session...');
+                console.SessionManager.log('📄 Page loaded from cache, rechecking session...');
                 checkExistingSession();
             }
         });
@@ -1057,13 +1023,12 @@
         // ==================== 🚀 IMMEDIATE SESSION CHECK ====================
         // This runs immediately when script loads
         (function immediateSessionCheck() {
-            console.log('🚀 Immediate session check...');
+            console.SessionManager.log('🚀 Immediate session check...');
             if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-                console.log('✅ Found session, redirecting NOW');
+                console.SessionManager.log('✅ Found session, redirecting NOW');
                 window.location.href = '/admin/dashboard.html';
             }
         })();
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
     </script>
 </body>
 </html>

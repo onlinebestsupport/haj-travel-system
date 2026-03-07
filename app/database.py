@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import threading
 import time
+from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,10 +13,38 @@ load_dotenv()
 # ==================== DATABASE CONFIGURATION ====================
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if not DATABASE_URL:
-    raise ValueError("❌ DATABASE_URL environment variable is REQUIRED!")
+# Optional: explicitly set SSL mode via environment variable.
+# Accepted values: 'require', 'verify-ca', 'verify-full', 'prefer', 'allow', 'disable'
+# Defaults to 'require' when connecting to a public Railway host (*.up.railway.app)
+# because the postgres-ssl Railway image mandates SSL on public connections.
+DATABASE_SSL_MODE = os.environ.get('DATABASE_SSL_MODE', '')
 
-print(f"📡 Connecting to database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'unknown'}")
+if not DATABASE_URL:
+    print("⚠️  WARNING: DATABASE_URL environment variable is not set. Database operations will fail.")
+else:
+    # Railway (and some other providers) supply postgres:// but psycopg2 requires postgresql://
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+    try:
+        _parsed = urlparse(DATABASE_URL)
+        _hostname = _parsed.hostname or ''
+        print(f"📡 Connecting to database: {_hostname if _hostname else 'unknown'}")
+
+        # Add sslmode to the URL when it is not already present as a query parameter.
+        # Public Railway PostgreSQL hosts (*.up.railway.app) require SSL;
+        # the postgres-ssl image enforces this on every public connection.
+        _query_params = parse_qs(_parsed.query)
+        if 'sslmode' not in _query_params:
+            _ssl_mode = DATABASE_SSL_MODE or (
+                'require' if _hostname.endswith('.up.railway.app') else ''
+            )
+            if _ssl_mode:
+                _sep = '&' if _parsed.query else '?'
+                DATABASE_URL = f"{DATABASE_URL}{_sep}sslmode={_ssl_mode}"
+                print(f"🔒 SSL mode set to '{_ssl_mode}' for database connection")
+    except Exception:
+        print("📡 Connecting to database: (URL parsing failed)")
 
 # Global flags to prevent double initialization
 _INITIALIZED = False
@@ -26,6 +55,8 @@ _init_lock = threading.Lock()
 
 def get_db():
     """Get PostgreSQL database connection"""
+    if not DATABASE_URL:
+        raise RuntimeError("❌ DATABASE_URL environment variable is not set. Please configure it in your environment.")
     try:
         conn = psycopg2.connect(DATABASE_URL)
         conn.autocommit = False

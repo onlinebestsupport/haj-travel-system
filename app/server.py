@@ -56,6 +56,7 @@ PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 ADMIN_DIR = os.path.join(PUBLIC_DIR, 'admin')
 TRAVELER_DIR = os.path.join(PUBLIC_DIR, 'traveler')
 
+<<<<<<< HEAD
 # Print directory information for debugging
 print(f"📁 Base directory: {BASE_DIR}")
 print(f"📁 Public directory: {PUBLIC_DIR}")
@@ -71,6 +72,75 @@ if os.path.exists(PUBLIC_DIR):
     print(f"📄 Files in public: {os.listdir(PUBLIC_DIR)}")
 if os.path.exists(ADMIN_DIR):
     print(f"📄 Files in admin: {os.listdir(ADMIN_DIR)}")
+=======
+# ==================== DIRECTORY VALIDATION & CREATION ====================
+def validate_and_create_directories():
+    """Validate required directories exist and create if missing"""
+    required_dirs = {
+        'PUBLIC_DIR': PUBLIC_DIR,
+        'ADMIN_DIR': ADMIN_DIR,
+        'UPLOAD_FOLDER': app.config['UPLOAD_FOLDER']
+    }
+    
+    print("\n" + "="*60)
+    print("📁 DIRECTORY VALIDATION")
+    print("="*60)
+    
+    for dir_name, dir_path in required_dirs.items():
+        try:
+            os.makedirs(dir_path, exist_ok=True)
+            exists = os.path.exists(dir_path)
+            status = "✅" if exists else "❌"
+            print(f"{status} {dir_name}: {dir_path}")
+        except Exception as e:
+            print(f"❌ {dir_name} ERROR: {e}")
+    
+    # Additional upload subdirectories
+    upload_subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'backups', 'company']
+    for subdir in upload_subdirs:
+        subdir_path = os.path.join(app.config['UPLOAD_FOLDER'], subdir)
+        try:
+            os.makedirs(subdir_path, exist_ok=True)
+        except Exception as e:
+            print(f"❌ Upload subdir {subdir} ERROR: {e}")
+    
+    print("="*60 + "\n")
+
+# Call validation on startup
+validate_and_create_directories()
+
+# ==================== FILE EXISTENCE CHECK ====================
+def check_required_files():
+    """Check if all required HTML files exist"""
+    required_files = {
+        'index.html': os.path.join(PUBLIC_DIR, 'index.html'),
+        'admin.login.html': os.path.join(PUBLIC_DIR, 'admin.login.html'),
+        'traveler_login.html': os.path.join(PUBLIC_DIR, 'traveler_login.html'),
+        'traveler_dashboard.html': os.path.join(PUBLIC_DIR, 'traveler_dashboard.html'),
+        'admin/dashboard.html': os.path.join(ADMIN_DIR, 'dashboard.html'),
+        'style.css': os.path.join(PUBLIC_DIR, 'style.css'),
+    }
+    
+    print("\n" + "="*60)
+    print("📄 REQUIRED FILES CHECK")
+    print("="*60)
+    
+    missing_files = []
+    for filename, filepath in required_files.items():
+        exists = os.path.exists(filepath)
+        status = "✅" if exists else "❌"
+        print(f"{status} {filename}")
+        if not exists:
+            missing_files.append(filename)
+    
+    print("="*60 + "\n")
+    
+    if missing_files:
+        print(f"⚠️  WARNING: Missing {len(missing_files)} files: {', '.join(missing_files)}")
+        print("🔧 FIX: Ensure all HTML files are in public/ directory\n")
+    
+    return len(missing_files) == 0
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
 
 # ==================== 🌐 CORS CONFIGURATION ====================
 # ==================== CORS CONFIGURATION ====================
@@ -93,6 +163,7 @@ CORS(
     ]
 )
 
+<<<<<<< HEAD
 # ==================== 📂 UPLOAD DIRECTORIES ====================
 try:
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -108,6 +179,9 @@ except Exception as e:
     print(f"❌ Error creating upload directories: {e}")
 
 # ==================== 🔷 BLUEPRINT REGISTRATION ====================
+=======
+# ==================== BLUEPRINT REGISTRATION ====================
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
 app.register_blueprint(auth.bp)
 app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
@@ -116,7 +190,7 @@ app.register_blueprint(payments.bp)
 app.register_blueprint(company.bp)
 app.register_blueprint(uploads.bp)
 app.register_blueprint(reports.bp)
-app.register_blueprint(invoices.bp)	
+app.register_blueprint(invoices.bp)
 app.register_blueprint(receipts.bp)
 
 # ==================== 📝 SESSION DEBUGGING MIDDLEWARE ====================
@@ -149,6 +223,7 @@ def serve_index():
             return send_from_directory(PUBLIC_DIR, 'index.html')
         else:
             print(f"❌ index.html not found at {index_path}")
+            print(f"📁 Files in {PUBLIC_DIR}: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'Directory does not exist'}")
             return jsonify({'success': False, 'error': 'Index page not found'}), 404
     except Exception as e:
         print(f"❌ Error serving index.html: {e}")
@@ -184,8 +259,17 @@ def serve_admin_index():
         dashboard_path = os.path.join(ADMIN_DIR, 'dashboard.html')
         if os.path.exists(dashboard_path):
             return send_from_directory(ADMIN_DIR, 'dashboard.html')
+<<<<<<< HEAD
         return jsonify({'success': False, 'error': 'Dashboard not found'}), 404
     except Exception as e:
+=======
+        else:
+            print(f"❌ Dashboard not found at {dashboard_path}")
+            print(f"📁 Files in {ADMIN_DIR}: {os.listdir(ADMIN_DIR) if os.path.exists(ADMIN_DIR) else 'Directory does not exist'}")
+            return jsonify({'success': False, 'error': 'Dashboard not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving dashboard: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/<path:filename>')
@@ -221,13 +305,22 @@ def serve_traveler_index():
         traveler_dashboard = os.path.join(PUBLIC_DIR, 'traveler_dashboard.html')
         if os.path.exists(traveler_dashboard):
             return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+<<<<<<< HEAD
         return jsonify({'success': False, 'error': 'Traveler dashboard not found'}), 404
     except Exception as e:
+=======
+        else:
+            print(f"❌ Traveler dashboard not found at {traveler_dashboard}")
+            return jsonify({'success': False, 'error': 'Traveler dashboard not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving traveler dashboard: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/traveler/<path:filename>')
 def serve_traveler(filename):
     """Serve traveler files"""
+<<<<<<< HEAD
     try:
         # Security check
         if '..' in filename or filename.startswith('/'):
@@ -245,6 +338,37 @@ def serve_traveler(filename):
         
         return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
     except Exception as e:
+=======
+    # Security check
+    if '..' in filename or filename.startswith('/'):
+        return jsonify({'success': False, 'error': 'Invalid path'}), 400
+    
+    # Try exact file match
+    file_path = os.path.join(PUBLIC_DIR, filename)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(PUBLIC_DIR, filename)
+    
+    # Try with .html extension
+    html_path = os.path.join(PUBLIC_DIR, filename + '.html')
+    if os.path.exists(html_path) and os.path.isfile(html_path):
+        return send_from_directory(PUBLIC_DIR, filename + '.html')
+    
+    return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
+
+@app.route('/admin.login.html')
+@app.route('/admin/login')
+def serve_admin_login():
+    """Serve admin login page"""
+    try:
+        login_path = os.path.join(PUBLIC_DIR, 'admin.login.html')
+        if os.path.exists(login_path):
+            return send_from_directory(PUBLIC_DIR, 'admin.login.html')
+        else:
+            print(f"❌ Admin login not found at {login_path}")
+            return jsonify({'success': False, 'error': 'Login page not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving admin login: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== 🚪 TRAVELER LOGIN ROUTES ====================
@@ -256,8 +380,16 @@ def serve_traveler_login():
         login_path = os.path.join(PUBLIC_DIR, 'traveler_login.html')
         if os.path.exists(login_path):
             return send_from_directory(PUBLIC_DIR, 'traveler_login.html')
+<<<<<<< HEAD
         return jsonify({'success': False, 'error': 'Traveler login page not found'}), 404
     except Exception as e:
+=======
+        else:
+            print(f"❌ Traveler login not found at {login_path}")
+            return jsonify({'success': False, 'error': 'Traveler login page not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving traveler login: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== 📄 FRONTPAGE ROUTES ====================
@@ -269,8 +401,16 @@ def serve_frontpage():
         frontpage_path = os.path.join(ADMIN_DIR, 'frontpage.html')
         if os.path.exists(frontpage_path):
             return send_from_directory(ADMIN_DIR, 'frontpage.html')
+<<<<<<< HEAD
         return jsonify({'success': False, 'error': 'Frontpage editor not found'}), 404
     except Exception as e:
+=======
+        else:
+            print(f"❌ Frontpage not found at {frontpage_path}")
+            return jsonify({'success': False, 'error': 'Frontpage editor not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving frontpage: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== 🎨 CSS ROUTES ====================
@@ -281,8 +421,16 @@ def serve_css():
         css_path = os.path.join(PUBLIC_DIR, 'style.css')
         if os.path.exists(css_path):
             return send_from_directory(PUBLIC_DIR, 'style.css')
+<<<<<<< HEAD
         return jsonify({'success': False, 'error': 'CSS file not found'}), 404
     except Exception as e:
+=======
+        else:
+            print(f"❌ CSS file not found at {css_path}")
+            return jsonify({'success': False, 'error': 'CSS file not found'}), 404
+    except Exception as e:
+        print(f"❌ Error serving CSS: {e}")
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/admin-style.css')
@@ -548,9 +696,13 @@ def not_found(error):
 
 @app.errorhandler(500)
 def internal_error(error):
+<<<<<<< HEAD
     """Handle 500 internal server errors"""
     print(f"❌ Internal server error: {error}")
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
+=======
+    return jsonify({'success': False, 'error': 'Internal server error', 'details': str(error)}), 500
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
 
 # ==================== 🔧 HELPER FUNCTIONS ====================
 def log_admin_action(user_id, action, description):
@@ -571,6 +723,9 @@ def log_admin_action(user_id, action, description):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    # Check required files before starting
+    files_ok = check_required_files()
     
     print("=" * 60)
     print("🚀 Alhudha Haj Travel System v2.0")
@@ -594,7 +749,16 @@ if __name__ == '__main__':
     print("📡 Frontpage Editor: /admin/frontpage.html")
     print("=" * 60)
     
+<<<<<<< HEAD
     try:
         app.run(host='0.0.0.0', port=port, debug=debug)
     except Exception as e:
         print(f"❌ Failed to start server: {e}")
+=======
+    if not files_ok:
+        print("\n⚠️  WARNING: Some required files are missing!")
+        print("🔧 Please ensure all HTML files are in the public/ directory")
+        print("⏱️  Starting server anyway... (may have 404 errors)\n")
+    
+    app.run(host='0.0.0.0', port=port, debug=debug)
+>>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
