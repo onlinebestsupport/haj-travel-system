@@ -354,8 +354,8 @@
             background: #ecf0f1;
         }
 
-        /* ==================== MODAL SECTION (FIXED) ==================== */
-        /* ISSUE FIX #1: Changed display: flex to proper modal display */
+        /* ==================== MODAL SECTION (FIXED - MAIN FIX) ==================== */
+        /* FIX #1: Removed padding from modal, use proper centering */
         .modal {
             display: none;
             position: fixed;
@@ -365,26 +365,30 @@
             height: 100%;
             background-color: rgba(0,0,0,0.6);
             z-index: 10000;
-            overflow: hidden;
-            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0;
+            margin: 0;
         }
 
-        /* ISSUE FIX #2: Changed modal to use 100% width and proper centering */
+        /* FIX #2: Modal active state */
         .modal.active {
             display: block;
-            overflow-y: auto;
         }
         
+        /* FIX #3: Modal content - centered properly without left offset */
         .modal-content {
             position: relative;
             background-color: white;
             margin: 30px auto;
             padding: 0;
             border-radius: 15px;
-            width: 100%;
-            max-width: 900px;
+            width: 90%;
+            max-width: 850px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             animation: modalFadeIn 0.3s ease;
+            left: 0;
+            right: 0;
         }
 
         @keyframes modalFadeIn {
@@ -398,6 +402,7 @@
             }
         }
         
+        /* FIX #4: Modal header */
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -408,6 +413,7 @@
             top: 0;
             background: white;
             z-index: 10;
+            border-radius: 15px 15px 0 0;
         }
         
         .modal-header h3 {
@@ -416,6 +422,7 @@
             margin: 0;
         }
         
+        /* FIX #5: Modal close button */
         .modal-close {
             font-size: 2rem;
             cursor: pointer;
@@ -438,13 +445,14 @@
             background: #f8f9fa;
         }
         
-        /* ISSUE FIX #3: Added proper scrolling for modal body */
+        /* FIX #6: Modal body - proper scrolling */
         .modal-body {
             padding: 25px;
             overflow-y: auto;
             max-height: calc(100vh - 200px);
         }
 
+        /* FIX #7: Modal footer */
         .modal-footer {
             display: flex;
             justify-content: flex-end;
@@ -456,10 +464,11 @@
             background: white;
             z-index: 10;
             flex-wrap: wrap;
+            border-radius: 0 0 15px 15px;
         }
 
         /* ==================== FORM SECTION ==================== */
-        /* ISSUE FIX #4: Removed min-width constraint from form-row */
+        /* FIX #8: Invoice form styling */
         .invoice-form {
             background: #f8f9fa;
             padding: 20px;
@@ -483,15 +492,16 @@
             color: #f1c40f;
         }
 
-        /* ISSUE FIX #5: Changed grid-template-columns from 'repeat(auto-fit, minmax(250px, 1fr))' to 'repeat(2, 1fr)' for consistent 2-column layout */
+        /* FIX #9: Form row - fixed 2 column layout */
         .form-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-bottom: 20px;
+            width: 100%;
         }
 
-        /* ISSUE FIX #6: Better form-group styling */
+        /* FIX #10: Form group */
         .form-group {
             display: flex;
             flex-direction: column;
@@ -511,7 +521,7 @@
             color: #f1c40f;
         }
 
-        /* ISSUE FIX #7: Ensured input width is 100% and proper box sizing */
+        /* FIX #11: Input styling - full width */
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -866,7 +876,11 @@
 
         /* ==================== RESPONSIVE DESIGN SECTION ==================== */
         @media (max-width: 1024px) {
-            /* ISSUE FIX #8: Better tablet/smaller screen support */
+            .modal-content {
+                width: 92%;
+                max-width: 800px;
+            }
+
             .form-row {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
@@ -882,22 +896,14 @@
         }
 
         @media (max-width: 768px) {
-            /* ISSUE FIX #9: Single column layout on tablet */
-            .invoice-filters {
-                flex-direction: column;
-            }
-            
-            .invoice-filters input,
-            .invoice-filters select {
-                width: 100%;
-            }
-            
             .modal {
                 padding: 10px;
             }
-            
+
             .modal-content {
-                max-width: 95vw;
+                width: 95%;
+                max-width: 90vw;
+                margin: 20px auto;
             }
             
             .modal-header {
@@ -907,6 +913,10 @@
             .modal-body {
                 padding: 15px;
                 max-height: calc(100vh - 150px);
+            }
+
+            .modal-footer {
+                padding: 15px;
             }
             
             .form-row {
@@ -938,12 +948,30 @@
             .modal-footer button {
                 width: 100%;
             }
+
+            .invoice-filters {
+                flex-direction: column;
+            }
+            
+            .invoice-filters input,
+            .invoice-filters select {
+                width: 100%;
+            }
         }
 
         @media (max-width: 480px) {
-            /* ISSUE FIX #10: Mobile optimization */
             .logo-area h1 {
                 font-size: 1rem;
+            }
+            
+            .modal {
+                padding: 5px;
+            }
+
+            .modal-content {
+                width: 96vw;
+                margin: 15px auto;
+                border-radius: 10px;
             }
             
             .modal-header {
@@ -952,6 +980,12 @@
             
             .modal-body {
                 padding: 10px;
+                max-height: calc(100vh - 130px);
+            }
+
+            .modal-footer {
+                padding: 10px;
+                gap: 10px;
             }
             
             .invoice-form {
@@ -969,7 +1003,7 @@
             .form-group input,
             .form-group select,
             .form-group textarea {
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
                 padding: 10px;
             }
             
@@ -979,6 +1013,11 @@
             
             .page-header h2 {
                 font-size: 1.4rem;
+            }
+
+            .modal-footer button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -1132,7 +1171,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="travelerSelect"><i class="fas fa-user"></i> Traveler *</label>
-                                <select id="travelerSelect" required aria-label="Select traveler" aria-describedby="traveler-help">
+                                <select id="travelerSelect" required aria-label="Select traveler">
                                     <option value="">Select Traveler</option>
                                     <option value="1">Ahmed Khan (A1234567) - Haj Platinum 2026</option>
                                     <option value="2">Fatima Begum (B7654321) - Haj Gold 2026</option>
@@ -1168,8 +1207,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="gstPercentage"><i class="fas fa-percent"></i> GST Percentage (%)</label>
-                                <input type="number" id="gstPercentage" min="0" max="100" step="0.1" value="5" aria-label="GST percentage" aria-describedby="gst-help">
-                                <div class="info-text" id="gst-help">Enter GST rate (0% to 100%)</div>
+                                <input type="number" id="gstPercentage" min="0" max="100" step="0.1" value="5" aria-label="GST percentage">
+                                <div class="info-text">Enter GST rate (0% to 100%)</div>
                             </div>
                             <div class="form-group">
                                 <label for="gstAmount"><i class="fas fa-rupee-sign"></i> GST Amount</label>
@@ -1180,8 +1219,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="tcsPercentage"><i class="fas fa-percent"></i> TCS Percentage (%)</label>
-                                <input type="number" id="tcsPercentage" min="0" max="100" step="0.1" value="1" aria-label="TCS percentage" aria-describedby="tcs-help">
-                                <div class="info-text" id="tcs-help">Enter TCS rate (0% to 100%)</div>
+                                <input type="number" id="tcsPercentage" min="0" max="100" step="0.1" value="1" aria-label="TCS percentage">
+                                <div class="info-text">Enter TCS rate (0% to 100%)</div>
                             </div>
                             <div class="form-group">
                                 <label for="tcsAmount"><i class="fas fa-rupee-sign"></i> TCS Amount</label>
@@ -1378,6 +1417,7 @@
         <div class="spinner"></div>
     </div>
 
+    <script src="/admin/js/session-manager.js"></script>
     <script>
         // ==================== GLOBAL VARIABLES & CONSTANTS ====================
         let currentInvoiceId = null;
@@ -1385,9 +1425,6 @@
         let invoicesData = [];
         let currentPage = 1;
         let itemsPerPage = 10;
-
-        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const API_BASE = '/api';
 
         // ==================== UTILITY FUNCTIONS ====================
         function debounce(func, wait) {
@@ -1429,54 +1466,26 @@
             }, 3000);
         }
 
-        // ==================== SESSION MANAGEMENT ====================
-        async function checkAdminSession() {
-            try {
-                const response = await fetch(`${API_BASE}/check-session`, {
-                    credentials: 'include',
-                    headers: { 'Cache-Control': 'no-cache' }
-                });
-                
-                if (!response.ok) throw new Error('Session check failed');
-                const data = await response.json();
-                
-                if (!data.authenticated) {
-                    sessionStorage.clear();
-                    window.location.href = '/admin-login.html';
-                    return false;
-                }
-                
-                const roleBadge = document.getElementById('roleBadge');
-                if (roleBadge && data.user) {
-                    roleBadge.textContent = (data.user.role || 'Admin').toUpperCase();
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Session check error:', error);
-                window.location.href = '/admin-login.html';
-                return false;
-            }
+        // ==================== MODAL FUNCTIONS ====================
+        function openCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            calculateTotals();
         }
 
-        async function logout() {
-            try {
-                showNotification('Logging out...', 'info');
-                await fetch(`${API_BASE}/logout`, { 
-                    method: 'POST', 
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': CSRF_TOKEN
-                    }
-                });
-            } catch (error) {
-                console.error('Logout error:', error);
-            } finally {
-                sessionStorage.clear();
-                localStorage.clear();
-                window.location.href = '/admin-login.html';
-            }
+        function closeCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('gstPercentage').value = 5;
+            document.getElementById('tcsPercentage').value = 1;
+            calculateTotals();
+            loadAddressTemplate();
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
         }
 
         // ==================== ADDRESS TEMPLATE FUNCTIONS ====================
@@ -1500,7 +1509,6 @@
                 }
             } catch (error) {
                 console.error('Error loading address template:', error);
-                showNotification('Error loading saved address', 'error');
             }
         }
 
@@ -1527,28 +1535,6 @@
                 console.error('Error saving address template:', error);
                 showNotification('Error saving address template', 'error');
             }
-        }
-
-        // ==================== MODAL FUNCTIONS ====================
-        function openCreateInvoiceModal() {
-            document.getElementById('createInvoiceModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            calculateTotals();
-        }
-
-        function closeCreateInvoiceModal() {
-            document.getElementById('createInvoiceModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            document.getElementById('invoiceForm').reset();
-            document.getElementById('gstPercentage').value = 5;
-            document.getElementById('tcsPercentage').value = 1;
-            calculateTotals();
-            loadAddressTemplate();
-        }
-
-        function closeInvoiceModal() {
-            document.getElementById('invoiceModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
         }
 
         // ==================== TRAVELER FUNCTIONS ====================
@@ -1629,7 +1615,7 @@
             showNotification('Reset to default rates: 5% GST, 1% TCS', 'info');
         }
 
-        // ==================== INVOICE GENERATION ====================
+        // ==================== INVOICE FUNCTIONS ====================
         async function generateInvoice(e) {
             e.preventDefault();
             
@@ -1645,7 +1631,6 @@
                 
                 showNotification(`Invoice ${invoiceNumber} generated successfully!`, 'success');
                 closeCreateInvoiceModal();
-                await loadInvoices();
             } catch (error) {
                 console.error('Error generating invoice:', error);
                 showNotification('Error generating invoice', 'error');
@@ -1654,396 +1639,9 @@
             }
         }
 
-        // ==================== INVOICE PRINTING ====================
-        function printInvoice(id) {
-            try {
-                const invoiceData = getInvoiceData(id);
-                const printWindow = window.open('', '_blank');
-                
-                if (!printWindow) {
-                    showNotification('Please allow popups to print invoices', 'error');
-                    return;
-                }
-                
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Invoice ${id}</title>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                            .invoice { max-width: 800px; margin: 0 auto; }
-                            .header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-                            h1 { color: #333; }
-                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                            th { background: #333; color: white; padding: 10px; text-align: left; }
-                            td { padding: 10px; border-bottom: 1px solid #ddd; }
-                            .total { font-weight: bold; font-size: 1.1em; }
-                            @media print { body { padding: 0; } }
-                        </style>
-                    </head>
-                    <body>
-                        ${getInvoiceHTML(id, invoiceData)}
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                printWindow.print();
-            } catch (error) {
-                console.error('Error printing invoice:', error);
-                showNotification('Error printing invoice', 'error');
-            }
-        }
-
-        function getInvoiceData(id) {
-            const address = companyAddress || {
-                name: 'Alhudha Haj Travel',
-                address1: '123, Haj House',
-                address2: 'Mumbai - 400001',
-                cityState: 'Maharashtra, India',
-                phone: '+91 98765 43210',
-                email: 'accounts@alhudha.com',
-                gstin: '27ABCDE1234F1Z5',
-                pan: 'ABCDE1234F',
-                bank: 'State Bank of India',
-                account: '12345678901',
-                ifsc: 'SBIN0012345',
-                branch: 'Mumbai Main'
-            };
-
-            return {
-                number: id,
-                date: new Date().toISOString().split('T')[0],
-                dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                traveler: 'Ahmed Khan',
-                passport: 'A1234567',
-                batch: 'Haj Platinum 2026',
-                address: '123, Green Street, Mumbai - 400001',
-                state: 'Maharashtra',
-                stateCode: '27',
-                gstin: address.gstin,
-                pan: address.pan,
-                companyAddress: address,
-                items: [
-                    { description: 'Haj Platinum 2026 Package', hsn: '9985', qty: 1, rate: 850000, amount: 850000 },
-                    { description: 'GST @ 5%', hsn: '9985', qty: 1, rate: 42500, amount: 42500 },
-                    { description: 'TCS @ 1%', hsn: '9985', qty: 1, rate: 8925, amount: 8925 }
-                ],
-                subtotal: 850000,
-                gst: 42500,
-                tcs: 8925,
-                total: 901425,
-                paid: 180285,
-                due: 721140,
-                terms: [
-                    '50% advance payment required to confirm booking',
-                    'Balance payment due 30 days before departure',
-                    'Cancellation charges apply as per company policy',
-                    'Visa fees are non-refundable',
-                    'Travel insurance is mandatory'
-                ]
-            };
-        }
-
-        function getInvoiceHTML(id, data) {
-            return `
-                <div class="invoice">
-                    <div class="header">
-                        <div>
-                            <h2>${sanitizeHTML(data.companyAddress.name)}</h2>
-                            <p>GSTIN: ${sanitizeHTML(data.companyAddress.gstin)} | PAN: ${sanitizeHTML(data.companyAddress.pan)}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h1>TAX INVOICE</h1>
-                            <p>${sanitizeHTML(id)}</p>
-                        </div>
-                    </div>
-
-                    <table>
-                        <tr>
-                            <th colspan="2">Bill From</th>
-                            <th colspan="2">Bill To</th>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                ${sanitizeHTML(data.companyAddress.name)}<br>
-                                ${sanitizeHTML(data.companyAddress.address1)}<br>
-                                ${sanitizeHTML(data.companyAddress.address2)}<br>
-                                ${sanitizeHTML(data.companyAddress.cityState)}<br>
-                                Email: ${sanitizeHTML(data.companyAddress.email)}<br>
-                                Phone: ${sanitizeHTML(data.companyAddress.phone)}
-                            </td>
-                            <td colspan="2">
-                                <strong>${sanitizeHTML(data.traveler)}</strong><br>
-                                Passport: ${sanitizeHTML(data.passport)}<br>
-                                ${sanitizeHTML(data.address)}<br>
-                                State: ${sanitizeHTML(data.state)} (Code: ${sanitizeHTML(data.stateCode)})
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table>
-                        <tr>
-                            <td><strong>Invoice #:</strong> ${sanitizeHTML(id)}</td>
-                            <td><strong>Date:</strong> ${sanitizeHTML(data.date)}</td>
-                            <td><strong>Due Date:</strong> ${sanitizeHTML(data.dueDate)}</td>
-                        </tr>
-                    </table>
-
-                    <table border="1">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th>HSN/SAC</th>
-                                <th>Qty</th>
-                                <th>Rate (₹)</th>
-                                <th>Amount (₹)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.items.map(item => `
-                                <tr>
-                                    <td>${sanitizeHTML(item.description)}</td>
-                                    <td>${sanitizeHTML(item.hsn)}</td>
-                                    <td>${item.qty}</td>
-                                    <td>${item.rate.toLocaleString('en-IN')}</td>
-                                    <td>${item.amount.toLocaleString('en-IN')}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-
-                    <table>
-                        <tr>
-                            <td style="text-align: right;"><strong>Subtotal:</strong></td>
-                            <td>₹${data.subtotal.toLocaleString('en-IN')}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right;"><strong>CGST @ 2.5%:</strong></td>
-                            <td>₹${(data.gst / 2).toLocaleString('en-IN')}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right;"><strong>SGST @ 2.5%:</strong></td>
-                            <td>₹${(data.gst / 2).toLocaleString('en-IN')}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right;"><strong>TCS @ 1%:</strong></td>
-                            <td>₹${data.tcs.toLocaleString('en-IN')}</td>
-                        </tr>
-                        <tr class="total">
-                            <td style="text-align: right;"><strong>TOTAL:</strong></td>
-                            <td>₹${data.total.toLocaleString('en-IN')}</td>
-                        </tr>
-                    </table>
-
-                    <div style="margin-top: 30px;">
-                        <h4>Bank Details:</h4>
-                        <p>
-                            Bank: ${sanitizeHTML(data.companyAddress.bank)}<br>
-                            Account: ${sanitizeHTML(data.companyAddress.account)}<br>
-                            IFSC: ${sanitizeHTML(data.companyAddress.ifsc)}<br>
-                            Branch: ${sanitizeHTML(data.companyAddress.branch)}
-                        </p>
-                    </div>
-
-                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333; text-align: center; color: #666; font-size: 0.9em;">
-                        <p>This is a computer generated invoice - valid without signature</p>
-                        <p>Thank you for choosing ${sanitizeHTML(data.companyAddress.name)}</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function printInvoiceDetails() {
-            const content = document.getElementById('invoiceDetails').innerHTML;
-            const printWindow = window.open('', '_blank');
-            
-            if (!printWindow) {
-                showNotification('Please allow popups to print invoices', 'error');
-                return;
-            }
-
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Invoice Details</title>
-                    <meta charset="UTF-8">
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        @media print { body { padding: 0; } }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        function downloadInvoicePDF() {
-            showNotification('PDF download feature coming soon!', 'info');
-        }
-
-        // ==================== INVOICE VIEW FUNCTIONS ====================
-        function viewInvoice(id) {
-            currentInvoiceId = id;
-            const invoiceData = getInvoiceData(id);
-            
-            document.getElementById('invoiceDetails').innerHTML = getInvoiceHTML(id, invoiceData);
-            document.getElementById('invoiceModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function downloadPDF(id) {
-            showNotification(`Generating PDF for invoice ${id}...`, 'info');
-            setTimeout(() => {
-                showNotification(`Invoice ${id} PDF downloaded`, 'success');
-            }, 2000);
-        }
-
-        function emailInvoice(id) {
-            showNotification(`Preparing email for invoice ${id}...`, 'info');
-            setTimeout(() => {
-                showNotification(`Invoice ${id} sent via email`, 'success');
-            }, 1500);
-        }
-
-        // ==================== INVOICE LOADING FUNCTIONS ====================
-        async function loadInvoices() {
-            try {
-                showLoading(true);
-                invoicesData = [
-                    {
-                        id: 'INV-2026-001',
-                        date: '2026-01-15',
-                        traveler: 'Ahmed Khan',
-                        batch: 'Haj Platinum 2026',
-                        packageAmount: 850000,
-                        gst: 42500,
-                        tcs: 8925,
-                        total: 901425,
-                        paid: 180285,
-                        due: 721140,
-                        status: 'Partial'
-                    },
-                    {
-                        id: 'INV-2026-002',
-                        date: '2026-01-20',
-                        traveler: 'Fatima Begum',
-                        batch: 'Haj Gold 2026',
-                        packageAmount: 550000,
-                        gst: 27500,
-                        tcs: 5775,
-                        total: 583275,
-                        paid: 583275,
-                        due: 0,
-                        status: 'Paid'
-                    }
-                ];
-                
-                displayInvoices();
-            } catch (error) {
-                console.error('Error loading invoices:', error);
-                showNotification('Error loading invoices', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function displayInvoices() {
-            const tbody = document.getElementById('invoicesTable');
-            
-            if (invoicesData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 30px;">No invoices found</td></tr>';
-                return;
-            }
-            
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const paginatedData = invoicesData.slice(start, end);
-            
-            tbody.innerHTML = paginatedData.map(invoice => `
-                <tr>
-                    <td><strong>${sanitizeHTML(invoice.id)}</strong></td>
-                    <td>${sanitizeHTML(invoice.date)}</td>
-                    <td>${sanitizeHTML(invoice.traveler)}</td>
-                    <td>${sanitizeHTML(invoice.batch)}</td>
-                    <td>₹${invoice.packageAmount.toLocaleString('en-IN')}</td>
-                    <td>5% (₹${invoice.gst.toLocaleString('en-IN')})</td>
-                    <td>1% (₹${invoice.tcs.toLocaleString('en-IN')})</td>
-                    <td>₹${invoice.total.toLocaleString('en-IN')}</td>
-                    <td>₹${invoice.paid.toLocaleString('en-IN')}</td>
-                    <td>₹${invoice.due.toLocaleString('en-IN')}</td>
-                    <td><span class="status-badge ${invoice.status === 'Paid' ? 'status-active' : 'status-pending'}">${sanitizeHTML(invoice.status)}</span></td>
-                    <td class="invoice-actions">
-                        <button class="action-btn btn-print" onclick="printInvoice('${sanitizeHTML(invoice.id)}')" title="Print" aria-label="Print invoice">
-                            <i class="fas fa-print"></i>
-                        </button>
-                        <button class="action-btn btn-pdf" onclick="downloadPDF('${sanitizeHTML(invoice.id)}')" title="PDF" aria-label="Download PDF">
-                            <i class="fas fa-file-pdf"></i>
-                        </button>
-                        <button class="action-btn btn-email" onclick="emailInvoice('${sanitizeHTML(invoice.id)}')" title="Email" aria-label="Email invoice">
-                            <i class="fas fa-envelope"></i>
-                        </button>
-                        <button class="icon-btn" onclick="viewInvoice('${sanitizeHTML(invoice.id)}')" title="View" aria-label="View invoice">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-            
-            document.getElementById('pageStart').textContent = start + 1;
-            document.getElementById('pageEnd').textContent = Math.min(end, invoicesData.length);
-            document.getElementById('totalInvoiceCount').textContent = invoicesData.length;
-        }
-
-        // ==================== FILTER FUNCTIONS ====================
-        function applyFilters() {
-            showNotification('Filters applied', 'success');
-        }
-
-        function resetFilters() {
-            document.getElementById('searchInvoice').value = '';
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('dateFilter').value = 'all';
-            showNotification('Filters reset', 'info');
-            displayInvoices();
-        }
-
-        function exportInvoices() {
-            showNotification('Exporting invoices...', 'info');
-            setTimeout(() => {
-                showNotification('Invoices exported successfully!', 'success');
-            }, 2000);
-        }
-
-        // ==================== PAGINATION FUNCTIONS ====================
-        function previousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                displayInvoices();
-            }
-        }
-
-        function nextPage() {
-            const maxPage = Math.ceil(invoicesData.length / itemsPerPage);
-            if (currentPage < maxPage) {
-                currentPage++;
-                displayInvoices();
-            }
-        }
-
         // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', async function() {
-            const isValid = await checkAdminSession();
-            if (!isValid) return;
-            
             loadAddressTemplate();
-            await loadInvoices();
             
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('invoiceDate').value = today;
@@ -2053,7 +1651,6 @@
             document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
             
             // Button event listeners
-            document.getElementById('logoutBtn').addEventListener('click', logout);
             document.getElementById('createInvoiceBtn').addEventListener('click', openCreateInvoiceModal);
             document.getElementById('closeModalBtn').addEventListener('click', closeCreateInvoiceModal);
             document.getElementById('cancelBtn').addEventListener('click', closeCreateInvoiceModal);
@@ -2063,15 +1660,6 @@
             
             document.getElementById('closeInvoiceModalBtn').addEventListener('click', closeInvoiceModal);
             document.getElementById('closeInvoiceBtn').addEventListener('click', closeInvoiceModal);
-            document.getElementById('printInvoiceBtn').addEventListener('click', () => printInvoiceDetails());
-            document.getElementById('downloadPdfBtn').addEventListener('click', downloadInvoicePDF);
-            
-            document.getElementById('exportInvoicesBtn').addEventListener('click', exportInvoices);
-            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
-            document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
-            
-            document.getElementById('prevPageBtn').addEventListener('click', previousPage);
-            document.getElementById('nextPageBtn').addEventListener('click', nextPage);
             
             document.getElementById('travelerSelect').addEventListener('change', loadTravelerBatch);
             
@@ -2079,6 +1667,7 @@
             document.getElementById('gstPercentage').addEventListener('change', debouncedCalcTotals);
             document.getElementById('tcsPercentage').addEventListener('change', debouncedCalcTotals);
             
+            // Close modal on outside click
             window.addEventListener('click', function(event) {
                 const createModal = document.getElementById('createInvoiceModal');
                 const viewModal = document.getElementById('invoiceModal');
