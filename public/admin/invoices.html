@@ -7,21 +7,25 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ==================== RESET & BASE STYLES ==================== */
+        /* ==================== CRITICAL FIX: ROOT STYLES ==================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        html {
-            scroll-behavior: smooth;
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
         }
 
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
             overflow-x: hidden;
+            position: relative;
         }
 
         .container {
@@ -45,6 +49,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .logo-area {
@@ -217,7 +224,6 @@
             border: 2px solid #ecf0f1;
             border-radius: 5px;
             font-size: 1rem;
-            min-width: 200px;
         }
         
         .invoice-filters button {
@@ -301,9 +307,7 @@
             gap: 5px;
         }
         
-        .btn-print {
-            background: #3498db;
-            color: white;
+        .btn-print, .btn-pdf, .btn-email {
             border: none;
             padding: 8px 12px;
             border-radius: 5px;
@@ -312,32 +316,19 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            color: white;
+        }
+
+        .btn-print {
+            background: #3498db;
         }
         
         .btn-pdf {
             background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
         }
         
         .btn-email {
             background: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
         }
 
         .icon-btn {
@@ -354,41 +345,44 @@
             background: #ecf0f1;
         }
 
-        /* ==================== MODAL SECTION (FIXED - MAIN FIX) ==================== */
-        /* FIX #1: Removed padding from modal, use proper centering */
+        /* ==================== CRITICAL FIX: MODAL SECTION ==================== */
+        /* FIX #1: Use fixed positioning with 100vw */
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: rgba(0,0,0,0.6);
-            z-index: 10000;
+            z-index: 9999;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 0;
             margin: 0;
         }
 
-        /* FIX #2: Modal active state */
+        /* FIX #2: Active class for visibility */
         .modal.active {
-            display: block;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 30px;
         }
         
-        /* FIX #3: Modal content - centered properly without left offset */
+        /* FIX #3: Modal content - NO left/right auto margin */
         .modal-content {
-            position: relative;
             background-color: white;
-            margin: 30px auto;
-            padding: 0;
             border-radius: 15px;
-            width: 90%;
-            max-width: 850px;
+            width: 85vw;
+            max-width: 800px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             animation: modalFadeIn 0.3s ease;
-            left: 0;
-            right: 0;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            margin: 0;
+            padding: 0;
         }
 
         @keyframes modalFadeIn {
@@ -409,10 +403,8 @@
             align-items: center;
             padding: 25px;
             border-bottom: 2px solid #ecf0f1;
-            position: sticky;
-            top: 0;
+            flex-shrink: 0;
             background: white;
-            z-index: 10;
             border-radius: 15px 15px 0 0;
         }
         
@@ -445,11 +437,11 @@
             background: #f8f9fa;
         }
         
-        /* FIX #6: Modal body - proper scrolling */
+        /* FIX #6: Modal body - scrollable */
         .modal-body {
             padding: 25px;
             overflow-y: auto;
-            max-height: calc(100vh - 200px);
+            flex-grow: 1;
         }
 
         /* FIX #7: Modal footer */
@@ -459,22 +451,20 @@
             gap: 15px;
             padding: 20px 25px;
             border-top: 1px solid #ecf0f1;
-            position: sticky;
-            bottom: 0;
             background: white;
-            z-index: 10;
+            flex-shrink: 0;
             flex-wrap: wrap;
             border-radius: 0 0 15px 15px;
         }
 
         /* ==================== FORM SECTION ==================== */
-        /* FIX #8: Invoice form styling */
         .invoice-form {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
             border: 1px solid #e0e0e0;
+            width: 100%;
         }
 
         .invoice-form h4 {
@@ -492,20 +482,21 @@
             color: #f1c40f;
         }
 
-        /* FIX #9: Form row - fixed 2 column layout */
+        /* FIX #8: Form row - FIXED 2 columns, NO auto-fit */
         .form-row {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 20px;
             width: 100%;
         }
 
-        /* FIX #10: Form group */
+        /* FIX #9: Form group - full width */
         .form-group {
             display: flex;
             flex-direction: column;
             width: 100%;
+            min-width: 0;
         }
 
         .form-group label {
@@ -521,7 +512,7 @@
             color: #f1c40f;
         }
 
-        /* FIX #11: Input styling - full width */
+        /* FIX #10: Input styling - 100% width */
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -532,6 +523,7 @@
             font-size: 1rem;
             transition: all 0.3s;
             box-sizing: border-box;
+            min-width: 0;
         }
 
         .form-group input:focus,
@@ -566,6 +558,7 @@
             border-radius: 8px;
             margin: 20px 0;
             border: 2px solid #3498db;
+            width: 100%;
         }
 
         .calculation-row {
@@ -593,250 +586,6 @@
             font-weight: 600;
             color: #2c3e50;
         }
-
-        /* ==================== INVOICE PRINT TEMPLATE SECTION ==================== */
-        .invoice-print-template {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .invoice-logo h2 {
-            color: #1e3c72;
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-
-        .invoice-logo p {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .invoice-title {
-            text-align: right;
-        }
-
-        .invoice-title h1 {
-            color: #3498db;
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-
-        .invoice-title p {
-            color: #7f8c8d;
-            font-size: 1rem;
-        }
-
-        .invoice-address {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .invoice-to h4,
-        .invoice-from h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        .invoice-to p,
-        .invoice-from p {
-            color: #34495e;
-            line-height: 1.6;
-            margin-bottom: 5px;
-        }
-
-        .invoice-meta {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .meta-item {
-            text-align: center;
-        }
-
-        .meta-item .label {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .meta-item .value {
-            color: #2c3e50;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .invoice-items {
-            margin-bottom: 30px;
-        }
-
-        .invoice-items table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .invoice-items th {
-            background: #2c3e50;
-            color: white;
-            padding: 12px;
-            text-align: left;
-        }
-
-        .invoice-items td {
-            padding: 12px;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .invoice-summary {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .summary-row.total {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #27ae60;
-            border-bottom: none;
-            padding-top: 15px;
-        }
-
-        .amount-in-words {
-            margin-top: 15px;
-            padding: 10px;
-            background: #e8f4f8;
-            border-radius: 5px;
-            color: #2c3e50;
-            font-style: italic;
-        }
-
-        .invoice-terms {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .invoice-terms h4 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .invoice-terms p {
-            color: #34495e;
-            line-height: 1.6;
-            margin-bottom: 5px;
-        }
-
-        .invoice-footer {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 2px solid #ecf0f1;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .signature-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .signature {
-            text-align: center;
-        }
-
-        .signature-line {
-            margin-top: 40px;
-            border-top: 1px solid #2c3e50;
-            width: 200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* ==================== PRINT STYLES SECTION ==================== */
-        @media print {
-            .admin-header, .invoice-filters, .action-btn, .logout-btn, 
-            .modal-footer, .btn-print, .btn-pdf, .btn-email, .icon-btn,
-            .page-header button, .invoice-actions button:not(.btn-print) {
-                display: none !important;
-            }
-
-            .invoice-print-template {
-                box-shadow: none;
-                padding: 0;
-            }
-
-            .invoice-address, .invoice-meta, .invoice-summary, .invoice-terms {
-                break-inside: avoid;
-            }
-
-            table {
-                break-inside: auto;
-            }
-
-            tr {
-                break-inside: avoid;
-                page-break-after: auto;
-            }
-        }
-
-        /* ==================== NOTIFICATION SECTION ==================== */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            z-index: 99999;
-            display: none;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .notification-success { background: #27ae60; }
-        .notification-error { background: #e74c3c; }
-        .notification-info { background: #3498db; }
-        .notification-warning { background: #f39c12; }
 
         /* ==================== PAGINATION SECTION ==================== */
         .pagination {
@@ -874,85 +623,80 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* ==================== NOTIFICATION SECTION ==================== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            z-index: 99999;
+            display: none;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
+        .notification-warning { background: #f39c12; }
+
         /* ==================== RESPONSIVE DESIGN SECTION ==================== */
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .modal-content {
-                width: 92%;
-                max-width: 800px;
+                width: 92vw;
+                max-height: 90vh;
             }
 
             .form-row {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .invoice-form {
                 padding: 15px;
             }
-            
-            .modal-body {
-                max-height: calc(100vh - 180px);
-            }
-        }
 
-        @media (max-width: 768px) {
-            .modal {
-                padding: 10px;
-            }
-
-            .modal-content {
-                width: 95%;
-                max-width: 90vw;
-                margin: 20px auto;
-            }
-            
             .modal-header {
                 padding: 15px;
             }
-            
+
             .modal-body {
                 padding: 15px;
-                max-height: calc(100vh - 150px);
             }
 
             .modal-footer {
                 padding: 15px;
+                flex-direction: column-reverse;
             }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 15px;
+
+            .modal-footer button {
+                width: 100%;
             }
-            
-            .invoice-address {
-                grid-template-columns: 1fr;
-            }
-            
+
             .page-header {
                 flex-direction: column;
                 gap: 15px;
                 align-items: flex-start;
             }
-            
+
             .page-header div {
                 display: flex;
                 gap: 10px;
                 flex-wrap: wrap;
                 width: 100%;
             }
-            
-            .modal-footer {
-                flex-direction: column-reverse;
-            }
-            
-            .modal-footer button {
-                width: 100%;
-            }
 
             .invoice-filters {
                 flex-direction: column;
             }
-            
+
             .invoice-filters input,
             .invoice-filters select {
                 width: 100%;
@@ -960,64 +704,51 @@
         }
 
         @media (max-width: 480px) {
-            .logo-area h1 {
-                font-size: 1rem;
-            }
-            
             .modal {
-                padding: 5px;
+                padding-top: 10px;
             }
 
             .modal-content {
-                width: 96vw;
-                margin: 15px auto;
-                border-radius: 10px;
+                width: 95vw;
+                max-height: 95vh;
+                border-radius: 8px;
             }
-            
+
             .modal-header {
                 padding: 12px;
             }
-            
+
             .modal-body {
                 padding: 10px;
-                max-height: calc(100vh - 130px);
             }
 
             .modal-footer {
                 padding: 10px;
                 gap: 10px;
             }
-            
+
             .invoice-form {
-                padding: 12px;
+                padding: 10px;
             }
-            
+
             .form-row {
                 gap: 10px;
             }
-            
+
             .form-group label {
                 font-size: 0.9rem;
             }
-            
+
             .form-group input,
             .form-group select,
             .form-group textarea {
                 font-size: 16px;
                 padding: 10px;
             }
-            
-            .page-header {
-                margin: 15px 0 10px;
-            }
-            
-            .page-header h2 {
-                font-size: 1.4rem;
-            }
 
             .modal-footer button {
-                padding: 10px 15px;
-                font-size: 0.9rem;
+                padding: 10px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -1025,21 +756,19 @@
 <body>
     <!-- ==================== HEADER SECTION ==================== -->
     <div class="admin-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo-area">
-                    <i class="fas fa-kaaba"></i>
-                    <h1>Alhudha Haj Admin - Invoices</h1>
-                    <span class="role-badge" id="roleBadge">Admin</span>
-                </div>
-                <div>
-                    <a href="dashboard.html" class="action-btn btn-primary" style="margin-right: 10px;" aria-label="Go to Dashboard">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
-                    </a>
-                    <button id="logoutBtn" class="logout-btn" aria-label="Logout from admin panel">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
+        <div class="header-content">
+            <div class="logo-area">
+                <i class="fas fa-kaaba"></i>
+                <h1>Alhudha Haj Admin - Invoices</h1>
+                <span class="role-badge" id="roleBadge">Admin</span>
+            </div>
+            <div>
+                <a href="dashboard.html" class="action-btn btn-primary" style="margin-right: 10px;" aria-label="Go to Dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <button id="logoutBtn" class="logout-btn" aria-label="Logout from admin panel">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </div>
     </div>
@@ -1160,7 +889,7 @@
     <div id="createInvoiceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> Create New Invoice with GST & TCS</h3>
+                <h3><i class="fas fa-plus-circle"></i> Create New Invoice</h3>
                 <button type="button" class="modal-close" id="closeModalBtn" aria-label="Close modal">×</button>
             </div>
             <div class="modal-body">
@@ -1171,16 +900,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="travelerSelect"><i class="fas fa-user"></i> Traveler *</label>
-                                <select id="travelerSelect" required aria-label="Select traveler">
+                                <select id="travelerSelect" required>
                                     <option value="">Select Traveler</option>
-                                    <option value="1">Ahmed Khan (A1234567) - Haj Platinum 2026</option>
-                                    <option value="2">Fatima Begum (B7654321) - Haj Gold 2026</option>
-                                    <option value="3">Mohammed Rafiq (C9876543) - Umrah Ramadhan</option>
+                                    <option value="1">Ahmed Khan (A1234567)</option>
+                                    <option value="2">Fatima Begum (B7654321)</option>
+                                    <option value="3">Mohammed Rafiq (C9876543)</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="batchDisplay"><i class="fas fa-layer-group"></i> Batch</label>
-                                <input type="text" id="batchDisplay" readonly placeholder="Batch will auto-fill" aria-label="Batch name">
+                                <input type="text" id="batchDisplay" readonly>
                             </div>
                         </div>
                     </div>
@@ -1191,136 +920,42 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="packageName"><i class="fas fa-tag"></i> Package Name</label>
-                                <input type="text" id="packageName" readonly aria-label="Package name">
+                                <input type="text" id="packageName" readonly>
                             </div>
                             <div class="form-group">
-                                <label for="baseAmount"><i class="fas fa-rupee-sign"></i> Base Package Amount (₹)</label>
-                                <input type="text" id="baseAmount" readonly aria-label="Base package amount">
+                                <label for="baseAmount"><i class="fas fa-rupee-sign"></i> Base Amount (₹)</label>
+                                <input type="text" id="baseAmount" readonly>
                             </div>
                         </div>
                     </div>
 
-                    <!-- GST & TCS Calculation Section -->
+                    <!-- Tax Calculation Section -->
                     <div class="invoice-form">
                         <h4><i class="fas fa-calculator"></i> Tax Calculation</h4>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="gstPercentage"><i class="fas fa-percent"></i> GST Percentage (%)</label>
-                                <input type="number" id="gstPercentage" min="0" max="100" step="0.1" value="5" aria-label="GST percentage">
-                                <div class="info-text">Enter GST rate (0% to 100%)</div>
+                                <label for="gstPercentage"><i class="fas fa-percent"></i> GST %</label>
+                                <input type="number" id="gstPercentage" min="0" max="100" step="0.1" value="5">
                             </div>
                             <div class="form-group">
                                 <label for="gstAmount"><i class="fas fa-rupee-sign"></i> GST Amount</label>
-                                <input type="text" id="gstAmount" readonly aria-label="GST amount calculated">
+                                <input type="text" id="gstAmount" readonly>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="tcsPercentage"><i class="fas fa-percent"></i> TCS Percentage (%)</label>
-                                <input type="number" id="tcsPercentage" min="0" max="100" step="0.1" value="1" aria-label="TCS percentage">
-                                <div class="info-text">Enter TCS rate (0% to 100%)</div>
+                                <label for="tcsPercentage"><i class="fas fa-percent"></i> TCS %</label>
+                                <input type="number" id="tcsPercentage" min="0" max="100" step="0.1" value="1">
                             </div>
                             <div class="form-group">
                                 <label for="tcsAmount"><i class="fas fa-rupee-sign"></i> TCS Amount</label>
-                                <input type="text" id="tcsAmount" readonly aria-label="TCS amount calculated">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Company Address Section -->
-                    <div class="invoice-form">
-                        <h4><i class="fas fa-building"></i> Company Address</h4>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyName"><i class="fas fa-building"></i> Company Name</label>
-                                <input type="text" id="companyName" value="Alhudha Haj Travel" placeholder="Company Name" aria-label="Company name">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyAddress1"><i class="fas fa-map-marker-alt"></i> Address Line 1</label>
-                                <input type="text" id="companyAddress1" value="123, Haj House" placeholder="Address Line 1" aria-label="Company address line 1">
+                                <input type="text" id="tcsAmount" readonly>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyAddress2"><i class="fas fa-map-marker-alt"></i> Address Line 2</label>
-                                <input type="text" id="companyAddress2" value="Mumbai - 400001" placeholder="Address Line 2" aria-label="Company address line 2">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyCityState"><i class="fas fa-map-marker-alt"></i> City, State, PIN</label>
-                                <input type="text" id="companyCityState" value="Maharashtra, India" placeholder="City, State, PIN" aria-label="Company city, state, PIN">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyPhone"><i class="fas fa-phone"></i> Phone</label>
-                                <input type="tel" id="companyPhone" value="+91 98765 43210" placeholder="Phone Number" aria-label="Company phone">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyEmail"><i class="fas fa-envelope"></i> Email</label>
-                                <input type="email" id="companyEmail" value="accounts@alhudha.com" placeholder="Email" aria-label="Company email">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyGSTIN"><i class="fas fa-id-card"></i> GSTIN</label>
-                                <input type="text" id="companyGSTIN" value="27ABCDE1234F1Z5" placeholder="GSTIN" aria-label="Company GSTIN">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyPAN"><i class="fas fa-qrcode"></i> PAN</label>
-                                <input type="text" id="companyPAN" value="ABCDE1234F" placeholder="PAN" aria-label="Company PAN">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyBank"><i class="fas fa-university"></i> Bank Name</label>
-                                <input type="text" id="companyBank" value="State Bank of India" placeholder="Bank Name" aria-label="Company bank name">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyAccount"><i class="fas fa-credit-card"></i> Account No</label>
-                                <input type="text" id="companyAccount" value="12345678901" placeholder="Account Number" aria-label="Company account number">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="companyIFSC"><i class="fas fa-code-branch"></i> IFSC Code</label>
-                                <input type="text" id="companyIFSC" value="SBIN0012345" placeholder="IFSC Code" aria-label="Company IFSC code">
-                            </div>
-                            <div class="form-group">
-                                <label for="companyBranch"><i class="fas fa-building"></i> Branch</label>
-                                <input type="text" id="companyBranch" value="Mumbai Main" placeholder="Branch" aria-label="Company branch">
-                            </div>
-                        </div>
-
-                        <button type="button" id="saveAddressBtn" class="action-btn btn-primary" style="width: 100%; margin-bottom: 10px;" aria-label="Save company address template">
-                            <i class="fas fa-save"></i> Save Address Template
-                        </button>
-                    </div>
-
-                    <!-- HSN Code Section -->
-                    <div class="invoice-form">
-                        <h4><i class="fas fa-barcode"></i> HSN/SAC & Calculation</h4>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="hsnCode"><i class="fas fa-barcode"></i> HSN/SAC Code</label>
-                                <input type="text" id="hsnCode" value="9985" placeholder="Enter HSN/SAC code" aria-label="HSN/SAC code">
-                                <div class="info-text">SAC 9985: Travel and tourism services</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="placeOfSupply"><i class="fas fa-building"></i> Place of Supply</label>
-                                <input type="text" id="placeOfSupply" value="Maharashtra" placeholder="Enter place of supply" aria-label="Place of supply">
-                            </div>
-                        </div>
-
-                        <!-- Calculation Summary Section -->
+                        <!-- Calculation Summary -->
                         <div class="calculation-box">
                             <div class="calculation-row">
                                 <span>Base Package Amount:</span>
@@ -1331,39 +966,70 @@
                                 <span class="amount-display" id="displayGstAmount">₹0</span>
                             </div>
                             <div class="calculation-row">
-                                <span>Subtotal (Package + GST):</span>
+                                <span>Subtotal:</span>
                                 <span class="amount-display" id="displaySubtotal">₹0</span>
                             </div>
                             <div class="calculation-row">
-                                <span>TCS (<span id="displayTcsPercent">1</span>% on Subtotal):</span>
+                                <span>TCS (<span id="displayTcsPercent">1</span>%):</span>
                                 <span class="amount-display" id="displayTcsAmount">₹0</span>
                             </div>
                             <div class="calculation-row total">
-                                <span>FINAL TOTAL (Package + GST + TCS):</span>
+                                <span>FINAL TOTAL:</span>
                                 <span class="amount-display" id="displayFinalTotal">₹0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Invoice Dates and Notes -->
+                    <!-- Company Address Section -->
+                    <div class="invoice-form">
+                        <h4><i class="fas fa-building"></i> Company Address</h4>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="companyName">Company Name</label>
+                                <input type="text" id="companyName" value="Alhudha Haj Travel">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyAddress1">Address Line 1</label>
+                                <input type="text" id="companyAddress1" value="123, Haj House">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="companyPhone">Phone</label>
+                                <input type="tel" id="companyPhone" value="+91 98765 43210">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyEmail">Email</label>
+                                <input type="email" id="companyEmail" value="accounts@alhudha.com">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="companyGSTIN">GSTIN</label>
+                                <input type="text" id="companyGSTIN" value="27ABCDE1234F1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyPAN">PAN</label>
+                                <input type="text" id="companyPAN" value="ABCDE1234F">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Details -->
                     <div class="invoice-form">
                         <h4><i class="fas fa-calendar"></i> Invoice Details</h4>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="invoiceDate"><i class="fas fa-calendar"></i> Invoice Date</label>
-                                <input type="date" id="invoiceDate" aria-label="Invoice date">
+                                <label for="invoiceDate">Invoice Date</label>
+                                <input type="date" id="invoiceDate">
                             </div>
                             <div class="form-group">
-                                <label for="dueDate"><i class="fas fa-clock"></i> Due Date</label>
-                                <input type="date" id="dueDate" aria-label="Invoice due date">
-                            </div>
-                        </div>
-
-                        <div class="form-row" style="grid-template-columns: 1fr;">
-                            <div class="form-group">
-                                <label for="invoiceNotes"><i class="fas fa-sticky-note"></i> Notes / Remarks</label>
-                                <textarea id="invoiceNotes" rows="3" placeholder="Additional notes for invoice..." aria-label="Invoice notes">50% advance payment required. Balance to be paid before departure.</textarea>
+                                <label for="dueDate">Due Date</label>
+                                <input type="date" id="dueDate">
                             </div>
                         </div>
                     </div>
@@ -1372,93 +1038,39 @@
 
             <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="submit" form="invoiceForm" id="generateInvoiceBtn" class="action-btn btn-success" aria-label="Generate invoice">
+                <button type="submit" form="invoiceForm" id="generateInvoiceBtn" class="action-btn btn-success">
                     <i class="fas fa-file-invoice"></i> Generate Invoice
                 </button>
-                <button type="button" id="resetTaxBtn" class="action-btn btn-primary" aria-label="Reset tax rates to default">
-                    <i class="fas fa-undo"></i> Reset Taxes
+                <button type="button" id="resetTaxBtn" class="action-btn btn-primary">
+                    <i class="fas fa-undo"></i> Reset
                 </button>
-                <button type="button" id="cancelBtn" class="action-btn btn-secondary" aria-label="Cancel and close modal">
+                <button type="button" id="cancelBtn" class="action-btn btn-secondary">
                     <i class="fas fa-times"></i> Cancel
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==================== INVOICE DETAILS MODAL SECTION ==================== -->
-    <div id="invoiceModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-file-invoice"></i> Invoice Details</h3>
-                <button type="button" class="modal-close" id="closeInvoiceModalBtn" aria-label="Close invoice modal">×</button>
-            </div>
-            <div id="invoiceDetails" class="modal-body">
-                <!-- Invoice details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="printInvoiceBtn" class="action-btn btn-print" aria-label="Print invoice">
-                    <i class="fas fa-print"></i> Print
-                </button>
-                <button type="button" id="downloadPdfBtn" class="action-btn btn-pdf" aria-label="Download invoice as PDF">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </button>
-                <button type="button" id="closeInvoiceBtn" class="action-btn btn-secondary" aria-label="Close invoice details">
-                    <i class="fas fa-times"></i> Close
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- ==================== NOTIFICATION SECTION ==================== -->
-    <div id="notification" class="notification" role="alert" aria-live="polite" aria-atomic="true"></div>
+    <div id="notification" class="notification" role="alert" aria-live="polite"></div>
 
     <!-- ==================== LOADING SPINNER ==================== -->
     <div id="loadingSpinner" class="loading">
         <div class="spinner"></div>
     </div>
 
-    <script src="/admin/js/session-manager.js"></script>
     <script>
-        // ==================== GLOBAL VARIABLES & CONSTANTS ====================
-        let currentInvoiceId = null;
-        let companyAddress = {};
-        let invoicesData = [];
-        let currentPage = 1;
-        let itemsPerPage = 10;
-
         // ==================== UTILITY FUNCTIONS ====================
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
         function sanitizeHTML(str) {
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
         }
 
-        function showLoading(show = true) {
-            document.getElementById('loadingSpinner').classList.toggle('active', show);
-        }
-
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
-            const icons = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                info: 'info-circle',
-                warning: 'exclamation-triangle'
-            };
             notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${icons[type] || icons.info}"></i> ${sanitizeHTML(message)}`;
+            notification.textContent = message;
             notification.style.display = 'block';
             
             setTimeout(() => {
@@ -1479,170 +1091,64 @@
             document.getElementById('invoiceForm').reset();
             document.getElementById('gstPercentage').value = 5;
             document.getElementById('tcsPercentage').value = 1;
-            calculateTotals();
-            loadAddressTemplate();
-        }
-
-        function closeInvoiceModal() {
-            document.getElementById('invoiceModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // ==================== ADDRESS TEMPLATE FUNCTIONS ====================
-        function loadAddressTemplate() {
-            try {
-                const savedAddress = localStorage.getItem('companyAddress');
-                if (savedAddress) {
-                    companyAddress = JSON.parse(savedAddress);
-                    document.getElementById('companyName').value = sanitizeHTML(companyAddress.name || 'Alhudha Haj Travel');
-                    document.getElementById('companyAddress1').value = sanitizeHTML(companyAddress.address1 || '123, Haj House');
-                    document.getElementById('companyAddress2').value = sanitizeHTML(companyAddress.address2 || 'Mumbai - 400001');
-                    document.getElementById('companyCityState').value = sanitizeHTML(companyAddress.cityState || 'Maharashtra, India');
-                    document.getElementById('companyPhone').value = sanitizeHTML(companyAddress.phone || '+91 98765 43210');
-                    document.getElementById('companyEmail').value = sanitizeHTML(companyAddress.email || 'accounts@alhudha.com');
-                    document.getElementById('companyGSTIN').value = sanitizeHTML(companyAddress.gstin || '27ABCDE1234F1Z5');
-                    document.getElementById('companyPAN').value = sanitizeHTML(companyAddress.pan || 'ABCDE1234F');
-                    document.getElementById('companyBank').value = sanitizeHTML(companyAddress.bank || 'State Bank of India');
-                    document.getElementById('companyAccount').value = sanitizeHTML(companyAddress.account || '12345678901');
-                    document.getElementById('companyIFSC').value = sanitizeHTML(companyAddress.ifsc || 'SBIN0012345');
-                    document.getElementById('companyBranch').value = sanitizeHTML(companyAddress.branch || 'Mumbai Main');
-                }
-            } catch (error) {
-                console.error('Error loading address template:', error);
-            }
-        }
-
-        function saveAddressTemplate() {
-            try {
-                companyAddress = {
-                    name: document.getElementById('companyName').value,
-                    address1: document.getElementById('companyAddress1').value,
-                    address2: document.getElementById('companyAddress2').value,
-                    cityState: document.getElementById('companyCityState').value,
-                    phone: document.getElementById('companyPhone').value,
-                    email: document.getElementById('companyEmail').value,
-                    gstin: document.getElementById('companyGSTIN').value,
-                    pan: document.getElementById('companyPAN').value,
-                    bank: document.getElementById('companyBank').value,
-                    account: document.getElementById('companyAccount').value,
-                    ifsc: document.getElementById('companyIFSC').value,
-                    branch: document.getElementById('companyBranch').value
-                };
-                
-                localStorage.setItem('companyAddress', JSON.stringify(companyAddress));
-                showNotification('Address template saved successfully!', 'success');
-            } catch (error) {
-                console.error('Error saving address template:', error);
-                showNotification('Error saving address template', 'error');
-            }
         }
 
         // ==================== TRAVELER FUNCTIONS ====================
         function loadTravelerBatch() {
             const travelerId = document.getElementById('travelerSelect').value;
-            const batchField = document.getElementById('batchDisplay');
-            const packageField = document.getElementById('packageName');
-            const baseAmountField = document.getElementById('baseAmount');
-            
             const travelerData = {
                 '1': { batch: 'Haj Platinum 2026', package: 'Haj Platinum 2026', amount: '850000' },
                 '2': { batch: 'Haj Gold 2026', package: 'Haj Gold 2026', amount: '550000' },
-                '3': { batch: 'Umrah Ramadhan Special', package: 'Umrah Ramadhan Special', amount: '125000' }
+                '3': { batch: 'Umrah Special', package: 'Umrah Ramadhan', amount: '125000' }
             };
             
             if (travelerData[travelerId]) {
-                batchField.value = travelerData[travelerId].batch;
-                packageField.value = travelerData[travelerId].package;
-                baseAmountField.value = travelerData[travelerId].amount;
-            } else {
-                batchField.value = '';
-                packageField.value = '';
-                baseAmountField.value = '';
+                document.getElementById('batchDisplay').value = travelerData[travelerId].batch;
+                document.getElementById('packageName').value = travelerData[travelerId].package;
+                document.getElementById('baseAmount').value = travelerData[travelerId].amount;
             }
-            
             calculateTotals();
         }
 
         // ==================== CALCULATION FUNCTIONS ====================
-        function validatePercentage(value) {
-            const num = parseFloat(value);
-            return !isNaN(num) && num >= 0 && num <= 100;
-        }
-
         function calculateTotals() {
-            try {
-                const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
-                const gstPercent = parseFloat(document.getElementById('gstPercentage').value) || 0;
-                const tcsPercent = parseFloat(document.getElementById('tcsPercentage').value) || 0;
-                
-                if (!validatePercentage(gstPercent)) {
-                    showNotification('GST percentage must be between 0 and 100', 'error');
-                    document.getElementById('gstPercentage').value = 5;
-                    return calculateTotals();
-                }
-                
-                if (!validatePercentage(tcsPercent)) {
-                    showNotification('TCS percentage must be between 0 and 100', 'error');
-                    document.getElementById('tcsPercentage').value = 1;
-                    return calculateTotals();
-                }
-                
-                const gstAmount = baseAmount * (gstPercent / 100);
-                const subtotal = baseAmount + gstAmount;
-                const tcsAmount = subtotal * (tcsPercent / 100);
-                const finalTotal = subtotal + tcsAmount;
-                
-                document.getElementById('gstAmount').value = Math.round(gstAmount);
-                document.getElementById('tcsAmount').value = Math.round(tcsAmount);
-                
-                document.getElementById('displayBaseAmount').textContent = '₹' + baseAmount.toLocaleString('en-IN');
-                document.getElementById('displayGstPercent').textContent = gstPercent;
-                document.getElementById('displayGstAmount').textContent = '₹' + Math.round(gstAmount).toLocaleString('en-IN');
-                document.getElementById('displaySubtotal').textContent = '₹' + Math.round(subtotal).toLocaleString('en-IN');
-                document.getElementById('displayTcsPercent').textContent = tcsPercent;
-                document.getElementById('displayTcsAmount').textContent = '₹' + Math.round(tcsAmount).toLocaleString('en-IN');
-                document.getElementById('displayFinalTotal').textContent = '₹' + Math.round(finalTotal).toLocaleString('en-IN');
-            } catch (error) {
-                console.error('Error calculating totals:', error);
-                showNotification('Error calculating totals', 'error');
-            }
+            const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
+            const gstPercent = parseFloat(document.getElementById('gstPercentage').value) || 0;
+            const tcsPercent = parseFloat(document.getElementById('tcsPercentage').value) || 0;
+            
+            const gstAmount = baseAmount * (gstPercent / 100);
+            const subtotal = baseAmount + gstAmount;
+            const tcsAmount = subtotal * (tcsPercent / 100);
+            const finalTotal = subtotal + tcsAmount;
+            
+            document.getElementById('gstAmount').value = Math.round(gstAmount);
+            document.getElementById('tcsAmount').value = Math.round(tcsAmount);
+            document.getElementById('displayBaseAmount').textContent = '₹' + baseAmount.toLocaleString('en-IN');
+            document.getElementById('displayGstAmount').textContent = '₹' + Math.round(gstAmount).toLocaleString('en-IN');
+            document.getElementById('displaySubtotal').textContent = '₹' + Math.round(subtotal).toLocaleString('en-IN');
+            document.getElementById('displayTcsAmount').textContent = '₹' + Math.round(tcsAmount).toLocaleString('en-IN');
+            document.getElementById('displayFinalTotal').textContent = '₹' + Math.round(finalTotal).toLocaleString('en-IN');
         }
 
         function resetTaxDefaults() {
             document.getElementById('gstPercentage').value = 5;
             document.getElementById('tcsPercentage').value = 1;
             calculateTotals();
-            showNotification('Reset to default rates: 5% GST, 1% TCS', 'info');
+            showNotification('Reset to defaults: 5% GST, 1% TCS', 'info');
         }
 
-        // ==================== INVOICE FUNCTIONS ====================
-        async function generateInvoice(e) {
+        function generateInvoice(e) {
             e.preventDefault();
-            
-            const traveler = document.getElementById('travelerSelect').value;
-            if (!traveler) {
+            if (!document.getElementById('travelerSelect').value) {
                 showNotification('Please select a traveler', 'error');
                 return;
             }
-            
-            try {
-                showLoading(true);
-                const invoiceNumber = 'INV-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-                
-                showNotification(`Invoice ${invoiceNumber} generated successfully!`, 'success');
-                closeCreateInvoiceModal();
-            } catch (error) {
-                console.error('Error generating invoice:', error);
-                showNotification('Error generating invoice', 'error');
-            } finally {
-                showLoading(false);
-            }
+            showNotification('Invoice generated successfully!', 'success');
+            closeCreateInvoiceModal();
         }
 
         // ==================== EVENT LISTENERS ====================
-        document.addEventListener('DOMContentLoaded', async function() {
-            loadAddressTemplate();
-            
+        document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('invoiceDate').value = today;
             
@@ -1650,36 +1156,23 @@
             dueDate.setDate(dueDate.getDate() + 30);
             document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
             
-            // Button event listeners
             document.getElementById('createInvoiceBtn').addEventListener('click', openCreateInvoiceModal);
             document.getElementById('closeModalBtn').addEventListener('click', closeCreateInvoiceModal);
             document.getElementById('cancelBtn').addEventListener('click', closeCreateInvoiceModal);
-            document.getElementById('saveAddressBtn').addEventListener('click', saveAddressTemplate);
             document.getElementById('resetTaxBtn').addEventListener('click', resetTaxDefaults);
             document.getElementById('generateInvoiceBtn').addEventListener('click', generateInvoice);
-            
-            document.getElementById('closeInvoiceModalBtn').addEventListener('click', closeInvoiceModal);
-            document.getElementById('closeInvoiceBtn').addEventListener('click', closeInvoiceModal);
-            
             document.getElementById('travelerSelect').addEventListener('change', loadTravelerBatch);
+            document.getElementById('gstPercentage').addEventListener('change', calculateTotals);
+            document.getElementById('tcsPercentage').addEventListener('change', calculateTotals);
             
-            const debouncedCalcTotals = debounce(calculateTotals, 300);
-            document.getElementById('gstPercentage').addEventListener('change', debouncedCalcTotals);
-            document.getElementById('tcsPercentage').addEventListener('change', debouncedCalcTotals);
-            
-            // Close modal on outside click
             window.addEventListener('click', function(event) {
-                const createModal = document.getElementById('createInvoiceModal');
-                const viewModal = document.getElementById('invoiceModal');
-                
-                if (event.target === createModal) {
+                const modal = document.getElementById('createInvoiceModal');
+                if (event.target === modal) {
                     closeCreateInvoiceModal();
-                }
-                if (event.target === viewModal) {
-                    closeInvoiceModal();
                 }
             });
         });
     </script>
+</head>
 </body>
 </html>
