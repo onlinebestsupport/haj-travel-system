@@ -1902,5 +1902,64 @@
             }
         });
     </script>
+    <script>
+    // FORCE DASHBOARD DATA LOAD
+    (async function() {
+        console.log('🚀 Force loading dashboard...');
+        
+        try {
+            const response = await fetch('/api/admin/dashboard/stats', {
+                credentials: 'include',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            console.log('📊 Dashboard data:', data);
+            
+            if (data.success && data.stats) {
+                const s = data.stats;
+                
+                // Update all stat cards
+                const updates = {
+                    'totalTravelers': s.total_travelers || 0,
+                    'activeBatches': s.active_batches || 0,
+                    'totalCollections': '₹' + (s.total_collected || 0).toLocaleString(),
+                    'pendingPayments': '₹' + (s.pending_amount || 0).toLocaleString(),
+                    'travelerCount': s.total_travelers || 0,
+                    'batchCount': s.total_batches || 0,
+                    'paymentCount': s.paid_count || 0,
+                    'userCount': s.total_users || 5
+                };
+                
+                for (let [id, value] of Object.entries(updates)) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = value;
+                        el.classList.remove('skeleton');
+                    }
+                }
+                
+                // Update module stats
+                const moduleUpdates = {
+                    '.module-traveler-count': s.total_travelers || 0,
+                    '.module-batch-count': s.total_batches || 0,
+                    '.module-payment-count': s.paid_count || 0,
+                    '.module-user-count': s.total_users || 5
+                };
+                
+                for (let [selector, value] of Object.entries(moduleUpdates)) {
+                    const el = document.querySelector(selector);
+                    if (el) el.textContent = value;
+                }
+                
+                console.log('✅ Dashboard updated with live data');
+            }
+        } catch (error) {
+            console.error('❌ Error loading dashboard:', error);
+        }
+    })();
+</script>
 </body>
 </html>
