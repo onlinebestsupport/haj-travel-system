@@ -5,7 +5,8 @@ print("="*70)
 print("🔧 FIXING NULL TO UNDEFINED")
 print("="*70)
 
-project_root = r"C:\\Users\\Masood\\Desktop\\haj-travel-system\\haj-travel-system"
+# Use relative paths (current directory)
+project_root = "."
 
 # Process all HTML files
 html_files = []
