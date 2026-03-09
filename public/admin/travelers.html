@@ -1792,19 +1792,20 @@
             const tableBody = document.getElementById('travelersTableBody');
             tableBody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
             
-            try {
-                const response = await fetch('/api/travelers', { credentials: 'include' });
-                const data = await response.json();
-                
-                if (data.success && data.travelers) {
-                    travelersData = data.travelers;
-                } else {
-                    useFallbackTravelers();
-                }
-            } catch (error) {
-                console.error('Error loading travelers:', error);
-                useFallbackTravelers();
-            }
+           try {
+    const response = await fetch('/api/travelers', { credentials: 'include' });
+    const data = await response.json();
+    
+    if (data.success && data.travelers) {
+        travelersData = data.travelers;
+    } else {
+        travelersData = [];  // Empty array if no data
+    }
+} catch (error) {
+    console.error('Error loading travelers:', error);
+    travelersData = [];
+    showNotification('Failed to load travelers from database', 'error');
+}
             
             displayTravelers();
             updateDashboardStats();
