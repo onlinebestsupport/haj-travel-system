@@ -49,9 +49,10 @@ def add_security_headers(response):
     return response
 
 
-# Global flag to track database initialization
+# Global flags to track database initialization
 _db_initialized = False
 _db_init_lock = threading.Lock()
+_db_init_started = False
 
 # ====== APP CONFIGURATION ======
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
@@ -408,44 +409,40 @@ def api_root():
         'timestamp': datetime.now().isoformat()
     }), 200
 
-# ====== 💾 LAZY DATABASE INITIALIZATION ======
+# ====== 💾 BACKGROUND DATABASE INITIALIZATION ======
 def initialize_database():
-    global _db_initialized
-    
+    """Start database initialization in a background thread (non-blocking)."""
+    global _db_initialized, _db_init_started
+
     with _db_init_lock:
-        if _db_initialized:
+        if _db_initialized or _db_init_started:
             return True
-        
-        print("🚀 Initializing database on first request...")
+        _db_init_started = True
+
+    print("🚀 Starting background database initialization...")
+
+    def init_thread_func():
+        global _db_initialized
         try:
             with app.app_context():
-                init_result = {'success': False}
-                
-                def init_thread_func():
-                    try:
-                        init_db()
-                        init_result['success'] = True
-                    except Exception as e:
-                        print(f"❌ DB init error: {e}")
-                
-                init_thread = threading.Thread(target=init_thread_func)
-                init_thread.daemon = True
-                init_thread.start()
-                init_thread.join(timeout=25)
-                
-                if init_thread.is_alive():
-                    print("⚠️ DB init continuing in background")
-                    _db_initialized = True
-                    return True
-                elif init_result['success']:
-                    print("✅ Database initialized")
-                    _db_initialized = True
-                    return True
-                else:
-                    return False
+                init_db()
+            print("✅ Database initialized successfully")
+            with _db_init_lock:
+                _db_initialized = True
         except Exception as e:
-            print(f"⚠️ DB init error: {e}")
-            return False
+            print(f"❌ DB init error: {e}")
+
+    init_thread = threading.Thread(target=init_thread_func, daemon=True)
+    init_thread.start()
+    return True
+
+
+# Pre-initialize the database in the background as soon as the app module is
+# loaded by the WSGI server.  This means DB tables are (very likely) ready by
+# the time the first real API request arrives, while the /health endpoint can
+# respond immediately during the startup window.
+if os.getenv('DATABASE_URL'):
+    initialize_database()
 
 @app.before_request
 def before_request():
