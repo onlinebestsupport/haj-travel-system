@@ -2540,39 +2540,37 @@
         }
 
         // ==================== CSV UPLOAD FUNCTIONS ====================
-        function showCSVUploadSection() {
-            document.getElementById('csvUploadSection').style.display = 'block';
-            document.getElementById('csvUploadSection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function hideCSVUploadSection() {
-            document.getElementById('csvUploadSection').style.display = 'none';
-            document.getElementById('csvFileInput').value = '';
-            document.getElementById('csvPreview').style.display = 'none';
-        }
-
-        function downloadCSVTemplate() {
-            const template = `first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
-Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,9876543210,ahmed@email.com,123456789012,ABCDE1234F,Yes,Fully Vaccinated,No,Mumbai,Mumbai,"123, Green Street, Mumbai",Abdullah Khan,Amina Khan,,1234,Brother,9876543211,No allergies,,,,,,{}`;
-            
-            const blob = new Blob([template], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'travelers_template.csv';
-            a.click();
-            
-            SessionManager.showNotification('CSV template downloaded', 'success');
-        }
-
-      // Process each line of the CSV
-        for (let i = 1; i < lines.length; i++) {
-            const currentLine = lines[i].trim();
-            if (!currentLine) continue;
-            const cells = currentLine.split(',');
-    const cells = currentLine.split(',');
-    // ... rest of the code
+function showCSVUploadSection() {
+    document.getElementById('csvUploadSection').style.display = 'block';
+    document.getElementById('csvUploadSection').scrollIntoView({ behavior: 'smooth' });
 }
+
+function hideCSVUploadSection() {
+    document.getElementById('csvUploadSection').style.display = 'none';
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('csvPreview').style.display = 'none';
+}
+
+function downloadCSVTemplate() {
+    const template = `first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
+Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,9876543210,ahmed@email.com,123456789012,ABCDE1234F,Yes,Fully Vaccinated,No,Mumbai,Mumbai,"123, Green Street, Mumbai",Abdullah Khan,Amina Khan,,1234,Brother,9876543211,No allergies,,,,,,{}`;
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'travelers_template.csv';
+    a.click();
+    
+    showNotification('CSV template downloaded', 'success');
+}
+
+function uploadCSV() {
+    const fileInput = document.getElementById('csvFileInput');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showNotification('Please select a CSV file first', 'error');
+        return;
+    }
     
     const file = fileInput.files[0];
     const reader = new FileReader();
@@ -2588,47 +2586,73 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
             
             let previewHtml = '<table style="width:100%; border-collapse:collapse;">';
             previewHtml += '<tr>';
-            for (let i = 1; i < lines.length; i++) {
-            const currentLine = lines[i].trim();
-            if (!currentLine) continue;
-            const cells = currentLine.split(',');
+            
+            // Show headers
+            for (let j = 0; j < Math.min(10, headers.length); j++) {
+                previewHtml += `<th style="padding:8px; border:1px solid #ddd; background:#f0f0f0;">${headers[j]}</th>`;
             }
+            previewHtml += '<th style="padding:8px; border:1px solid #ddd; background:#f0f0f0;">...</th></tr>';
             
             const newTravelers = [];
-            // Fixed for loop syntax
-        for (let i = 1; i < lines.length; i++) {
-            const currentLine = lines[i].trim();
-            if (!currentLine) continue;
-            const cells = currentLine.split(',');
-    const cells = currentLine.split(',');
-                    const traveler = {
-                        id: travelersData.length + newTravelers.length + 1,
-                        first_name: cells[0]?.replace(/"/g, '') || '',
-                        last_name: cells[1]?.replace(/"/g, '') || '',
-                        passport_name: cells[2]?.replace(/"/g, '') || '',
-                        batch_id: parseInt(cells[3]) || 1,
-                        passport_no: cells[4]?.replace(/"/g, '') || '',
-                        mobile: cells[10]?.replace(/"/g, '') || '',
-                        email: cells[11]?.replace(/"/g, '') || '',
-                        passport_scan: null,
-                        aadhaar_scan: null,
-                        pan_scan: null,
-                        vaccine_scan: null,
-                        photo: null
-                    };
-                    
-                    const batch = batchesData.find(b => b.id === traveler.batch_id);
-                    traveler.batch_name = batch ? batch.batch_name : 'Unknown Batch';
-                    
-                    newTravelers.push(traveler);
-                    
-                    if (i < 6) {
-                        previewHtml += '<tr>';
-                        for (let j = 0; j < Math.min(10, cells.length); j++) {
-                            previewHtml += `<td style="padding:8px; border:1px solid #ddd;">${cells[j]?.replace(/"/g, '')}</td>`;
-                        }
-                        previewHtml += '<td>...</td></tr>';
+            
+            // ✅ FIXED: Proper for loop syntax
+            for (let i = 1; i < lines.length; i++) {
+                const currentLine = lines[i].trim();
+                if (!currentLine) continue;
+                
+                const cells = currentLine.split(',');
+                
+                // Create traveler object from CSV data
+                const traveler = {
+                    id: travelersData.length + newTravelers.length + 1,
+                    first_name: cells[0]?.replace(/"/g, '') || '',
+                    last_name: cells[1]?.replace(/"/g, '') || '',
+                    passport_name: cells[2]?.replace(/"/g, '') || '',
+                    batch_id: parseInt(cells[3]) || 1,
+                    passport_no: cells[4]?.replace(/"/g, '') || '',
+                    passport_issue_date: cells[5]?.replace(/"/g, '') || null,
+                    passport_expiry_date: cells[6]?.replace(/"/g, '') || null,
+                    passport_status: cells[7]?.replace(/"/g, '') || 'Active',
+                    gender: cells[8]?.replace(/"/g, '') || '',
+                    dob: cells[9]?.replace(/"/g, '') || null,
+                    mobile: cells[10]?.replace(/"/g, '') || '',
+                    email: cells[11]?.replace(/"/g, '') || '',
+                    aadhaar: cells[12]?.replace(/"/g, '') || '',
+                    pan: cells[13]?.replace(/"/g, '') || '',
+                    aadhaar_pan_linked: cells[14]?.replace(/"/g, '') || 'No',
+                    vaccine_status: cells[15]?.replace(/"/g, '') || 'Not Vaccinated',
+                    wheelchair: cells[16]?.replace(/"/g, '') || 'No',
+                    place_of_birth: cells[17]?.replace(/"/g, '') || '',
+                    place_of_issue: cells[18]?.replace(/"/g, '') || '',
+                    passport_address: cells[19]?.replace(/"/g, '') || '',
+                    father_name: cells[20]?.replace(/"/g, '') || '',
+                    mother_name: cells[21]?.replace(/"/g, '') || '',
+                    spouse_name: cells[22]?.replace(/"/g, '') || '',
+                    pin: cells[23]?.replace(/"/g, '') || '0000',
+                    emergency_contact: cells[24]?.replace(/"/g, '') || '',
+                    emergency_phone: cells[25]?.replace(/"/g, '') || '',
+                    medical_notes: cells[26]?.replace(/"/g, '') || '',
+                    passport_scan: cells[27]?.replace(/"/g, '') || null,
+                    aadhaar_scan: cells[28]?.replace(/"/g, '') || null,
+                    pan_scan: cells[29]?.replace(/"/g, '') || null,
+                    vaccine_scan: cells[30]?.replace(/"/g, '') || null,
+                    photo: cells[31]?.replace(/"/g, '') || null,
+                    extra_fields: cells[32]?.replace(/"/g, '') || '{}'
+                };
+                
+                // Get batch name
+                const batch = batchesData.find(b => b.id === traveler.batch_id);
+                traveler.batch_name = batch ? batch.batch_name : 'Unknown Batch';
+                
+                newTravelers.push(traveler);
+                
+                // Show preview for first 5 rows
+                if (i <= 5) {
+                    previewHtml += '<tr>';
+                    for (let j = 0; j < Math.min(10, cells.length); j++) {
+                        previewHtml += `<td style="padding:8px; border:1px solid #ddd;">${cells[j]?.replace(/"/g, '')}</td>`;
                     }
+                    previewHtml += '<td style="padding:8px; border:1px solid #ddd;">...</td></tr>';
                 }
             }
             
@@ -2636,9 +2660,12 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
             previewContent.innerHTML = previewHtml;
             previewDiv.style.display = 'block';
             
+            // Add to travelers data
             travelersData.push(...newTravelers);
             
-            SessionManager.showNotification(`CSV uploaded successfully! Added ${newTravelers.length} travelers.`, 'success');
+            showNotification(`CSV uploaded successfully! Added ${newTravelers.length} travelers.`, 'success');
+            
+            // Hide section after delay
             setTimeout(() => {
                 hideCSVUploadSection();
                 displayTravelers();
@@ -2647,7 +2674,7 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
             
         } catch (error) {
             console.error('CSV upload error:', error);
-            SessionManager.showNotification('Error processing CSV file', 'error');
+            showNotification('Error processing CSV file: ' + error.message, 'error');
         }
     };
     
