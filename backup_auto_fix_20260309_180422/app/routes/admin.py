@@ -679,7 +679,62 @@ def get_backup_stats():
     
     return jsonify({'success': True, 'data': stats}), 200
 
-# ==================== BACKUP API ENDPOINTS =============
-@bp.route('/backup/settings', methods=['GET'])
+# ==================== BACKUP API ENDPOINTS =============@bp.route('/backup/settings', methods=['GET'])
+def get_backup_settings():
+    """Get backup settings"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM backup_settings LIMIT 1")
+        settings = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': settings}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @bp.route('/backup/create', methods=['POST'])
-# @bp.route('/backups/stats', methods=['GET'])
+def create_backup():
+    """Create a new backup"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        cursor.execute("""
+            INSERT INTO backup_history (backup_name, status, created_at, created_by)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+        """, (backup_name, 'completed', datetime.now(), session['user_id']))
+        backup_id = cursor.fetchone()['id']
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'backup_id': backup_id}), 201
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/backups/stats', methods=['GET'])
+def get_backup_stats():
+    """Get backup statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_backups,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful,
+                MAX(created_at) as last_backup
+            FROM backup_history
+        """)
+        stats = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

@@ -12,8 +12,7 @@ def add_to_admin_py():
     
     backup_apis = """
 
-# ==================== BACKUP API ENDPOINTS ====================
-@bp.route('/backup/settings', methods=['GET'])
+# ==================== BACKUP API ENDPOINTS =============@bp.route('/backup/settings', methods=['GET'])
 def get_backup_settings():
     \"\"\"Get backup settings\"\"\"
     if 'user_id' not in session:

@@ -1,257 +1,383 @@
-# auto_fix_all.py
+#!/usr/bin/env python3
+"""
+AUTO-FIX ALL - Complete system repair tool
+Run: python auto_fix_all.py
+"""
+
 import os
 import re
+import shutil
+from datetime import datetime
+import subprocess
 
-print("="*80)
-print("🤖 AUTO-FIX ALL ERRORS")
-print("="*80)
+# Color codes for output
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
 
-project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
-
-# ====== FIX 1: TRAVELERS.HTML BRACE MISMATCH ======
-print("\n📁 Fixing travelers.html brace mismatch...")
-travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
-
-if os.path.exists(travelers_path):
-    with open(travelers_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Count braces
-    open_braces = content.count('{')
-    close_braces = content.count('}')
-    print(f"Before: {{:{open_braces}, }}:{close_braces}")
-    
-    if close_braces > open_braces:
-        # Find the displayTravelerDetails function and fix it
-        pattern = r'(function displayTravelerDetails\([^{]*\{.*?\n\})'
-        match = re.search(pattern, content, re.DOTALL)
+class AutoFixAll:
+    def __init__(self):
+        self.fixes_applied = 0
+        self.issues_found = 0
+        self.backup_created = False
         
-        if match:
-            func_text = match.group(1)
-            # Count braces in this function
-            func_open = func_text.count('{')
-            func_close = func_text.count('}')
+    def print_header(self, text):
+        print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
+        print(f"{Colors.HEADER}{Colors.BOLD}{text}{Colors.ENDC}")
+        print(f"{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
+
+    def print_success(self, text):
+        print(f"{Colors.OKGREEN}✅ {text}{Colors.ENDC}")
+
+    def print_warning(self, text):
+        print(f"{Colors.WARNING}⚠️ {text}{Colors.ENDC}")
+
+    def print_error(self, text):
+        print(f"{Colors.FAIL}❌ {text}{Colors.ENDC}")
+
+    def print_info(self, text):
+        print(f"{Colors.OKCYAN}ℹ️ {text}{Colors.ENDC}")
+
+    def create_backup(self):
+        """Create a backup of important files"""
+        if not self.backup_created:
+            backup_dir = f"backup_auto_fix_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            os.makedirs(backup_dir, exist_ok=True)
             
-            if func_close > func_open:
-                # Remove one closing brace
-                fixed_func = func_text.rstrip('}') + '}'
-                content = content.replace(func_text, fixed_func)
-                print("✅ Fixed displayTravelerDetails function")
-    
-    # One more count
-    open_braces = content.count('{')
-    close_braces = content.count('}')
-    print(f"After:  {{:{open_braces}, }}:{close_braces}")
-    
-    with open(travelers_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+            important_dirs = ['app', 'public', 'routes']
+            for d in important_dirs:
+                if os.path.exists(d):
+                    shutil.copytree(d, os.path.join(backup_dir, d), dirs_exist_ok=True)
+            
+            for f in ['requirements.txt', 'Procfile', 'railway.json', 'gunicorn.conf.py']:
+                if os.path.exists(f):
+                    shutil.copy2(f, backup_dir)
+            
+            self.print_success(f"Backup created in {backup_dir}")
+            self.backup_created = True
 
-# ====== FIX 2: DEBUG_USERS.HTML LOOPS ======
-print("\n📁 Fixing debug_users.html loops...")
-debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
-
-if os.path.exists(debug_path):
-    with open(debug_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Fix line 102 - replace forEach with for loop
-    forEach_pattern = r'functions\.forEach\(fn\s*=>\s*\{([^}]+)\}\);'
-    
-    def replace_forEach(match):
-        body = match.group(1)
-        return """for (let i = 0; i < functions.length; i++) {
-        const fn = functions[i];""" + body + "\n        }"
-    
-    new_content = re.sub(forEach_pattern, replace_forEach, content)
-    
-    # Check if changes were made
-    if new_content != content:
-        print("✅ Fixed forEach loop at line 102")
-        content = new_content
-    
-    # Fix any other potential loop issues
-    # Look for for loops without proper syntax
-    lines = content.split('\n')
-    for i, line in enumerate(lines):
-        if 'for(' in line and ';' not in line:
-            # This might be the issue at line 126
-            if i+1 >= 126:  # Approximate
-                print(f"⚠️  Found potential loop issue at line {i+1}")
-                # Fix by adding proper syntax
-                fixed_line = line.replace('for(', 'for (let i = 0; i < array.length; i++) {')
-                lines[i] = fixed_line
-                print(f"✅ Fixed loop at line {i+1}")
-    
-    content = '\n'.join(lines)
-    
-    with open(debug_path, 'w', encoding='utf-8') as f:
-        f.write(content)
-
-# ====== FIX 3: TRAVELERS.HTML LINE 2674 LOOP ======
-print("\n📁 Fixing travelers.html line 2674 loop...")
-
-if os.path.exists(travelers_path):
-    with open(travelers_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-    
-    if len(lines) >= 2674:
-        # Find the uploadCSV function and fix the loop
-        for i in range(2670, 2680):
-            if i < len(lines) and 'for (let i = 1; i < lines.length; i++)' in lines[i]:
-                print(f"Found loop at line {i+1}")
-                # Replace with improved version
-                lines[i] = '        for (let i = 1; i < lines.length; i++) {\n'
-                if i+1 < len(lines):
-                    lines[i+1] = '            const currentLine = lines[i].trim();\n'
-                    lines[i+2] = '            if (!currentLine) continue;\n'
-                    lines[i+3] = '            const cells = currentLine.split(\',\');\n'
-                print("✅ Fixed uploadCSV loop")
-                break
-    
-    with open(travelers_path, 'w', encoding='utf-8') as f:
-        f.writelines(lines)
-
-# ====== FIX 4: SESSION MANAGER ======
-print("\n📁 Fixing session-manager.js...")
-sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
-
-if os.path.exists(sm_path):
-    with open(sm_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Fix 1: SESSION_TIMEOUT
-    content = re.sub(
-        r'SESSION_TIMEOUT:\s*30\s*\*\s*60\s*\*\s*1000\s*\*\s*60\s*\*\s*1000\s*\*\s*60\s*\*\s*1000',
-        'SESSION_TIMEOUT: 30 * 60 * 1000,  // 30 minutes',
-        content
-    )
-    content = re.sub(
-        r'SESSION_TIMEOUT:\s*\d+',
-        'SESSION_TIMEOUT: 30 * 60 * 1000',
-        content
-    )
-    
-    # Add WARNING_BEFORE if missing
-    if 'WARNING_BEFORE:' not in content:
-        content = re.sub(
-            r'(SESSION_TIMEOUT:.*?\n)',
-            r'\1    WARNING_BEFORE: 2 * 60 * 1000,  // 2 minutes\n',
-            content
-        )
-    
-    # Fix 2: Add clearTimers to startTimers
-    if 'startTimers:' in content:
-        # Check if clearTimers is already there
-        start_section = content.split('startTimers:')[1].split('\n')[0:10]
-        start_text = '\n'.join(start_section)
+    def fix_merge_conflicts(self):
+        """Remove all merge conflict markers from files"""
+        self.print_header("🔧 FIXING MERGE CONFLICTS")
         
-        if 'this.clearTimers' not in start_text:
-            # Add clearTimers right after the opening brace
-            content = content.replace(
-                'startTimers: function() {',
-                'startTimers: function() {\n        // Clear any existing timers first\n        this.clearTimers();'
+        conflict_patterns = [
+            (r'<<<<<<< HEAD\n.*?\n=======\n.*?\n>>>>>>> [a-f0-9]+\n', ''),
+            (r'<<<<<<< HEAD\n', ''),
+            (r'=======\n', ''),
+            (r'>>>>>>> [a-f0-9]+\n', '')
+        ]
+        
+        files_fixed = 0
+        for root, dirs, files in os.walk('.'):
+            if 'venv' in root or '__pycache__' in root or '.git' in root:
+                continue
+            
+            for file in files:
+                if file.endswith(('.py', '.html', '.js', '.css', '.txt', '.md', '.json')):
+                    filepath = os.path.join(root, file)
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        new_content = content
+                        for pattern, replacement in conflict_patterns:
+                            new_content = re.sub(pattern, replacement, new_content, flags=re.DOTALL)
+                        
+                        if new_content != content:
+                            with open(filepath, 'w', encoding='utf-8') as f:
+                                f.write(new_content)
+                            files_fixed += 1
+                            self.print_success(f"Fixed merge conflicts in {filepath}")
+                    except Exception as e:
+                        pass
+        
+        self.print_info(f"Fixed {files_fixed} files with merge conflicts")
+        self.fixes_applied += files_fixed
+
+    def fix_duplicate_routes(self):
+        """Fix duplicate route definitions in Flask files"""
+        self.print_header("🔧 FIXING DUPLICATE ROUTES")
+        
+        route_files = [
+            'app/routes/admin.py',
+            'app/routes/auth.py',
+            'app/routes/travelers.py',
+            'app/routes/payments.py',
+            'app/routes/invoices.py',
+            'app/routes/receipts.py',
+            'app/routes/reports.py'
+        ]
+        
+        fixes_applied = 0
+        for filepath in route_files:
+            if not os.path.exists(filepath):
+                continue
+            
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                
+                # Track function names to detect duplicates
+                function_names = {}
+                new_lines = []
+                i = 0
+                
+                while i < len(lines):
+                    line = lines[i]
+                    
+                    # Check for function definition
+                    func_match = re.search(r'def (\w+)\(', line)
+                    if func_match:
+                        func_name = func_match.group(1)
+                        
+                        # If we've seen this function before, skip it
+                        if func_name in function_names:
+                            self.print_warning(f"Removing duplicate function {func_name} in {filepath}")
+                            # Skip until we find the next function or end of current function
+                            while i < len(lines) and not lines[i].startswith('def ') and not lines[i].startswith('@'):
+                                i += 1
+                            fixes_applied += 1
+                            continue
+                        else:
+                            function_names[func_name] = True
+                    
+                    new_lines.append(line)
+                    i += 1
+                
+                if len(new_lines) != len(lines):
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.writelines(new_lines)
+                    self.print_success(f"Fixed duplicates in {filepath}")
+                    
+            except Exception as e:
+                self.print_error(f"Error processing {filepath}: {e}")
+        
+        self.fixes_applied += fixes_applied
+
+    def fix_database_url(self):
+        """Ensure DATABASE_URL is properly set"""
+        self.print_header("🔧 CHECKING DATABASE_URL")
+        
+        try:
+            # Get current DATABASE_URL from web app
+            result = subprocess.run(
+                ['railway', 'variables', '--service', 'haj-web-app'],
+                capture_output=True,
+                text=True
             )
-            print("✅ Added this.clearTimers() to startTimers")
-    
-    # Fix 3: Remove duplicate startTimers
-    start_count = content.count('startTimers:')
-    if start_count > 1:
-        parts = content.split('startTimers:')
-        content = parts[0] + 'startTimers:' + ''.join(parts[1:])
-        print(f"✅ Removed {start_count-1} duplicate startTimers")
-    
-    # Add better logging
-    if 'console.log' in content and 'Session timers started' in content:
-        content = re.sub(
-            r'console\.log\(.*Session timers started.*\);',
-            '        console.log(\'⏱️ Session timers started\', {\n            timeout: this.SESSION_TIMEOUT / 60000 + \' minutes\',\n            warning: this.WARNING_BEFORE / 60000 + \' minutes\'\n        });',
-            content
-        )
-    
-    with open(sm_path, 'w', encoding='utf-8') as f:
-        f.write(content)
-    print("✅ Session manager fixes complete")
+            
+            if 'DATABASE_URL' in result.stdout:
+                # Extract the URL - might be truncated
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if 'DATABASE_URL' in line and 'postgresql://' in line:
+                        # Check if it's truncated
+                        if 'postgresql://' in line and len(line) < 100:
+                            self.print_warning("DATABASE_URL may be truncated")
+                            
+                            # Get correct URL from Postgres service
+                            pg_result = subprocess.run(
+                                ['railway', 'variables', '--service', 'Postgres'],
+                                capture_output=True,
+                                text=True
+                            )
+                            
+                            pg_lines = pg_result.stdout.split('\n')
+                            for pg_line in pg_lines:
+                                if 'DATABASE_URL' in pg_line and 'postgresql://' in pg_line:
+                                    # Extract full URL
+                                    url_match = re.search(r'(postgresql://[^\s]+)', pg_line)
+                                    if url_match:
+                                        full_url = url_match.group(1)
+                                        # Set it for web app
+                                        subprocess.run([
+                                            'railway', 'variables', 'set',
+                                            f'DATABASE_URL={full_url}',
+                                            '--service', 'haj-web-app'
+                                        ])
+                                        self.print_success("Fixed DATABASE_URL")
+                                        self.fixes_applied += 1
+                                    break
+                            break
+                else:
+                    self.print_success("DATABASE_URL looks good")
+            else:
+                self.print_error("DATABASE_URL not found in web app variables")
+                
+        except Exception as e:
+            self.print_error(f"Could not check DATABASE_URL: {e}")
 
-# ====== FIX 5: FRONTPAGE.HTML DOUBLE SESSIONMANAGER ======
-print("\n📁 Fixing frontpage.html...")
-frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
+    def fix_railway_json(self):
+        """Fix railway.json configuration"""
+        self.print_header("🔧 FIXING RAILWAY.JSON")
+        
+        if not os.path.exists('railway.json'):
+            self.print_error("railway.json not found")
+            return
+        
+        try:
+            with open('railway.json', 'r') as f:
+                content = f.read()
+            
+            # Remove any merge conflict markers
+            content = re.sub(r'<<<<<<< HEAD.*?\n', '', content, flags=re.DOTALL)
+            content = re.sub(r'=======\n', '', content)
+            content = re.sub(r'>>>>>>> [a-f0-9]+\n', '', content)
+            
+            # Ensure proper healthcheck settings
+            healthcheck_config = {
+                "healthcheckPath": "/health",
+                "healthcheckTimeout": 30
+            }
+            
+            # Parse JSON and update
+            import json
+            try:
+                config = json.loads(content)
+                if 'deploy' not in config:
+                    config['deploy'] = {}
+                
+                config['deploy']['healthcheckPath'] = '/health'
+                config['deploy']['healthcheckTimeout'] = 30
+                
+                # Write back formatted JSON
+                with open('railway.json', 'w') as f:
+                    json.dump(config, f, indent=2)
+                
+                self.print_success("Fixed railway.json configuration")
+                self.fixes_applied += 1
+                
+            except json.JSONDecodeError:
+                self.print_error("railway.json has invalid JSON")
+                
+        except Exception as e:
+            self.print_error(f"Error fixing railway.json: {e}")
 
-if os.path.exists(frontpage_path):
-    with open(frontpage_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Fix double SessionManager at line 1300
-    if 'SessionManager.SessionManager' in content:
-        content = content.replace('SessionManager.SessionManager', 'SessionManager')
-        print("✅ Fixed double SessionManager")
-    
-    with open(frontpage_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+    def fix_procfile(self):
+        """Ensure Procfile is correct"""
+        self.print_header("🔧 FIXING PROCFILE")
+        
+        correct_procfile = "web: gunicorn app.server:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --threads 2 --log-level debug"
+        
+        if os.path.exists('Procfile'):
+            with open('Procfile', 'r') as f:
+                content = f.read().strip()
+            
+            if content != correct_procfile:
+                with open('Procfile', 'w') as f:
+                    f.write(correct_procfile + '\n')
+                self.print_success("Fixed Procfile")
+                self.fixes_applied += 1
+            else:
+                self.print_success("Procfile is correct")
+        else:
+            with open('Procfile', 'w') as f:
+                f.write(correct_procfile + '\n')
+            self.print_success("Created Procfile")
+            self.fixes_applied += 1
 
-# ====== FIX 6: DEBUG_USERS.HTML ADDITIONAL LOOP ======
-print("\n📁 Fixing debug_users.html line 126...")
+    def fix_gunicorn_conf(self):
+        """Ensure gunicorn.conf.py is correct"""
+        self.print_header("🔧 FIXING GUNICORN.CONF.PY")
+        
+        correct_config = """bind = "0.0.0.0:8080"
+workers = 1
+threads = 2
+timeout = 120
+"""
+        
+        if os.path.exists('gunicorn.conf.py'):
+            with open('gunicorn.conf.py', 'r') as f:
+                content = f.read()
+            
+            # Check if binding is correct
+            if '0.0.0.0' not in content:
+                with open('gunicorn.conf.py', 'w') as f:
+                    f.write(correct_config)
+                self.print_success("Fixed gunicorn.conf.py")
+                self.fixes_applied += 1
+            else:
+                self.print_success("gunicorn.conf.py is correct")
+        else:
+            with open('gunicorn.conf.py', 'w') as f:
+                f.write(correct_config)
+            self.print_success("Created gunicorn.conf.py")
+            self.fixes_applied += 1
 
-if os.path.exists(debug_path):
-    with open(debug_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-    
-    # Look for the runAllTests function
-    in_run_all = False
-    for i, line in enumerate(lines):
-        if 'function runAllTests()' in line:
-            in_run_all = True
-        if in_run_all and 'await' in line and i > 125:
-            print(f"Found runAllTests at line {i+1}")
-            # Make sure the syntax is correct
-            break
-    
-    # Also check for any for loops without proper syntax
-    for i, line in enumerate(lines):
-        if 'for(' in line and ';' not in line and i > 120 and i < 130:
-            print(f"Found potential loop issue at line {i+1}")
-            # Fix by adding proper syntax
-            lines[i] = line.replace('for(', 'for (let i = 0; i < array.length; i++) {')
-            print(f"✅ Fixed loop at line {i+1}")
-    
-    with open(debug_path, 'w', encoding='utf-8') as f:
-        f.writelines(lines)
+    def fix_requirements(self):
+        """Ensure requirements.txt is clean"""
+        self.print_header("🔧 FIXING REQUIREMENTS.TXT")
+        
+        if os.path.exists('requirements.txt'):
+            with open('requirements.txt', 'r') as f:
+                content = f.read()
+            
+            # Remove any merge conflict markers
+            content = re.sub(r'<<<<<<< HEAD.*?\n', '', content, flags=re.DOTALL)
+            content = re.sub(r'=======\n', '', content)
+            content = re.sub(r'>>>>>>> [a-f0-9]+\n', '', content)
+            
+            # Ensure each package is on its own line
+            lines = content.split('\n')
+            cleaned_lines = []
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    # Split if multiple packages on one line
+                    parts = re.split(r'\s+', line)
+                    cleaned_lines.extend(parts)
+            
+            if cleaned_lines:
+                with open('requirements.txt', 'w') as f:
+                    f.write('\n'.join(cleaned_lines) + '\n')
+                self.print_success("Cleaned requirements.txt")
+                self.fixes_applied += 1
 
-# ====== VERIFICATION ======
-print("\n" + "="*80)
-print("🔍 VERIFYING FIXES")
-print("="*80)
+    def run_all_fixes(self):
+        """Run all fix functions"""
+        print(f"\n{Colors.BOLD}{Colors.OKBLUE}")
+        print("╔" + "═"*68 + "╗")
+        print("║     🔧 AUTO-FIX ALL - COMPLETE SYSTEM REPAIR 🔧        ║")
+        print("║     Automatically detecting and fixing all issues      ║")
+        print("╚" + "═"*68 + "╝")
+        print(Colors.ENDC)
+        
+        # Create backup first
+        self.create_backup()
+        
+        # Run all fixes
+        self.fix_merge_conflicts()
+        self.fix_duplicate_routes()
+        self.fix_railway_json()
+        self.fix_procfile()
+        self.fix_gunicorn_conf()
+        self.fix_requirements()
+        self.fix_database_url()
+        
+        # Summary
+        print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
+        print(f"{Colors.HEADER}{Colors.BOLD}📊 FIX SUMMARY{Colors.ENDC}")
+        print(f"{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}\n")
+        
+        self.print_success(f"Total fixes applied: {self.fixes_applied}")
+        
+        if self.fixes_applied > 0:
+            print(f"\n{Colors.OKGREEN}{Colors.BOLD}✅ System has been repaired!{Colors.ENDC}")
+            print(f"{Colors.OKCYAN}Run 'railway up' to deploy the fixes{Colors.ENDC}")
+        else:
+            print(f"{Colors.OKGREEN}✅ No fixes needed - system is already clean!{Colors.ENDC}")
+        
+        print(f"\n{Colors.HEADER}{Colors.BOLD}{'='*70}{Colors.ENDC}")
 
-# Check travelers.html braces
-with open(travelers_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-open_braces = content.count('{')
-close_braces = content.count('}')
-if open_braces == close_braces:
-    print("✅ travelers.html braces are balanced")
-else:
-    print(f"⚠️  travelers.html still has brace mismatch: {{:{open_braces}, }}:{close_braces}")
-
-# Check session manager
-with open(sm_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-if 'SESSION_TIMEOUT: 30 * 60 * 1000' in content:
-    print("✅ SESSION_TIMEOUT is correct")
-if 'WARNING_BEFORE:' in content:
-    print("✅ WARNING_BEFORE exists")
-if 'this.clearTimers' in content.split('startTimers:')[1][:200]:
-    print("✅ startTimers has clearTimers")
-if content.count('startTimers:') == 1:
-    print("✅ Only one startTimers function")
-
-# Check frontpage
-with open(frontpage_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-if 'SessionManager.SessionManager' not in content:
-    print("✅ frontpage.html double SessionManager fixed")
-
-print("\n" + "="*80)
-print("🎉 ALL FIXES APPLIED!")
-print("="*80)
-print("\n📋 NEXT STEP:")
-print("   Run: python find_all_errors.py")
-print("="*80)
+if __name__ == "__main__":
+    fixer = AutoFixAll()
+    try:
+        fixer.run_all_fixes()
+    except KeyboardInterrupt:
+        print(f"\n{Colors.WARNING}Auto-fix interrupted by user{Colors.ENDC}")
