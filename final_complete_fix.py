@@ -8,7 +8,7 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== FIX 1-2: FRONTPAGE.HTML BRACE MISMATCH ====================
+# ====== FIX 1-2: FRONTPAGE.HTML BRACE MISMATCH ======
 print("\n📁 FIXING FRONTPAGE.HTML BRACE MISMATCH...")
 
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
@@ -50,7 +50,7 @@ if os.path.exists(frontpage_path):
     with open(frontpage_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 3-4: TRAVELERS.HTML BRACE MISMATCH ====================
+# ====== FIX 3-4: TRAVELERS.HTML BRACE MISMATCH ======
 print("\n📁 FIXING TRAVELERS.HTML BRACE MISMATCH...")
 
 travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
@@ -110,7 +110,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 5-9: DEBUG_USERS.HTML LOOPS ====================
+# ====== FIX 5-9: DEBUG_USERS.HTML LOOPS ======
 print("\n📁 FIXING DEBUG_USERS.HTML LOOPS...")
 
 debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
@@ -173,7 +173,7 @@ if os.path.exists(debug_path):
     with open(debug_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== FIX 10: TRAVELERS.HTML LINE 2568, 2597 LOOPS ====================
+# ====== FIX 10: TRAVELERS.HTML LINE 2568, 2597 LOOPS ======
 print("\n📁 FIXING TRAVELERS.HTML LOOPS...")
 
 if os.path.exists(travelers_path):
@@ -206,7 +206,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== FIX 11-14: SESSION MANAGER ====================
+# ====== FIX 11-14: SESSION MANAGER ======
 print("\n📁 FIXING SESSION MANAGER...")
 
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -261,7 +261,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== VERIFICATION ====================
+# ====== VERIFICATION ======
 print("\n" + "="*80)
 print("🔍 VERIFICATION")
 print("="*80)

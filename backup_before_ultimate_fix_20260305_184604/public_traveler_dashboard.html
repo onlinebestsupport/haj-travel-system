@@ -987,12 +987,12 @@
     </main>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         const travelerId = sessionStorage.getItem('travelerId');
         const travelerPassport = sessionStorage.getItem('travelerPassport');
         const travelerName = sessionStorage.getItem('travelerName');
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             if (!travelerId || !travelerPassport) {
                 window.location.href = '/traveler_login.html';
@@ -1006,7 +1006,7 @@
             loadTravelerData();
         });
 
-        // ==================== LOAD TRAVELER DATA ====================
+        // ====== LOAD TRAVELER DATA ======
         async function loadTravelerData() {
             try {
                 document.getElementById('loading').style.display = 'block';
@@ -1028,7 +1028,7 @@
                     // Welcome
                     document.getElementById('travelerFullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim();
                     
-                    // ============ ALL 33 FIELDS ============
+                    // ===== ALL 33 FIELDS =====
                     
                     // 1. First Name & 2. Last Name (combined in Full Name)
                     document.getElementById('fullName').textContent = `${t.first_name || ''} ${t.last_name || ''}`.trim() || '-';
@@ -1154,7 +1154,7 @@
             }
         }
 
-        // ==================== UPDATE DOCUMENT STYLE ====================
+        // ====== UPDATE DOCUMENT STYLE ======
         function updateDocumentStyle(elementId, hasDocument, statusId, docName) {
             const element = document.getElementById(elementId);
             const statusEl = document.getElementById(statusId);
@@ -1172,14 +1172,14 @@
             }
         }
 
-        // ==================== SHOW ERROR ====================
+        // ====== SHOW ERROR ======
         function showError() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';
             document.getElementById('dashboardContent').style.display = 'none';
         }
 
-        // ==================== LOAD PAYMENT SCHEDULE ====================
+        // ====== LOAD PAYMENT SCHEDULE ======
         async function loadPaymentSchedule(travelerId) {
             try {
                 const response = await fetch(`/api/payments/traveler/${travelerId}`);
@@ -1250,7 +1250,7 @@
             }
         }
 
-        // ==================== PRINT DASHBOARD ====================
+        // ====== PRINT DASHBOARD ======
         function printDashboard() {
             const content = document.getElementById('dashboardContent').innerHTML;
             const travelerName = document.getElementById('travelerFullName').textContent;
@@ -1365,7 +1365,7 @@ window.addEventListener('beforeunload', function() {
             setTimeout(() => printWindow.print(), 500);
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.removeItem('travelerId');
             sessionStorage.removeItem('travelerName');
@@ -1373,7 +1373,7 @@ window.addEventListener('beforeunload', function() {
             window.location.href = '/traveler_login.html';
         }
 
-        // ==================== HELPER FUNCTIONS ====================
+        // ====== HELPER FUNCTIONS ======
         function formatDate(dateString) {
             if (!dateString) return '-';
             try {

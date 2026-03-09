@@ -1085,7 +1085,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize AOS
             AOS.init({
@@ -1104,7 +1104,7 @@
             checkAlertState();
         });
 
-        // ==================== LOAD FRONTPAGE CONFIG ====================
+        // ====== LOAD FRONTPAGE CONFIG ======
         function loadFrontpageConfig() {
             // Load from localStorage (set by admin/frontpage.html)
             const config = {
@@ -1179,7 +1179,7 @@
             renderFooterContact(config.contact, config.footer);
         }
 
-        // ==================== ALERT FUNCTIONS ====================
+        // ====== ALERT FUNCTIONS ======
         function showAlert(alert) {
             const banner = document.getElementById('alertBanner');
             const messageEl = document.getElementById('alertMessage');
@@ -1222,7 +1222,7 @@
             return hex; // In production, use a proper color library
         }
 
-        // ==================== FEATURES RENDERING ====================
+        // ====== FEATURES RENDERING ======
         function renderFeatures(features) {
             const grid = document.getElementById('featuresGrid');
             
@@ -1261,7 +1261,7 @@
             `).join('');
         }
 
-        // ==================== PACKAGES RENDERING ====================
+        // ====== PACKAGES RENDERING ======
         function renderPackages(packages, contact) {
             const grid = document.getElementById('packagesGrid');
             
@@ -1304,7 +1304,7 @@
             }).join('');
         }
 
-        // ==================== CONTACT RENDERING ====================
+        // ====== CONTACT RENDERING ======
         function renderContactInfo(contact) {
             const grid = document.getElementById('contactGrid');
             
@@ -1368,7 +1368,7 @@
             document.getElementById('floatingWhatsapp').href = whatsappUrl;
         }
 
-        // ==================== LOAD PACKAGES FROM API ====================
+        // ====== LOAD PACKAGES FROM API ======
         async function loadPackages() {
             try {
                 const response = await fetch('/api/batches');
@@ -1397,13 +1397,13 @@
             }
         }
 
-        // ==================== MOBILE MENU ====================
+        // ====== MOBILE MENU ======
         function toggleMobileMenu() {
             const menu = document.getElementById('navMenu');
             menu.classList.toggle('active');
         }
 
-        // ==================== SCROLL EFFECTS ====================
+        // ====== SCROLL EFFECTS ======
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');
             if (window.scrollY > 50) {
@@ -1413,7 +1413,7 @@
             }
         });
 
-        // ==================== SMOOTH SCROLLING ====================
+        // ====== SMOOTH SCROLLING ======
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1430,7 +1430,7 @@
             });
         });
 
-        // ==================== CLOSE MOBILE MENU ON RESIZE ====================
+        // ====== CLOSE MOBILE MENU ON RESIZE ======
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
                 document.getElementById('navMenu').classList.remove('active');

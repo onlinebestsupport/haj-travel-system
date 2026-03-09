@@ -8,7 +8,7 @@ print("="*70)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. FORCE ADD FLASK TO REQUIREMENTS.TXT ====================
+# ====== 1. FORCE ADD FLASK TO REQUIREMENTS.TXT ======
 print("\n📦 FORCE ADDING FLASK TO REQUIREMENTS.TXT...")
 
 req_path = os.path.join(project_root, 'requirements.txt')
@@ -42,7 +42,7 @@ if not flask_exists:
 with open(req_path, 'w', encoding='utf-8') as f:
     f.write('\n'.join(new_lines))
 
-# ==================== 2. CREATE A CUSTOM CHECKER THAT WILL PASS ====================
+# ====== 2. CREATE A CUSTOM CHECKER THAT WILL PASS ======
 print("\n📦 CREATING CUSTOM RAILWAY CHECKER...")
 
 custom_checker = '''# railway_custom_check.py
@@ -127,14 +127,14 @@ with open(checker_path, 'w', encoding='utf-8') as f:
     f.write(custom_checker)
 print(f"✅ Created custom checker: {checker_path}")
 
-# ==================== 3. CREATE DEPLOYMENT SCRIPT ====================
+# ====== 3. CREATE DEPLOYMENT SCRIPT ======
 print("\n📦 CREATING DEPLOYMENT SCRIPT...")
 
 deploy_script = '''#!/bin/bash
 # deploy.sh - One-click deployment script
 
 echo "🚀 Deploying Alhudha Haj Travel System to Railway..."
-echo "================================================"
+echo "======"
 
 # Step 1: Check git status
 echo "📊 Checking git status..."
@@ -162,7 +162,7 @@ with open(deploy_script_path, 'w', encoding='utf-8') as f:
     f.write(deploy_script)
 print(f"✅ Created deployment script: {deploy_script_path}")
 
-# ==================== 4. VERIFY EVERYTHING ====================
+# ====== 4. VERIFY EVERYTHING ======
 print("\n" + "="*70)
 print("📊 FINAL VERIFICATION")
 print("="*70)

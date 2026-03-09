@@ -1149,7 +1149,7 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let currentPage = 1;
         let itemsPerPage = 10;
         let allReceipts = [];
@@ -1157,7 +1157,7 @@
         let selectedReceipts = new Set();
         let companyAddress = {};
 
-        // ==================== NOTIFICATION FUNCTION ====================
+        // ====== NOTIFICATION FUNCTION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1166,7 +1166,7 @@
             setTimeout(() => notification.style.display = 'none', 3000);
         }
 
-        // ==================== SESSION CHECK ====================
+        // ====== SESSION CHECK ======
         async function checkAdminSession() {
             try {
                 const response = await fetch('/api/check-session', {
@@ -1194,7 +1194,7 @@
             }
         }
 
-        // ==================== LOAD RECEIPTS ====================
+        // ====== LOAD RECEIPTS ======
         async function loadReceipts() {
             const container = document.getElementById('receiptsListContainer');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading receipts...</div>';
@@ -1238,7 +1238,7 @@
             }
         }
 
-        // ==================== LOAD RECEIPT STATS ====================
+        // ====== LOAD RECEIPT STATS ======
         async function loadReceiptStats() {
             try {
                 const response = await fetch('/api/receipts/stats', {
@@ -1266,7 +1266,7 @@
             }
         }
 
-        // ==================== DISPLAY RECEIPTS ====================
+        // ====== DISPLAY RECEIPTS ======
         function displayReceipts() {
             const container = document.getElementById('receiptsListContainer');
             
@@ -1350,7 +1350,7 @@
             updatePaginationInfo();
         }
 
-        // ==================== PAGINATION FUNCTIONS ====================
+        // ====== PAGINATION FUNCTIONS ======
         function updatePaginationInfo() {
             const total = filteredReceipts.length;
             document.getElementById('totalCount').textContent = total;
@@ -1386,7 +1386,7 @@
             }
         }
 
-        // ==================== FILTER FUNCTIONS ====================
+        // ====== FILTER FUNCTIONS ======
         function applyFilters() {
             const search = document.getElementById('searchReceipt').value.toLowerCase();
             const type = document.getElementById('receiptTypeFilter').value;
@@ -1435,7 +1435,7 @@
             showNotification('Filters reset', 'info');
         }
 
-        // ==================== BULK ACTIONS ====================
+        // ====== BULK ACTIONS ======
         function toggleSelectAll() {
             const checkboxes = document.querySelectorAll('.receipt-checkbox');
             const selectAll = document.getElementById('selectAllReceipts');
@@ -1485,7 +1485,7 @@
             showNotification(`Email feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
         }
 
-        // ==================== RECEIPT ACTIONS ====================
+        // ====== RECEIPT ACTIONS ======
         function viewReceipt(id) {
             const receipt = allReceipts.find(r => r.id === id);
             if (!receipt) {
@@ -1540,7 +1540,7 @@
             showNotification('Export feature coming soon', 'info');
         }
 
-        // ==================== RECEIPT FORM FUNCTIONS ====================
+        // ====== RECEIPT FORM FUNCTIONS ======
         function toggleCreateReceiptForm() {
             const form = document.getElementById('createReceiptForm');
             if (form.style.display === 'none' || form.style.display === '') {
@@ -1642,7 +1642,7 @@
             loadReceipts();
         }
 
-        // ==================== ADDRESS TEMPLATE FUNCTIONS ====================
+        // ====== ADDRESS TEMPLATE FUNCTIONS ======
         function loadAddressTemplate() {
             const savedAddress = localStorage.getItem('companyAddress');
             if (savedAddress) {
@@ -1674,7 +1674,7 @@
             showNotification('Address template saved successfully!', 'success');
         }
 
-     // ==================== LOGOUT ====================
+     // ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -1683,12 +1683,12 @@ async function logout() {
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== CLOSE MODAL ====================
+        // ====== CLOSE MODAL ======
         function closeModal() {
             document.getElementById('receiptModal').style.display = 'none';
         }
 
-      // ==================== INITIALIZATION ====================
+      // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Loading page...');
     await SessionManager.initPage(loadData || function(){});
@@ -1705,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
 
-        // ==================== CLOSE MODAL ON OUTSIDE CLICK ====================
+        // ====== CLOSE MODAL ON OUTSIDE CLICK ======
         window.onclick = function(event) {
             const modal = document.getElementById('receiptModal');
             if (event.target == modal) {

@@ -22,9 +22,9 @@ print(f"✅ Backup created: {backup_path}")
 with open(html_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# ============================================================
+# ====
 # FIX 1: Add Loading Indicator
-# ============================================================
+# ====
 print("\n🔧 Adding loading indicator...")
 
 loading_html = '''
@@ -40,9 +40,9 @@ if 'reportLoadingOverlay' not in content:
         content = content.replace('<body>', '<body>\n' + loading_html)
         print("   ✅ Loading indicator added")
 
-# ============================================================
+# ====
 # FIX 2: Add Report Saving Functionality
-# ============================================================
+# ====
 print("\n🔧 Adding report saving functionality...")
 
 save_report_html = '''
@@ -92,9 +92,9 @@ if 'saveReportModal' not in content:
         content = content.replace('</body>', save_report_html + '\n</body>')
         print("   ✅ Save report modal added")
 
-# ============================================================
+# ====
 # FIX 3: Add Saved Reports List
-# ============================================================
+# ====
 print("\n🔧 Adding saved reports list...")
 
 saved_reports_html = '''
@@ -123,9 +123,9 @@ if 'Saved Reports' not in content:
         )
         print("   ✅ Saved reports panel added")
 
-# ============================================================
+# ====
 # FIX 4: Add Email Report Button
-# ============================================================
+# ====
 print("\n🔧 Adding email report button...")
 
 email_button = '''
@@ -141,9 +141,9 @@ if 'emailReportBtn' not in content:
     )
     print("   ✅ Email report button added")
 
-# ============================================================
+# ====
 # FIX 5: Add Chart Type Selector
-# ============================================================
+# ====
 print("\n🔧 Adding chart type selector...")
 
 chart_selector = '''
@@ -163,14 +163,14 @@ if '<select id="paymentChartPeriod">' in content:
     )
     print("   ✅ Chart type selector added")
 
-# ============================================================
+# ====
 # FIX 6: Add JavaScript Functions
-# ============================================================
+# ====
 print("\n🔧 Adding JavaScript enhancement functions...")
 
 enhancement_js = '''
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -286,7 +286,7 @@ enhancement_js = '''
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -312,7 +312,7 @@ enhancement_js = '''
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -333,7 +333,7 @@ enhancement_js = '''
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
@@ -361,9 +361,9 @@ enhancement_js = '''
 content = content.replace('</script>', enhancement_js + '\n</script>')
 print("   ✅ Enhancement JavaScript functions added")
 
-# ============================================================
+# ====
 # FIX 7: Add Save Button to Report Actions
-# ============================================================
+# ====
 print("\n🔧 Adding save report button...")
 
 save_button = '''
@@ -379,9 +379,9 @@ if 'saveReportBtn' not in content:
     )
     print("   ✅ Save report button added")
 
-# ============================================================
+# ====
 # Write the file
-# ============================================================
+# ====
 with open(html_path, 'w', encoding='utf-8') as f:
     f.write(content)
 

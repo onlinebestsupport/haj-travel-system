@@ -8,7 +8,7 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== FIX 1: TRAVELERS.HTML BRACE MISMATCH ====================
+# ====== FIX 1: TRAVELERS.HTML BRACE MISMATCH ======
 print("\n📁 Fixing travelers.html brace mismatch...")
 travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
 
@@ -46,7 +46,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 2: DEBUG_USERS.HTML LOOPS ====================
+# ====== FIX 2: DEBUG_USERS.HTML LOOPS ======
 print("\n📁 Fixing debug_users.html loops...")
 debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
 
@@ -87,7 +87,7 @@ if os.path.exists(debug_path):
     with open(debug_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 3: TRAVELERS.HTML LINE 2674 LOOP ====================
+# ====== FIX 3: TRAVELERS.HTML LINE 2674 LOOP ======
 print("\n📁 Fixing travelers.html line 2674 loop...")
 
 if os.path.exists(travelers_path):
@@ -111,7 +111,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== FIX 4: SESSION MANAGER ====================
+# ====== FIX 4: SESSION MANAGER ======
 print("\n📁 Fixing session-manager.js...")
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
 
@@ -172,7 +172,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Session manager fixes complete")
 
-# ==================== FIX 5: FRONTPAGE.HTML DOUBLE SESSIONMANAGER ====================
+# ====== FIX 5: FRONTPAGE.HTML DOUBLE SESSIONMANAGER ======
 print("\n📁 Fixing frontpage.html...")
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
 
@@ -188,7 +188,7 @@ if os.path.exists(frontpage_path):
     with open(frontpage_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 6: DEBUG_USERS.HTML ADDITIONAL LOOP ====================
+# ====== FIX 6: DEBUG_USERS.HTML ADDITIONAL LOOP ======
 print("\n📁 Fixing debug_users.html line 126...")
 
 if os.path.exists(debug_path):
@@ -216,7 +216,7 @@ if os.path.exists(debug_path):
     with open(debug_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== VERIFICATION ====================
+# ====== VERIFICATION ======
 print("\n" + "="*80)
 print("🔍 VERIFYING FIXES")
 print("="*80)

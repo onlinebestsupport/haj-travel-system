@@ -1208,11 +1208,11 @@
     </div>
 
     <!-- Session Warning Banner -->
-<<<<<<< HEAD
+
     <div id="sessionWarning" onclick="SessionManager.extendSession()">
-=======
+
     <div id="sessionWarning">
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
         <i class="fas fa-exclamation-triangle"></i> 
         <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
     </div>
@@ -1224,7 +1224,7 @@
     <script>
         'use strict';
 
-        // ==================== SESSION MANAGER ====================
+        // ====== SESSION MANAGER ======
         const SessionManager = {
             initPage: async function(callback) {
                 try {
@@ -1307,19 +1307,19 @@
     <script>
         'use strict';
 
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let chartInstances = {
             paymentsChart: null,
             travelersChart: null
         };
         
         let intervals = [];
-<<<<<<< HEAD
+
         let sessionWarningTimeout = undefined;
         let sessionLogoutTimeout = undefined;
         let warningShown = false;
         let notificationTimeout = undefined;
-=======
+
         let eventListeners = [];
         let sessionWarningTimeout = null;
         let sessionLogoutTimeout = null;
@@ -1329,7 +1329,7 @@
         const MAX_RETRIES = 3;
         const RETRY_DELAY = 1000;
 
-        // ==================== UTILITY FUNCTIONS ====================
+        // ====== UTILITY FUNCTIONS ======
         function sanitizeHTML(text) {
             const map = {
                 '&': '&amp;',
@@ -1359,9 +1359,9 @@
         function navigateTo(path) {
             window.location.href = path;
         }
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
 
-        // ==================== PAGE INITIALIZATION ====================
+
+        // ====== PAGE INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await SessionManager.initPage(initializeDashboard);
@@ -1376,13 +1376,13 @@
             console.SessionManager.log('✅ User authenticated, loading dashboard...');
             
             updateUserInterface();
-<<<<<<< HEAD
+
             
             // Initialize session management
             SessionManager.resetSessionTimer();
-=======
+
             resetSessionTimer();
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
             
             // Add activity listeners with cleanup tracking
             const userActivityHandler = resetSessionTimer;
@@ -1466,7 +1466,7 @@
             }
         }
 
-        // ==================== SESSION MANAGEMENT ====================
+        // ====== SESSION MANAGEMENT ======
         function SessionManager.resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
@@ -1525,7 +1525,7 @@
             }
         }
 
-        // ==================== CLEANUP ====================
+        // ====== CLEANUP ======
         window.addEventListener('beforeunload', function() {
             // Clear all intervals
             intervals.forEach(interval => clearInterval(interval));
@@ -1554,7 +1554,7 @@
             });
         });
 
-        // ==================== DATE/TIME ====================
+        // ====== DATE/TIME ======
         function updateDateTime() {
             try {
                 const now = new Date();
@@ -1580,7 +1580,7 @@
             }
         }
 
-        // ==================== LOAD DASHBOARD STATS ====================
+        // ====== LOAD DASHBOARD STATS ======
         async function loadDashboardStats() {
             try {
                 document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
@@ -1648,16 +1648,16 @@
                         el.classList.remove('skeleton');
                     });
                     
-<<<<<<< HEAD
+
                     console.SessionManager.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,
                         payments: stats.paid_count
                     });
-=======
+
                     console.log('✅ Dashboard stats loaded');
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
                 }
             } catch (error) {
                 console.error('❌ Error loading dashboard stats:', error);
@@ -1665,7 +1665,7 @@
             }
         }
 
-        // ==================== CHARTS ====================
+        // ====== CHARTS ======
         function initializeCharts() {
             try {
                 if (chartInstances.paymentsChart) {
@@ -1754,7 +1754,7 @@
             }
         }
 
-        // ==================== RECENT ACTIVITY ====================
+        // ====== RECENT ACTIVITY ======
         async function loadRecentActivity() {
             try {
                 const response = await fetchWithRetry('/api/admin/dashboard/stats', { 
@@ -1835,7 +1835,7 @@
             }
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
@@ -1862,7 +1862,7 @@
             }, 3000);
         }
 
-        // ==================== HELPER FUNCTIONS ====================
+        // ====== HELPER FUNCTIONS ======
         function formatRole(role) {
             try {
                 if (!role) return 'Administrator';
@@ -1874,30 +1874,30 @@
             }
         }
 
-        // ==================== CHART PERIOD CHANGE ====================
+        // ====== CHART PERIOD CHANGE ======
         document.addEventListener('DOMContentLoaded', function() {
             const paymentSelect = document.getElementById('paymentChartPeriod');
             const travelersSelect = document.getElementById('travelersChartPeriod');
             
             if (paymentSelect) {
                 paymentSelect.addEventListener('change', (e) => {
-<<<<<<< HEAD
+
                     SessionManager.showNotification(`Updating payment chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
-=======
+
                     showNotification(`Updating payment chart for ${e.target.value}`, 'info');
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
                 });
             }
 
             if (travelersSelect) {
                 travelersSelect.addEventListener('change', (e) => {
-<<<<<<< HEAD
+
                     SessionManager.showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
-=======
+
                     showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
                 });
             }
         });

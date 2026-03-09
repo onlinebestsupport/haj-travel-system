@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ==================== DATABASE CONFIGURATION ====================
+# ====== DATABASE CONFIGURATION ======
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Optional: explicitly set SSL mode via environment variable.
@@ -51,7 +51,7 @@ _INITIALIZED = False
 _INITIALIZING = False
 _init_lock = threading.Lock()
 
-# ==================== DATABASE CONNECTION ====================
+# ====== DATABASE CONNECTION ======
 
 def get_db():
     """Get PostgreSQL database connection"""
@@ -66,7 +66,7 @@ def get_db():
         print(f"❌ Database connection error: {e}")
         raise e
 
-# ==================== 🔥 ADD MISSING release_db FUNCTION ====================
+# ====== 🔥 ADD MISSING release_db FUNCTION ======
 def release_db(conn=None, cursor=None):
     """🔥 Release database connection back to pool / close it"""
     if cursor:
@@ -80,7 +80,7 @@ def release_db(conn=None, cursor=None):
         except:
             pass
 
-# ==================== TABLE CREATION FUNCTIONS ====================
+# ====== TABLE CREATION FUNCTIONS ======
 
 def create_users_table(cursor):
     cursor.execute("""
@@ -416,7 +416,7 @@ def create_company_settings_table(cursor):
         ON CONFLICT (id) DO NOTHING
     """)
 
-# ==================== SEED DEFAULT USERS ====================
+# ====== SEED DEFAULT USERS ======
 
 def seed_default_users(conn, cursor):
     """Insert default users if table is empty"""
@@ -441,7 +441,7 @@ def seed_default_users(conn, cursor):
         conn.commit()
         print("✅ Default users seeded")
 
-# ==================== MIGRATION FUNCTIONS ====================
+# ====== MIGRATION FUNCTIONS ======
 
 def migrate_receipts_table():
     """Add invoice_id column to receipts table if not exists"""
@@ -471,7 +471,7 @@ def migrate_receipts_table():
     finally:
         release_db(conn, cursor)
 
-# ==================== MAIN INITIALIZATION ====================
+# ====== MAIN INITIALIZATION ======
 
 def init_db():
     """Initialize database with all tables and seed data"""
@@ -548,7 +548,7 @@ def init_db():
     finally:
         release_db(conn, cursor)
 
-# ==================== HELPER FUNCTIONS ====================
+# ====== HELPER FUNCTIONS ======
 
 def execute_query(query, params=None):
     """Execute a query and return results"""
@@ -614,7 +614,7 @@ def update_backup_settings(schedule, retention_days, location, compression, encr
     finally:
         release_db(conn, cursor)
 
-# ==================== EXPORTED FUNCTIONS ====================
+# ====== EXPORTED FUNCTIONS ======
 
 __all__ = [
     'get_db', 

@@ -123,7 +123,7 @@ for rel_path, full_path in js_files:
             if '.css' in line:
                 print(f"📌 {rel_path}:{i} - {line.strip()[:100]}")
 
-# ==================== SUMMARY ====================
+# ====== SUMMARY ======
 print("\n" + "="*70)
 print("📊 CSS REFERENCE SUMMARY")
 print("="*70)

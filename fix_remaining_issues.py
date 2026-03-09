@@ -13,7 +13,7 @@ backup_dir = os.path.join(project_root, f"final_backup_{datetime.now().strftime(
 os.makedirs(backup_dir, exist_ok=True)
 print(f"📦 Backup created: {backup_dir}")
 
-# ==================== 1. FIX FOR LOOP SYNTAX ERRORS ====================
+# ====== 1. FIX FOR LOOP SYNTAX ERRORS ======
 print("\n" + "="*60)
 print("🔧 FIXING FOR LOOP SYNTAX ERRORS")
 print("="*60)
@@ -59,7 +59,7 @@ travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
 if os.path.exists(travelers_path):
     fix_for_loop_syntax(travelers_path, 2672)
 
-# ==================== 2. FIX DUPLICATE FUNCTIONS ====================
+# ====== 2. FIX DUPLICATE FUNCTIONS ======
 print("\n" + "="*60)
 print("🔧 FIXING DUPLICATE FUNCTIONS")
 print("="*60)
@@ -316,7 +316,7 @@ if os.path.exists(sm_path):
             f.write(sm_content)
         print(f"\n📊 Added {added} functions to session-manager.js")
 
-# ==================== 3. UPDATE HTML FILES TO USE SESSION MANAGER ====================
+# ====== 3. UPDATE HTML FILES TO USE SESSION MANAGER ======
 print("\n" + "="*60)
 print("🔧 UPDATING HTML FILES TO USE SESSION MANAGER")
 print("="*60)
@@ -384,13 +384,13 @@ for html_file in html_files:
 
 print(f"\n📊 Updated {updated_count} HTML files")
 
-# ==================== 4. CREATE CLEANUP REPORT ====================
+# ====== 4. CREATE CLEANUP REPORT ======
 print("\n" + "="*60)
 print("📋 CREATING CLEANUP REPORT")
 print("="*60)
 
 report = """FUNCTION CLEANUP REPORT
-=======================
+==
 
 The following functions have been added to session-manager.js:
 """
@@ -401,7 +401,7 @@ for func in functions_to_replace:
 report += f"""
 
 📊 SUMMARY
-==========
+===
 ✅ Functions added to session-manager.js: {len(functions_to_replace)}
 ✅ HTML files updated: {updated_count}
 ✅ All duplicate functions consolidated
@@ -414,7 +414,7 @@ with open(report_path, 'w', encoding='utf-8') as f:
     f.write(report)
 print(f"✅ Created cleanup report: {report_path}")
 
-# ==================== 5. SUMMARY ====================
+# ====== 5. SUMMARY ======
 print("\n" + "="*80)
 print("📊 FINAL SUMMARY")
 print("="*80)

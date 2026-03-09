@@ -9,7 +9,7 @@ with open(html_path, 'r', encoding='utf-8') as f:
 # Add global variables at the top of script
 if 'let currentPage' not in content:
     global_vars = '''
-    // ==================== GLOBAL VARIABLES ====================
+    // ====== GLOBAL VARIABLES ======
     let currentPage = 1;
     let itemsPerPage = 10;
     let allUsers = [];
@@ -23,7 +23,7 @@ if 'let currentPage' not in content:
 if 'function exportUsersToCSV' not in content:
     export_func = '''
 
-    // ==================== EXPORT FUNCTION ====================
+    // ====== EXPORT FUNCTION ======
     function exportUsersToCSV() {
         if (!allUsers || allUsers.length === 0) {
             showNotification('No users to export', 'error');
@@ -55,7 +55,7 @@ if 'function exportUsersToCSV' not in content:
 if 'function updatePaginationInfo' not in content:
     pagination_funcs = '''
 
-    // ==================== PAGINATION FUNCTIONS ====================
+    // ====== PAGINATION FUNCTIONS ======
     function updatePaginationInfo() {
         const total = allUsers.length;
         document.getElementById('totalCount').textContent = total;
@@ -89,7 +89,7 @@ if 'function updatePaginationInfo' not in content:
 if 'function toggleSelectAll' not in content:
     bulk_funcs = '''
 
-    // ==================== BULK ACTIONS ====================
+    // ====== BULK ACTIONS ======
     function toggleSelectAll() {
         const checkboxes = document.querySelectorAll('.user-checkbox');
         const selectAll = document.getElementById('selectAllUsers');

@@ -8,7 +8,7 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. FIX SESSION MANAGER (3 issues) ====================
+# ====== 1. FIX SESSION MANAGER (3 issues) ======
 print("\n🔧 FIXING SESSION MANAGER (3 issues)")
 print("-" * 40)
 
@@ -76,7 +76,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Session manager fixes complete!")
 
-# ==================== 2. FIX FOR LOOP SYNTAX ERRORS ====================
+# ====== 2. FIX FOR LOOP SYNTAX ERRORS ======
 print("\n🔧 FIXING FOR LOOP SYNTAX ERRORS (2 issues)")
 print("-" * 40)
 
@@ -123,7 +123,7 @@ if os.path.exists(travelers_path):
     if fix_for_loop(travelers_path, 2672):
         print("✅ Fixed travelers.html line 2672")
 
-# ==================== 3. VERIFY FRONTPAGE.HTML ====================
+# ====== 3. VERIFY FRONTPAGE.HTML ======
 print("\n🔍 VERIFYING FRONTPAGE.HTML")
 print("-" * 40)
 
@@ -143,7 +143,7 @@ if os.path.exists(frontpage_path):
             with open(frontpage_path, 'w', encoding='utf-8') as f:
                 f.writelines(lines)
 
-# ==================== 4. SUMMARY ====================
+# ====== 4. SUMMARY ======
 print("\n" + "="*80)
 print("📊 FINAL SUMMARY")
 print("="*80)

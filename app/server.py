@@ -11,11 +11,11 @@ import threading
 import time
 import logging
 
-# ==================== LOGGING CONFIGURATION ====================
+# ====== LOGGING CONFIGURATION ======
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ==================== ENVIRONMENT CONFIGURATION ====================
+# ====== ENVIRONMENT CONFIGURATION ======
 load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -25,10 +25,10 @@ from app.database import get_db, init_db
 # Import route blueprints
 from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts
 
-# ==================== FLASK APP INITIALIZATION ====================
+# ====== FLASK APP INITIALIZATION ======
 app = Flask(__name__)
 
-# ==================== 🛡️ SECURITY HEADERS ====================
+# ====== 🛡️ SECURITY HEADERS ======
 @app.after_request
 def add_security_headers(response):
     """Add security headers to all responses"""
@@ -53,13 +53,13 @@ def add_security_headers(response):
 _db_initialized = False
 _db_init_lock = threading.Lock()
 
-# ==================== APP CONFIGURATION ====================
+# ====== APP CONFIGURATION ======
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# ==================== 🔐 SESSION CONFIGURATION ====================
+# ====== 🔐 SESSION CONFIGURATION ======
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains
 app.config['SESSION_COOKIE_PATH'] = '/'  # Cookie valid for entire site
@@ -71,7 +71,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minutes d
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 app.config['SESSION_COOKIE_PERSISTENT'] = True  # Keep cookie after browser close
 
-# ==================== 📁 DIRECTORY PATHS ====================
+# ====== 📁 DIRECTORY PATHS ======
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 ADMIN_DIR = os.path.join(PUBLIC_DIR, 'admin')
@@ -93,8 +93,8 @@ if os.path.exists(PUBLIC_DIR):
 if os.path.exists(ADMIN_DIR):
     print(f"📄 Files in admin: {os.listdir(ADMIN_DIR)}")
 
-# ==================== 🌐 CORS CONFIGURATION ====================
-# ==================== CORS CONFIGURATION ====================
+# ====== 🌐 CORS CONFIGURATION ======
+# ====== CORS CONFIGURATION ======
 CORS(
     app, 
     supports_credentials=True, 
@@ -114,7 +114,7 @@ CORS(
     ]
 )
 
-# ==================== 📂 UPLOAD DIRECTORIES ====================
+# ====== 📂 UPLOAD DIRECTORIES ======
 try:
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'passports'), exist_ok=True)
@@ -128,7 +128,7 @@ try:
 except Exception as e:
     print(f"❌ Error creating upload directories: {e}")
 
-# ==================== 🔷 BLUEPRINT REGISTRATION ====================
+# ====== 🔷 BLUEPRINT REGISTRATION ======
 app.register_blueprint(auth.bp)
 app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
@@ -140,7 +140,7 @@ app.register_blueprint(reports.bp)
 app.register_blueprint(invoices.bp)
 app.register_blueprint(receipts.bp)
 
-# ==================== 📝 SESSION DEBUGGING MIDDLEWARE ====================
+# ====== 📝 SESSION DEBUGGING MIDDLEWARE ======
 @app.after_request
 def after_request(response):
     """Log session info after each request for debugging"""
@@ -157,7 +157,7 @@ def after_request(response):
         print(f"⚠️ Error in after_request: {e}")
     return response
 
-# ==================== 🏠 STATIC FILE ROUTES ====================
+# ====== 🏠 STATIC FILE ROUTES ======
 # These routes MUST come before API routes
 
 @app.route('/')
@@ -176,7 +176,7 @@ def serve_index():
         print(f"❌ Error serving index.html: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 🔐 LOGIN PAGE ROUTES (FIXED) ====================
+# ====== 🔐 LOGIN PAGE ROUTES (FIXED) ======
 @app.route('/admin.login.html')
 def serve_admin_login_correct():
     """Serve admin login page from public directory - CORRECT URL"""
@@ -197,7 +197,7 @@ def redirect_admin_login():
     print(f"🔄 Redirecting {request.path} to /admin.login.html")
     return redirect('/admin.login.html')
 
-# ==================== 📊 ADMIN STATIC ROUTES ====================
+# ====== 📊 ADMIN STATIC ROUTES ======
 @app.route('/admin/')
 @app.route('/admin')
 def serve_admin_index():
@@ -234,7 +234,7 @@ def serve_admin(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 👤 TRAVELER ROUTES ====================
+# ====== 👤 TRAVELER ROUTES ======
 @app.route('/traveler/')
 @app.route('/traveler')
 def serve_traveler_index():
@@ -269,7 +269,7 @@ def serve_traveler(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 🚪 TRAVELER LOGIN ROUTES ====================
+# ====== 🚪 TRAVELER LOGIN ROUTES ======
 @app.route('/traveler_login.html')
 @app.route('/traveler/login')
 def serve_traveler_login():
@@ -282,7 +282,7 @@ def serve_traveler_login():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 📄 FRONTPAGE ROUTES ====================
+# ====== 📄 FRONTPAGE ROUTES ======
 @app.route('/frontpage.html')
 @app.route('/admin/frontpage.html')
 def serve_frontpage():
@@ -295,7 +295,7 @@ def serve_frontpage():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 🎨 CSS ROUTES ====================
+# ====== 🎨 CSS ROUTES ======
 @app.route('/style.css')
 def serve_css():
     """Serve main CSS file"""
@@ -317,7 +317,7 @@ def serve_admin_css():
         return jsonify({'success': False, 'error': 'Admin CSS file not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-# ==================== 📜 JAVASCRIPT ROUTES ====================
+# ====== 📜 JAVASCRIPT ROUTES ======
 @app.route('/admin/js/<path:filename>')
 def serve_admin_js(filename):
     """Serve admin JavaScript files"""
@@ -330,7 +330,7 @@ def serve_admin_js(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 📁 UPLOAD ROUTES ====================
+# ====== 📁 UPLOAD ROUTES ======
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
     """Serve uploaded files"""
@@ -352,7 +352,7 @@ def serve_company_upload(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 🌍 CATCH-ALL STATIC ROUTE ====================
+# ====== 🌍 CATCH-ALL STATIC ROUTE ======
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Serve static files from public directory (catch-all)"""
@@ -376,7 +376,7 @@ def serve_static(filename):
         print(f"❌ Error serving static file {filename}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== 🏥 API HEALTH ENDPOINTS ====================
+# ====== 🏥 API HEALTH ENDPOINTS ======
 @app.route('/api/health')
 @app.route('/health')
 def api_health():
@@ -408,7 +408,7 @@ def api_root():
         'timestamp': datetime.now().isoformat()
     }), 200
 
-# ==================== 💾 LAZY DATABASE INITIALIZATION ====================
+# ====== 💾 LAZY DATABASE INITIALIZATION ======
 def initialize_database():
     global _db_initialized
     
@@ -468,7 +468,7 @@ def before_request():
     except Exception as e:
         print(f"⚠️ Error in before_request: {e}")
 
-# ==================== 🐛 DEBUG ROUTES ====================
+# ====== 🐛 DEBUG ROUTES ======
 @app.route('/debug/paths')
 def debug_paths():
     """Debug endpoint to check file paths"""
@@ -553,7 +553,7 @@ def debug_routes():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ==================== ❌ ERROR HANDLERS ====================
+# ====== ❌ ERROR HANDLERS ======
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors - try to serve HTML file if possible"""
@@ -574,7 +574,7 @@ def internal_error(error):
     print(f"❌ Internal server error: {error}")
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
-# ==================== 🔧 HELPER FUNCTIONS ====================
+# ====== 🔧 HELPER FUNCTIONS ======
 def log_admin_action(user_id, action, description):
     """Log admin actions to database"""
     try:
@@ -589,7 +589,7 @@ def log_admin_action(user_id, action, description):
     except Exception as e:
         print(f"⚠️ Failed to log admin action: {e}")
 
-# ==================== 🚀 APPLICATION ENTRY POINT ====================
+# ====== 🚀 APPLICATION ENTRY POINT ======
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'

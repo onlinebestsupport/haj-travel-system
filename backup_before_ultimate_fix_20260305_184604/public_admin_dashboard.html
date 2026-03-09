@@ -1315,12 +1315,12 @@
 
     <!-- Main Dashboard Script -->
     <script>
-        // ==================== OPTIMIZED JAVASCRIPT WITH FIXES ====================
+        // ====== OPTIMIZED JAVASCRIPT WITH FIXES ======
         
         // Use strict mode to catch errors
         'use strict';
 
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let chartInstances = {
             paymentsChart: null,
             travelersChart: null
@@ -1332,7 +1332,7 @@
         let warningShown = false;
         let notificationTimeout = null;
 
-        // ==================== PAGE INITIALIZATION ====================
+        // ====== PAGE INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Initialize with SessionManager
@@ -1432,7 +1432,7 @@
             }
         }
 
-        // ==================== SESSION MANAGEMENT ====================
+        // ====== SESSION MANAGEMENT ======
         function resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
@@ -1487,7 +1487,7 @@
             }
         }
 
-        // ==================== CLEANUP ====================
+        // ====== CLEANUP ======
         window.addEventListener('beforeunload', function() {
             intervals.forEach(interval => clearInterval(interval));
             
@@ -1505,7 +1505,7 @@
             });
         });
 
-        // ==================== DATE/TIME ====================
+        // ====== DATE/TIME ======
         function updateDateTime() {
             try {
                 const now = new Date();
@@ -1529,7 +1529,7 @@
             }
         }
 
-        // ==================== LOAD DASHBOARD STATS ====================
+        // ====== LOAD DASHBOARD STATS ======
         async function loadDashboardStats() {
             try {
                 // Show loading skeletons
@@ -1621,7 +1621,7 @@
             }
         }
 
-        // ==================== CHARTS ====================
+        // ====== CHARTS ======
         function initializeCharts() {
             try {
                 // Destroy existing charts
@@ -1714,7 +1714,7 @@
             }
         }
 
-        // ==================== RECENT ACTIVITY ====================
+        // ====== RECENT ACTIVITY ======
         async function loadRecentActivity() {
             try {
                 const response = await fetch('/api/admin/dashboard/stats', { 
@@ -1799,14 +1799,14 @@
             }
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         async function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 await SessionManager.logout();
             }
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
@@ -1829,7 +1829,7 @@
             }, 3000);
         }
 
-        // ==================== HELPER FUNCTIONS ====================
+        // ====== HELPER FUNCTIONS ======
         function formatRole(role) {
             try {
                 if (!role) return 'Administrator';
@@ -1841,7 +1841,7 @@
             }
         }
 
-        // ==================== CHART PERIOD CHANGE ====================
+        // ====== CHART PERIOD CHANGE ======
         document.addEventListener('DOMContentLoaded', function() {
             const paymentSelect = document.getElementById('paymentChartPeriod');
             const travelersSelect = document.getElementById('travelersChartPeriod');

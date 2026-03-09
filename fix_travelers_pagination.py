@@ -22,9 +22,9 @@ print(f"✅ Backup created: {backup_path}")
 with open(html_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# ============================================================
+# ====
 # FIX 1: Add Pagination HTML
-# ============================================================
+# ====
 if 'pagination' not in content.lower() and 'showingFrom' not in content:
     print("\n🔧 Adding pagination HTML...")
     
@@ -48,14 +48,14 @@ if 'pagination' not in content.lower() and 'showingFrom' not in content:
     content = content.replace('    </div>\n\n    <!-- Modals -->', pagination_html + '\n    </div>\n\n    <!-- Modals -->')
     print("   ✅ Pagination HTML added")
 
-# ============================================================
+# ====
 # FIX 2: Add Pagination JavaScript
-# ============================================================
+# ====
 if 'function previousPage' not in content:
     print("\n🔧 Adding pagination JavaScript...")
     
     pagination_js = '''
-    // ==================== PAGINATION VARIABLES ====================
+    // ====== PAGINATION VARIABLES ======
     let currentPage = 1;
     let itemsPerPage = 10;
 
@@ -90,9 +90,9 @@ if 'function previousPage' not in content:
     content = content.replace('</script>', pagination_js + '\n</script>')
     print("   ✅ Pagination JavaScript added")
 
-# ============================================================
+# ====
 # FIX 3: Update displayTravelers function for pagination
-# ============================================================
+# ====
 print("\n🔧 Updating displayTravelers function...")
 
 old_display_section = '''function displayTravelers() {
@@ -228,9 +228,9 @@ new_display_function = '''function displayTravelers() {
 # This is complex - for safety, we'll note that manual check is needed
 print("   ⚠️ displayTravelers function update requires manual verification")
 
-# ============================================================
+# ====
 # FIX 4: Add delete confirmation
-# ============================================================
+# ====
 print("\n🔧 Adding delete confirmation...")
 
 if 'confirm' not in content and 'deleteTraveler' in content:
@@ -243,9 +243,9 @@ if 'confirm' not in content and 'deleteTraveler' in content:
         # Add confirm to delete function
         print("   ⚠️ Manual check needed for delete confirmation")
 
-# ============================================================
+# ====
 # FIX 5: Add export options
-# ============================================================
+# ====
 if 'exportTravelersToExcel' in content and 'exportTravelersToPDF' not in content:
     print("\n🔧 Adding PDF export option...")
     
@@ -261,9 +261,9 @@ if 'exportTravelersToExcel' in content and 'exportTravelersToPDF' not in content
     )
     print("   ✅ PDF export button added")
 
-# ============================================================
+# ====
 # Write the file
-# ============================================================
+# ====
 with open(html_path, 'w', encoding='utf-8') as f:
     f.write(content)
 

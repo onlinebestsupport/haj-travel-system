@@ -225,19 +225,22 @@ def get_receipt_stats():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     conn, cursor = get_db()
-    
-    cursor.execute('''
-        SELECT 
-            COUNT(*) as total_receipts,
-            COALESCE(SUM(amount), 0) as total_amount,
-            COUNT(DISTINCT traveler_id) as unique_travelers,
-            COUNT(DISTINCT payment_id) as unique_payments
-        FROM receipts
-    ''')
-    
-    stats = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_receipts,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(CASE WHEN receipt_date > NOW() - INTERVAL '30 days' THEN 1 END) as last_30_days
+            FROM receipts
+        """)
+        stats = cursor.fetchone()
+        
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
     
     # Convert Decimal to float for JSON serialization
     if stats:
@@ -431,3 +434,26 @@ def get_receipts_by_date_range():
             'end_date': end_date
         }
     })
+
+
+@bp.route('/stats', methods=['GET'])
+def get_receipt_stats():
+    """Get receipt statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_receipts,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(CASE WHEN receipt_date > NOW() - INTERVAL '30 days' THEN 1 END) as last_30_days
+            FROM receipts
+        """)
+        stats = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

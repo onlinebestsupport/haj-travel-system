@@ -9,7 +9,7 @@
     <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -125,7 +125,7 @@
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -151,7 +151,7 @@
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -172,7 +172,7 @@
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
@@ -200,7 +200,7 @@
     <!-- Include SheetJS for Excel export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -316,7 +316,7 @@
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -342,7 +342,7 @@
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -363,7 +363,7 @@
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
@@ -391,7 +391,7 @@
     <!-- Include jsPDF for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -507,7 +507,7 @@
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -533,7 +533,7 @@
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -554,7 +554,7 @@
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
@@ -581,7 +581,7 @@
 </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js">
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -697,7 +697,7 @@
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -723,7 +723,7 @@
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -744,7 +744,7 @@
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }
@@ -1575,9 +1575,9 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
 
-// ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
+// ====== SESSION MANAGEMENT & AUTHENTICATION ======
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
@@ -1657,8 +1657,8 @@ if (typeof showNotification !== 'function') {
     };
 }
 
-// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
-// ==================== INITIALIZATION ====================
+// ====== PAGE INITIALIZATION WITH SESSION CHECK ======
+// ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Loading reports page...');
     await SessionManager.initPage(loadReports || function(){});
@@ -1681,8 +1681,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// ==================== LOGOUT FUNCTION ====================
-/// ==================== LOGOUT ====================
+// ====== LOGOUT FUNCTION ======
+/// ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -1772,7 +1772,7 @@ async function logout() {
             ]
         };
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadBatchesForReport();
@@ -1780,7 +1780,7 @@ async function logout() {
             loadPaymentsForReport();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1792,13 +1792,13 @@ async function logout() {
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1810,7 +1810,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== LOAD DROPDOWNS ====================
+        // ====== LOAD DROPDOWNS ======
         async function loadBatchesForReport() {
             try {
                 const response = await fetch('/api/batches', {
@@ -1856,7 +1856,7 @@ async function logout() {
             // This would load payments for payment-specific reports
         }
 
-        // ==================== DATE RANGE FUNCTIONS ====================
+        // ====== DATE RANGE FUNCTIONS ======
         function toggleDateInputs() {
             const range = document.getElementById('dateRange').value;
             const startGroup = document.getElementById('startDateGroup');
@@ -1928,7 +1928,7 @@ async function logout() {
             };
         }
 
-        // ==================== REPORT MODAL FUNCTIONS ====================
+        // ====== REPORT MODAL FUNCTIONS ======
         function showReportModal(type) {
             currentReportType = type;
             const modal = document.getElementById('reportModal');
@@ -2091,7 +2091,7 @@ async function logout() {
             generateReport();
         }
 
-        // ==================== COLUMN SELECTOR FUNCTIONS ====================
+        // ====== COLUMN SELECTOR FUNCTIONS ======
         function initializeColumnSelector(module) {
             const columnGrid = document.getElementById('columnGrid');
             const columns = columnDefinitions[module] || columnDefinitions.travelers;
@@ -2139,7 +2139,7 @@ async function logout() {
             return selectedColumns;
         }
 
-        // ==================== REPORT GENERATION ====================
+        // ====== REPORT GENERATION ======
         async function generateReport() {
             const range = document.getElementById('dateRange').value;
             const batch = document.getElementById('reportBatch').value;
@@ -2349,7 +2349,7 @@ async function logout() {
             tableBody.innerHTML = bodyHtml;
         }
 
-        // ==================== CHART FUNCTIONS ====================
+        // ====== CHART FUNCTIONS ======
         function createPaymentsChart(data) {
             const ctx = document.getElementById('paymentsChart').getContext('2d');
             
@@ -2415,7 +2415,7 @@ async function logout() {
             });
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
+        // ====== EXPORT FUNCTIONS ======
         function exportToPDF() {
             if (!currentReportData) return;
             
@@ -2633,7 +2633,7 @@ async function logout() {
             printWindow.print();
         }
 
-        // ==================== FILTER FUNCTIONS ====================
+        // ====== FILTER FUNCTIONS ======
         function resetFilters() {
             document.getElementById('dateRange').value = 'today';
             document.getElementById('reportBatch').value = 'all';
@@ -2644,14 +2644,14 @@ async function logout() {
             document.getElementById('columnSelector').style.display = 'none';
         }
 
-        // ==================== CLOSE MODALS ====================
+        // ====== CLOSE MODALS ======
         function closeAllModals() {
             document.getElementById('reportModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
     
 
-    // ==================== REPORT SAVING FUNCTIONS ====================
+    // ====== REPORT SAVING FUNCTIONS ======
     let savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
 
     function showSaveReportModal() {
@@ -2767,7 +2767,7 @@ async function logout() {
         showNotification('Report deleted', 'success');
     }
 
-    // ==================== EMAIL REPORT ====================
+    // ====== EMAIL REPORT ======
     function emailReport() {
         if (!currentReportData) {
             showNotification('No report data to email', 'error');
@@ -2793,7 +2793,7 @@ async function logout() {
         showNotification('Email client opened', 'success');
     }
 
-    // ==================== CHART TYPE CHANGE ====================
+    // ====== CHART TYPE CHANGE ======
     function changeChartType() {
         const type = document.getElementById('chartTypeSelector').value;
         
@@ -2814,7 +2814,7 @@ async function logout() {
         }
     }
 
-    // ==================== LOADING INDICATOR ====================
+    // ====== LOADING INDICATOR ======
     function showReportLoading() {
         document.getElementById('reportLoadingOverlay').style.display = 'flex';
     }

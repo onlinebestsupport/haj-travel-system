@@ -85,7 +85,7 @@ class TestRunner:
         
         return self.failed == 0
 
-# ==================== TEST GROUPS ====================
+# ====== TEST GROUPS ======
 
 class AuthenticationTests(TestRunner):
     """🔐 Authentication Tests"""
@@ -448,7 +448,7 @@ class DataValidationTests(TestRunner):
         except Exception as e:
             raise AssertionError(f"Date format error: {e}")
 
-# ==================== MAIN ====================
+# ====== MAIN ======
 
 def main():
     print(f"\n{Colors.BOLD}{Colors.OKBLUE}")

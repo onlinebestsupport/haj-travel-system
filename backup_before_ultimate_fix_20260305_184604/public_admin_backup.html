@@ -928,13 +928,13 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let backupSchedule = 'weekly';
         let backupData = [];
         let currentRestoreId = null;
         let userRole = '';
 
-     // ==================== INITIALIZATION ====================
+     // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Loading backup page...');
     await SessionManager.initPage(loadBackupData || function(){});
@@ -948,7 +948,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             checkForLogoutBackup();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -967,8 +967,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
 
-        // ==================== LOGOUT WITH AUTO BACKUP ====================
-    // ==================== LOGOUT ====================
+        // ====== LOGOUT WITH AUTO BACKUP ======
+    // ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -993,7 +993,7 @@ async function logout() {
             }
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1005,7 +1005,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== LOAD BACKUP STATS FROM POSTGRESQL ====================
+        // ====== LOAD BACKUP STATS FROM POSTGRESQL ======
         async function loadBackupStats() {
             try {
                 const response = await fetch('/api/admin/backups/stats', {
@@ -1034,7 +1034,7 @@ async function logout() {
             }
         }
 
-        // ==================== LOAD BACKUP LIST FROM POSTGRESQL ====================
+        // ====== LOAD BACKUP LIST FROM POSTGRESQL ======
         async function loadBackupList() {
             const container = document.getElementById('backupItems');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading backups...</div>';
@@ -1196,7 +1196,7 @@ async function logout() {
             });
         }
 
-        // ==================== BACKUP FUNCTIONS ====================
+        // ====== BACKUP FUNCTIONS ======
         async function createBackup(type = 'manual') {
             showNotification('Creating backup...', 'info');
             
@@ -1284,7 +1284,7 @@ async function logout() {
             }
         }
 
-        // ==================== RESTORE FUNCTIONS ====================
+        // ====== RESTORE FUNCTIONS ======
         function showRestorePreview(backupId) {
             if (userRole !== 'super_admin') {
                 showNotification('Only Super Admin can restore backups', 'error');
@@ -1361,7 +1361,7 @@ async function logout() {
             currentRestoreId = null;
         }
 
-        // ==================== RESTORE POINT FUNCTIONS ====================
+        // ====== RESTORE POINT FUNCTIONS ======
         function showRestorePoints() {
             filterBackups('restore');
         }
@@ -1439,7 +1439,7 @@ async function logout() {
             }
         }
 
-        // ==================== BACKUP ACTIONS ====================
+        // ====== BACKUP ACTIONS ======
         async function downloadBackup(backupId) {
             const backup = backupData.find(b => b.id == backupId);
             if (!backup) return;
@@ -1531,7 +1531,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             }
         }
 
-        // ==================== SEARCH AND FILTER ====================
+        // ====== SEARCH AND FILTER ======
         function searchBackups() {
             const searchTerm = document.getElementById('searchBackup').value.toLowerCase();
             const filtered = backupData.filter(backup => 
@@ -1555,7 +1555,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             }
         }
 
-        // ==================== SCHEDULE FUNCTIONS ====================
+        // ====== SCHEDULE FUNCTIONS ======
         function setSchedule(type) {
             backupSchedule = type;
             
@@ -1575,7 +1575,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             showNotification(`Backup schedule set to ${type}`, 'success');
         }
 
-        // ==================== SETTINGS FUNCTIONS ====================
+        // ====== SETTINGS FUNCTIONS ======
         async function loadSettings() {
             const savedSchedule = localStorage.getItem('backupSchedule');
             if (savedSchedule) {
@@ -1662,7 +1662,7 @@ ${backup.description ? '\nDescription: ' + backup.description : ''}
             }
         }
 
-        // ==================== MODAL FUNCTIONS ====================
+        // ====== MODAL FUNCTIONS ======
         function closeAllModals() {
             document.getElementById('restoreModal').style.display = 'none';
             document.getElementById('restorePointModal').style.display = 'none';

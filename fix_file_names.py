@@ -14,7 +14,7 @@ backup_dir = os.path.join(project_root, f"backup_before_fix_{datetime.now().strf
 print(f"\n📦 Creating backup in: {backup_dir}")
 os.makedirs(backup_dir, exist_ok=True)
 
-# ==================== 1. FIND FILES WITHOUT EXTENSIONS ====================
+# ====== 1. FIND FILES WITHOUT EXTENSIONS ======
 print("\n🔍 FINDING FILES WITHOUT EXTENSIONS...")
 
 files_without_ext = []
@@ -68,7 +68,7 @@ if files_without_ext:
 else:
     print("✅ No files without extensions found!")
 
-# ==================== 2. CHECK FOR CASE SENSITIVITY ISSUES ====================
+# ====== 2. CHECK FOR CASE SENSITIVITY ISSUES ======
 print("\n" + "="*70)
 print("🔍 CHECKING FOR CASE SENSITIVITY ISSUES")
 print("="*70)
@@ -95,7 +95,7 @@ if case_conflicts:
 else:
     print("✅ No case sensitivity issues found!")
 
-# ==================== 3. CHECK FOR BACKUP FILES ====================
+# ====== 3. CHECK FOR BACKUP FILES ======
 print("\n" + "="*70)
 print("🗑️  CHECKING FOR BACKUP FILES")
 print("="*70)
@@ -137,7 +137,7 @@ if backup_files:
 else:
     print("✅ No backup files found!")
 
-# ==================== 4. CHECK PYTHON IMPORT STATEMENTS ====================
+# ====== 4. CHECK PYTHON IMPORT STATEMENTS ======
 print("\n" + "="*70)
 print("🐍 CHECKING PYTHON IMPORTS")
 print("="*70)
@@ -182,7 +182,7 @@ if missing_packages:
 else:
     print("✅ All imports look good!")
 
-# ==================== 5. CHECK FOR DUPLICATE CSS FILES ====================
+# ====== 5. CHECK FOR DUPLICATE CSS FILES ======
 print("\n" + "="*70)
 print("🎨 CHECKING FOR DUPLICATE CSS FILES")
 print("="*70)
@@ -211,7 +211,7 @@ for name, paths in css_by_name.items():
             rel_path = os.path.relpath(path, project_root)
             print(f"   • {rel_path}")
 
-# ==================== 6. CREATE REQUIREMENTS.TXT CHECK ====================
+# ====== 6. CREATE REQUIREMENTS.TXT CHECK ======
 print("\n" + "="*70)
 print("📋 CHECKING REQUIREMENTS.TXT")
 print("="*70)
@@ -230,7 +230,7 @@ if os.path.exists(req_file):
 else:
     print("⚠️  No requirements.txt found - should create one")
 
-# ==================== 7. CREATE .ENV EXAMPLE CHECK ====================
+# ====== 7. CREATE .ENV EXAMPLE CHECK ======
 print("\n" + "="*70)
 print("🔐 CHECKING .ENV FILE")
 print("="*70)
@@ -248,7 +248,7 @@ if os.path.exists(env_example):
 else:
     print("⚠️  No .env.example file found - should create one")
 
-# ==================== 8. SUMMARY REPORT ====================
+# ====== 8. SUMMARY REPORT ======
 print("\n" + "="*70)
 print("📊 FIXER SUMMARY")
 print("="*70)

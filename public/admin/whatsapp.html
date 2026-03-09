@@ -953,9 +953,9 @@
     </style>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
 
-// ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
+// ====== SESSION MANAGEMENT & AUTHENTICATION ======
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
@@ -1035,8 +1035,8 @@ if (typeof showNotification !== 'function') {
     };
 }
 
-// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
-// ==================== INITIALIZATION ====================
+// ====== PAGE INITIALIZATION WITH SESSION CHECK ======
+// ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.SessionManager.log('🚀 Loading whatsapp page...');
     await SessionManager.initPage(loadWhatsApp || function(){});
@@ -1060,8 +1060,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// ==================== LOGOUT FUNCTION ====================
-// ==================== LOGOUT ====================
+// ====== LOGOUT FUNCTION ======
+// ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -1084,7 +1084,7 @@ async function logout() {
         let whatsappNumber = '';
         let customTemplates = [];
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             SessionManager.SessionManager.checkAuth();
             loadWhatsAppNumber();
@@ -1092,7 +1092,7 @@ async function logout() {
             loadCustomTemplates();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function SessionManager.SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1104,13 +1104,13 @@ async function logout() {
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1122,7 +1122,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== LOAD WHATSAPP NUMBER FROM FRONTPAGE ====================
+        // ====== LOAD WHATSAPP NUMBER FROM FRONTPAGE ======
         function loadWhatsAppNumber() {
             // Try to load from localStorage (set by frontpage)
             whatsappNumber = localStorage.getItem('whatsappNumber') || '919876543210';
@@ -1158,7 +1158,7 @@ async function logout() {
             SessionManager.showNotification('WhatsApp number refreshed from frontpage settings', 'success');
         }
 
-        // ==================== LOAD CONTACTS ====================
+        // ====== LOAD CONTACTS ======
         function loadContacts() {
             // Demo contacts - in production, load from API
             const contacts = [
@@ -1198,7 +1198,7 @@ async function logout() {
             document.getElementById('onlineCount').textContent = onlineCount + ' online';
         }
 
-        // ==================== SELECT CONTACT ====================
+        // ====== SELECT CONTACT ======
         function selectContact(element, name, avatar) {
             document.querySelectorAll('.contact-item').forEach(item => {
                 item.classList.remove('active');
@@ -1218,7 +1218,7 @@ async function logout() {
             loadChatHistory(name);
         }
 
-        // ==================== LOAD CHAT HISTORY ====================
+        // ====== LOAD CHAT HISTORY ======
         function loadChatHistory(contact) {
             const chatMessages = document.getElementById('chatMessages');
             
@@ -1298,7 +1298,7 @@ async function logout() {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // ==================== SEND MESSAGE ====================
+        // ====== SEND MESSAGE ======
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -1385,7 +1385,7 @@ async function logout() {
             }
         }
 
-        // ==================== SYNC CONTACTS ====================
+        // ====== SYNC CONTACTS ======
         function syncContacts() {
             SessionManager.showNotification('Syncing WhatsApp contacts...', 'info');
             
@@ -1395,7 +1395,7 @@ async function logout() {
             }, 2000);
         }
 
-        // ==================== MESSAGE TEMPLATES ====================
+        // ====== MESSAGE TEMPLATES ======
         function SessionManager.useTemplate(type) {
             const input = document.getElementById('messageInput');
             
@@ -1475,7 +1475,7 @@ async function logout() {
             SessionManager.showNotification('Template saved successfully!', 'success');
         }
 
-        // ==================== BROADCAST FUNCTIONS ====================
+        // ====== BROADCAST FUNCTIONS ======
         function showBroadcast() {
             document.getElementById('broadcastSection').style.display = 'block';
             document.getElementById('broadcastSection').scrollIntoView({ behavior: 'smooth' });
@@ -1510,7 +1510,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== SEARCH CONTACTS ====================
+        // ====== SEARCH CONTACTS ======
         document.getElementById('contactSearch').addEventListener('input', function(e) {
             const search = e.target.value.toLowerCase();
             const contacts = document.querySelectorAll('.contact-item');

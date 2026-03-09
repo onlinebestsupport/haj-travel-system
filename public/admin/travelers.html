@@ -1483,7 +1483,7 @@
 
     <!-- Main Script -->
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let currentEditId = undefined;
         let travelersData = [];
         let batchesData = [];
@@ -1499,7 +1499,7 @@
         // Document storage (in-memory for demo)
         const documentStore = new Map();
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await SessionManager.initPage(initializePage);
@@ -1526,7 +1526,7 @@
             setupPassportNameAutoFill();
         }
 
-        // ==================== SESSION MANAGEMENT ====================
+        // ====== SESSION MANAGEMENT ======
         function SessionManager.resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
@@ -1579,7 +1579,7 @@
             }
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
@@ -1599,14 +1599,14 @@
             }, 3000);
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         async function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 await SessionManager.logout();
             }
         }
 
-        // ==================== DOCUMENT HANDLING ====================
+        // ====== DOCUMENT HANDLING ======
         function handleFileSelect(input, textElementId, previewElementId) {
             const textElement = document.getElementById(textElementId);
             const previewElement = document.getElementById(previewElementId);
@@ -1710,7 +1710,7 @@
             currentDocument = undefined;
         }
 
-        // ==================== AUTO-FILL PASSPORT NAME ====================
+        // ====== AUTO-FILL PASSPORT NAME ======
         function setupPassportNameAutoFill() {
             const addFirst = document.getElementById('add_first_name');
             const addLast = document.getElementById('add_last_name');
@@ -1741,7 +1741,7 @@
             }
         }
 
-        // ==================== LOAD BATCHES ====================
+        // ====== LOAD BATCHES ======
         async function SessionManager.loadBatches() {
             try {
                 const response = await fetch('/api/batches', { credentials: 'include' });
@@ -1787,7 +1787,7 @@
             }
         }
 
-        // ==================== LOAD TRAVELERS ====================
+        // ====== LOAD TRAVELERS ======
         async function SessionManager.loadTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
             tableBody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
@@ -2061,7 +2061,7 @@
             }
         }
 
-        // ==================== ADD TRAVELER FORM ====================
+        // ====== ADD TRAVELER FORM ======
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
             SessionManager.loadBatches();
@@ -2092,7 +2092,7 @@
             });
         }
 
-        // ==================== CREATE TRAVELER ====================
+        // ====== CREATE TRAVELER ======
         async function createTraveler() {
             const travelerData = {
                 first_name: document.getElementById('add_first_name').value,
@@ -2166,7 +2166,7 @@
             }
         }
 
-        // ==================== EDIT TRAVELER ====================
+        // ====== EDIT TRAVELER ======
         function editTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
             if (!traveler) {
@@ -2214,7 +2214,7 @@
             currentEditId = undefined;
         }
 
-        // ==================== UPDATE TRAVELER ====================
+        // ====== UPDATE TRAVELER ======
         async function updateTraveler() {
             if (!currentEditId) {
                 SessionManager.showNotification('No traveler selected for editing', 'error');
@@ -2287,7 +2287,7 @@
             }
         }
 
-        // ==================== DELETE TRAVELER ====================
+        // ====== DELETE TRAVELER ======
         async function deleteTraveler(id) {
             if (!confirm('Are you sure you want to delete this traveler? This action cannot be undone.')) {
                 return;
@@ -2315,7 +2315,7 @@
             }
         }
 
-        // ==================== VIEW TRAVELER ====================
+        // ====== VIEW TRAVELER ======
         function viewTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
             if (!traveler) {
@@ -2361,7 +2361,7 @@
             closeDocumentViewer();
         }
 
-        // ==================== PRINT FUNCTIONS ====================
+        // ====== PRINT FUNCTIONS ======
         function printTravelerDetails() {
             const content = document.getElementById('travelerDetails')?.innerHTML;
             if (!content) return;
@@ -2437,7 +2437,7 @@
             printWindow.print();
         }
 
-        // ==================== PDF EXPORT FUNCTIONS ====================
+        // ====== PDF EXPORT FUNCTIONS ======
         function exportTravelersToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape');
@@ -2518,7 +2518,7 @@
             SessionManager.showNotification('Traveler PDF downloaded!', 'success');
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
+        // ====== EXPORT FUNCTIONS ======
         function exportTravelersToExcel() {
             let csv = [];
             
@@ -2539,7 +2539,7 @@
             SessionManager.showNotification('Travelers data (33 fields) exported successfully!', 'success');
         }
 
-        // ==================== CSV UPLOAD FUNCTIONS ====================
+        // ====== CSV UPLOAD FUNCTIONS ======
 function showCSVUploadSection() {
     document.getElementById('csvUploadSection').style.display = 'block';
     document.getElementById('csvUploadSection').scrollIntoView({ behavior: 'smooth' });
@@ -2681,7 +2681,7 @@ function uploadCSV() {
     reader.readAsText(file);
 }
 
-        // ==================== SEARCH FUNCTIONS ====================
+        // ====== SEARCH FUNCTIONS ======
         function searchTravelers() {
             const search = document.getElementById('searchTravelers').value.toLowerCase().trim();
             

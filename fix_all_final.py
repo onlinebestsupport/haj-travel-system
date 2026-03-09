@@ -8,7 +8,7 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. FIX SESSION MANAGER ====================
+# ====== 1. FIX SESSION MANAGER ======
 print("\n📁 Fixing session-manager.js...")
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
 
@@ -53,7 +53,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== 2. FIX DEBUG_USERS.HTML LINE 101 ====================
+# ====== 2. FIX DEBUG_USERS.HTML LINE 101 ======
 print("\n📁 Fixing debug_users.html line 101...")
 debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
 
@@ -84,7 +84,7 @@ if os.path.exists(debug_path):
         else:
             print("⚠️  Line 101 is not a for...in loop")
 
-# ==================== 3. FIX TRAVELERS.HTML LINE 2672 ====================
+# ====== 3. FIX TRAVELERS.HTML LINE 2672 ======
 print("\n📁 Fixing travelers.html line 2672...")
 travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
 
@@ -115,7 +115,7 @@ if os.path.exists(travelers_path):
         else:
             print("⚠️  Line 2672 is not a for...in loop")
 
-# ==================== 4. FIX FRONTPAGE.HTML DOUBLE SESSIONMANAGER ====================
+# ====== 4. FIX FRONTPAGE.HTML DOUBLE SESSIONMANAGER ======
 print("\n📁 Fixing frontpage.html double SessionManager...")
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
 
@@ -130,7 +130,7 @@ if os.path.exists(frontpage_path):
             f.write(content)
         print("✅ Fixed double SessionManager in frontpage.html")
 
-# ==================== 5. VERIFY ALL FIXES ====================
+# ====== 5. VERIFY ALL FIXES ======
 print("\n" + "="*80)
 print("🔍 VERIFYING FIXES")
 print("="*80)
@@ -166,7 +166,7 @@ with open(frontpage_path, 'r', encoding='utf-8') as f:
 if 'SessionManager.SessionManager' not in frontpage_content:
     print("✅ frontpage.html double SessionManager fixed")
 
-# ==================== 6. SUMMARY ====================
+# ====== 6. SUMMARY ======
 print("\n" + "="*80)
 print("📊 FIX SUMMARY")
 print("="*80)

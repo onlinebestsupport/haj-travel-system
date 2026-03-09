@@ -22,9 +22,9 @@ print(f"✅ Backup created: {backup_path}")
 with open(html_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# ============================================================
+# ====
 # FIX 1: Add Receipt Generation Button
-# ============================================================
+# ====
 print("\n🔧 Adding receipt generation button...")
 
 if 'Generate Receipt' not in content:
@@ -44,9 +44,9 @@ if 'Generate Receipt' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 2: Add Pagination HTML
-# ============================================================
+# ====
 if 'pagination' not in content.lower() and 'showingFrom' not in content:
     print("\n🔧 Adding pagination HTML...")
     
@@ -73,14 +73,14 @@ if 'pagination' not in content.lower() and 'showingFrom' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 3: Add Pagination JavaScript
-# ============================================================
+# ====
 if 'function previousPage' not in content:
     print("\n🔧 Adding pagination JavaScript...")
     
     pagination_js = '''
-    // ==================== PAGINATION VARIABLES ====================
+    // ====== PAGINATION VARIABLES ======
     let currentPage = 1;
     let itemsPerPage = 10;
     let allPayments = [];
@@ -116,14 +116,14 @@ if 'function previousPage' not in content:
     content = content.replace('</script>', pagination_js + '\n</script>')
     print("   ✅ Pagination JavaScript added")
 
-# ============================================================
+# ====
 # FIX 4: Add Receipt Generation Function
-# ============================================================
+# ====
 print("\n🔧 Adding receipt generation function...")
 
 receipt_function = '''
 
-    // ==================== RECEIPT GENERATION ====================
+    // ====== RECEIPT GENERATION ======
     async function generateReceipt(paymentId) {
         try {
             showNotification('Generating receipt...', 'info');
@@ -189,14 +189,14 @@ receipt_function = '''
 content = content.replace('</script>', receipt_function + '\n</script>')
 print("   ✅ Receipt generation function added")
 
-# ============================================================
+# ====
 # FIX 5: Add Refund Function
-# ============================================================
+# ====
 print("\n🔧 Adding refund functionality...")
 
 refund_function = '''
 
-    // ==================== REFUND/REVERSE PAYMENT ====================
+    // ====== REFUND/REVERSE PAYMENT ======
     async function reversePayment(paymentId) {
         if (!confirm('⚠️ Are you sure you want to reverse/refund this payment? This action cannot be undone.')) {
             return;
@@ -232,9 +232,9 @@ refund_function = '''
 content = content.replace('</script>', refund_function + '\n</script>')
 print("   ✅ Refund function added")
 
-# ============================================================
+# ====
 # FIX 6: Add Refund Button to Actions
-# ============================================================
+# ====
 print("\n🔧 Adding refund button to actions...")
 
 if 'reversePayment' in content and 'fa-undo' not in content:
@@ -250,14 +250,14 @@ if 'reversePayment' in content and 'fa-undo' not in content:
     )
     print("   ✅ Refund button added")
 
-# ============================================================
+# ====
 # FIX 7: Add Payment Reminder Function
-# ============================================================
+# ====
 print("\n🔧 Adding payment reminder function...")
 
 reminder_function = '''
 
-    // ==================== SEND PAYMENT REMINDER ====================
+    // ====== SEND PAYMENT REMINDER ======
     async function sendPaymentReminder(paymentId, travelerId, travelerName) {
         if (!confirm(`Send payment reminder to ${travelerName}?`)) {
             return;
@@ -303,9 +303,9 @@ reminder_function = '''
 content = content.replace('</script>', reminder_function + '\n</script>')
 print("   ✅ Payment reminder function added")
 
-# ============================================================
+# ====
 # FIX 8: Add Reminder Button
-# ============================================================
+# ====
 print("\n🔧 Adding reminder button...")
 
 reminder_button = '''
@@ -320,9 +320,9 @@ content = content.replace(
 )
 print("   ✅ Reminder button added")
 
-# ============================================================
+# ====
 # Write the file
-# ============================================================
+# ====
 with open(html_path, 'w', encoding='utf-8') as f:
     f.write(content)
 

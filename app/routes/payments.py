@@ -447,22 +447,27 @@ def reverse_payment(payment_id):
 @bp.route('/stats', methods=['GET'])
 def get_payment_stats():
     """Get payment statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     conn, cursor = get_db()
-    
-    # Overall statistics
-    cursor.execute('''
-        SELECT 
-            COUNT(*) as total_transactions,
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
-            COALESCE(SUM(CASE WHEN status = 'reversed' THEN amount ELSE 0 END), 0) as total_reversed,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
-            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-            COUNT(CASE WHEN status = 'reversed' THEN 1 END) as reversed_count
-        FROM payments
-    ''')
-    
-    overall = cursor.fetchone()
+    try:
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending
+            FROM payments
+        """)
+        stats = cursor.fetchone()
+        
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
     
     # Payment method breakdown
     cursor.execute('''
@@ -566,3 +571,27 @@ def log_activity(user_id, action, module, description):
         conn.close()
     except Exception as e:
         print(f"⚠️ Activity log error: {e}")  # Log error instead of failing silently
+
+
+@bp.route('/stats', methods=['GET'])
+def get_payment_stats():
+    """Get payment statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_payments,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending
+            FROM payments
+        """)
+        stats = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

@@ -819,19 +819,19 @@
     </style>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let batchesData = [];
         let currentPage = 1;
         let itemsPerPage = 10;
         let currentEditBatchId = null;
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadBatches();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -843,13 +843,13 @@
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -861,7 +861,7 @@
             }, 3000);
         }
 
-        // ==================== ALLOW NUMBERS ONLY FOR AMOUNT ====================
+        // ====== ALLOW NUMBERS ONLY FOR AMOUNT ======
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
             var keyChar = String.fromCharCode(key);
@@ -875,7 +875,7 @@
             return false;
         }
 
-        // ==================== BATCH FORM FUNCTIONS ====================
+        // ====== BATCH FORM FUNCTIONS ======
         function showCreateBatchForm() {
             document.getElementById('createBatchForm').style.display = 'block';
             document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
@@ -891,7 +891,7 @@
             currentEditBatchId = null;
         }
 
-        // ==================== LOAD BATCHES ====================
+        // ====== LOAD BATCHES ======
         async function loadBatches() {
             const tableBody = document.getElementById('batchesTableBody');
             tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading batches...</td></tr>';
@@ -1086,7 +1086,7 @@
             }
         }
 
-        // ==================== CREATE BATCH ====================
+        // ====== CREATE BATCH ======
         async function createBatch() {
             const priceValue = document.getElementById('price').value.replace(/,/g, '');
             
@@ -1151,7 +1151,7 @@
             }
         }
 
-        // ==================== EDIT BATCH ====================
+        // ====== EDIT BATCH ======
         function editBatch(id) {
             const batch = batchesData.find(b => b.id === id);
             if (!batch) {
@@ -1173,7 +1173,7 @@
             document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ==================== UPDATE BATCH ====================
+        // ====== UPDATE BATCH ======
         async function updateBatch() {
             if (!currentEditBatchId) {
                 showNotification('No batch selected for editing', 'error');
@@ -1247,7 +1247,7 @@
             }
         }
 
-        // ==================== DELETE BATCH ====================
+        // ====== DELETE BATCH ======
         async function deleteBatch(id) {
             if (!confirm('⚠️ Are you sure you want to delete this batch? This action cannot be undone.')) {
                 return;
@@ -1284,7 +1284,7 @@
             }
         }
 
-        // ==================== VIEW BATCH ====================
+        // ====== VIEW BATCH ======
         function viewBatch(id) {
             const batch = batchesData.find(b => b.id === id);
             if (!batch) {
@@ -1378,7 +1378,7 @@
             printWindow.print();
         }
 
-        // ==================== SEARCH BATCHES ====================
+        // ====== SEARCH BATCHES ======
         function searchBatches() {
             const search = document.getElementById('searchBatches').value.toLowerCase().trim();
             
@@ -1407,7 +1407,7 @@
             displayBatches();
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
+        // ====== EXPORT FUNCTIONS ======
         function exportBatchesToExcel() {
             let csv = [];
             

@@ -10,7 +10,7 @@ print("="*80)
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 issues = []
 
-# ==================== 1. CHECK DATABASE CONNECTION STRINGS ====================
+# ====== 1. CHECK DATABASE CONNECTION STRINGS ======
 print("\n📁 CHECKING DATABASE CONNECTIONS...")
 
 # Check for hardcoded localhost in database connections
@@ -51,7 +51,7 @@ for py_file in py_files:
                 })
                 print(f"⚠️  {os.path.basename(py_file)} - DATABASE_URL without os.getenv")
 
-# ==================== 2. CHECK FILE PATHS FOR RAILWAY COMPATIBILITY ====================
+# ====== 2. CHECK FILE PATHS FOR RAILWAY COMPATIBILITY ======
 print("\n📁 CHECKING FILE PATHS FOR RAILWAY...")
 
 html_files = glob.glob(os.path.join(project_root, 'public', '**', '*.html'), recursive=True)
@@ -73,7 +73,7 @@ for html_file in html_files:
                 })
                 print(f"❌ {os.path.basename(html_file)}:{i} - Absolute path detected")
 
-# ==================== 3. CHECK FOR SQLITE (WON'T WORK ON RAILWAY) ====================
+# ====== 3. CHECK FOR SQLITE (WON'T WORK ON RAILWAY) ======
 print("\n📁 CHECKING FOR SQLITE USAGE...")
 
 for py_file in py_files:
@@ -90,7 +90,7 @@ for py_file in py_files:
                 })
                 print(f"❌ {os.path.basename(py_file)} - SQLite detected - won't work on Railway")
 
-# ==================== 4. CHECK FOR PORT CONFIGURATION ====================
+# ====== 4. CHECK FOR PORT CONFIGURATION ======
 print("\n📁 CHECKING PORT CONFIGURATION...")
 
 server_py = os.path.join(project_root, 'app', 'server.py')
@@ -111,7 +111,7 @@ if os.path.exists(server_py):
         elif 'os.getenv' in content and 'PORT' in content:
             print(f"✅ app/server.py - PORT properly configured")
 
-# ==================== 5. CHECK FOR REQUIREMENTS.TXT ====================
+# ====== 5. CHECK FOR REQUIREMENTS.TXT ======
 print("\n📁 CHECKING REQUIREMENTS.TXT...")
 
 req_file = os.path.join(project_root, 'requirements.txt')
@@ -142,7 +142,7 @@ else:
     })
     print(f"❌ requirements.txt not found")
 
-# ==================== 6. CHECK FOR PROCFILE ====================
+# ====== 6. CHECK FOR PROCFILE ======
 print("\n📁 CHECKING PROCFILE...")
 
 procfile = os.path.join(project_root, 'Procfile')
@@ -171,7 +171,7 @@ else:
     })
     print(f"❌ Procfile not found")
 
-# ==================== 7. CHECK FOR RUNTIME.TXT ====================
+# ====== 7. CHECK FOR RUNTIME.TXT ======
 print("\n📁 CHECKING RUNTIME.TXT...")
 
 runtime = os.path.join(project_root, 'runtime.txt')
@@ -182,7 +182,7 @@ if os.path.exists(runtime):
 else:
     print(f"ℹ️  runtime.txt optional - Railway will use default Python version")
 
-# ==================== 8. CHECK FOR .ENV EXAMPLE ====================
+# ====== 8. CHECK FOR .ENV EXAMPLE ======
 print("\n📁 CHECKING .ENV EXAMPLE...")
 
 env_example = os.path.join(project_root, '.env.example')
@@ -210,7 +210,7 @@ else:
     })
     print(f"⚠️  .env.example not found")
 
-# ==================== 9. CHECK FOR STATIC FILE SERVING ====================
+# ====== 9. CHECK FOR STATIC FILE SERVING ======
 print("\n📁 CHECKING STATIC FILE CONFIGURATION...")
 
 if os.path.exists(server_py):
@@ -229,7 +229,7 @@ if os.path.exists(server_py):
         })
         print(f"⚠️  Check static file configuration")
 
-# ==================== 10. CHECK FOR SESSION CONFIGURATION ====================
+# ====== 10. CHECK FOR SESSION CONFIGURATION ======
 print("\n📁 CHECKING SESSION CONFIGURATION...")
 
 if os.path.exists(server_py):
@@ -248,7 +248,7 @@ if os.path.exists(server_py):
         })
         print(f"⚠️  Session cookie security not configured")
 
-# ==================== SUMMARY ====================
+# ====== SUMMARY ======
 print("\n" + "="*80)
 print("📊 RAILWAY DEPLOYMENT READINESS SUMMARY")
 print("="*80)
@@ -274,7 +274,7 @@ if issues:
 else:
     print("\n✅ NO ISSUES FOUND! Your system is ready for Railway deployment!")
 
-# ==================== FIX THE CURRENT ERRORS ====================
+# ====== FIX THE CURRENT ERRORS ======
 print("\n" + "="*80)
 print("🔧 AUTO-FIXING COMMON ERRORS")
 print("="*80)

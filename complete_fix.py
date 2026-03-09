@@ -9,12 +9,12 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== PART 1: FIX RAILWAY ISSUES ====================
+# ====== PART 1: FIX RAILWAY ISSUES ======
 print("\n" + "="*60)
 print("📦 PART 1: FIXING RAILWAY DEPLOYMENT ISSUES")
 print("="*60)
 
-# ==================== 1.1 FIX reset_database.py (SQLite issue) ====================
+# ====== 1.1 FIX reset_database.py (SQLite issue) ======
 print("\n📁 Fixing reset_database.py (SQLite → PostgreSQL)...")
 reset_db_path = os.path.join(project_root, 'app', 'reset_database.py')
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         f.write(new_content)
     print("✅ Fixed reset_database.py (now uses PostgreSQL)")
 
-# ==================== 1.2 FIX requirements.txt ====================
+# ====== 1.2 FIX requirements.txt ======
 print("\n📁 Fixing requirements.txt...")
 req_path = os.path.join(project_root, 'requirements.txt')
 
@@ -163,12 +163,12 @@ if os.path.exists(req_path):
         f.write('\n'.join(new_lines))
     print("✅ requirements.txt updated")
 
-# ==================== PART 2: FIX CODE ISSUES ====================
+# ====== PART 2: FIX CODE ISSUES ======
 print("\n" + "="*60)
 print("🔧 PART 2: FIXING CODE ISSUES (8 ERRORS)")
 print("="*60)
 
-# ==================== 2.1 FIX travelers.html brace mismatch ====================
+# ====== 2.1 FIX travelers.html brace mismatch ======
 print("\n📁 Fixing travelers.html brace mismatch...")
 travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
 
@@ -209,7 +209,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== 2.2 FIX debug_users.html loops ====================
+# ====== 2.2 FIX debug_users.html loops ======
 print("\n📁 Fixing debug_users.html loops...")
 debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
 
@@ -240,7 +240,7 @@ if os.path.exists(debug_path):
     with open(debug_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== 2.3 FIX travelers.html line 2595 loop ====================
+# ====== 2.3 FIX travelers.html line 2595 loop ======
 print("\n📁 Fixing travelers.html line 2595 loop...")
 
 if os.path.exists(travelers_path):
@@ -265,7 +265,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== 2.4 FIX session-manager.js ====================
+# ====== 2.4 FIX session-manager.js ======
 print("\n📁 Fixing session-manager.js...")
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
 
@@ -313,7 +313,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== 2.5 FIX frontpage.html ====================
+# ====== 2.5 FIX frontpage.html ======
 print("\n📁 Fixing frontpage.html...")
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
 
@@ -349,7 +349,7 @@ if os.path.exists(frontpage_path):
     with open(frontpage_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== PART 3: VERIFICATION ====================
+# ====== PART 3: VERIFICATION ======
 print("\n" + "="*60)
 print("✅ VERIFICATION")
 print("="*60)

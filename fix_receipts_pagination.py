@@ -22,9 +22,9 @@ print(f"✅ Backup created: {backup_path}")
 with open(html_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# ============================================================
+# ====
 # FIX 1: Add WhatsApp Share Button
-# ============================================================
+# ====
 print("\n🔧 Adding WhatsApp share button...")
 
 if 'WhatsApp' not in content:
@@ -43,9 +43,9 @@ if 'WhatsApp' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 2: Add Void/Cancel Button
-# ============================================================
+# ====
 print("\n🔧 Adding void/cancel button...")
 
 void_button = '''
@@ -59,9 +59,9 @@ content = content.replace(
 )
 print("   ✅ Void button added")
 
-# ============================================================
+# ====
 # FIX 3: Add Pagination HTML
-# ============================================================
+# ====
 if 'pagination' not in content.lower() and 'showingFrom' not in content:
     print("\n🔧 Adding pagination HTML...")
     
@@ -88,14 +88,14 @@ if 'pagination' not in content.lower() and 'showingFrom' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 4: Add Pagination JavaScript
-# ============================================================
+# ====
 if 'function previousPage' not in content:
     print("\n🔧 Adding pagination JavaScript...")
     
     pagination_js = '''
-    // ==================== PAGINATION VARIABLES ====================
+    // ====== PAGINATION VARIABLES ======
     let currentPage = 1;
     let itemsPerPage = 10;
     let allReceipts = [];
@@ -131,14 +131,14 @@ if 'function previousPage' not in content:
     content = content.replace('</script>', pagination_js + '\n</script>')
     print("   ✅ Pagination JavaScript added")
 
-# ============================================================
+# ====
 # FIX 5: Add WhatsApp Share Function
-# ============================================================
+# ====
 print("\n🔧 Adding WhatsApp share function...")
 
 whatsapp_function = '''
 
-    // ==================== WHATSAPP SHARE ====================
+    // ====== WHATSAPP SHARE ======
     async function shareReceiptWhatsApp(receiptId, travelerName, mobile) {
         try {
             showNotification('Preparing WhatsApp message...', 'info');
@@ -184,14 +184,14 @@ whatsapp_function = '''
 content = content.replace('</script>', whatsapp_function + '\n</script>')
 print("   ✅ WhatsApp share function added")
 
-# ============================================================
+# ====
 # FIX 6: Add Void Receipt Function
-# ============================================================
+# ====
 print("\n🔧 Adding void receipt function...")
 
 void_function = '''
 
-    // ==================== VOID RECEIPT ====================
+    // ====== VOID RECEIPT ======
     async function voidReceipt(receiptId, receiptNumber) {
         if (!confirm(`⚠️ Are you sure you want to void receipt #${receiptNumber}? This action cannot be undone.`)) {
             return;
@@ -233,9 +233,9 @@ void_function = '''
 content = content.replace('</script>', void_function + '\n</script>')
 print("   ✅ Void receipt function added")
 
-# ============================================================
+# ====
 # FIX 7: Add Bulk Actions
-# ============================================================
+# ====
 print("\n🔧 Adding bulk actions...")
 
 bulk_actions_html = '''
@@ -263,14 +263,14 @@ if 'bulkPrint' not in content:
         )
         print("   ✅ Bulk actions HTML added")
 
-# ============================================================
+# ====
 # FIX 8: Add Bulk Action Functions
-# ============================================================
+# ====
 print("\n🔧 Adding bulk action functions...")
 
 bulk_functions = '''
 
-    // ==================== BULK ACTIONS ====================
+    // ====== BULK ACTIONS ======
     let selectedReceipts = new Set();
 
     function toggleSelectAll() {
@@ -339,9 +339,9 @@ bulk_functions = '''
 content = content.replace('</script>', bulk_functions + '\n</script>')
 print("   ✅ Bulk action functions added")
 
-# ============================================================
+# ====
 # FIX 9: Add Checkbox Column to Table
-# ============================================================
+# ====
 print("\n🔧 Adding checkbox column to table...")
 
 # Add header checkbox
@@ -360,9 +360,9 @@ if '<td><strong>${receipt.receipt_number}</strong>' in content:
     )
     print("   ✅ Row checkbox added")
 
-# ============================================================
+# ====
 # FIX 10: Add Receipt Template Customization
-# ============================================================
+# ====
 print("\n🔧 Adding receipt template options...")
 
 template_options = '''
@@ -397,9 +397,9 @@ if 'template' not in content.lower():
         )
         print("   ✅ Receipt template options added")
 
-# ============================================================
+# ====
 # Write the file
-# ============================================================
+# ====
 with open(html_path, 'w', encoding='utf-8') as f:
     f.write(content)
 

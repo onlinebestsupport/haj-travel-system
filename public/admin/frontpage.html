@@ -1262,12 +1262,12 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let packages = [];
         let features = [];
         let companyDetails = {};
 
-       // ==================== INITIALIZATION ====================
+       // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.SessionManager.log('🚀 Loading frontpage...');
     await SessionManager.initPage(loadFrontpageData || function(){});
@@ -1297,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
  }
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function SessionManager.checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1309,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-     // ==================== LOGOUT ====================
+     // ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -1319,7 +1319,7 @@ async function logout() {
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1331,7 +1331,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== COMPANY TEMPLATE FUNCTIONS ====================
+        // ====== COMPANY TEMPLATE FUNCTIONS ======
         function saveCompanyTemplate() {
             companyDetails = {
                 legalName: document.getElementById('companyLegalName').value,
@@ -1451,7 +1451,7 @@ async function logout() {
             }
         }
 
-        // ==================== LOAD SAVED SETTINGS ====================
+        // ====== LOAD SAVED SETTINGS ======
         function loadSavedSettings() {
             // Load hero section
             document.getElementById('heroHeading').value = localStorage.getItem('heroHeading') || 'Your Journey to the Holy Land';
@@ -1521,7 +1521,7 @@ async function logout() {
             updateAlertStatus();
         }
 
-        // ==================== LOAD PACKAGES FROM DATABASE ====================
+        // ====== LOAD PACKAGES FROM DATABASE ======
         function loadPackagesFromDatabase() {
             // Try to load from batches first
             fetch('/api/batches')
@@ -1660,7 +1660,7 @@ async function logout() {
             }
         }
 
-        // ==================== FEATURES FUNCTIONS ====================
+        // ====== FEATURES FUNCTIONS ======
         function loadFeatures() {
             const savedFeatures = localStorage.getItem('features');
             if (savedFeatures) {
@@ -1721,7 +1721,7 @@ async function logout() {
             updatePreview();
         }
 
-        // ==================== LOAD CONTACT SETTINGS ====================
+        // ====== LOAD CONTACT SETTINGS ======
         function loadContactSettings() {
             // Already loaded in loadSavedSettings
         }
@@ -1744,7 +1744,7 @@ async function logout() {
             }
         }
 
-        // ==================== LOGO UPLOAD ====================
+        // ====== LOGO UPLOAD ======
         function handleLogoUpload(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1759,7 +1759,7 @@ async function logout() {
             }
         }
 
-        // ==================== PREVIEW UPDATE ====================
+        // ====== PREVIEW UPDATE ======
         function updatePreview() {
             const heading = document.getElementById('heroHeading').value;
             const subheading = document.getElementById('heroSubheading').value;
@@ -1963,7 +1963,7 @@ async function logout() {
             return hex;
         }
 
-        // ==================== SAVE/LOAD FUNCTIONS ====================
+        // ====== SAVE/LOAD FUNCTIONS ======
         function saveChanges() {
             // Save hero section
             localStorage.setItem('heroHeading', document.getElementById('heroHeading').value);

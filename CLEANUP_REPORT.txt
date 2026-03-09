@@ -1,5 +1,5 @@
 FUNCTION CLEANUP REPORT
-=======================
+==
 
 The following functions have been added to session-manager.js:
 ✅ adjustColor
@@ -39,7 +39,7 @@ The following functions have been added to session-manager.js:
 
 
 📊 SUMMARY
-==========
+===
 ✅ Functions added to session-manager.js: 34
 ✅ HTML files updated: 18
 ✅ All duplicate functions consolidated

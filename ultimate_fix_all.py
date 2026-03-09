@@ -8,7 +8,7 @@ print("="*80)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== FIX 1 & 2: TRAVELERS.HTML BRACE MISMATCH ====================
+# ====== FIX 1 & 2: TRAVELERS.HTML BRACE MISMATCH ======
 print("\n📁 FIXING TRAVELERS.HTML BRACE MISMATCH (Lines 1485, 2595)...")
 
 travelers_path = os.path.join(project_root, 'public', 'admin', 'travelers.html')
@@ -61,7 +61,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-# ==================== FIX 3 & 4: DEBUG_USERS.HTML LOOPS ====================
+# ====== FIX 3 & 4: DEBUG_USERS.HTML LOOPS ======
 print("\n📁 FIXING DEBUG_USERS.HTML LOOPS (Lines 102, 126)...")
 
 debug_path = os.path.join(project_root, 'public', 'admin', 'debug_users.html')
@@ -109,7 +109,7 @@ if os.path.exists(debug_path):
         f.write(content)
     print("✅ Fixed debug_users.html loops")
 
-# ==================== FIX 5: TRAVELERS.HTML LINE 2595 LOOP ====================
+# ====== FIX 5: TRAVELERS.HTML LINE 2595 LOOP ======
 print("\n📁 FIXING TRAVELERS.HTML LINE 2595 LOOP...")
 
 if os.path.exists(travelers_path):
@@ -135,7 +135,7 @@ if os.path.exists(travelers_path):
     with open(travelers_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== FIX 6,7,8: SESSION MANAGER ====================
+# ====== FIX 6,7,8: SESSION MANAGER ======
 print("\n📁 FIXING SESSION MANAGER (3 issues)...")
 
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -193,7 +193,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== FIX FRONTPAGE.HTML ====================
+# ====== FIX FRONTPAGE.HTML ======
 print("\n📁 FIXING FRONTPAGE.HTML...")
 
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
@@ -229,7 +229,7 @@ if os.path.exists(frontpage_path):
     with open(frontpage_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
-# ==================== VERIFICATION ====================
+# ====== VERIFICATION ======
 print("\n" + "="*80)
 print("🔍 VERIFICATION")
 print("="*80)

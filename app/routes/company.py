@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint('company', __name__, url_prefix='/api/company')
 
-# ==================== COMPANY SETTINGS MANAGEMENT ====================
+# ====== COMPANY SETTINGS MANAGEMENT ======
 
 @bp.route('/settings', methods=['GET'])
 def get_settings():

@@ -15,7 +15,7 @@ from urllib3.exceptions import InsecureRequestWarning
 # Suppress SSL warnings for testing
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-# ==================== CONFIGURATION ====================
+# ====== CONFIGURATION ======
 BASE_URL = "https://haj-web-app-production.up.railway.app"
 TIMEOUT = 15  # Extended timeout for production
 VERIFY_SSL = True  # Set to False only if certificate issues

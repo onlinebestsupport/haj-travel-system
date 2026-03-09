@@ -5,7 +5,7 @@ import json
 
 bp = Blueprint('reports', __name__, url_prefix='/api/reports')
 
-# ==================== SUMMARY REPORT ====================
+# ====== SUMMARY REPORT ======
 @bp.route('/summary', methods=['GET'])
 def summary_report():
     """Get summary statistics"""
@@ -58,7 +58,7 @@ def generate_report():
     conn, cursor = get_db()
     
     try:
-        # ==================== SUMMARY REPORT (ALWAYS WORKS) ====================
+        # ====== SUMMARY REPORT (ALWAYS WORKS) ======
         if report_type == 'summary' or not report_type:
             # Get counts from all tables
             cursor.execute("SELECT COUNT(*) as count FROM travelers")
@@ -119,7 +119,7 @@ def generate_report():
                 }
             })
         
-        # ==================== TRAVELER REPORT ====================
+        # ====== TRAVELER REPORT ======
         elif report_type == 'traveler':
             query = """
                 SELECT t.*, b.batch_name
@@ -179,7 +179,7 @@ def generate_report():
                 }
             })
         
-        # ==================== PAYMENT REPORT ====================
+        # ====== PAYMENT REPORT ======
         elif report_type == 'payment':
             query = """
                 SELECT 
@@ -268,7 +268,7 @@ def generate_report():
                 }
             })
         
-        # ==================== BATCH REPORT ====================
+        # ====== BATCH REPORT ======
         elif report_type == 'batch':
             query = """
                 SELECT 
@@ -310,7 +310,7 @@ def generate_report():
                 }
             })
         
-        # ==================== DEFAULT / UNKNOWN REPORT TYPE ====================
+        # ====== DEFAULT / UNKNOWN REPORT TYPE ======
         else:
             return jsonify({
                 'success': False,

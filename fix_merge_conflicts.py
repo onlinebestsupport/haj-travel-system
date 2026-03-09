@@ -39,7 +39,7 @@ def fix_merge_conflicts():
                 content = f.read()
             
             # Check for merge conflict markers
-            if '<<<<<<< HEAD' in content or '=======' in content or '>>>>>>>' in content:
+            if '' in content or '' in content or '>>>>>>>' in content:
                 print(f"📝 Processing: {file_path}")
                 
                 # Remove conflict markers - keep the HEAD version
@@ -53,14 +53,14 @@ def fix_merge_conflicts():
                     line = lines[i]
                     
                     # Start of conflict
-                    if line.startswith('<<<<<<< HEAD'):
+                    if line.startswith(''):
                         in_conflict = True
                         keep_head = True
                         i += 1
                         continue
                     
                     # Middle marker
-                    elif line.startswith('=======') and in_conflict:
+                    elif line.startswith('') and in_conflict:
                         keep_head = False
                         i += 1
                         continue

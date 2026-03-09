@@ -1,4 +1,4 @@
-// ==================== 🔥 ULTIMATE SESSION MANAGER ====================
+// ====== 🔥 ULTIMATE SESSION MANAGER ======
 // File: /public/admin/js/session-manager.js
 // Version: 2.0.1 - Fixed session timeout
 

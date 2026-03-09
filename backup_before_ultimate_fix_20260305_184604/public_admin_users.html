@@ -767,11 +767,11 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let allUsers = [];
         let currentUserId = null;
 
-        // ==================== PERMISSION FUNCTIONS ====================
+        // ====== PERMISSION FUNCTIONS ======
         function updatePermissionsCount() {
             const checkboxes = document.querySelectorAll('#addUserForm .perm-checkbox');
             const checked = document.querySelectorAll('#addUserForm .perm-checkbox:checked');
@@ -843,7 +843,7 @@
             }
         };
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -852,7 +852,7 @@
             setTimeout(() => notification.style.display = 'none', 3000);
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         async function logout() {
             try {
                 await fetch('/api/logout', { method: 'POST', credentials: 'include' });
@@ -864,7 +864,7 @@
             }
         }
 
-        // ==================== LOAD USERS ====================
+        // ====== LOAD USERS ======
         async function loadUsers() {
             console.log('📡 Loading users...');
             const tbody = document.getElementById('usersTableBody');
@@ -926,7 +926,7 @@
             }
         }
 
-        // ==================== EDIT USER ====================
+        // ====== EDIT USER ======
         window.editUser = async function(userId) {
             console.log(`📝 Editing user ${userId}...`);
             
@@ -985,7 +985,7 @@
             if (overlay) overlay.style.display = 'none';
         };
 
-        // ==================== VIEW USER DETAILS ====================
+        // ====== VIEW USER DETAILS ======
         window.viewUserDetails = function(userId) {
             const user = window.allUsers?.find(u => u.id === userId);
             if (!user) {
@@ -1020,7 +1020,7 @@
             document.getElementById('modalOverlay').style.display = 'block';
         };
 
-        // ==================== FORM FUNCTIONS ====================
+        // ====== FORM FUNCTIONS ======
         window.showAddUserForm = function() {
             document.getElementById('addUserForm').style.display = 'block';
             document.getElementById('addUserForm').scrollIntoView({ behavior: 'smooth' });
@@ -1032,7 +1032,7 @@
             updatePermissionsCount();
         };
 
-        // ==================== CREATE USER ====================
+        // ====== CREATE USER ======
         document.getElementById('userCreateForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -1094,7 +1094,7 @@
             }
         });
 
-        // ==================== FILTER FUNCTIONS ====================
+        // ====== FILTER FUNCTIONS ======
         window.filterUsers = function() {
             const search = document.getElementById('searchUsers').value.toLowerCase();
             const roleFilter = document.getElementById('roleFilter').value;
@@ -1170,7 +1170,7 @@
             printWindow.print();
         };
 
-        // ==================== CLOSE MODALS ====================
+        // ====== CLOSE MODALS ======
         window.closeDetailsModal = function() {
             document.getElementById('userDetailsModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
@@ -1182,7 +1182,7 @@
             document.getElementById('modalOverlay').style.display = 'none';
         };
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             initPermissions();
             loadUsers();

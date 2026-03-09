@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ==================== 🎨 RESET & BASE STYLES ==================== */
+        /* ====== 🎨 RESET & BASE STYLES ====== */
         * {
             margin: 0;
             padding: 0;
@@ -33,7 +33,7 @@
             position: relative;
         }
 
-        /* ==================== 🌀 ANIMATED BACKGROUND ==================== */
+        /* ====== 🌀 ANIMATED BACKGROUND ====== */
         body::before {
             content: '';
             position: fixed;
@@ -52,7 +52,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ==================== 📦 LOGIN WRAPPER ==================== */
+        /* ====== 📦 LOGIN WRAPPER ====== */
         .login-wrapper {
             width: 100%;
             max-width: 500px;
@@ -84,7 +84,7 @@
             }
         }
 
-        /* ==================== 🏠 LOGIN HEADER ==================== */
+        /* ====== 🏠 LOGIN HEADER ====== */
         .login-header {
             text-align: center;
             margin-bottom: 40px;
@@ -119,7 +119,7 @@
             font-size: 1rem;
         }
 
-        /* ==================== 🔑 DEMO CREDENTIALS CARD ==================== */
+        /* ====== 🔑 DEMO CREDENTIALS CARD ====== */
         .demo-credentials {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             padding: 20px;
@@ -184,7 +184,7 @@
             color: #27ae60;
         }
 
-        /* ==================== ⚠️ MESSAGE CONTAINERS ==================== */
+        /* ====== ⚠️ MESSAGE CONTAINERS ====== */
         .error-message {
             background: #fee;
             color: #e74c3c;
@@ -220,7 +220,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ==================== 📝 FORM ELEMENTS ==================== */
+        /* ====== 📝 FORM ELEMENTS ====== */
         .form-group {
             margin-bottom: 25px;
         }
@@ -298,7 +298,7 @@
             background: rgba(52, 152, 219, 0.1);
         }
 
-        /* ==================== 🚀 LOGIN BUTTON ==================== */
+        /* ====== 🚀 LOGIN BUTTON ====== */
         .login-btn {
             width: 100%;
             padding: 18px;
@@ -355,7 +355,7 @@
             transform: none;
         }
 
-        /* ==================== ✅ REMEMBER ME SECTION ==================== */
+        /* ====== ✅ REMEMBER ME SECTION ====== */
         .remember-me {
             display: flex;
             align-items: center;
@@ -395,7 +395,7 @@
             text-decoration: none;
         }
 
-        /* ==================== ℹ️ SESSION INFO SECTION ==================== */
+        /* ====== ℹ️ SESSION INFO SECTION ====== */
         .session-info {
             background: #e8f4f8;
             border-radius: 10px;
@@ -427,7 +427,7 @@
             font-size: 0.8rem;
         }
 
-        /* ==================== 📌 FOOTER ==================== */
+        /* ====== 📌 FOOTER ====== */
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -457,7 +457,7 @@
             font-size: 0.9rem;
         }
 
-        /* ==================== ⏳ LOADING SPINNER ==================== */
+        /* ====== ⏳ LOADING SPINNER ====== */
         .spinner {
             display: inline-block;
             width: 20px;
@@ -472,7 +472,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ==================== 📱 RESPONSIVE DESIGN ==================== */
+        /* ====== 📱 RESPONSIVE DESIGN ====== */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -630,10 +630,10 @@
     </style>
 </head>
 <body>
-    <!-- ==================== 📦 MAIN LOGIN CONTAINER ==================== -->
+    <!-- ====== 📦 MAIN LOGIN CONTAINER ====== -->
     <div class="login-wrapper">
         <div class="login-container">
-            <!-- ==================== 🏠 LOGIN HEADER ==================== -->
+            <!-- ====== 🏠 LOGIN HEADER ====== -->
             <div class="login-header">
                 <div class="logo-wrapper">
                     <i class="fas fa-kaaba"></i>
@@ -642,7 +642,7 @@
                 <p>Alhudha Haj Travel System</p>
             </div>
             
-            <!-- ==================== 🔑 DEMO CREDENTIALS ==================== -->
+            <!-- ====== 🔑 DEMO CREDENTIALS ====== -->
             <div class="demo-credentials">
                 <p><i class="fas fa-info-circle"></i> <strong>Demo Credentials:</strong></p>
                 <div class="credential-row" onclick="fillCredentials('superadmin', 'admin123')">
@@ -667,7 +667,7 @@
                 </div>
             </div>
             
-            <!-- ==================== ℹ️ SESSION INFO (Shows if already logged in) ==================== -->
+            <!-- ====== ℹ️ SESSION INFO (Shows if already logged in) ====== -->
             <div id="sessionInfo" class="session-info" style="display: none;">
                 <i class="fas fa-info-circle"></i>
                 <div class="info-text">
@@ -679,7 +679,7 @@
                 </button>
             </div>
             
-            <!-- ==================== ⚠️ MESSAGE CONTAINERS ==================== -->
+            <!-- ====== ⚠️ MESSAGE CONTAINERS ====== -->
             <div id="errorMessage" class="error-message">
                 <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
             </div>
@@ -688,7 +688,7 @@
                 <i class="fas fa-check-circle"></i> <span id="successText"></span>
             </div>
             
-            <!-- ==================== 📝 LOGIN FORM ==================== -->
+            <!-- ====== 📝 LOGIN FORM ====== -->
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username">
@@ -723,22 +723,22 @@
                 </button>
             </form>
             
-            <!-- ==================== 📌 FOOTER ==================== -->
+            <!-- ====== 📌 FOOTER ====== -->
             <div class="footer">
                 <p><a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
             </div>
         </div>
     </div>
 
-    <!-- ==================== 🚀 JAVASCRIPT SECTION ==================== -->
+    <!-- ====== 🚀 JAVASCRIPT SECTION ====== -->
     <script>
-        // ==================== 🚨 GLOBAL ERROR HANDLER ====================
+        // ====== 🚨 GLOBAL ERROR HANDLER ======
         window.onerror = function(message, source, lineno, colno, error) {
             console.error('🔥 GLOBAL ERROR:', {message, source, lineno, colno, error});
             return true;
         };
 
-        // ==================== 🔍 DOM ELEMENT VALIDATION ====================
+        // ====== 🔍 DOM ELEMENT VALIDATION ======
         function validateElements() {
             const elements = {
                 sessionInfo: document.getElementById('sessionInfo'),
@@ -753,7 +753,7 @@
             return elements;
         }
 
-        // ==================== 🔐 SESSION CHECK ====================
+        // ====== 🔐 SESSION CHECK ======
         // Check if already logged in on page load
         document.addEventListener('DOMContentLoaded', function() {
             console.SessionManager.log('🚀 Page loaded, checking session...');
@@ -794,7 +794,7 @@
             });
         });
 
-        // ==================== ✅ CHECK EXISTING SESSION (FIXED) ====================
+        // ====== ✅ CHECK EXISTING SESSION (FIXED) ======
         function checkExistingSession() {
             console.SessionManager.log('🔍 Checking existing session...');
             
@@ -836,7 +836,7 @@
             return false;
         }
 
-        // ==================== 🔑 FILL CREDENTIALS ====================
+        // ====== 🔑 FILL CREDENTIALS ======
         function fillCredentials(username, password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
@@ -852,7 +852,7 @@
             document.getElementById('password').focus();
         }
 
-        // ==================== 👁️ PASSWORD VISIBILITY TOGGLE ====================
+        // ====== 👁️ PASSWORD VISIBILITY TOGGLE ======
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('togglePassword');
@@ -870,13 +870,13 @@
             passwordInput.focus();
         }
 
-        // ==================== 🔔 FORGOT PASSWORD ====================
+        // ====== 🔔 FORGOT PASSWORD ======
         function showForgotPassword(event) {
             event.preventDefault();
             alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
         }
 
-        // ==================== ⚠️ SHOW ERROR MESSAGE ====================
+        // ====== ⚠️ SHOW ERROR MESSAGE ======
         function SessionManager.showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
@@ -893,7 +893,7 @@
             }, 5000);
         }
 
-        // ==================== ✅ SHOW SUCCESS MESSAGE ====================
+        // ====== ✅ SHOW SUCCESS MESSAGE ======
         function SessionManager.showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
             const successText = document.getElementById('successText');
@@ -906,7 +906,7 @@
             successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // ==================== ✅ VALIDATE FORM ====================
+        // ====== ✅ VALIDATE FORM ======
         function SessionManager.validateForm(username, password) {
             if (!username || !password) {
                 SessionManager.showError('Please enter both username and password');
@@ -919,7 +919,7 @@
             return true;
         }
 
-        // ==================== 🚀 HANDLE LOGIN SUBMISSION ====================
+        // ====== 🚀 HANDLE LOGIN SUBMISSION ======
         let isSubmitting = false;
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -991,19 +991,19 @@
             }
         });
 
-        // ==================== 📋 HANDLE PASTE EVENTS ====================
+        // ====== 📋 HANDLE PASTE EVENTS ======
         document.getElementById('password').addEventListener('paste', function(e) {
             e.preventDefault();
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             this.value = pastedText;
         });
 
-        // ==================== 🔄 PREVENT FORM RESUBMISSION ====================
+        // ====== 🔄 PREVENT FORM RESUBMISSION ======
         if (window.history.replaceState) {
             window.history.replaceState(null, null, window.location.href);
         }
 
-        // ==================== 📱 FOCUS MANAGEMENT ====================
+        // ====== 📱 FOCUS MANAGEMENT ======
         document.getElementById('username').addEventListener('focus', function() {
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
@@ -1012,7 +1012,7 @@
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
-        // ==================== 🔄 PAGESHOW EVENT HANDLER ====================
+        // ====== 🔄 PAGESHOW EVENT HANDLER ======
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
                 console.SessionManager.log('📄 Page loaded from cache, rechecking session...');
@@ -1020,7 +1020,7 @@
             }
         });
 
-        // ==================== 🚀 IMMEDIATE SESSION CHECK ====================
+        // ====== 🚀 IMMEDIATE SESSION CHECK ======
         // This runs immediately when script loads
         (function immediateSessionCheck() {
             console.SessionManager.log('🚀 Immediate session check...');

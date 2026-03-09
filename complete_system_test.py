@@ -46,7 +46,7 @@ class SystemTester:
             if fix_suggestion:
                 self.issues.append(f"📝 NOTE: {test_name} - {fix_suggestion}")
 
-    # ==================== SERVER CONNECTION TESTS ====================
+    # ====== SERVER CONNECTION TESTS ======
     def test_server_connection(self):
         self.print_subheader("🔌 TESTING SERVER CONNECTION")
         
@@ -72,7 +72,7 @@ class SystemTester:
                             "Check if server is running on port 8080")
             return False
 
-    # ==================== LOGIN TESTS ====================
+    # ====== LOGIN TESTS ======
     def test_login(self):
         self.print_subheader("🔐 TESTING LOGIN")
         
@@ -110,7 +110,7 @@ class SystemTester:
                 self.print_result(f"Login: {test['username']}", 'FAIL', str(e),
                                 "Check if login endpoint exists")
 
-    # ==================== SESSION TESTS ====================
+    # ====== SESSION TESTS ======
     def test_session(self):
         self.print_subheader("🍪 TESTING SESSION")
         
@@ -128,7 +128,7 @@ class SystemTester:
             self.print_result("Session Check", 'FAIL', str(e),
                             "Check app/routes/auth.py - check_session()")
 
-    # ==================== CSS FILE TESTS ====================
+    # ====== CSS FILE TESTS ======
     def test_css_files(self):
         self.print_subheader("🎨 TESTING CSS FILES")
         
@@ -175,7 +175,7 @@ class SystemTester:
                     self.print_result(f"CSS: {description}", 'FAIL', "File not found",
                                     "Create admin-style.css by merging style.css and fixes.css")
 
-    # ==================== HTML FILE TESTS ====================
+    # ====== HTML FILE TESTS ======
     def test_html_files(self):
         self.print_subheader("📄 TESTING HTML FILES")
         
@@ -215,7 +215,7 @@ class SystemTester:
                 
                 # Check for duplicate modal CSS in invoices.html
                 if file_path == "public/admin/invoices.html":
-                    if '.modal {' in content and '/* ==================== MODAL SECTION (FIXED) ==================== */' not in content:
+                    if '.modal {' in content and '/* ====== MODAL SECTION (FIXED) ====== */' not in content:
                         self.print_result(f"HTML: {file_path}", 'WARNING',
                                         "Has duplicate modal CSS",
                                         "Remove the modal CSS section from invoices.html")
@@ -223,7 +223,7 @@ class SystemTester:
                 self.print_result(f"HTML: {file_path}", 'WARNING', "File not found",
                                 f"Create {file_path} if needed")
 
-    # ==================== API ENDPOINT TESTS ====================
+    # ====== API ENDPOINT TESTS ======
     def test_api_endpoints(self):
         self.print_subheader("🔧 TESTING API ENDPOINTS")
         
@@ -268,7 +268,7 @@ class SystemTester:
                 self.print_result(f"API: {name}", 'FAIL', str(e),
                                 f"Check if {endpoint} endpoint exists")
 
-    # ==================== CRUD OPERATION TESTS ====================
+    # ====== CRUD OPERATION TESTS ======
     def test_crud_operations(self):
         self.print_subheader("🔄 TESTING CRUD OPERATIONS")
         
@@ -350,7 +350,7 @@ class SystemTester:
             except Exception as e:
                 self.print_result("CRUD: Delete User", 'FAIL', str(e))
 
-    # ==================== PERMISSION TESTS ====================
+    # ====== PERMISSION TESTS ======
     def test_permissions(self):
         self.print_subheader("🔑 TESTING PERMISSIONS")
         
@@ -367,7 +367,7 @@ class SystemTester:
         except Exception as e:
             self.print_result("Current User Role", 'FAIL', str(e))
 
-    # ==================== DATABASE TESTS ====================
+    # ====== DATABASE TESTS ======
     def test_database(self):
         self.print_subheader("🗄️  TESTING DATABASE")
         
@@ -379,7 +379,7 @@ class SystemTester:
             self.print_result("Database File", 'FAIL', "database.py not found",
                             "Create app/database.py")
 
-    # ==================== FOLDER STRUCTURE TESTS ====================
+    # ====== FOLDER STRUCTURE TESTS ======
     def test_folder_structure(self):
         self.print_subheader("📁 TESTING FOLDER STRUCTURE")
         
@@ -405,7 +405,7 @@ class SystemTester:
                 self.print_result(f"Folder: {folder}", 'WARNING', "Missing",
                                 f"Create folder: {folder}")
 
-    # ==================== JAVASCRIPT FILE TESTS ====================
+    # ====== JAVASCRIPT FILE TESTS ======
     def test_javascript_files(self):
         self.print_subheader("📜 TESTING JAVASCRIPT FILES")
         
@@ -422,7 +422,7 @@ class SystemTester:
                 self.print_result(f"JS: {file_path}", 'FAIL', "File not found",
                                 f"Create {file_path}")
 
-    # ==================== SUMMARY REPORT ====================
+    # ====== SUMMARY REPORT ======
     def print_summary(self):
         self.print_header("📊 FINAL TEST SUMMARY")
         
@@ -451,7 +451,7 @@ class SystemTester:
         else:
             print("\n❌ System has critical issues that need fixing.")
 
-    # ==================== RUN ALL TESTS ====================
+    # ====== RUN ALL TESTS ======
     def run_all_tests(self):
         self.print_header("🚀 STARTING COMPLETE SYSTEM TEST")
         print(f"Testing against: {self.base_url}")

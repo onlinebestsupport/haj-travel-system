@@ -14,7 +14,7 @@ import sys
 import time
 from datetime import datetime
 
-# ==================== CONFIGURATION ====================
+# ====== CONFIGURATION ======
 BASE_URL = "https://haj-web-app-production.up.railway.app"
 TIMEOUT = 15
 
@@ -28,7 +28,7 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
 
-# ==================== TEST RUNNER ====================
+# ====== TEST RUNNER ======
 
 class ProductionTestSuite:
     def __init__(self):
@@ -81,7 +81,7 @@ class ProductionTestSuite:
             pass
         return False
     
-    # ==================== HTML TESTS (76%) ====================
+    # ====== HTML TESTS (76%) ======
     
     def test_html_pages(self):
         """Test all HTML pages"""
@@ -147,7 +147,7 @@ class ProductionTestSuite:
         except Exception as e:
             self.print_test("HTML structure analysis", False, str(e))
     
-    # ==================== CSS TESTS (3.1%) ====================
+    # ====== CSS TESTS (3.1%) ======
     
     def test_css_files(self):
         """Test CSS files"""
@@ -181,7 +181,7 @@ class ProductionTestSuite:
             except Exception as e:
                 self.print_test("CSS: " + name, False, str(e))
     
-    # ==================== JAVASCRIPT TESTS (1.2%) ====================
+    # ====== JAVASCRIPT TESTS (1.2%) ======
     
     def test_javascript_resources(self):
         """Test JavaScript resources"""
@@ -201,7 +201,7 @@ class ProductionTestSuite:
             except Exception as e:
                 self.print_test("JS Library: " + name, False, str(e))
     
-    # ==================== PYTHON BACKEND TESTS (19.7%) ====================
+    # ====== PYTHON BACKEND TESTS (19.7%) ======
     
     def test_api_endpoints(self):
         """Test Python API endpoints"""
@@ -332,7 +332,7 @@ class ProductionTestSuite:
             except Exception as e:
                 self.print_test("DB Query: " + name, False, str(e))
     
-    # ==================== SECURITY TESTS ====================
+    # ====== SECURITY TESTS ======
     
     def test_security_headers(self):
         """Test security headers"""
@@ -380,7 +380,7 @@ class ProductionTestSuite:
         except Exception as e:
             self.print_test("SSL certificate check", False, str(e))
     
-    # ==================== PERFORMANCE TESTS ====================
+    # ====== PERFORMANCE TESTS ======
     
     def test_performance(self):
         """Test performance metrics"""
@@ -418,7 +418,7 @@ class ProductionTestSuite:
         except Exception as e:
             self.print_test("API response time", False, str(e))
     
-    # ==================== COMPREHENSIVE TESTS ====================
+    # ====== COMPREHENSIVE TESTS ======
     
     def test_full_workflow(self):
         """Test complete user workflow"""
@@ -456,7 +456,7 @@ class ProductionTestSuite:
             self.print_test("Workflow test", False, str(e))
             return False
     
-    # ==================== SUMMARY ====================
+    # ====== SUMMARY ======
     
     def print_summary(self):
         """Print final summary"""
@@ -536,7 +536,7 @@ class ProductionTestSuite:
         
         return success
 
-# ==================== MAIN ====================
+# ====== MAIN ======
 
 if __name__ == "__main__":
     suite = ProductionTestSuite()

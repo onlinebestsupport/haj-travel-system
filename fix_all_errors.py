@@ -8,7 +8,7 @@ print("="*70)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. FIX BRACE MISMATCHES ====================
+# ====== 1. FIX BRACE MISMATCHES ======
 print("\nFIXING BRACE MISMATCHES...")
 
 files_to_fix = [
@@ -53,7 +53,7 @@ for rel_path in files_to_fix:
                     f.write(content)
                 print(f"   Fixed {rel_path}")
 
-# ==================== 2. FIX SESSION MANAGER ====================
+# ====== 2. FIX SESSION MANAGER ======
 print("\nFIXING SESSION MANAGER...")
 
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -81,7 +81,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("Fixed session-manager.js")
 
-# ==================== 3. ADD CLEARINTERVAL ====================
+# ====== 3. ADD CLEARINTERVAL ======
 print("\nADDING MISSING CLEARINTERVAL...")
 
 traveler_dash = os.path.join(project_root, 'public', 'traveler_dashboard.html')
@@ -103,7 +103,7 @@ window.addEventListener('beforeunload', function() {
             f.write(content)
         print("Added clearInterval to traveler_dashboard.html")
 
-# ==================== 4. FIX FRONTPAGE SPECIFIC ====================
+# ====== 4. FIX FRONTPAGE SPECIFIC ======
 print("\nFIXING FRONTPAGE.HTML...")
 
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
@@ -133,7 +133,7 @@ if os.path.exists(frontpage_path):
         f.writelines(lines)
     print("Fixed frontpage.html")
 
-# ==================== 5. CREATE FUNCTION CLEANUP SCRIPT ====================
+# ====== 5. CREATE FUNCTION CLEANUP SCRIPT ======
 print("\nCREATING FUNCTION CLEANUP GUIDE...")
 
 cleanup_guide = """
@@ -169,7 +169,7 @@ with open(guide_path, 'w', encoding='utf-8') as f:
     f.write(cleanup_guide)
 print(f"Created {guide_path}")
 
-# ==================== 6. VERIFY FIXES ====================
+# ====== 6. VERIFY FIXES ======
 print("\n" + "="*70)
 print(" ALL FIXES APPLIED!")
 print("="*70)

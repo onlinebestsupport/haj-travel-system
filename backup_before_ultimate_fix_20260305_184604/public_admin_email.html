@@ -1025,9 +1025,9 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
 
-// ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
+// ====== SESSION MANAGEMENT & AUTHENTICATION ======
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
@@ -1107,8 +1107,8 @@ if (typeof showNotification !== 'function') {
     };
 }
 
-// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
-// ==================== INITIALIZATION ====================
+// ====== PAGE INITIALIZATION WITH SESSION CHECK ======
+// ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Loading email page...');
     await SessionManager.initPage(loadEmail || function(){});
@@ -1132,8 +1132,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// ==================== LOGOUT FUNCTION ====================
-/// ==================== LOGOUT ====================
+// ====== LOGOUT FUNCTION ======
+/// ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
@@ -1161,7 +1161,7 @@ async function logout() {
         let draftEmails = [];
         let starredEmails = new Set();
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadEmailConfig();
@@ -1169,7 +1169,7 @@ async function logout() {
             loadCounts();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1181,13 +1181,13 @@ async function logout() {
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1199,7 +1199,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== LOAD EMAIL CONFIG FROM FRONTPAGE ====================
+        // ====== LOAD EMAIL CONFIG FROM FRONTPAGE ======
         function loadEmailConfig() {
             // Try to load from localStorage (set by frontpage)
             const savedFromEmail = localStorage.getItem('bookingEmail');
@@ -1260,7 +1260,7 @@ async function logout() {
             showNotification('Email configuration refreshed from frontpage', 'success');
         }
 
-        // ==================== LOAD EMAILS ====================
+        // ====== LOAD EMAILS ======
         function loadEmails(folder) {
             const emailItems = document.getElementById('emailItems');
             
@@ -1364,7 +1364,7 @@ async function logout() {
             document.getElementById('spamCount').textContent = '2';
         }
 
-        // ==================== FOLDER SELECTION ====================
+        // ====== FOLDER SELECTION ======
         function selectFolder(folder) {
             currentFolder = folder;
             
@@ -1377,7 +1377,7 @@ async function logout() {
             showNotification(`Switched to ${folder} folder`, 'info');
         }
 
-        // ==================== COMPOSE FUNCTIONS ====================
+        // ====== COMPOSE FUNCTIONS ======
         function openCompose() {
             document.getElementById('composeModal').style.display = 'block';
             document.getElementById('modalOverlay').style.display = 'block';
@@ -1534,7 +1534,7 @@ async function logout() {
             }, 2000);
         }
 
-        // ==================== EMAIL INTERACTION ====================
+        // ====== EMAIL INTERACTION ======
         function openEmail(element) {
             element.classList.remove('unread');
             
@@ -1682,7 +1682,7 @@ async function logout() {
             }
         }
 
-        // ==================== SETTINGS FUNCTIONS ====================
+        // ====== SETTINGS FUNCTIONS ======
         function openSettings() {
             document.getElementById('settingsModal').style.display = 'block';
             document.getElementById('modalOverlay').style.display = 'block';
@@ -1718,7 +1718,7 @@ async function logout() {
             }
         }
 
-        // ==================== CHECK EMAILS ====================
+        // ====== CHECK EMAILS ======
         function checkEmails() {
             showNotification('Checking for new emails...', 'info');
             
@@ -1730,7 +1730,7 @@ async function logout() {
             }, 2000);
         }
 
-        // ==================== CLOSE ALL MODALS ====================
+        // ====== CLOSE ALL MODALS ======
         function closeAllModals() {
             document.getElementById('composeModal').style.display = 'none';
             document.getElementById('templateSelector').style.display = 'none';
@@ -1739,7 +1739,7 @@ async function logout() {
             document.getElementById('placeholderHelp').style.display = 'none';
         }
 
-        // ==================== LOAD DRAFTS ====================
+        // ====== LOAD DRAFTS ======
         function loadDrafts() {
             const saved = localStorage.getItem('emailDrafts');
             if (saved) {
@@ -1747,7 +1747,7 @@ async function logout() {
             }
         }
 
-        // ==================== CLICK OUTSIDE HANDLER ====================
+        // ====== CLICK OUTSIDE HANDLER ======
         window.onclick = function(event) {
             const composeModal = document.getElementById('composeModal');
             const templateSelector = document.getElementById('templateSelector');

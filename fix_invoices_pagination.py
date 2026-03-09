@@ -22,9 +22,9 @@ print(f"✅ Backup created: {backup_path}")
 with open(html_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# ============================================================
+# ====
 # FIX 1: Add Email Invoice Button
-# ============================================================
+# ====
 print("\n🔧 Adding email invoice button...")
 
 if 'Email Invoice' not in content:
@@ -43,9 +43,9 @@ if 'Email Invoice' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 2: Add Pagination HTML
-# ============================================================
+# ====
 if 'pagination' not in content.lower() and 'showingFrom' not in content:
     print("\n🔧 Adding pagination HTML...")
     
@@ -72,14 +72,14 @@ if 'pagination' not in content.lower() and 'showingFrom' not in content:
     else:
         print("   ⚠️ Could not find insertion point")
 
-# ============================================================
+# ====
 # FIX 3: Add Pagination JavaScript
-# ============================================================
+# ====
 if 'function previousPage' not in content:
     print("\n🔧 Adding pagination JavaScript...")
     
     pagination_js = '''
-    // ==================== PAGINATION VARIABLES ====================
+    // ====== PAGINATION VARIABLES ======
     let currentPage = 1;
     let itemsPerPage = 10;
     let allInvoices = [];
@@ -115,14 +115,14 @@ if 'function previousPage' not in content:
     content = content.replace('</script>', pagination_js + '\n</script>')
     print("   ✅ Pagination JavaScript added")
 
-# ============================================================
+# ====
 # FIX 4: Add Email Invoice Function
-# ============================================================
+# ====
 print("\n🔧 Adding email invoice function...")
 
 email_function = '''
 
-    // ==================== EMAIL INVOICE ====================
+    // ====== EMAIL INVOICE ======
     async function emailInvoice(invoiceId, travelerName) {
         try {
             showNotification('Preparing invoice email...', 'info');
@@ -172,14 +172,14 @@ email_function = '''
 content = content.replace('</script>', email_function + '\n</script>')
 print("   ✅ Email invoice function added")
 
-# ============================================================
+# ====
 # FIX 5: Add Due Date Highlighting
-# ============================================================
+# ====
 print("\n🔧 Adding due date highlighting...")
 
 due_date_js = '''
 
-    // ==================== DUE DATE HIGHLIGHTING ====================
+    // ====== DUE DATE HIGHLIGHTING ======
     function getDueDateStatus(dueDate) {
         if (!dueDate) return 'normal';
         
@@ -206,9 +206,9 @@ due_date_js = '''
 content = content.replace('</script>', due_date_js + '\n</script>')
 print("   ✅ Due date highlighting added")
 
-# ============================================================
+# ====
 # FIX 6: Update Invoice Row with Due Date Styling
-# ============================================================
+# ====
 print("\n🔧 Updating invoice row with due date styling...")
 
 if 'getDueDateStatus' in content:
@@ -222,9 +222,9 @@ if 'getDueDateStatus' in content:
     else:
         print("   ⚠️ Could not find due date cell")
 
-# ============================================================
+# ====
 # FIX 7: Add Payment Tracking
-# ============================================================
+# ====
 print("\n🔧 Adding payment tracking column...")
 
 payment_tracking = '''
@@ -257,9 +257,9 @@ if 'payment tracking' not in content.lower():
         # This is complex - manual check recommended
         print("   ⚠️ Manual check needed for payment tracking column")
 
-# ============================================================
+# ====
 # FIX 8: Add Bulk Actions
-# ============================================================
+# ====
 print("\n🔧 Adding bulk actions...")
 
 bulk_actions_html = '''
@@ -284,14 +284,14 @@ if 'bulkEmail' not in content:
         )
         print("   ✅ Bulk actions HTML added")
 
-# ============================================================
+# ====
 # FIX 9: Add Bulk Action Functions
-# ============================================================
+# ====
 print("\n🔧 Adding bulk action functions...")
 
 bulk_functions = '''
 
-    // ==================== BULK ACTIONS ====================
+    // ====== BULK ACTIONS ======
     let selectedInvoices = new Set();
 
     function toggleSelectAll() {
@@ -374,9 +374,9 @@ bulk_functions = '''
 content = content.replace('</script>', bulk_functions + '\n</script>')
 print("   ✅ Bulk action functions added")
 
-# ============================================================
+# ====
 # Write the file
-# ============================================================
+# ====
 with open(html_path, 'w', encoding='utf-8') as f:
     f.write(content)
 

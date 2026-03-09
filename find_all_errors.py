@@ -13,7 +13,7 @@ print("="*70)
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 issues_found = []
 
-# ==================== 1. CHECK JAVASCRIPT SYNTAX ERRORS ====================
+# ====== 1. CHECK JAVASCRIPT SYNTAX ERRORS ======
 print("\n📜 CHECKING JAVASCRIPT SYNTAX IN HTML FILES...")
 
 html_files = []
@@ -76,7 +76,7 @@ for html_file in html_files:
     except Exception as e:
         print(f"⚠️  Error reading {rel_path}: {e}")
 
-# ==================== 2. CHECK SESSION MANAGER ====================
+# ====== 2. CHECK SESSION MANAGER ======
 print("\n🕒 CHECKING SESSION MANAGER...")
 
 session_manager_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -132,7 +132,7 @@ else:
         'severity': 'HIGH'
     })
 
-# ==================== 3. CHECK FOR COMMON JAVASCRIPT ERRORS ====================
+# ====== 3. CHECK FOR COMMON JAVASCRIPT ERRORS ======
 print("\n🔧 CHECKING FOR COMMON JAVASCRIPT ERRORS...")
 
 error_patterns = [
@@ -164,7 +164,7 @@ for html_file in html_files:
     except Exception as e:
         print(f"⚠️  Error reading {rel_path}: {e}")
 
-# ==================== 4. CHECK SESSION INIT IN HTML FILES ====================
+# ====== 4. CHECK SESSION INIT IN HTML FILES ======
 print("\n🔐 CHECKING SESSION INITIALIZATION...")
 
 for html_file in html_files:
@@ -186,7 +186,7 @@ for html_file in html_files:
         except Exception as e:
             print(f"⚠️  Error reading {rel_path}: {e}")
 
-# ==================== 5. CHECK FOR DUPLICATE FUNCTIONS ====================
+# ====== 5. CHECK FOR DUPLICATE FUNCTIONS ======
 print("\n🔄 CHECKING FOR DUPLICATE FUNCTION DEFINITIONS...")
 
 function_names = {}
@@ -215,7 +215,7 @@ for func, files in function_names.items():
         })
         print(f"⚠️  Function '{func}' appears in {len(files)} files")
 
-# ==================== 6. CHECK TIMER SPAM IN CONSOLE ====================
+# ====== 6. CHECK TIMER SPAM IN CONSOLE ======
 print("\n⏱️  CHECKING FOR TIMER SPAM...")
 
 for html_file in html_files:
@@ -236,7 +236,7 @@ for html_file in html_files:
     except Exception as e:
         print(f"⚠️  Error reading {rel_path}: {e}")
 
-# ==================== 7. CHECK FOR EXTRA BRACES IN FRONTPAGE ====================
+# ====== 7. CHECK FOR EXTRA BRACES IN FRONTPAGE ======
 print("\n📄 SPECIFIC CHECK FOR FRONTPAGE.HTML...")
 
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
@@ -270,7 +270,7 @@ if os.path.exists(frontpage_path):
 else:
     print("frontpage.html not found")
 
-# ==================== 8. SUMMARY REPORT ====================
+# ====== 8. SUMMARY REPORT ======
 print("\n" + "="*70)
 print("📊 ERROR DETECTION SUMMARY")
 print("="*70)
@@ -297,7 +297,7 @@ if issues_found:
 else:
     print("\n✅ NO ISSUES FOUND! Your code is perfect!")
 
-# ==================== 9. FIX SUGGESTIONS ====================
+# ====== 9. FIX SUGGESTIONS ======
 print("\n" + "="*70)
 print("🔧 RECOMMENDED FIXES")
 print("="*70)

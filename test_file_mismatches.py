@@ -31,7 +31,7 @@ print("\n📁 Files by extension:")
 for ext in sorted(file_extensions.keys()):
     print(f"   {ext}: {len(file_extensions[ext])} files")
 
-# ==================== PATTERNS TO SEARCH ====================
+# ====== PATTERNS TO SEARCH ======
 patterns = [
     # HTML/CSS/JS references
     (r'["\']([\w\/\.-]+\.html)["\']', 'HTML links'),
@@ -115,7 +115,7 @@ for root, dirs, files in os.walk(project_root):
 print(f"\n📊 Scanned {file_count} files")
 print(f"📊 Found {len(all_references)} total references")
 
-# ==================== CHECK FOR MISMATCHES ====================
+# ====== CHECK FOR MISMATCHES ======
 print("\n" + "="*80)
 print("🔍 CHECKING FOR FILE NAME MISMATCHES")
 print("="*80)
@@ -165,7 +165,7 @@ for ref_file, ref_name, desc in all_references:
             mismatches.append((ref_file, ref_name, desc))
             checked_pairs.add(key)
 
-# ==================== SPECIFIC CHECKS ====================
+# ====== SPECIFIC CHECKS ======
 print("\n" + "="*80)
 print("🔧 SPECIFIC FILE CHECKS")
 print("="*80)
@@ -221,7 +221,7 @@ for root, dirs, files in os.walk(os.path.join(project_root, 'app')):
     if os.path.basename(root) != 'app' and '__init__.py' not in files:
         print(f"⚠️  Missing __init__.py in {rel_dir}")
 
-# ==================== SUMMARY ====================
+# ====== SUMMARY ======
 print("\n" + "="*80)
 print("📊 FILE NAME MISMATCH SUMMARY")
 print("="*80)

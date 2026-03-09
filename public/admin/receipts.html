@@ -972,11 +972,11 @@
                     <button type="button" class="btn-secondary" onclick="toggleCreateReceiptForm()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-<<<<<<< HEAD
+
                     <button type="button" class="action-btn btn-primary" onclick="SessionManager.saveAddressTemplate()">
-=======
+
                     <button type="button" class="btn-primary" onclick="saveAddressTemplate()">
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
                         <i class="fas fa-save"></i> Save Address Template
                     </button>
                 </div>
@@ -1022,7 +1022,7 @@
                 <span>to</span>
                 <input type="date" id="toDate" placeholder="To">
             </div>
-<<<<<<< HEAD
+
             <button class="action-btn btn-primary" onclick="SessionManager.applyFilters()">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -1046,7 +1046,7 @@
                 <i class="fas fa-envelope"></i> Email Selected
             </button>
         </div>
-=======
+
             <button class="btn-primary" onclick="searchReceipts()">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -1107,7 +1107,7 @@
                     </button>
                 </div>
             </div>
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
 
             <!-- Receipt Card 2 - 2nd Installment -->
             <div class="receipt-card">
@@ -1224,17 +1224,17 @@
                 Showing 1 to 3 of <span id="totalReceiptCount">245</span> receipts
             </div>
             <div style="display: flex; gap: 10px;">
-<<<<<<< HEAD
+
                 <button class="action-btn btn-secondary" onclick="SessionManager.previousPage()" id="prevPageBtn" disabled>
                     <i class="fas fa-chevron-left"></i> Previous
                 </button>
                 <button class="action-btn btn-primary" onclick="SessionManager.nextPage()" id="nextPageBtn">
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
-=======
+
                 <button class="btn-secondary" onclick="previousPage()"><i class="fas fa-chevron-left"></i> Previous</button>
                 <button class="btn-primary" onclick="nextPage()">Next <i class="fas fa-chevron-right"></i></button>
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
             </div>
         </div>
     </div>
@@ -1256,11 +1256,11 @@
                 <button class="btn-primary" onclick="downloadReceiptPDF()">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </button>
-<<<<<<< HEAD
+
                 <button class="action-btn btn-secondary" onclick="SessionManager.closeModal()">
-=======
+
                 <button class="btn-secondary" onclick="closeModal()">
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
@@ -1270,14 +1270,14 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let companyAddress = {};
 
-<<<<<<< HEAD
-        // ==================== NOTIFICATION FUNCTION ====================
+
+        // ====== NOTIFICATION FUNCTION ======
         function SessionManager.showNotification(message, type = 'success') {
-=======
-        // ==================== INITIALIZATION ====================
+
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadAddressTemplate();
@@ -1287,7 +1287,7 @@
             document.getElementById('receiptDate').value = today;
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1299,24 +1299,24 @@
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
-<<<<<<< HEAD
+
             setTimeout(() => notification.style.display = 'none', 3000);
         }
 
-        // ==================== SESSION CHECK ====================
+        // ====== SESSION CHECK ======
         async function SessionManager.checkAdminSession() {
             try {
                 const response = await fetch('/api/check-session', {
@@ -1344,7 +1344,7 @@
             }
         }
 
-        // ==================== LOAD RECEIPTS ====================
+        // ====== LOAD RECEIPTS ======
         async function loadReceipts() {
             const container = document.getElementById('receiptsListContainer');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading receipts...</div>';
@@ -1388,7 +1388,7 @@
             }
         }
 
-        // ==================== LOAD RECEIPT STATS ====================
+        // ====== LOAD RECEIPT STATS ======
         async function loadReceiptStats() {
             try {
                 const response = await fetch('/api/receipts/stats', {
@@ -1416,7 +1416,7 @@
             }
         }
 
-        // ==================== DISPLAY RECEIPTS ====================
+        // ====== DISPLAY RECEIPTS ======
         function displayReceipts() {
             const container = document.getElementById('receiptsListContainer');
             
@@ -1500,7 +1500,7 @@
             SessionManager.updatePaginationInfo();
         }
 
-        // ==================== PAGINATION FUNCTIONS ====================
+        // ====== PAGINATION FUNCTIONS ======
         function SessionManager.updatePaginationInfo() {
             const total = filteredReceipts.length;
             document.getElementById('totalCount').textContent = total;
@@ -1536,7 +1536,7 @@
             }
         }
 
-        // ==================== FILTER FUNCTIONS ====================
+        // ====== FILTER FUNCTIONS ======
         function SessionManager.applyFilters() {
             const search = document.getElementById('searchReceipt').value.toLowerCase();
             const type = document.getElementById('receiptTypeFilter').value;
@@ -1585,7 +1585,7 @@
             SessionManager.showNotification('Filters reset', 'info');
         }
 
-        // ==================== BULK ACTIONS ====================
+        // ====== BULK ACTIONS ======
         function SessionManager.toggleSelectAll() {
             const checkboxes = document.querySelectorAll('.receipt-checkbox');
             const selectAll = document.getElementById('selectAllReceipts');
@@ -1635,7 +1635,7 @@
             SessionManager.showNotification(`Email feature for ${selectedReceipts.size} receipts - coming soon`, 'info');
         }
 
-        // ==================== RECEIPT ACTIONS ====================
+        // ====== RECEIPT ACTIONS ======
         function viewReceipt(id) {
             const receipt = allReceipts.find(r => r.id === id);
             if (!receipt) {
@@ -1690,7 +1690,7 @@
             SessionManager.showNotification('Export feature coming soon', 'info');
         }
 
-        // ==================== RECEIPT FORM FUNCTIONS ====================
+        // ====== RECEIPT FORM FUNCTIONS ======
         function toggleCreateReceiptForm() {
             const form = document.getElementById('createReceiptForm');
             if (form.style.display === 'none' || form.style.display === '') {
@@ -1790,15 +1790,15 @@
             document.getElementById('receiptCreateForm').reset();
             document.getElementById('createReceiptForm').style.display = 'none';
             loadReceipts();
-=======
+
             
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
         }
 
-        // ==================== ADDRESS TEMPLATE FUNCTIONS ====================
+        // ====== ADDRESS TEMPLATE FUNCTIONS ======
         function SessionManager.loadAddressTemplate() {
             const savedAddress = localStorage.getItem('companyAddress');
             if (savedAddress) {
@@ -1830,7 +1830,7 @@
             SessionManager.showNotification('Address template saved successfully!', 'success');
         }
 
-        // ==================== RECEIPT FORM FUNCTIONS ====================
+        // ====== RECEIPT FORM FUNCTIONS ======
         function toggleCreateReceiptForm() {
             const form = document.getElementById('createReceiptForm');
             if (form.style.display === 'none' || form.style.display === '') {
@@ -1841,7 +1841,7 @@
             }
         }
 
-        // ==================== TRAVELER FUNCTIONS ====================
+        // ====== TRAVELER FUNCTIONS ======
         function loadTravelerReceiptDetails() {
             const select = document.getElementById('receiptTravelerSelect');
             const selectedOption = select.options[select.selectedIndex];
@@ -1919,7 +1919,7 @@
             document.getElementById('displayBalance').textContent = '₹' + Math.max(0, balance).toLocaleString('en-IN');
         }
 
-        // ==================== RECEIPT GENERATION ====================
+        // ====== RECEIPT GENERATION ======
         function generateReceipt() {
             const travelerSelect = document.getElementById('receiptTravelerSelect');
             if (!travelerSelect.value) {
@@ -1962,7 +1962,7 @@
             document.getElementById('createReceiptForm').style.display = 'none';
         }
 
-        // ==================== RECEIPT PRINTING ====================
+        // ====== RECEIPT PRINTING ======
         function printReceipt(id) {
             const receiptData = getReceiptData(id);
             const printWindow = window.open('', '_blank');
@@ -2124,7 +2124,7 @@
             }, 1500);
         }
 
-        // ==================== RECEIPT ACTIONS ====================
+        // ====== RECEIPT ACTIONS ======
         function viewReceipt(id) {
             const receiptData = getReceiptData(id);
             document.getElementById('receiptDetails').innerHTML = getReceiptHTML(id, receiptData);
@@ -2152,12 +2152,12 @@
             }, 2000);
         }
 
-        // ==================== SEARCH AND FILTER ====================
+        // ====== SEARCH AND FILTER ======
         function searchReceipts() {
             showNotification('Searching receipts...', 'info');
         }
 
-        // ==================== PAGINATION ====================
+        // ====== PAGINATION ======
         function previousPage() {
             showNotification('Loading previous page...', 'info');
         }
@@ -2166,13 +2166,13 @@
             showNotification('Loading next page...', 'info');
         }
 
-<<<<<<< HEAD
-        // ==================== CLOSE MODAL ====================
+
+        // ====== CLOSE MODAL ======
         function SessionManager.closeModal() {
             document.getElementById('receiptModal').style.display = 'none';
         }
 
-      // ==================== INITIALIZATION ====================
+      // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
     console.SessionManager.log('🚀 Loading page...');
     await SessionManager.initPage(loadData || function(){});
@@ -2187,12 +2187,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('receiptDate').value = today;
             </script>
-=======
+
         function closeModal() {
             document.getElementById('receiptModal').style.display = 'none';
         }
 
-        // ==================== CLOSE MODAL ON OUTSIDE CLICK ====================
+        // ====== CLOSE MODAL ON OUTSIDE CLICK ======
         window.onclick = function(event) {
             const modal = document.getElementById('receiptModal');
             if (event.target == modal) {
@@ -2200,6 +2200,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
     </script>
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
+
 </body>
 </html>

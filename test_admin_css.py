@@ -18,7 +18,7 @@ print(f"📏 File size: {file_size:,} bytes")
 with open(css_path, 'r', encoding='utf-8') as f:
     css_content = f.read()
 
-# ==================== TEST CATEGORIES ====================
+# ====== TEST CATEGORIES ======
 tests = {
     "RESET & BASE STYLES": [
         "* {", 
@@ -259,7 +259,7 @@ for category, selectors in tests.items():
     else:
         failed += 1
 
-# ==================== SPECIAL CHECKS ====================
+# ====== SPECIAL CHECKS ======
 print("\n" + "="*60)
 print("🔍 SPECIAL CHECKS")
 print("="*60)
@@ -289,7 +289,7 @@ if 'fa-' in css_content:
 else:
     print("⚠️  No Font Awesome icon styles found")
 
-# ==================== SUMMARY ====================
+# ====== SUMMARY ======
 print("\n" + "="*60)
 print("📊 FINAL SUMMARY")
 print("="*60)

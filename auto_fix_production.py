@@ -28,7 +28,7 @@ class AutoFixer:
         print(msg)
         self.errors.append(msg)
     
-    # ==================== FIX 1: auth.py ====================
+    # ====== FIX 1: auth.py ======
     
     def fix_auth_routes(self):
         """Fix authentication routes - add methods=['POST']"""
@@ -103,7 +103,7 @@ def get_current_user():
             self.log_error(auth_file, str(e))
             return False
     
-    # ==================== FIX 2: server.py Security Headers ====================
+    # ====== FIX 2: server.py Security Headers ======
     
     def fix_security_headers(self):
         """Add security headers middleware to server.py"""
@@ -126,7 +126,7 @@ def get_current_user():
             
             # Add security headers function
             security_headers_code = '''
-# ==================== 🛡️ SECURITY HEADERS ====================
+# ====== 🛡️ SECURITY HEADERS ======
 @app.after_request
 def add_security_headers(response):
     """Add security headers to all responses"""
@@ -164,7 +164,7 @@ def add_security_headers(response):
             self.log_error(server_file, str(e))
             return False
     
-    # ==================== FIX 3: reports.py ====================
+    # ====== FIX 3: reports.py ======
     
     def fix_reports_endpoints(self):
         """Add missing /summary endpoint to reports.py"""
@@ -187,7 +187,7 @@ def add_security_headers(response):
             
             # Add summary endpoint
             summary_code = '''
-# ==================== SUMMARY REPORT ====================
+# ====== SUMMARY REPORT ======
 @bp.route('/summary', methods=['GET'])
 def summary_report():
     """Get summary statistics"""
@@ -241,7 +241,7 @@ def summary_report():
             self.log_error(reports_file, str(e))
             return False
     
-    # ==================== FIX 4: HTML Google Fonts ====================
+    # ====== FIX 4: HTML Google Fonts ======
     
     def fix_html_fonts(self):
         """Fix Google Fonts CDN link in HTML files"""
@@ -281,7 +281,7 @@ def summary_report():
             return True
         return False
     
-    # ==================== RUN ALL FIXES ====================
+    # ====== RUN ALL FIXES ======
     
     def run_all_fixes(self):
         """Run all fixes"""

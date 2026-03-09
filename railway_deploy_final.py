@@ -7,7 +7,7 @@ print("="*70)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. FIX REQUIREMENTS.TXT ====================
+# ====== 1. FIX REQUIREMENTS.TXT ======
 print("\n📦 FIXING REQUIREMENTS.TXT...")
 
 req_path = os.path.join(project_root, 'requirements.txt')
@@ -38,7 +38,7 @@ print("   • Werkzeug==2.3.7")
 print("   • Pillow>=10.0.1")
 print("   • waitress==3.0.2")
 
-# ==================== 2. CREATE PROCFILE ====================
+# ====== 2. CREATE PROCFILE ======
 print("\n📦 CHECKING PROCFILE...")
 
 procfile_path = os.path.join(project_root, 'Procfile')
@@ -48,7 +48,7 @@ with open(procfile_path, 'w', encoding='utf-8') as f:
     f.write(procfile_content)
 print("✅ Procfile created/updated")
 
-# ==================== 3. CREATE RUNTIME.TXT ====================
+# ====== 3. CREATE RUNTIME.TXT ======
 print("\n📦 CHECKING RUNTIME.TXT...")
 
 runtime_path = os.path.join(project_root, 'runtime.txt')
@@ -56,7 +56,7 @@ with open(runtime_path, 'w', encoding='utf-8') as f:
     f.write("python-3.11.9")
 print("✅ runtime.txt set to Python 3.11.9")
 
-# ==================== 4. CREATE .ENV.EXAMPLE ====================
+# ====== 4. CREATE .ENV.EXAMPLE ======
 print("\n📦 CHECKING .ENV.EXAMPLE...")
 
 env_example_path = os.path.join(project_root, '.env.example')
@@ -80,7 +80,7 @@ with open(env_example_path, 'w', encoding='utf-8') as f:
     f.write(env_example_content)
 print("✅ .env.example created/updated")
 
-# ==================== 5. CHECK reset_database.py (with proper encoding) ====================
+# ====== 5. CHECK reset_database.py (with proper encoding) ======
 print("\n📦 CHECKING reset_database.py...")
 
 reset_db_path = os.path.join(project_root, 'app', 'reset_database.py')
@@ -107,7 +107,7 @@ if os.path.exists(reset_db_path):
 else:
     print("✅ reset_database.py not found (not required for Railway)")
 
-# ==================== 6. VERIFY EVERYTHING ====================
+# ====== 6. VERIFY EVERYTHING ======
 print("\n" + "="*70)
 print("📊 FINAL VERIFICATION")
 print("="*70)
@@ -164,7 +164,7 @@ else:
     print("⚠️  Some issues remain. Please check the output above.")
 print("="*70)
 
-# ==================== 7. CREATE DEPLOYMENT INSTRUCTIONS ====================
+# ====== 7. CREATE DEPLOYMENT INSTRUCTIONS ======
 deploy_instructions = '''# 🚀 RAILWAY DEPLOYMENT INSTRUCTIONS
 
 ## Step 1: Install Railway CLI (if not already installed)

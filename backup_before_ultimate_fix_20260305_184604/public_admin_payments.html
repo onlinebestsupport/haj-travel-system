@@ -1090,7 +1090,7 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let currentTravelerData = null;
         let currentPaymentId = null;
         let paymentsData = [];
@@ -1099,7 +1099,7 @@
         let currentPage = 1;
         let itemsPerPage = 10;
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadTravelers();
@@ -1109,7 +1109,7 @@
             setTodayDate();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -1121,13 +1121,13 @@
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -1139,13 +1139,13 @@
             }, 3000);
         }
 
-        // ==================== SET TODAY'S DATE ====================
+        // ====== SET TODAY'S DATE ======
         function setTodayDate() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('payment_date').value = today;
         }
 
-        // ==================== ALLOW NUMBERS ONLY ====================
+        // ====== ALLOW NUMBERS ONLY ======
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
             
@@ -1158,7 +1158,7 @@
             return false;
         }
 
-        // ==================== LOAD TRAVELERS ====================
+        // ====== LOAD TRAVELERS ======
         async function loadTravelers() {
             try {
                 const response = await fetch('/api/travelers', {
@@ -1188,7 +1188,7 @@
             });
         }
 
-        // ==================== LOAD BATCHES ====================
+        // ====== LOAD BATCHES ======
         async function loadBatches() {
             try {
                 const response = await fetch('/api/batches', {
@@ -1206,7 +1206,7 @@
             }
         }
 
-        // ==================== PAYMENT FORM FUNCTIONS ====================
+        // ====== PAYMENT FORM FUNCTIONS ======
         function showAddPaymentForm() {
             document.getElementById('addPaymentForm').style.display = 'block';
             document.getElementById('paymentSearchSection').style.display = 'block';
@@ -1249,7 +1249,7 @@
             resetPaymentForm();
         }
 
-        // ==================== SELECT TRAVELER FROM DROPDOWN ====================
+        // ====== SELECT TRAVELER FROM DROPDOWN ======
         function selectTravelerFromDropdown() {
             const dropdown = document.getElementById('traveler_dropdown');
             const selectedOption = dropdown.options[dropdown.selectedIndex];
@@ -1267,7 +1267,7 @@
             }
         }
 
-        // ==================== VERIFY TRAVELER ====================
+        // ====== VERIFY TRAVELER ======
         async function verifyTraveler() {
             const search = document.getElementById('payment_search').value.trim();
             if (!search) {
@@ -1379,7 +1379,7 @@
             document.getElementById('paymentForm').style.display = 'block';
         }
 
-        // ==================== UPDATE SUMMARY ====================
+        // ====== UPDATE SUMMARY ======
         function updateSummary() {
             const amountText = document.getElementById('amount').value.replace(/,/g, '');
             const amount = parseFloat(amountText) || 0;
@@ -1394,7 +1394,7 @@
             document.getElementById('summary_balance').style.color = newBalance < 0 ? '#e74c3c' : (newBalance === 0 ? '#27ae60' : '#f39c12');
         }
 
-        // ==================== CREATE PAYMENT ====================
+        // ====== CREATE PAYMENT ======
         document.getElementById('paymentForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -1469,7 +1469,7 @@
             }
         });
 
-        // ==================== LOAD PAYMENTS ====================
+        // ====== LOAD PAYMENTS ======
         async function loadPayments() {
             const tableBody = document.getElementById('paymentsTableBody');
             tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments...</td></tr>';
@@ -1577,7 +1577,7 @@
             }
         }
 
-        // ==================== LOAD PAYMENT STATS ====================
+        // ====== LOAD PAYMENT STATS ======
         async function loadPaymentStats() {
             try {
                 const response = await fetch('/api/payments/stats', {
@@ -1614,7 +1614,7 @@
             }
         }
 
-        // ==================== VIEW PAYMENT DETAILS ====================
+        // ====== VIEW PAYMENT DETAILS ======
         function viewPaymentDetails(id) {
             const payment = paymentsData.find(p => p.id === id);
             if (!payment) {
@@ -1687,13 +1687,13 @@
             document.getElementById('modalOverlay').style.display = 'block';
         }
 
-        // ==================== CLOSE MODAL ====================
+        // ====== CLOSE MODAL ======
         function closePaymentModal() {
             document.getElementById('paymentModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
 
-        // ==================== PRINT RECEIPT ====================
+        // ====== PRINT RECEIPT ======
         function printPaymentReceipt() {
             const content = document.getElementById('paymentDetails')?.innerHTML;
             if (!content) return;
@@ -1731,7 +1731,7 @@
             printWindow.print();
         }
 
-        // ==================== REVERSAL FUNCTIONS ====================
+        // ====== REVERSAL FUNCTIONS ======
         function showReverseModal(paymentId, amount) {
             currentPaymentId = paymentId;
             document.getElementById('reverse_payment_id').value = paymentId;
@@ -1774,7 +1774,7 @@
             loadPaymentStats();
         }
 
-        // ==================== FILTER FUNCTIONS ====================
+        // ====== FILTER FUNCTIONS ======
         function filterPayments() {
             const search = document.getElementById('searchPayments').value.toLowerCase().trim();
             const statusFilter = document.getElementById('paymentStatusFilter').value;
@@ -1835,7 +1835,7 @@
             displayPayments();
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
+        // ====== EXPORT FUNCTIONS ======
         function exportPaymentsToExcel() {
             let csv = [];
             
@@ -1890,14 +1890,14 @@
             printWindow.print();
         }
 
-        // ==================== CLOSE ALL MODALS ====================
+        // ====== CLOSE ALL MODALS ======
         function closeAllModals() {
             document.getElementById('paymentModal').style.display = 'none';
             document.getElementById('reverseModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
 
-        // ==================== AUTO-COMPLETE ====================
+        // ====== AUTO-COMPLETE ======
         document.getElementById('amount').addEventListener('input', updateSummary);
     </script>
 </body>

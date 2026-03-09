@@ -16,7 +16,7 @@ os.makedirs(backup_dir, exist_ok=True)
 
 print(f"\n📦 Creating backup in: {backup_dir}")
 
-# ==================== 1. FIX BRACE MISMATCHES IN ALL HTML FILES ====================
+# ====== 1. FIX BRACE MISMATCHES IN ALL HTML FILES ======
 print("\n🔍 FIXING BRACE MISMATCHES IN HTML FILES...")
 
 def fix_braces_in_file(file_path):
@@ -102,7 +102,7 @@ for html_file in html_files:
 
 print(f"\n📊 Fixed braces in {fixed_count} files")
 
-# ==================== 2. FIX SESSION MANAGER ====================
+# ====== 2. FIX SESSION MANAGER ======
 print("\n⏱️  FIXING SESSION MANAGER...")
 
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -136,7 +136,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== 3. ADD MISSING SESSION INIT ====================
+# ====== 3. ADD MISSING SESSION INIT ======
 print("\n🔐 ADDING MISSING SESSION INITIALIZATION...")
 
 def add_session_init(file_path):
@@ -192,7 +192,7 @@ for rel_path in admin_files:
 
 print(f"\n📊 Added session init to {added_count} files")
 
-# ==================== 4. CREATE FUNCTION CLEANUP SCRIPT ====================
+# ====== 4. CREATE FUNCTION CLEANUP SCRIPT ======
 print("\n📋 CREATING FUNCTION CLEANUP SCRIPT...")
 
 cleanup_script = """# function_cleanup.py
@@ -253,7 +253,7 @@ with open(os.path.join(project_root, 'function_cleanup.py'), 'w', encoding='utf-
     f.write(cleanup_script)
 print("✅ Created function_cleanup.py")
 
-# ==================== 5. FIX SETINTERVAL WITHOUT CLEARINTERVAL ====================
+# ====== 5. FIX SETINTERVAL WITHOUT CLEARINTERVAL ======
 print("\n⏲️  FIXING MISSING CLEARINTERVAL...")
 
 def fix_intervals(file_path):
@@ -306,7 +306,7 @@ for html_file in html_files:
 
 print(f"\n📊 Fixed intervals in {interval_fixed} files")
 
-# ==================== 6. FIX HTML SYNTAX ERRORS ====================
+# ====== 6. FIX HTML SYNTAX ERRORS ======
 print("\n🔧 FIXING HTML SYNTAX ERRORS...")
 
 def fix_html_syntax(file_path):
@@ -335,7 +335,7 @@ for html_file in html_files:
 
 print(f"📊 Fixed HTML syntax in {syntax_fixed} files")
 
-# ==================== 7. SUMMARY ====================
+# ====== 7. SUMMARY ======
 print("\n" + "="*80)
 print("📊 ULTIMATE FIX SUMMARY")
 print("="*80)

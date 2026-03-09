@@ -26,14 +26,14 @@
     <div id="output"></div>
 
     <script>
-        // ==================== LOCAL LOG FUNCTION ====================
+        // ====== LOCAL LOG FUNCTION ======
         function log(message, type = 'info') {
             const output = document.getElementById('output');
             const color = type === 'success' ? '#00ff00' : type === 'error' ? '#ff0000' : '#ffff00';
             output.innerHTML += `<div style="color: ${color}">${message}</div>`;
         }
 
-        // ==================== TEST SESSION ====================
+        // ====== TEST SESSION ======
         async function testSession() {
             log('\n📡 Testing Session...', 'info');
             try {
@@ -50,7 +50,7 @@
             }
         }
 
-        // ==================== TEST USERS API - FIXED (Line 62) ====================
+        // ====== TEST USERS API - FIXED (Line 62) ======
         async function testUsersAPI() {
             log('\n📡 Testing Users API...', 'info');
             try {
@@ -75,7 +75,7 @@
             }
         }
 
-        // ==================== TEST CREATE USER - FIXED (Line 86) ====================
+        // ====== TEST CREATE USER - FIXED (Line 86) ======
         async function testCreateUser() {
             log('\n📡 Testing Create User Form...', 'info');
             
@@ -100,7 +100,7 @@
             }
         }
 
-        // ==================== CHECK LOCAL STORAGE - FIXED (Lines 101, 108) ====================
+        // ====== CHECK LOCAL STORAGE - FIXED (Lines 101, 108) ======
         function checkLocalStorage() {
             log('\n📦 Checking Storage...', 'info');
             
@@ -119,7 +119,7 @@
             }
         }
 
-        // ==================== CHECK JAVASCRIPT ERRORS - FIXED (Line 123) ====================
+        // ====== CHECK JAVASCRIPT ERRORS - FIXED (Line 123) ======
         function checkJavaScriptErrors() {
             log('\n🔍 Checking for Common JavaScript Errors...', 'info');
             
@@ -142,7 +142,7 @@
             }
         }
 
-        // ==================== RUN ALL TESTS ====================
+        // ====== RUN ALL TESTS ======
         async function runAllTests() {
             document.getElementById('output').innerHTML = '';
             log('🚀 Running All Tests...\n', 'info');
@@ -156,7 +156,7 @@
             log('\n✅ Tests Complete!', 'success');
         }
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         window.onload = function() {
             checkJavaScriptErrors();
         };

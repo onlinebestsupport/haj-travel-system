@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from app import server
 from app.database import get_db, release_db, hash_password
 
-# ==================== FIXTURES ====================
+# ====== FIXTURES ======
 
 @pytest.fixture
 def client():
@@ -47,7 +47,7 @@ def auth_session(session):
         return session
     return None
 
-# ==================== UNIT TESTS ====================
+# ====== UNIT TESTS ======
 
 class TestAuthentication:
     """Test authentication functionality"""
@@ -423,7 +423,7 @@ class TestPerformance:
         # Should respond in less than 3 seconds
         assert elapsed < 3000
 
-# ==================== INTEGRATION TESTS ====================
+# ====== INTEGRATION TESTS ======
 
 class TestIntegration:
     """Integration tests"""
@@ -456,7 +456,7 @@ class TestIntegration:
         except Exception as e:
             pytest.skip(f"Database not available: {e}")
 
-# ==================== PYTEST MAIN ====================
+# ====== PYTEST MAIN ======
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v', '--tb=short'])

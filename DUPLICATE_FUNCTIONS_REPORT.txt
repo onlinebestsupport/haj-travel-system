@@ -1,5 +1,5 @@
 DUPLICATE FUNCTIONS REPORT
-==================================================
+=
 
 📌 showNotification appears in 12 files:
    • backup.html

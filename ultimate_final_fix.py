@@ -13,7 +13,7 @@ backup_dir = os.path.join(project_root, f"final_backup_{datetime.now().strftime(
 os.makedirs(backup_dir, exist_ok=True)
 print(f"📦 Backup created: {backup_dir}")
 
-# ==================== 1. FIX SESSION MANAGER ====================
+# ====== 1. FIX SESSION MANAGER ======
 print("\n" + "="*60)
 print("🔧 FIXING SESSION MANAGER (HIGH/MEDIUM ISSUES)")
 print("="*60)
@@ -104,7 +104,7 @@ if os.path.exists(sm_path):
     
     print("✅ Session manager fixed successfully!")
 
-# ==================== 2. FIX COMMON JAVASCRIPT ERRORS ====================
+# ====== 2. FIX COMMON JAVASCRIPT ERRORS ======
 print("\n" + "="*60)
 print("🔧 FIXING COMMON JAVASCRIPT ERRORS")
 print("="*60)
@@ -153,7 +153,7 @@ for html_file in html_files:
 
 print(f"\n📊 Fixed common JS errors in {fixed_count} files")
 
-# ==================== 3. FIX DUPLICATE FUNCTIONS ====================
+# ====== 3. FIX DUPLICATE FUNCTIONS ======
 print("\n" + "="*60)
 print("🔧 FIXING DUPLICATE FUNCTION DEFINITIONS")
 print("="*60)
@@ -189,7 +189,7 @@ for func, count in sorted(critical_duplicates.items(), key=lambda x: x[1], rever
     if len(function_locations[func]) > 5:
         print(f"   • ... and {len(function_locations[func])-5} more")
 
-# ==================== 4. CREATE CONSOLIDATION SCRIPT ====================
+# ====== 4. CREATE CONSOLIDATION SCRIPT ======
 print("\n" + "="*60)
 print("📝 CREATING FUNCTION CONSOLIDATION SCRIPT")
 print("="*60)
@@ -316,7 +316,7 @@ with open(os.path.join(project_root, 'consolidate_all_functions.py'), 'w', encod
     f.write(consolidation_script)
 print("✅ Created consolidate_all_functions.py")
 
-# ==================== 5. CREATE NULL TO UNDEFINED FIXER ====================
+# ====== 5. CREATE NULL TO UNDEFINED FIXER ======
 print("\n" + "="*60)
 print("🔧 CREATING NULL TO UNDEFINED FIXER")
 print("="*60)
@@ -359,7 +359,7 @@ with open(os.path.join(project_root, 'fix_null_to_undefined.py'), 'w', encoding=
     f.write(null_fixer_script)
 print("✅ Created fix_null_to_undefined.py")
 
-# ==================== 6. SUMMARY ====================
+# ====== 6. SUMMARY ======
 print("\n" + "="*80)
 print("📊 ULTIMATE FINAL FIX SUMMARY")
 print("="*80)

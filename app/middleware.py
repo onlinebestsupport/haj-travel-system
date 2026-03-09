@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import os
 
-# ==================== 🔥 SAFE DB WRAPPER ====================
+# ====== 🔥 SAFE DB WRAPPER ======
 def safe_db_operation(operation_func):
     """🔥 ZERO LEAKS - Pool safe wrapper for ALL middleware DB calls"""
     def wrapper(*args, **kwargs):
@@ -23,7 +23,7 @@ def safe_db_operation(operation_func):
             release_db(conn, cursor)  # 🔥 CRITICAL
     return wrapper
 
-# ==================== 🔐 AUTH DECORATORS ====================
+# ====== 🔐 AUTH DECORATORS ======
 def role_required(allowed_roles):
     """🔥 Pool-safe role check"""
     def decorator(f):
@@ -117,7 +117,7 @@ def require_permission(permission_name):
         return decorated
     return decorator
 
-# ==================== 📊 LOGGING ====================
+# ====== 📊 LOGGING ======
 def log_critical_action(user_id, action, details, ip_address=None):
     """🔥 Pool-safe critical action logging"""
     def log_action(conn, cursor, uid, act, det, ip):
@@ -142,7 +142,7 @@ def log_user_activity(action, module, description):
     
     safe_db_operation(log_activity)(user_id, action, module, description, get_client_ip())
 
-# ==================== 🌍 IP HELPERS ====================
+# ====== 🌍 IP HELPERS ======
 def get_client_ip():
     """🔥 Railway proxy aware IP detection"""
     if request.headers.get('X-Forwarded-For'):
@@ -151,7 +151,7 @@ def get_client_ip():
         return request.headers.get('X-Real-IP')
     return request.remote_addr
 
-# ==================== 🩺 HEALTH CHECK ====================
+# ====== 🩺 HEALTH CHECK ======
 def check_database_connection():
     """🔥 Quick database health check"""
     def ping_db(conn, cursor):
@@ -161,7 +161,7 @@ def check_database_connection():
     
     return safe_db_operation(ping_db)() is not False
 
-# ==================== 📦 EXPORTS ====================
+# ====== 📦 EXPORTS ======
 __all__ = [
     'role_required',
     'super_admin_required',

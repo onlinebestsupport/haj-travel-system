@@ -10,7 +10,7 @@ print("="*70)
 
 project_root = r"C:\Users\Masood\Desktop\haj-travel-system\haj-travel-system"
 
-# ==================== 1. DELETE BACKUP FOLDERS ====================
+# ====== 1. DELETE BACKUP FOLDERS ======
 print("\n🗑️  DELETING BACKUP FOLDERS...")
 
 backup_folders = [
@@ -27,7 +27,7 @@ for folder in backup_folders:
         except Exception as e:
             print(f"❌ Could not delete {folder}: {e}")
 
-# ==================== 2. FIX BRACE MISMATCHES ====================
+# ====== 2. FIX BRACE MISMATCHES ======
 print("\n🔧 FIXING REMAINING BRACE MISMATCHES...")
 
 def fix_brace_mismatch(file_path, expected_opens, expected_closes):
@@ -90,7 +90,7 @@ for rel_path, opens, closes in files_to_fix:
     if os.path.exists(full_path):
         fix_brace_mismatch(full_path, opens, closes)
 
-# ==================== 3. FIX SESSION MANAGER ====================
+# ====== 3. FIX SESSION MANAGER ======
 print("\n⏱️  FIXING SESSION MANAGER...")
 
 sm_path = os.path.join(project_root, 'public', 'admin', 'js', 'session-manager.js')
@@ -124,7 +124,7 @@ if os.path.exists(sm_path):
         f.write(content)
     print("✅ Fixed session-manager.js")
 
-# ==================== 4. FIX FRONTPAGE SPECIFIC ISSUES ====================
+# ====== 4. FIX FRONTPAGE SPECIFIC ISSUES ======
 print("\n📄 FIXING FRONTPAGE.HTML...")
 
 frontpage_path = os.path.join(project_root, 'public', 'admin', 'frontpage.html')
@@ -163,7 +163,7 @@ if os.path.exists(frontpage_path):
             f.writelines(lines)
         print("✅ Frontpage.html fixed")
 
-# ==================== 5. FIX RECEIPTS SPECIFIC ISSUES ====================
+# ====== 5. FIX RECEIPTS SPECIFIC ISSUES ======
 print("\n📄 FIXING RECEIPTS.HTML...")
 
 receipts_path = os.path.join(project_root, 'public', 'admin', 'receipts.html')
@@ -185,7 +185,7 @@ if os.path.exists(receipts_path):
         with open(receipts_path, 'w', encoding='utf-8') as f:
             f.writelines(lines)
 
-# ==================== 6. CREATE FUNCTION CONSOLIDATION SCRIPT ====================
+# ====== 6. CREATE FUNCTION CONSOLIDATION SCRIPT ======
 print("\n📋 CREATING FUNCTION CONSOLIDATION SCRIPT...")
 
 consolidate_script = """# consolidate_functions.py
@@ -253,7 +253,7 @@ with open(os.path.join(project_root, 'consolidate_functions.py'), 'w', encoding=
     f.write(consolidate_script)
 print("✅ Created consolidate_functions.py")
 
-# ==================== 7. SUMMARY ====================
+# ====== 7. SUMMARY ======
 print("\n" + "="*70)
 print("📊 FINAL FIXES SUMMARY")
 print("="*70)
