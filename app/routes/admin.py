@@ -520,9 +520,6 @@ def get_recent_activity():
         print(f"❌ Recent activity error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ====== 💾 BACKUP MANAGEMENT ======
-# ... (backup functions remain the same as they were working)
-
 # ====== 🩺 HEALTH CHECK ======
 @bp.route('/health', methods=['GET'])
 @role_required(['super_admin', 'admin'])
@@ -618,6 +615,7 @@ def format_bytes(size_bytes):
             return f"{size_bytes:.1f}{unit}"
         size_bytes /= 1024
     return f"{size_bytes:.1f}TB"
+
 # ====== BACKUP API ENDPOINTS ======
 @bp.route('/backup/settings', methods=['GET'])
 def get_backup_settings():
@@ -625,13 +623,15 @@ def get_backup_settings():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    conn, cursor = get_db()
-    cursor.execute("SELECT * FROM backup_settings LIMIT 1")
-    settings = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'data': settings}), 200
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM backup_settings LIMIT 1")
+        settings = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': settings}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @bp.route('/backup/create', methods=['POST'])
 def create_backup():
@@ -639,8 +639,8 @@ def create_backup():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    conn, cursor = get_db()
     try:
+        conn, cursor = get_db()
         backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         cursor.execute("""
             INSERT INTO backup_history (backup_name, status, created_at, created_by)
@@ -650,14 +650,12 @@ def create_backup():
         
         backup_id = cursor.fetchone()['id']
         conn.commit()
-        
+        cursor.close()
+        conn.close()
         return jsonify({'success': True, 'backup_id': backup_id}), 201
     except Exception as e:
         conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
 
 @bp.route('/backups/stats', methods=['GET'])
 def get_backup_stats():
@@ -665,21 +663,18 @@ def get_backup_stats():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    conn, cursor = get_db()
-    cursor.execute("""
-        SELECT 
-            COUNT(*) as total_backups,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful,
-            COUNT(CASE WHEN created_at > NOW() - INTERVAL '30 days' THEN 1 END) as last_30_days
-        FROM backup_history
-    """)
-    stats = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'data': stats}), 200
-
-# ==================== BACKUP API ENDPOINTS =============
-@bp.route('/backup/settings', methods=['GET'])
-@bp.route('/backup/create', methods=['POST'])
-@bp.route('/backups/stats', methods=['GET'])
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_backups,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful,
+                MAX(created_at) as last_backup
+            FROM backup_history
+        """)
+        stats = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'data': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
