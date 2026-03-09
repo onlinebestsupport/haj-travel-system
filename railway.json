@@ -5,12 +5,9 @@
     "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt"
   },
   "deploy": {
-<<<<<<< HEAD
-=======
     "startCommand": "gunicorn app.server:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --threads 2 --log-level debug",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 10,
->>>>>>> c365dd668bc3111b49adb033fe5c5b313c91afff
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
