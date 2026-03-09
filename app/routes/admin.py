@@ -682,4 +682,4 @@ def get_backup_stats():
 # ==================== BACKUP API ENDPOINTS =============
 @bp.route('/backup/settings', methods=['GET'])
 @bp.route('/backup/create', methods=['POST'])
-# @bp.route('/backups/stats', methods=['GET'])
+@bp.route('/backups/stats', methods=['GET'])
