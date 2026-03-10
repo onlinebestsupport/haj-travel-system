@@ -48,7 +48,6 @@ def add_security_headers(response):
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     return response
 
-
 # Global flags to track database initialization
 _db_initialized = False
 _db_init_lock = threading.Lock()
@@ -62,15 +61,15 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # ====== 🔐 SESSION CONFIGURATION ======
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
-app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow all domains
-app.config['SESSION_COOKIE_PATH'] = '/'  # Cookie valid for entire site
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True only with HTTPS
+app.config['SESSION_COOKIE_DOMAIN'] = None
+app.config['SESSION_COOKIE_PATH'] = '/'
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Changed from 'Strict' to 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)  # 30 minutes default
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
-app.config['SESSION_COOKIE_PERSISTENT'] = True  # Keep cookie after browser close
+app.config['SESSION_COOKIE_PERSISTENT'] = True
 
 # ====== 📁 DIRECTORY PATHS ======
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -95,22 +94,21 @@ if os.path.exists(ADMIN_DIR):
     print(f"📄 Files in admin: {os.listdir(ADMIN_DIR)}")
 
 # ====== 🌐 CORS CONFIGURATION ======
-# ====== CORS CONFIGURATION ======
 CORS(
-    app, 
-    supports_credentials=True, 
+    app,
+    supports_credentials=True,
     origins=[
-        'https://alhudhahajportal.up.railway.app', 
-        'http://localhost:8080', 
+        'https://alhudhahajportal.up.railway.app',
+        'http://localhost:8080',
         '*'
     ],
     allow_headers=[
-        'Content-Type', 
-        'Authorization', 
+        'Content-Type',
+        'Authorization',
         'X-Requested-With'
     ],
     expose_headers=[
-        'Set-Cookie', 
+        'Set-Cookie',
         'Content-Type'
     ]
 )
@@ -159,11 +157,9 @@ def after_request(response):
     return response
 
 # ====== 🏠 STATIC FILE ROUTES ======
-# These routes MUST come before API routes
-
 @app.route('/')
 def serve_index():
-    """Serve the main index page - THIS IS THE ROOT URL"""
+    """Serve the main index page"""
     try:
         index_path = os.path.join(PUBLIC_DIR, 'index.html')
         if os.path.exists(index_path):
@@ -171,31 +167,27 @@ def serve_index():
             return send_from_directory(PUBLIC_DIR, 'index.html')
         else:
             print(f"❌ index.html not found at {index_path}")
-            print(f"📁 Files in {PUBLIC_DIR}: {os.listdir(PUBLIC_DIR) if os.path.exists(PUBLIC_DIR) else 'Directory does not exist'}")
             return jsonify({'success': False, 'error': 'Index page not found'}), 404
     except Exception as e:
         print(f"❌ Error serving index.html: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ====== 🔐 LOGIN PAGE ROUTES (FIXED) ======
+# ====== 🔐 LOGIN PAGE ROUTES ======
 @app.route('/admin.login.html')
 def serve_admin_login_correct():
-    """Serve admin login page from public directory - CORRECT URL"""
+    """Serve admin login page"""
     try:
         login_path = os.path.join(PUBLIC_DIR, 'admin.login.html')
-        print(f"🔍 Serving login from: {login_path}")
         if os.path.exists(login_path):
             return send_from_directory(PUBLIC_DIR, 'admin.login.html')
-        else:
-            return jsonify({'success': False, 'error': 'Login file not found'}), 404
+        return jsonify({'success': False, 'error': 'Login file not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/login.html')
 @app.route('/admin/login')
 def redirect_admin_login():
-    """Redirect incorrect admin login URLs to correct one"""
-    print(f"🔄 Redirecting {request.path} to /admin.login.html")
+    """Redirect incorrect admin login URLs"""
     return redirect('/admin.login.html')
 
 # ====== 📊 ADMIN STATIC ROUTES ======
@@ -213,18 +205,15 @@ def serve_admin_index():
 
 @app.route('/admin/<path:filename>')
 def serve_admin(filename):
-    """Serve admin panel files from admin directory"""
+    """Serve admin panel files"""
     try:
-        # Security check
         if '..' in filename or filename.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid path'}), 400
 
-        # Try exact file match
         file_path = os.path.join(ADMIN_DIR, filename)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return send_from_directory(ADMIN_DIR, filename)
 
-        # Try with .html extension
         if '.' not in filename:
             html_file = filename + '.html'
             html_path = os.path.join(ADMIN_DIR, html_file)
@@ -252,20 +241,17 @@ def serve_traveler_index():
 def serve_traveler(filename):
     """Serve traveler files"""
     try:
-        # Security check
         if '..' in filename or filename.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid path'}), 400
-        
-        # Try exact file match
+
         file_path = os.path.join(PUBLIC_DIR, filename)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return send_from_directory(PUBLIC_DIR, filename)
-        
-        # Try with .html extension
+
         html_path = os.path.join(PUBLIC_DIR, filename + '.html')
         if os.path.exists(html_path) and os.path.isfile(html_path):
             return send_from_directory(PUBLIC_DIR, filename + '.html')
-        
+
         return jsonify({'success': False, 'error': 'Traveler file not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -318,6 +304,7 @@ def serve_admin_css():
         return jsonify({'success': False, 'error': 'Admin CSS file not found'}), 404
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 # ====== 📜 JAVASCRIPT ROUTES ======
 @app.route('/admin/js/<path:filename>')
 def serve_admin_js(filename):
@@ -356,22 +343,19 @@ def serve_company_upload(filename):
 # ====== 🌍 CATCH-ALL STATIC ROUTE ======
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static files from public directory (catch-all)"""
+    """Serve static files from public directory"""
     try:
-        # Security check
         if '..' in filename or filename.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid path'}), 400
-        
-        # Try exact file match
+
         file_path = os.path.join(PUBLIC_DIR, filename)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return send_from_directory(PUBLIC_DIR, filename)
-        
-        # Try with .html extension
+
         html_path = os.path.join(PUBLIC_DIR, filename + '.html')
         if os.path.exists(html_path) and os.path.isfile(html_path):
             return send_from_directory(PUBLIC_DIR, filename + '.html')
-        
+
         return jsonify({'success': False, 'error': 'File not found'}), 404
     except Exception as e:
         print(f"❌ Error serving static file {filename}: {e}")
@@ -381,7 +365,7 @@ def serve_static(filename):
 @app.route('/api/health')
 @app.route('/health')
 def api_health():
-    """API health check - accessible at /api/health or /health"""
+    """API health check"""
     return jsonify({
         'success': True,
         'message': 'Alhudha Haj Travel API',
@@ -399,7 +383,7 @@ def api_root():
         'endpoints': [
             '/api/health',
             '/api/login',
-            '/api/logout', 
+            '/api/logout',
             '/api/check-session',
             '/api/admin/*',
             '/api/travelers/*',
@@ -436,11 +420,7 @@ def initialize_database():
     init_thread.start()
     return True
 
-
-# Pre-initialize the database in the background as soon as the app module is
-# loaded by the WSGI server.  This means DB tables are (very likely) ready by
-# the time the first real API request arrives, while the /health endpoint can
-# respond immediately during the startup window.
+# Pre-initialize the database in the background
 if os.getenv('DATABASE_URL'):
     initialize_database()
 
@@ -455,10 +435,10 @@ def before_request():
             return
         if request.path.startswith('/admin/js/'):
             return
-        
+
         if not _db_initialized:
             initialize_database()
-        
+
         # Refresh session if user is logged in
         if session.get('user_id'):
             session.modified = True
@@ -473,17 +453,17 @@ def debug_paths():
         files_in_public = []
         files_in_admin = []
         files_in_admin_js = []
-        
+
         if os.path.exists(PUBLIC_DIR):
             files_in_public = os.listdir(PUBLIC_DIR)
-        
+
         if os.path.exists(ADMIN_DIR):
             files_in_admin = os.listdir(ADMIN_DIR)
-        
+
         js_dir = os.path.join(ADMIN_DIR, 'js')
         if os.path.exists(js_dir):
             files_in_admin_js = os.listdir(js_dir)
-        
+
         return jsonify({
             'base_dir': BASE_DIR,
             'public_dir': PUBLIC_DIR,
@@ -553,11 +533,10 @@ def debug_routes():
 # ====== ❌ ERROR HANDLERS ======
 @app.errorhandler(404)
 def not_found(error):
-    """Handle 404 errors - try to serve HTML file if possible"""
+    """Handle 404 errors"""
     try:
         path = request.path
         if not path.startswith('/api/') and not path.startswith('/uploads/'):
-            # Try to serve HTML file
             html_path = os.path.join(PUBLIC_DIR, path.lstrip('/') + '.html')
             if os.path.exists(html_path):
                 return send_from_directory(PUBLIC_DIR, path.lstrip('/') + '.html')
@@ -586,36 +565,42 @@ def log_admin_action(user_id, action, description):
     except Exception as e:
         print(f"⚠️ Failed to log admin action: {e}")
 
+def check_required_files():
+    """Check if required files exist"""
+    required_files = [
+        os.path.join(PUBLIC_DIR, 'index.html'),
+        os.path.join(PUBLIC_DIR, 'admin.login.html'),
+        os.path.join(ADMIN_DIR, 'dashboard.html'),
+    ]
+    all_exist = True
+    for file_path in required_files:
+        if not os.path.exists(file_path):
+            print(f"❌ Required file missing: {file_path}")
+            all_exist = False
+    return all_exist
+
 # ====== 🚀 APPLICATION ENTRY POINT ======
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    
-    # Check required files before starting
-    files_ok = check_required_files()
-    
+
     print("=" * 60)
     print("🚀 Alhudha Haj Travel System v2.0")
     print("=" * 60)
     print(f"📁 Server starting on port {port}")
     print(f"📁 Debug mode: {debug}")
     print(f"📁 Binding to: 0.0.0.0:{port}")
-    print(f"📁 Session timeout: 30 minutes (7 days with remember me)")
+    print(f"📁 Session timeout: 30 minutes")
     print(f"📁 Session cookie name: {app.config['SESSION_COOKIE_NAME']}")
     print("=" * 60)
     print("🌐 ROOT URL: / → serves index.html")
     print("📡 API Health: /api/health")
     print("📡 API Info: /api")
-    print("📡 Debug paths: /debug/paths")
-    print("📡 Debug session: /debug/session")
-    print("📡 Session test: /debug/session-test")
-    print("📡 Admin Login (correct): /admin.login.html")
-    print("📡 Admin Login (redirect): /admin/login.html → /admin.login.html")
+    print("📡 Admin Login: /admin.login.html")
     print("📡 Admin Dashboard: /admin/")
     print("📡 Traveler Login: /traveler_login.html")
-    print("📡 Frontpage Editor: /admin/frontpage.html")
     print("=" * 60)
-    
+
     try:
         app.run(host='0.0.0.0', port=port, debug=debug)
     except Exception as e:
