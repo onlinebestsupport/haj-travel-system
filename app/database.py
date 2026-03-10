@@ -101,6 +101,7 @@ def create_users_table(cursor):
         )
     """)
 
+
 def create_batches_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS batches (
@@ -123,6 +124,7 @@ def create_batches_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
 
 def create_travelers_table(cursor):
     cursor.execute("""
@@ -166,6 +168,7 @@ def create_travelers_table(cursor):
         )
     """)
 
+
 def create_payments_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS payments (
@@ -183,6 +186,7 @@ def create_payments_table(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
 
 def create_invoices_table(cursor):
     cursor.execute("""
@@ -209,6 +213,7 @@ def create_invoices_table(cursor):
         )
     """)
 
+
 def create_receipts_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS receipts (
@@ -228,6 +233,7 @@ def create_receipts_table(cursor):
         )
     """)
 
+
 def create_activity_log_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS activity_log (
@@ -241,6 +247,7 @@ def create_activity_log_table(cursor):
         )
     """)
 
+
 def create_critical_logs_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS critical_logs (
@@ -252,6 +259,7 @@ def create_critical_logs_table(cursor):
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
 
 def create_backup_history_table(cursor):
     cursor.execute("""
@@ -270,6 +278,7 @@ def create_backup_history_table(cursor):
         )
     """)
 
+
 def create_backup_settings_table(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS backup_settings (
@@ -283,12 +292,13 @@ def create_backup_settings_table(cursor):
             updated_by INTEGER REFERENCES users(id)
         )
     """)
-    
+
     cursor.execute("""
         INSERT INTO backup_settings (id, schedule, retention_days, location, compression, encryption)
         VALUES (1, 'weekly', 30, 'both', 'normal', 'aes256')
         ON CONFLICT (id) DO NOTHING
     """)
+
 
 def create_frontpage_settings_table(cursor):
     cursor.execute("""
@@ -322,12 +332,13 @@ def create_frontpage_settings_table(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     cursor.execute("""
         INSERT INTO frontpage_settings (id, hero_heading, hero_subheading, footer_text)
         VALUES (1, 'Welcome to Alhudha Haj Travel', 'Your trusted partner for Haj and Umrah', '© 2026 Alhudha Haj Travel')
         ON CONFLICT (id) DO NOTHING
     """)
+
 
 def create_email_settings_table(cursor):
     cursor.execute("""
@@ -345,12 +356,13 @@ def create_email_settings_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     cursor.execute("""
         INSERT INTO email_settings (id, from_email, reply_to, subject_prefix)
         VALUES (1, 'noreply@alhudha.com', 'info@alhudha.com', '[Alhudha Haj]')
         ON CONFLICT (id) DO NOTHING
     """)
+
 
 def create_whatsapp_settings_table(cursor):
     cursor.execute("""
@@ -365,12 +377,13 @@ def create_whatsapp_settings_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     cursor.execute("""
         INSERT INTO whatsapp_settings (id, number, message_template, enabled)
         VALUES (1, '+919876543210', 'Hello! Thank you for contacting Alhudha Haj Travel. How can we help you?', false)
         ON CONFLICT (id) DO NOTHING
     """)
+
 
 def create_company_settings_table(cursor):
     cursor.execute("""
@@ -409,12 +422,13 @@ def create_company_settings_table(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     cursor.execute("""
         INSERT INTO company_settings (id, legal_name, display_name, country)
         VALUES (1, 'Alhudha Haj Service P Ltd.', 'Alhudha Haj Travel', 'India')
         ON CONFLICT (id) DO NOTHING
     """)
+
 
 # ====== SEED DEFAULT USERS ======
 
@@ -422,7 +436,7 @@ def seed_default_users(conn, cursor):
     """Insert default users if table is empty"""
     cursor.execute("SELECT COUNT(*) as count FROM users")
     result = cursor.fetchone()
-    
+
     if result['count'] == 0:
         default_users = [
             ('superadmin', 'admin123', 'Super Admin', 'super@alhudha.com', 'super_admin'),
@@ -437,7 +451,7 @@ def seed_default_users(conn, cursor):
                 INSERT INTO users (username, password, full_name, email, role, permissions)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """, (username, password, name, email, role, '{}'))
-        
+
         conn.commit()
         print("✅ Default users seeded")
 
@@ -448,23 +462,24 @@ def migrate_receipts_table():
     conn, cursor = get_db()
     try:
         cursor.execute("""
-            SELECT column_name 
-            FROM information_schema.columns 
+            SELECT column_name
+            FROM information_schema.columns
             WHERE table_name='receipts' AND column_name='invoice_id'
         """)
+
         result = cursor.fetchone()
-        
+
         if not result:
             cursor.execute("""
-                ALTER TABLE receipts 
-                ADD COLUMN invoice_id INTEGER 
+                ALTER TABLE receipts
+                ADD COLUMN invoice_id INTEGER
                 REFERENCES invoices(id) ON DELETE SET NULL
             """)
             conn.commit()
             print("✅ Added invoice_id column to receipts table")
         else:
             print("✅ invoice_id column already exists")
-            
+
     except Exception as e:
         print(f"⚠️ Migration error: {e}")
         conn.rollback()
@@ -476,12 +491,12 @@ def migrate_receipts_table():
 def init_db():
     """Initialize database with all tables and seed data"""
     global _INITIALIZED, _INITIALIZING
-    
+
     with _init_lock:
         if _INITIALIZED:
             print("✅ Database already initialized, skipping...")
             return True
-        
+
         if _INITIALIZING:
             print("⏳ Database initialization already in progress, waiting...")
             for i in range(30):
@@ -490,16 +505,16 @@ def init_db():
                 time.sleep(1)
             print("⚠️ Initialization timeout, continuing...")
             return False
-        
+
         _INITIALIZING = True
-    
+
     conn = None
     cursor = None
-    
+
     try:
         print("🚀 Starting database initialization...")
         conn, cursor = get_db()
-        
+
         create_users_table(cursor)
         create_batches_table(cursor)
         create_travelers_table(cursor)
@@ -514,37 +529,38 @@ def init_db():
         create_email_settings_table(cursor)
         create_whatsapp_settings_table(cursor)
         create_company_settings_table(cursor)
-        
+
         conn.commit()
         print("✅ All tables created")
-        
+
         seed_default_users(conn, cursor)
         migrate_receipts_table()
-        
+
         cursor.execute("SELECT version()")
         version = cursor.fetchone()
         print(f"✅ PostgreSQL connected: {version['version'][:50]}...")
-        
+
         cursor.execute("""
-            SELECT COUNT(*) as count FROM information_schema.tables 
+            SELECT COUNT(*) as count FROM information_schema.tables
             WHERE table_schema = 'public'
         """)
+
         tables_count = cursor.fetchone()['count']
         print(f"📊 Tables created: {tables_count}")
-        
+
         with _init_lock:
             _INITIALIZED = True
             _INITIALIZING = False
-        
+
         print("✅ Database initialization complete")
         return True
-        
+
     except Exception as e:
         print(f"❌ Database initialization error: {e}")
         with _init_lock:
             _INITIALIZING = False
         return False
-        
+
     finally:
         release_db(conn, cursor)
 
@@ -605,6 +621,7 @@ def update_backup_settings(schedule, retention_days, location, compression, encr
                 updated_by = %s
             WHERE id = 1
         """, (schedule, retention_days, location, compression, encryption, datetime.now(), updated_by))
+
         conn.commit()
         return True
     except Exception as e:
@@ -617,11 +634,11 @@ def update_backup_settings(schedule, retention_days, location, compression, encr
 # ====== EXPORTED FUNCTIONS ======
 
 __all__ = [
-    'get_db', 
-    'release_db',  # 🔥 NOW INCLUDED
-    'init_db', 
-    'execute_query', 
-    'get_table_counts', 
+    'get_db',
+    'release_db',
+    'init_db',
+    'execute_query',
+    'get_table_counts',
     'migrate_receipts_table',
     'get_backup_settings',
     'update_backup_settings'
