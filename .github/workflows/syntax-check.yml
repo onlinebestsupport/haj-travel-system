@@ -1,0 +1,27 @@
+name: Python Syntax Check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  syntax-check:
+    name: Compile Python (syntax validation)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check syntax of app/ package
+        run: |
+          echo "Running python -m compileall on app/ ..."
+          python -m compileall -q app/
+          echo "✅ All Python files in app/ compiled successfully – no syntax errors."

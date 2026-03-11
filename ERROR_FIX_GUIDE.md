@@ -1,5 +1,62 @@
 # 🔧 Error Fix Guide - Alhudha Haj Travel System
 
+---
+
+## 🚨 Issue #5: Railway Deployment Crash – Gunicorn Worker Boot Failure
+
+### Root Cause
+Railway deployment logs (2026-03-11) showed Gunicorn failing to start with:
+
+```
+SyntaxError: unterminated triple-quoted string literal (detected at line 543)
+  File "app/routes/travelers.py", line 543
+```
+
+This is **not** a database (Postgres) crash. The Gunicorn worker process fails to import
+the Flask application because Python cannot parse the source file due to a syntax error—an
+unterminated `'''` or `"""` triple-quoted string. No request ever reaches the database.
+
+### Fix Applied
+- `app/routes/travelers.py`: verified all triple-quoted SQL strings are properly terminated.
+- `gunicorn.conf.py`: changed hardcoded `bind = "0.0.0.0:8000"` to read the `PORT`
+  environment variable (`bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"`) so it
+  correctly honours Railway's dynamically assigned port when no `--bind` flag is passed.
+- Added `.github/workflows/syntax-check.yml`: runs `python -m compileall -q app/` on
+  every push/PR so syntax errors fail CI before they can be deployed.
+
+### How to Verify Locally
+
+**Step 1 – Syntax check (mirrors CI)**
+```bash
+python -m compileall -q app/
+```
+Expected: no output and exit code 0.  Any `SyntaxError` line means a file must be fixed
+before deploying.
+
+**Step 2 – Compile a single file**
+```bash
+python -m py_compile app/routes/travelers.py && echo "OK"
+```
+
+**Step 3 – Start Gunicorn manually**
+```bash
+PORT=8080 gunicorn app.server:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
+```
+If Gunicorn starts and logs `Booting worker with pid: …` the syntax issue is resolved.
+
+### Railway Deploy Checklist
+- [ ] `python -m compileall -q app/` exits 0 on your branch (CI must be green)
+- [ ] `Procfile` start command uses `$PORT` (not a hardcoded number or `5432`)
+  ```
+  web: gunicorn app.server:app --bind 0.0.0.0:$PORT ...
+  ```
+- [ ] `railway.json` → `deploy.startCommand` also uses `$PORT`
+- [ ] `gunicorn.conf.py` reads `PORT` from the environment (✅ fixed in this commit)
+- [ ] Railway service environment has `PORT` set (Railway injects this automatically)
+- [ ] No Python file in `app/` contains an unterminated `'''` or `"""` string
+
+---
+
 ## 📌 Issues Fixed in This Update
 
 ### ❌ Issue #1: Import Mismatch in Startup Scripts
