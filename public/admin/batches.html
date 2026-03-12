@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batches - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -819,141 +819,19 @@
     </style>
 
     <script>
-        // ==================== GLOBAL VARIABLES ====================
-
-// ==================== SESSION MANAGEMENT & AUTHENTICATION ====================
-// ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
-
-// Session check function
-async function checkAdminSession() {
-    try {
-        const response = await fetch('/api/check-session', {
-            credentials: 'include',
-            headers: { 'Cache-Control': 'no-cache' }
-        });
-        const data = await response.json();
-        
-        if (!data.authenticated) {
-            console.log('⚠️ Session expired or not authenticated');
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-            return false;
-        }
-        
-        // Update role badge if exists
-        const roleBadge = document.getElementById('roleBadge');
-        if (roleBadge && data.user) {
-            roleBadge.textContent = data.user.role.toUpperCase();
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Session check failed:', error);
-        window.location.href = '/admin.login.html';
-        return false;
-    }
-}
-
-// Wrapper for authenticated API calls
-async function authenticatedFetch(url, options = {}) {
-    // First check if we're still authenticated
-    const isAuthenticated = await checkAdminSession();
-    if (!isAuthenticated) return null;
-    
-    // Make the actual API call with credentials
-    const response = await fetch(url, {
-        ...options,
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-    
-    // Handle 401 specifically
-    if (response.status === 401) {
-        console.log('🔒 Session expired during API call');
-        window.location.href = '/admin.login.html';
-        return null;
-    }
-    
-    return response;
-}
-
-// Show notification function (if not exists)
-if (typeof showNotification !== 'function') {
-    window.showNotification = function(message, type = 'success') {
-        let notification = document.getElementById('notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'notification';
-            notification.className = 'notification';
-            document.body.appendChild(notification);
-        }
-        
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-        notification.style.display = 'block';
-        
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 3000);
-    };
-}
-
-// ==================== PAGE INITIALIZATION WITH SESSION CHECK ====================
-// REPLACE YOUR EXISTING DOMContentLoaded WITH THIS
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Initializing page...');
-    
-    // Check session first - this will redirect if not authenticated
-    const isValid = await checkAdminSession();
-    if (!isValid) return;
-    
-    // Load page-specific data
-    if (typeof loadPageData === 'function') {
-        loadPageData();
-    } else if (typeof loadTravelers === 'function') {
-        loadTravelers();
-    } else if (typeof loadBatches === 'function') {
-        loadBatches();
-    } else if (typeof loadPayments === 'function') {
-        loadPayments();
-    } else {
-        console.log('ℹ️ No data loading function found');
-    }
-});
-
-// ==================== LOGOUT FUNCTION ====================
-// REPLACE YOUR EXISTING logout FUNCTION WITH THIS
-async function logout() {
-    try {
-        if (typeof showNotification === 'function') {
-            showNotification('Logging out...', 'info');
-        }
-        await fetch('/api/logout', { 
-            method: 'POST', 
-            credentials: 'include' 
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        sessionStorage.clear();
-        window.location.href = '/admin.login.html';
-    }
-}
+        // ====== GLOBAL VARIABLES ======
         let batchesData = [];
         let currentPage = 1;
         let itemsPerPage = 10;
         let currentEditBatchId = null;
 
-        // ==================== INITIALIZATION ====================
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadBatches();
         });
 
-        // ==================== AUTHENTICATION ====================
+        // ====== AUTHENTICATION ======
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
@@ -965,13 +843,13 @@ async function logout() {
             document.getElementById('roleBadge').textContent = userRole;
         }
 
-        // ==================== LOGOUT ====================
+        // ====== LOGOUT ======
         function logout() {
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
         }
 
-        // ==================== NOTIFICATION ====================
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
@@ -983,7 +861,7 @@ async function logout() {
             }, 3000);
         }
 
-        // ==================== ALLOW NUMBERS ONLY FOR AMOUNT ====================
+        // ====== ALLOW NUMBERS ONLY FOR AMOUNT ======
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
             var keyChar = String.fromCharCode(key);
@@ -997,7 +875,7 @@ async function logout() {
             return false;
         }
 
-        // ==================== BATCH FORM FUNCTIONS ====================
+        // ====== BATCH FORM FUNCTIONS ======
         function showCreateBatchForm() {
             document.getElementById('createBatchForm').style.display = 'block';
             document.getElementById('createBatchForm').scrollIntoView({ behavior: 'smooth' });
@@ -1013,7 +891,7 @@ async function logout() {
             currentEditBatchId = null;
         }
 
-        // ==================== LOAD BATCHES ====================
+        // ====== LOAD BATCHES ======
         async function loadBatches() {
             const tableBody = document.getElementById('batchesTableBody');
             tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading batches...</td></tr>';
@@ -1208,7 +1086,7 @@ async function logout() {
             }
         }
 
-        // ==================== CREATE BATCH ====================
+        // ====== CREATE BATCH ======
         async function createBatch() {
             const priceValue = document.getElementById('price').value.replace(/,/g, '');
             
@@ -1273,7 +1151,7 @@ async function logout() {
             }
         }
 
-        // ==================== EDIT BATCH ====================
+        // ====== EDIT BATCH ======
         function editBatch(id) {
             const batch = batchesData.find(b => b.id === id);
             if (!batch) {
@@ -1295,7 +1173,7 @@ async function logout() {
             document.getElementById('editBatchForm').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ==================== UPDATE BATCH ====================
+        // ====== UPDATE BATCH ======
         async function updateBatch() {
             if (!currentEditBatchId) {
                 showNotification('No batch selected for editing', 'error');
@@ -1369,7 +1247,7 @@ async function logout() {
             }
         }
 
-        // ==================== DELETE BATCH ====================
+        // ====== DELETE BATCH ======
         async function deleteBatch(id) {
             if (!confirm('⚠️ Are you sure you want to delete this batch? This action cannot be undone.')) {
                 return;
@@ -1406,7 +1284,7 @@ async function logout() {
             }
         }
 
-        // ==================== VIEW BATCH ====================
+        // ====== VIEW BATCH ======
         function viewBatch(id) {
             const batch = batchesData.find(b => b.id === id);
             if (!batch) {
@@ -1500,7 +1378,7 @@ async function logout() {
             printWindow.print();
         }
 
-        // ==================== SEARCH BATCHES ====================
+        // ====== SEARCH BATCHES ======
         function searchBatches() {
             const search = document.getElementById('searchBatches').value.toLowerCase().trim();
             
@@ -1529,7 +1407,7 @@ async function logout() {
             displayBatches();
         }
 
-        // ==================== EXPORT FUNCTIONS ====================
+        // ====== EXPORT FUNCTIONS ======
         function exportBatchesToExcel() {
             let csv = [];
             
