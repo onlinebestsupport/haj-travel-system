@@ -2111,48 +2111,147 @@
         updatePaginationInfo(travelersData.length);
     }
 
-    // 🟢 NEW: Function to view uploaded document
-    function viewDocument(docType, filename) {
-        if (!filename) return;
-        
-        const subfolder = docType === 'photo' ? 'photos' : docType + 's';
-        const url = `/uploads/${subfolder}/${filename}`;
-        
-        // Open in new tab
-        window.open(url, '_blank');
+   // 🟢 FIXED: Function to view uploaded document with correct API URL
+function viewDocument(docType, filename) {
+    if (!filename) {
+        showNotification('No document available', 'error');
+        return;
     }
+    
+    // Map document type to correct subfolder
+    const subfolderMap = {
+        'passport': 'passports',
+        'aadhaar': 'aadhaar',
+        'pan': 'pan',
+        'vaccine': 'vaccine',
+        'photo': 'photos'
+    };
+    
+    const subfolder = subfolderMap[docType] || 'documents';
+    // Use the API endpoint instead of direct /uploads path
+    const url = `/api/uploads/${subfolder}/${filename}`;
+    
+    console.log(`📂 Opening document: ${url}`);
+    
+    // Open in new tab
+    window.open(url, '_blank');
+}
 
-    function escapeHtml(text) {
-        if (!text) return text;
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+// 🟢 FIXED: Function to show existing uploaded documents in edit form
+function showExistingDocumentPreview(previewElementId, filename, docType) {
+    if (!filename) return;
+    
+    const previewElement = document.getElementById(previewElementId);
+    if (!previewElement) return;
+    
+    // Map document type to correct subfolder
+    const subfolderMap = {
+        'passport': 'passports',
+        'aadhaar': 'aadhaar',
+        'pan': 'pan',
+        'vaccine': 'vaccine',
+        'photo': 'photos'
+    };
+    
+    const subfolder = subfolderMap[docType] || 'documents';
+    // Use API endpoint
+    const viewUrl = `/api/uploads/${subfolder}/${filename}`;
+    
+    const previewHtml = `
+        <div class="file-info">
+            <i class="fas fa-file"></i>
+            <span>${filename} (Uploaded)</span>
+        </div>
+        <div class="file-actions">
+            <button onclick="window.open('${viewUrl}', '_blank')" title="View">
+                <i class="fas fa-eye"></i>
+            </button>
+            <a href="${viewUrl}" download="${filename}" title="Download">
+                <i class="fas fa-download"></i>
+            </a>
+            <span title="File saved in database" style="color: #27ae60;">
+                <i class="fas fa-check-circle"></i>
+            </span>
+        </div>
+    `;
+    
+    previewElement.innerHTML = previewHtml;
+    previewElement.style.display = 'flex';
+    
+    // Also update the text element
+    const textElementId = previewElementId.replace('_preview', '_text');
+    const textElement = document.getElementById(textElementId);
+    if (textElement) {
+        textElement.textContent = filename;
     }
+}
 
-    function updatePaginationInfo(total) {
-        document.getElementById('totalCount').textContent = total;
-        const start = (currentPage - 1) * itemsPerPage + 1;
-        const end = Math.min(currentPage * itemsPerPage, total);
-        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
-        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
-        
-        document.getElementById('prevPageBtn').disabled = currentPage === 1;
-        document.getElementById('nextPageBtn').disabled = end >= total;
-    }
+// 🟢 FIXED: Document icons in table with correct API URLs
+// In the displayTravelers function, replace the docIcons section with:
+const docIcons = `
+    <div class="doc-icons">
+        <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
+           onclick="${t.passport_scan ? `window.open('/api/uploads/passports/${t.passport_scan}', '_blank')` : ''}" 
+           title="Passport: ${t.passport_scan ? t.passport_scan : 'Missing'}"
+           style="cursor: ${t.passport_scan ? 'pointer' : 'default'}"></i>
+        <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}" 
+           onclick="${t.aadhaar_scan ? `window.open('/api/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" 
+           title="Aadhaar: ${t.aadhaar_scan ? t.aadhaar_scan : 'Missing'}"
+           style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}"></i>
+        <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}" 
+           onclick="${t.pan_scan ? `window.open('/api/uploads/pan/${t.pan_scan}', '_blank')` : ''}" 
+           title="PAN: ${t.pan_scan ? t.pan_scan : 'Missing'}"
+           style="cursor: ${t.pan_scan ? 'pointer' : 'default'}"></i>
+        <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}" 
+           onclick="${t.vaccine_scan ? `window.open('/api/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" 
+           title="Vaccine: ${t.vaccine_scan ? t.vaccine_scan : 'Missing'}"
+           style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}"></i>
+        <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}" 
+           onclick="${t.photo ? `window.open('/api/uploads/photos/${t.photo}', '_blank')` : ''}" 
+           title="Photo: ${t.photo ? t.photo : 'Missing'}"
+           style="cursor: ${t.photo ? 'pointer' : 'default'}"></i>
+    </div>
+`;
 
-    function previousPage() {
-        if (currentPage > 1) {
-            currentPage--;
-            displayTravelers();
-        }
-    }
-
-    function nextPage() {
-        if (currentPage * itemsPerPage < travelersData.length) {
-            currentPage++;
-            displayTravelers();
-        }
-    }
+// 🟢 FIXED: Document cards in view modal with correct API URLs
+// In displayTravelerDetails function, replace the documentCards section with:
+const documentCards = `
+    <div class="document-card" onclick="${t.passport_scan ? `window.open('/api/uploads/passports/${t.passport_scan}', '_blank')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
+        <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
+        <p><strong>Passport</strong></p>
+        <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+        ${t.passport_scan ? '<small>' + t.passport_scan + '</small>' : ''}
+        ${t.passport_scan ? '<small>Click to view</small>' : ''}
+    </div>
+    <div class="document-card" onclick="${t.aadhaar_scan ? `window.open('/api/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
+        <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
+        <p><strong>Aadhaar</strong></p>
+        <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+        ${t.aadhaar_scan ? '<small>' + t.aadhaar_scan + '</small>' : ''}
+        ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
+    </div>
+    <div class="document-card" onclick="${t.pan_scan ? `window.open('/api/uploads/pan/${t.pan_scan}', '_blank')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
+        <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
+        <p><strong>PAN</strong></p>
+        <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+        ${t.pan_scan ? '<small>' + t.pan_scan + '</small>' : ''}
+        ${t.pan_scan ? '<small>Click to view</small>' : ''}
+    </div>
+    <div class="document-card" onclick="${t.vaccine_scan ? `window.open('/api/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
+        <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
+        <p><strong>Vaccine</strong></p>
+        <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
+        ${t.vaccine_scan ? '<small>' + t.vaccine_scan + '</small>' : ''}
+        ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
+    </div>
+    <div class="document-card" onclick="${t.photo ? `window.open('/api/uploads/photos/${t.photo}', '_blank')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
+        <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
+        <p><strong>Photo</strong></p>
+        <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
+        ${t.photo ? '<small>' + t.photo + '</small>' : ''}
+        ${t.photo ? '<small>Click to view</small>' : ''}
+    </div>
+`;
 
     // ====== FORM VISIBILITY ======
     function showAddTravelerForm() {
