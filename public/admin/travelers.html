@@ -2111,7 +2111,7 @@
         updatePaginationInfo(travelersData.length);
     }
 
-   // 🟢 FIXED: Function to view uploaded document with correct API URL
+   // 🟢 FIXED: Function to view uploaded document with correct /uploads/ URL
 function viewDocument(docType, filename) {
     if (!filename) {
         showNotification('No document available', 'error');
@@ -2128,8 +2128,8 @@ function viewDocument(docType, filename) {
     };
     
     const subfolder = subfolderMap[docType] || 'documents';
-    // Use the API endpoint instead of direct /uploads path
-    const url = `/api/uploads/${subfolder}/${filename}`;
+    // ✅ Use /uploads/ NOT /api/uploads/
+    const url = `/uploads/${subfolder}/${filename}`;
     
     console.log(`📂 Opening document: ${url}`);
     
@@ -2154,8 +2154,8 @@ function showExistingDocumentPreview(previewElementId, filename, docType) {
     };
     
     const subfolder = subfolderMap[docType] || 'documents';
-    // Use API endpoint
-    const viewUrl = `/api/uploads/${subfolder}/${filename}`;
+    // ✅ Use /uploads/ NOT /api/uploads/
+    const viewUrl = `/uploads/${subfolder}/${filename}`;
     
     const previewHtml = `
         <div class="file-info">
@@ -2186,65 +2186,63 @@ function showExistingDocumentPreview(previewElementId, filename, docType) {
     }
 }
 
-// 🟢 FIXED: Document icons in table with correct API URLs
-// In the displayTravelers function, replace the docIcons section with:
+// 🟢 FIXED: Document icons with correct /uploads/ URL (not /api/uploads/)
 const docIcons = `
     <div class="doc-icons">
         <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
-           onclick="${t.passport_scan ? `window.open('/api/uploads/passports/${t.passport_scan}', '_blank')` : ''}" 
+           onclick="${t.passport_scan ? `window.open('/uploads/passports/${t.passport_scan}', '_blank')` : ''}" 
            title="Passport: ${t.passport_scan ? t.passport_scan : 'Missing'}"
            style="cursor: ${t.passport_scan ? 'pointer' : 'default'}"></i>
         <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}" 
-           onclick="${t.aadhaar_scan ? `window.open('/api/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" 
+           onclick="${t.aadhaar_scan ? `window.open('/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" 
            title="Aadhaar: ${t.aadhaar_scan ? t.aadhaar_scan : 'Missing'}"
            style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}"></i>
         <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}" 
-           onclick="${t.pan_scan ? `window.open('/api/uploads/pan/${t.pan_scan}', '_blank')` : ''}" 
+           onclick="${t.pan_scan ? `window.open('/uploads/pan/${t.pan_scan}', '_blank')` : ''}" 
            title="PAN: ${t.pan_scan ? t.pan_scan : 'Missing'}"
            style="cursor: ${t.pan_scan ? 'pointer' : 'default'}"></i>
         <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}" 
-           onclick="${t.vaccine_scan ? `window.open('/api/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" 
+           onclick="${t.vaccine_scan ? `window.open('/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" 
            title="Vaccine: ${t.vaccine_scan ? t.vaccine_scan : 'Missing'}"
            style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}"></i>
         <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}" 
-           onclick="${t.photo ? `window.open('/api/uploads/photos/${t.photo}', '_blank')` : ''}" 
+           onclick="${t.photo ? `window.open('/uploads/photos/${t.photo}', '_blank')` : ''}" 
            title="Photo: ${t.photo ? t.photo : 'Missing'}"
            style="cursor: ${t.photo ? 'pointer' : 'default'}"></i>
     </div>
 `;
 
-// 🟢 FIXED: Document cards in view modal with correct API URLs
-// In displayTravelerDetails function, replace the documentCards section with:
+// 🟢 FIXED: Document cards with correct /uploads/ URL (not /api/uploads/)
 const documentCards = `
-    <div class="document-card" onclick="${t.passport_scan ? `window.open('/api/uploads/passports/${t.passport_scan}', '_blank')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
+    <div class="document-card" onclick="${t.passport_scan ? `window.open('/uploads/passports/${t.passport_scan}', '_blank')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
         <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
         <p><strong>Passport</strong></p>
         <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
         ${t.passport_scan ? '<small>' + t.passport_scan + '</small>' : ''}
         ${t.passport_scan ? '<small>Click to view</small>' : ''}
     </div>
-    <div class="document-card" onclick="${t.aadhaar_scan ? `window.open('/api/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
+    <div class="document-card" onclick="${t.aadhaar_scan ? `window.open('/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
         <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
         <p><strong>Aadhaar</strong></p>
         <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
         ${t.aadhaar_scan ? '<small>' + t.aadhaar_scan + '</small>' : ''}
         ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
     </div>
-    <div class="document-card" onclick="${t.pan_scan ? `window.open('/api/uploads/pan/${t.pan_scan}', '_blank')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
+    <div class="document-card" onclick="${t.pan_scan ? `window.open('/uploads/pan/${t.pan_scan}', '_blank')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
         <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
         <p><strong>PAN</strong></p>
         <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
         ${t.pan_scan ? '<small>' + t.pan_scan + '</small>' : ''}
         ${t.pan_scan ? '<small>Click to view</small>' : ''}
     </div>
-    <div class="document-card" onclick="${t.vaccine_scan ? `window.open('/api/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
+    <div class="document-card" onclick="${t.vaccine_scan ? `window.open('/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
         <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
         <p><strong>Vaccine</strong></p>
         <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
         ${t.vaccine_scan ? '<small>' + t.vaccine_scan + '</small>' : ''}
         ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
     </div>
-    <div class="document-card" onclick="${t.photo ? `window.open('/api/uploads/photos/${t.photo}', '_blank')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
+    <div class="document-card" onclick="${t.photo ? `window.open('/uploads/photos/${t.photo}', '_blank')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
         <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
         <p><strong>Photo</strong></p>
         <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
