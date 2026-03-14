@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, jsonify, request, session, make_response, redirect
+from flask import Flask, send_from_directory, jsonify, request, session, make_response, redirect, abort
 from flask_cors import CORS
 import os
 import sys
@@ -318,27 +318,117 @@ def serve_admin_js(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ====== 📁 UPLOAD ROUTES ======
+# ====== 📁 IMPROVED UPLOAD ROUTES ======
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
-    """Serve uploaded files"""
+    """Serve uploaded files from any upload subdirectory"""
     try:
         if '..' in filename or filename.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid path'}), 400
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        
+        # List of all possible upload subdirectories
+        upload_subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'documents', 'company', 'backups']
+        
+        # Try to find the file in any subdirectory
+        for subdir in upload_subdirs:
+            folder_path = os.path.join(app.config['UPLOAD_FOLDER'], subdir)
+            file_path = os.path.join(folder_path, filename)
+            
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                print(f"✅ Serving upload from {subdir}: {filename}")
+                return send_file_upload(file_path, filename)
+        
+        # If not found in subdirectories, try the main upload folder
+        main_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(main_path) and os.path.isfile(main_path):
+            print(f"✅ Serving upload from main folder: {filename}")
+            return send_file_upload(main_path, filename)
+        
+        # File not found
+        print(f"❌ Upload file not found: {filename}")
+        return jsonify({'success': False, 'error': 'File not found'}), 404
+        
     except Exception as e:
+        print(f"❌ Error serving upload {filename}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/uploads/<path:subdir>/<path:filename>')
+def serve_upload_with_subdir(subdir, filename):
+    """Serve uploaded files with explicit subdirectory"""
+    try:
+        if '..' in filename or '..' in subdir or filename.startswith('/') or subdir.startswith('/'):
+            return jsonify({'success': False, 'error': 'Invalid path'}), 400
+        
+        # Validate subdir is allowed
+        allowed_subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'documents', 'company', 'backups']
+        if subdir not in allowed_subdirs:
+            print(f"⚠️ Invalid subdirectory requested: {subdir}")
+            return jsonify({'success': False, 'error': 'Invalid subdirectory'}), 400
+        
+        folder_path = os.path.join(app.config['UPLOAD_FOLDER'], subdir)
+        file_path = os.path.join(folder_path, filename)
+        
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            print(f"✅ Serving upload from {subdir}: {filename}")
+            return send_file_upload(file_path, filename)
+        else:
+            print(f"❌ Upload file not found: {subdir}/{filename}")
+            return jsonify({'success': False, 'error': 'File not found'}), 404
+            
+    except Exception as e:
+        print(f"❌ Error serving upload {subdir}/{filename}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Helper function to send file with proper mimetype
+def send_file_upload(file_path, filename):
+    """Send file with proper headers"""
+    from flask import send_file
+    import mimetypes
+    
+    # Get proper mimetype
+    mimetype, encoding = mimetypes.guess_type(filename)
+    if not mimetype:
+        if filename.endswith('.pdf'):
+            mimetype = 'application/pdf'
+        elif filename.endswith(('.jpg', '.jpeg')):
+            mimetype = 'image/jpeg'
+        elif filename.endswith('.png'):
+            mimetype = 'image/png'
+        else:
+            mimetype = 'application/octet-stream'
+    
+    return send_file(file_path, mimetype=mimetype, as_attachment=False, download_name=filename)
+
+# Legacy upload routes for backward compatibility
 @app.route('/uploads/company/<path:filename>')
 def serve_company_upload(filename):
-    """Serve company uploaded files"""
-    try:
-        if '..' in filename or filename.startswith('/'):
-            return jsonify({'success': False, 'error': 'Invalid path'}), 400
-        company_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'company')
-        return send_from_directory(company_folder, filename)
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    """Serve company uploaded files (legacy)"""
+    return serve_upload_with_subdir('company', filename)
+
+@app.route('/uploads/passports/<path:filename>')
+def serve_passport_upload(filename):
+    """Serve passport files"""
+    return serve_upload_with_subdir('passports', filename)
+
+@app.route('/uploads/photos/<path:filename>')
+def serve_photo_upload(filename):
+    """Serve photo files"""
+    return serve_upload_with_subdir('photos', filename)
+
+@app.route('/uploads/aadhaar/<path:filename>')
+def serve_aadhaar_upload(filename):
+    """Serve aadhaar files"""
+    return serve_upload_with_subdir('aadhaar', filename)
+
+@app.route('/uploads/pan/<path:filename>')
+def serve_pan_upload(filename):
+    """Serve pan files"""
+    return serve_upload_with_subdir('pan', filename)
+
+@app.route('/uploads/vaccine/<path:filename>')
+def serve_vaccine_upload(filename):
+    """Serve vaccine files"""
+    return serve_upload_with_subdir('vaccine', filename)
 
 # ====== 🌍 CATCH-ALL STATIC ROUTE ======
 @app.route('/<path:filename>')
@@ -453,6 +543,7 @@ def debug_paths():
         files_in_public = []
         files_in_admin = []
         files_in_admin_js = []
+        upload_files = {}
 
         if os.path.exists(PUBLIC_DIR):
             files_in_public = os.listdir(PUBLIC_DIR)
@@ -464,15 +555,27 @@ def debug_paths():
         if os.path.exists(js_dir):
             files_in_admin_js = os.listdir(js_dir)
 
+        # Check upload directories
+        upload_subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'documents', 'company', 'backups']
+        for subdir in upload_subdirs:
+            folder = os.path.join(app.config['UPLOAD_FOLDER'], subdir)
+            if os.path.exists(folder):
+                upload_files[subdir] = os.listdir(folder)[:10]  # First 10 files
+            else:
+                upload_files[subdir] = []
+
         return jsonify({
             'base_dir': BASE_DIR,
             'public_dir': PUBLIC_DIR,
             'admin_dir': ADMIN_DIR,
+            'upload_dir': app.config['UPLOAD_FOLDER'],
             'public_exists': os.path.exists(PUBLIC_DIR),
             'admin_exists': os.path.exists(ADMIN_DIR),
+            'upload_exists': os.path.exists(app.config['UPLOAD_FOLDER']),
             'files_in_public': files_in_public,
             'files_in_admin': files_in_admin,
             'files_in_admin_js': files_in_admin_js,
+            'upload_files': upload_files,
             'index_exists': os.path.exists(os.path.join(PUBLIC_DIR, 'index.html')),
             'login_page_exists': os.path.exists(os.path.join(PUBLIC_DIR, 'admin.login.html')),
             'dashboard_exists': os.path.exists(os.path.join(ADMIN_DIR, 'dashboard.html')),
@@ -599,6 +702,7 @@ if __name__ == '__main__':
     print("📡 Admin Login: /admin.login.html")
     print("📡 Admin Dashboard: /admin/")
     print("📡 Traveler Login: /traveler_login.html")
+    print("📁 Upload URLs: /uploads/passports/filename.jpg, /uploads/photos/filename.jpg, etc.")
     print("=" * 60)
 
     try:
