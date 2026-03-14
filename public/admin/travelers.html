@@ -1717,7 +1717,8 @@
         }
     }
 
-    // ====== DOCUMENT HANDLING ======
+    // ====== 🟢 FIXED: SINGLE DOCUMENT HANDLING FUNCTION ======
+    // This handles file selection and preview for new uploads
     function handleFileSelect(input, textElementId, previewElementId) {
         const textElement = document.getElementById(textElementId);
         const previewElement = document.getElementById(previewElementId);
@@ -1734,10 +1735,10 @@
                         <span>${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
                     </div>
                     <div class="file-actions">
-                        <button onclick="viewDocumentTemp('${e.target.result}', '${file.name}', '${file.type}')" title="View">
+                        <button onclick="previewNewDocument('${e.target.result}', '${file.name}', '${file.type}')" title="Preview">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button onclick="removeDocument('${input.id}', '${textElementId}', '${previewElementId}')" class="delete" title="Remove">
+                        <button onclick="removeNewDocument('${input.id}', '${textElementId}', '${previewElementId}')" class="delete" title="Remove">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1753,7 +1754,8 @@
         }
     }
 
-    function viewDocumentTemp(dataUrl, fileName, fileType) {
+    // 🟢 NEW: Preview a newly selected document (before upload)
+    function previewNewDocument(dataUrl, fileName, fileType) {
         currentDocument = { data: dataUrl, name: fileName, type: fileType };
         currentDocumentName = fileName;
         
@@ -1774,16 +1776,8 @@
         document.getElementById('modalOverlay').style.display = 'block';
     }
 
-    function downloadCurrentDocument() {
-        if (!currentDocument) return;
-        
-        const link = document.createElement('a');
-        link.href = currentDocument.data;
-        link.download = currentDocument.name;
-        link.click();
-    }
-
-    function removeDocument(inputId, textElementId, previewElementId) {
+    // 🟢 NEW: Remove a newly selected document
+    function removeNewDocument(inputId, textElementId, previewElementId) {
         const input = document.getElementById(inputId);
         input.value = '';
         
@@ -1791,6 +1785,32 @@
         document.getElementById(previewElementId).style.display = 'none';
         
         showNotification('Document removed', 'success');
+    }
+
+    // 🟢 FIXED: SINGLE viewDocument function for viewing uploaded documents
+    function viewUploadedDocument(docType, filename) {
+        if (!filename) {
+            showNotification('No document available', 'error');
+            return;
+        }
+        
+        // Map document type to correct subfolder
+        const subfolderMap = {
+            'passport': 'passports',
+            'aadhaar': 'aadhaar',
+            'pan': 'pan',
+            'vaccine': 'vaccine',
+            'photo': 'photos'
+        };
+        
+        const subfolder = subfolderMap[docType] || 'documents';
+        // ✅ Use /uploads/ NOT /api/uploads/ - matches server.py routes
+        const url = `/uploads/${subfolder}/${filename}`;
+        
+        console.log(`📂 Opening uploaded document: ${url}`);
+        
+        // Open in new tab
+        window.open(url, '_blank');
     }
 
     function closeDocumentViewer() {
@@ -1830,8 +1850,17 @@
         const previewElement = document.getElementById(previewElementId);
         if (!previewElement) return;
         
-        // Generate URL for viewing/downloading
-        const subfolder = docType === 'photo' ? 'photos' : docType + 's';
+        // Map document type to correct subfolder
+        const subfolderMap = {
+            'passport': 'passports',
+            'aadhaar': 'aadhaar',
+            'pan': 'pan',
+            'vaccine': 'vaccine',
+            'photo': 'photos'
+        };
+        
+        const subfolder = subfolderMap[docType] || 'documents';
+        // ✅ Use /uploads/ NOT /api/uploads/
         const viewUrl = `/uploads/${subfolder}/${filename}`;
         
         const previewHtml = `
@@ -2042,6 +2071,7 @@
         updateDashboardStats();
     }
 
+    // 🟢 FIXED: Display travelers with correct document icon links
     function displayTravelers() {
         const tableBody = document.getElementById('travelersTableBody');
         if (!travelersData || travelersData.length === 0) {
@@ -2059,27 +2089,27 @@
             const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
             const batchName = t.batch_name || 'Not Assigned';
             
-            // 🟢 FIXED: Better document icons with proper status
+            // ✅ Use viewUploadedDocument function for consistent handling
             const docIcons = `
                 <div class="doc-icons">
                     <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
-                       onclick="${t.passport_scan ? `viewDocument('passport', '${t.passport_scan}')` : ''}" 
+                       onclick="${t.passport_scan ? `viewUploadedDocument('passport', '${t.passport_scan}')` : ''}" 
                        title="Passport: ${t.passport_scan ? t.passport_scan : 'Missing'}"
                        style="cursor: ${t.passport_scan ? 'pointer' : 'default'}"></i>
                     <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}" 
-                       onclick="${t.aadhaar_scan ? `viewDocument('aadhaar', '${t.aadhaar_scan}')` : ''}" 
+                       onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', '${t.aadhaar_scan}')` : ''}" 
                        title="Aadhaar: ${t.aadhaar_scan ? t.aadhaar_scan : 'Missing'}"
                        style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}"></i>
                     <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}" 
-                       onclick="${t.pan_scan ? `viewDocument('pan', '${t.pan_scan}')` : ''}" 
+                       onclick="${t.pan_scan ? `viewUploadedDocument('pan', '${t.pan_scan}')` : ''}" 
                        title="PAN: ${t.pan_scan ? t.pan_scan : 'Missing'}"
                        style="cursor: ${t.pan_scan ? 'pointer' : 'default'}"></i>
                     <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}" 
-                       onclick="${t.vaccine_scan ? `viewDocument('vaccine', '${t.vaccine_scan}')` : ''}" 
+                       onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', '${t.vaccine_scan}')` : ''}" 
                        title="Vaccine: ${t.vaccine_scan ? t.vaccine_scan : 'Missing'}"
                        style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}"></i>
                     <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}" 
-                       onclick="${t.photo ? `viewDocument('photo', '${t.photo}')` : ''}" 
+                       onclick="${t.photo ? `viewUploadedDocument('photo', '${t.photo}')` : ''}" 
                        title="Photo: ${t.photo ? t.photo : 'Missing'}"
                        style="cursor: ${t.photo ? 'pointer' : 'default'}"></i>
                 </div>
@@ -2111,145 +2141,37 @@
         updatePaginationInfo(travelersData.length);
     }
 
-   // 🟢 FIXED: Function to view uploaded document with correct /uploads/ URL
-function viewDocument(docType, filename) {
-    if (!filename) {
-        showNotification('No document available', 'error');
-        return;
+    function escapeHtml(text) {
+        if (!text) return text;
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-    
-    // Map document type to correct subfolder
-    const subfolderMap = {
-        'passport': 'passports',
-        'aadhaar': 'aadhaar',
-        'pan': 'pan',
-        'vaccine': 'vaccine',
-        'photo': 'photos'
-    };
-    
-    const subfolder = subfolderMap[docType] || 'documents';
-    // ✅ Use /uploads/ NOT /api/uploads/
-    const url = `/uploads/${subfolder}/${filename}`;
-    
-    console.log(`📂 Opening document: ${url}`);
-    
-    // Open in new tab
-    window.open(url, '_blank');
-}
 
-// 🟢 FIXED: Function to show existing uploaded documents in edit form
-function showExistingDocumentPreview(previewElementId, filename, docType) {
-    if (!filename) return;
-    
-    const previewElement = document.getElementById(previewElementId);
-    if (!previewElement) return;
-    
-    // Map document type to correct subfolder
-    const subfolderMap = {
-        'passport': 'passports',
-        'aadhaar': 'aadhaar',
-        'pan': 'pan',
-        'vaccine': 'vaccine',
-        'photo': 'photos'
-    };
-    
-    const subfolder = subfolderMap[docType] || 'documents';
-    // ✅ Use /uploads/ NOT /api/uploads/
-    const viewUrl = `/uploads/${subfolder}/${filename}`;
-    
-    const previewHtml = `
-        <div class="file-info">
-            <i class="fas fa-file"></i>
-            <span>${filename} (Uploaded)</span>
-        </div>
-        <div class="file-actions">
-            <button onclick="window.open('${viewUrl}', '_blank')" title="View">
-                <i class="fas fa-eye"></i>
-            </button>
-            <a href="${viewUrl}" download="${filename}" title="Download">
-                <i class="fas fa-download"></i>
-            </a>
-            <span title="File saved in database" style="color: #27ae60;">
-                <i class="fas fa-check-circle"></i>
-            </span>
-        </div>
-    `;
-    
-    previewElement.innerHTML = previewHtml;
-    previewElement.style.display = 'flex';
-    
-    // Also update the text element
-    const textElementId = previewElementId.replace('_preview', '_text');
-    const textElement = document.getElementById(textElementId);
-    if (textElement) {
-        textElement.textContent = filename;
+    function updatePaginationInfo(total) {
+        document.getElementById('totalCount').textContent = total;
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
+        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
+        
+        document.getElementById('prevPageBtn').disabled = currentPage === 1;
+        document.getElementById('nextPageBtn').disabled = end >= total;
     }
-}
 
-// 🟢 FIXED: Document icons with correct /uploads/ URL (not /api/uploads/)
-const docIcons = `
-    <div class="doc-icons">
-        <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}" 
-           onclick="${t.passport_scan ? `window.open('/uploads/passports/${t.passport_scan}', '_blank')` : ''}" 
-           title="Passport: ${t.passport_scan ? t.passport_scan : 'Missing'}"
-           style="cursor: ${t.passport_scan ? 'pointer' : 'default'}"></i>
-        <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}" 
-           onclick="${t.aadhaar_scan ? `window.open('/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" 
-           title="Aadhaar: ${t.aadhaar_scan ? t.aadhaar_scan : 'Missing'}"
-           style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}"></i>
-        <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}" 
-           onclick="${t.pan_scan ? `window.open('/uploads/pan/${t.pan_scan}', '_blank')` : ''}" 
-           title="PAN: ${t.pan_scan ? t.pan_scan : 'Missing'}"
-           style="cursor: ${t.pan_scan ? 'pointer' : 'default'}"></i>
-        <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}" 
-           onclick="${t.vaccine_scan ? `window.open('/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" 
-           title="Vaccine: ${t.vaccine_scan ? t.vaccine_scan : 'Missing'}"
-           style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}"></i>
-        <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}" 
-           onclick="${t.photo ? `window.open('/uploads/photos/${t.photo}', '_blank')` : ''}" 
-           title="Photo: ${t.photo ? t.photo : 'Missing'}"
-           style="cursor: ${t.photo ? 'pointer' : 'default'}"></i>
-    </div>
-`;
+    function previousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayTravelers();
+        }
+    }
 
-// 🟢 FIXED: Document cards with correct /uploads/ URL (not /api/uploads/)
-const documentCards = `
-    <div class="document-card" onclick="${t.passport_scan ? `window.open('/uploads/passports/${t.passport_scan}', '_blank')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
-        <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
-        <p><strong>Passport</strong></p>
-        <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-        ${t.passport_scan ? '<small>' + t.passport_scan + '</small>' : ''}
-        ${t.passport_scan ? '<small>Click to view</small>' : ''}
-    </div>
-    <div class="document-card" onclick="${t.aadhaar_scan ? `window.open('/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
-        <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
-        <p><strong>Aadhaar</strong></p>
-        <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-        ${t.aadhaar_scan ? '<small>' + t.aadhaar_scan + '</small>' : ''}
-        ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
-    </div>
-    <div class="document-card" onclick="${t.pan_scan ? `window.open('/uploads/pan/${t.pan_scan}', '_blank')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
-        <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
-        <p><strong>PAN</strong></p>
-        <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-        ${t.pan_scan ? '<small>' + t.pan_scan + '</small>' : ''}
-        ${t.pan_scan ? '<small>Click to view</small>' : ''}
-    </div>
-    <div class="document-card" onclick="${t.vaccine_scan ? `window.open('/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
-        <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
-        <p><strong>Vaccine</strong></p>
-        <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
-        ${t.vaccine_scan ? '<small>' + t.vaccine_scan + '</small>' : ''}
-        ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
-    </div>
-    <div class="document-card" onclick="${t.photo ? `window.open('/uploads/photos/${t.photo}', '_blank')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
-        <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
-        <p><strong>Photo</strong></p>
-        <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
-        ${t.photo ? '<small>' + t.photo + '</small>' : ''}
-        ${t.photo ? '<small>Click to view</small>' : ''}
-    </div>
-`;
+    function nextPage() {
+        if (currentPage * itemsPerPage < travelersData.length) {
+            currentPage++;
+            displayTravelers();
+        }
+    }
 
     // ====== FORM VISIBILITY ======
     function showAddTravelerForm() {
@@ -2306,11 +2228,11 @@ const documentCards = `
         });
     }
 
-    // ====== CREATE TRAVELER ======
+    // ====== 🟢 FIXED: CREATE TRAVELER with file uploads ======
     async function createTraveler() {
         const formData = new FormData(document.getElementById('travelerAddForm'));
         
-        // Add all fields to FormData
+        // Add all text fields to FormData
         const fields = {
             first_name: document.getElementById('add_first_name').value,
             last_name: document.getElementById('add_last_name').value,
@@ -2341,11 +2263,29 @@ const documentCards = `
             medical_notes: document.getElementById('add_medical_notes').value
         };
         
-        // Append all fields to FormData
+        // Append all text fields to FormData
         Object.keys(fields).forEach(key => {
             if (fields[key]) formData.append(key, fields[key]);
         });
         
+        // ✅ FIXED: Append file uploads to FormData
+        const fileInputs = [
+            { id: 'add_passport_scan', field: 'passport_scan' },
+            { id: 'add_aadhaar_scan', field: 'aadhaar_scan' },
+            { id: 'add_pan_scan', field: 'pan_scan' },
+            { id: 'add_vaccine_scan', field: 'vaccine_scan' },
+            { id: 'add_photo', field: 'photo' }
+        ];
+        
+        fileInputs.forEach(item => {
+            const input = document.getElementById(item.id);
+            if (input && input.files && input.files[0]) {
+                formData.append(item.field, input.files[0]);
+                console.log(`✅ Appending file: ${item.field} = ${input.files[0].name}`);
+            }
+        });
+        
+        // Validate required fields
         if (!fields.first_name || !fields.last_name || !fields.passport_no || !fields.mobile) {
             showNotification('Please fill all required fields', 'error');
             return;
@@ -2357,6 +2297,7 @@ const documentCards = `
         }
         
         try {
+            console.log('📤 Sending create traveler request with files...');
             const response = await fetch('/api/travelers', {
                 method: 'POST',
                 body: formData,
@@ -2364,6 +2305,7 @@ const documentCards = `
             });
             
             const data = await response.json();
+            console.log('📥 Create response:', data);
             
             if (data.success) {
                 showNotification('Traveler created successfully!', 'success');
@@ -2441,7 +2383,7 @@ const documentCards = `
         
         const formData = new FormData(document.getElementById('travelerEditForm'));
         
-        // Add all fields to FormData
+        // Add all text fields to FormData
         const fields = {
             first_name: document.getElementById('edit_first_name').value,
             last_name: document.getElementById('edit_last_name').value,
@@ -2472,12 +2414,30 @@ const documentCards = `
             medical_notes: document.getElementById('edit_medical_notes').value
         };
         
-        // Append all fields to FormData
+        // Append all text fields to FormData
         Object.keys(fields).forEach(key => {
             if (fields[key]) formData.append(key, fields[key]);
         });
         
+        // ✅ Append file uploads to FormData
+        const fileInputs = [
+            { id: 'edit_passport_scan', field: 'passport_scan' },
+            { id: 'edit_aadhaar_scan', field: 'aadhaar_scan' },
+            { id: 'edit_pan_scan', field: 'pan_scan' },
+            { id: 'edit_vaccine_scan', field: 'vaccine_scan' },
+            { id: 'edit_photo', field: 'photo' }
+        ];
+        
+        fileInputs.forEach(item => {
+            const input = document.getElementById(item.id);
+            if (input && input.files && input.files[0]) {
+                formData.append(item.field, input.files[0]);
+                console.log(`✅ Appending file for update: ${item.field} = ${input.files[0].name}`);
+            }
+        });
+        
         try {
+            console.log(`📤 Sending update request for traveler ${currentEditId}...`);
             const response = await fetch(`/api/travelers/${currentEditId}`, {
                 method: 'PUT',
                 body: formData,
@@ -2485,11 +2445,12 @@ const documentCards = `
             });
             
             const data = await response.json();
+            console.log('📥 Update response:', data);
             
             if (data.success) {
                 showNotification('Traveler updated successfully!', 'success');
                 hideEditTravelerForm();
-                loadTravelers(); // Reload to show updated documents
+                loadTravelers();
             } else {
                 showNotification('Error: ' + (data.error || 'Update failed'), 'error');
             }
@@ -2536,41 +2497,42 @@ const documentCards = `
         displayTravelerDetails(traveler);
     }
 
+    // 🟢 FIXED: Display traveler details with correct document links
     function displayTravelerDetails(t) {
         const formatValue = (val) => val && val !== '' ? val : '<span style="color: #95a5a6;">Not specified</span>';
         const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'Not specified';
         
-        // 🟢 FIXED: Better document cards with view links
+        // ✅ Use viewUploadedDocument function for consistent handling
         const documentCards = `
-            <div class="document-card" onclick="${t.passport_scan ? `window.open('/uploads/passports/${t.passport_scan}', '_blank')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
+            <div class="document-card" onclick="${t.passport_scan ? `viewUploadedDocument('passport', '${t.passport_scan}')` : ''}" style="cursor: ${t.passport_scan ? 'pointer' : 'default'}">
                 <i class="fas fa-passport ${t.passport_scan ? 'available' : 'missing'}"></i>
                 <p><strong>Passport</strong></p>
                 <p>${t.passport_scan ? '✅ Uploaded' : '❌ Missing'}</p>
                 ${t.passport_scan ? '<small>' + t.passport_scan + '</small>' : ''}
                 ${t.passport_scan ? '<small>Click to view</small>' : ''}
             </div>
-            <div class="document-card" onclick="${t.aadhaar_scan ? `window.open('/uploads/aadhaar/${t.aadhaar_scan}', '_blank')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
+            <div class="document-card" onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', '${t.aadhaar_scan}')` : ''}" style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}">
                 <i class="fas fa-id-card ${t.aadhaar_scan ? 'available' : 'missing'}"></i>
                 <p><strong>Aadhaar</strong></p>
                 <p>${t.aadhaar_scan ? '✅ Uploaded' : '❌ Missing'}</p>
                 ${t.aadhaar_scan ? '<small>' + t.aadhaar_scan + '</small>' : ''}
                 ${t.aadhaar_scan ? '<small>Click to view</small>' : ''}
             </div>
-            <div class="document-card" onclick="${t.pan_scan ? `window.open('/uploads/pan/${t.pan_scan}', '_blank')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
+            <div class="document-card" onclick="${t.pan_scan ? `viewUploadedDocument('pan', '${t.pan_scan}')` : ''}" style="cursor: ${t.pan_scan ? 'pointer' : 'default'}">
                 <i class="fas fa-credit-card ${t.pan_scan ? 'available' : 'missing'}"></i>
                 <p><strong>PAN</strong></p>
                 <p>${t.pan_scan ? '✅ Uploaded' : '❌ Missing'}</p>
                 ${t.pan_scan ? '<small>' + t.pan_scan + '</small>' : ''}
                 ${t.pan_scan ? '<small>Click to view</small>' : ''}
             </div>
-            <div class="document-card" onclick="${t.vaccine_scan ? `window.open('/uploads/vaccine/${t.vaccine_scan}', '_blank')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
+            <div class="document-card" onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', '${t.vaccine_scan}')` : ''}" style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}">
                 <i class="fas fa-syringe ${t.vaccine_scan ? 'available' : 'missing'}"></i>
                 <p><strong>Vaccine</strong></p>
                 <p>${t.vaccine_scan ? '✅ Uploaded' : '❌ Missing'}</p>
                 ${t.vaccine_scan ? '<small>' + t.vaccine_scan + '</small>' : ''}
                 ${t.vaccine_scan ? '<small>Click to view</small>' : ''}
             </div>
-            <div class="document-card" onclick="${t.photo ? `window.open('/uploads/photos/${t.photo}', '_blank')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
+            <div class="document-card" onclick="${t.photo ? `viewUploadedDocument('photo', '${t.photo}')` : ''}" style="cursor: ${t.photo ? 'pointer' : 'default'}">
                 <i class="fas fa-camera ${t.photo ? 'available' : 'missing'}"></i>
                 <p><strong>Photo</strong></p>
                 <p>${t.photo ? '✅ Uploaded' : '❌ Missing'}</p>
