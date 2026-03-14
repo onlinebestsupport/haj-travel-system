@@ -329,12 +329,13 @@ def create_traveler():
         result = cursor.fetchone()
         traveler_id = result['id'] if result else None
         
-        # Handle file uploads
+        # 🟢 FIXED: Handle both file uploads AND JSON document data
         document_fields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
         document_updates = []
         document_values = []
         
         for doc_field in document_fields:
+            # Case 1: File upload
             if doc_field in files and files[doc_field]:
                 file = files[doc_field]
                 if file and file.filename:
@@ -342,6 +343,10 @@ def create_traveler():
                     if filename:
                         document_updates.append(f"{doc_field} = %s")
                         document_values.append(filename)
+            # 🟢 FIXED: Case 2 - JSON data with document content
+            elif doc_field in data and data[doc_field] is not None and data[doc_field]:
+                document_updates.append(f"{doc_field} = %s")
+                document_values.append(data[doc_field])
         
         if document_updates:
             update_query = f"UPDATE travelers SET {', '.join(document_updates)} WHERE id = %s"
@@ -372,7 +377,7 @@ def create_traveler():
 
 @bp.route('/<int:traveler_id>', methods=['PUT'])
 def update_traveler(traveler_id):
-    """Update traveler with ALL 33 FIELDS"""
+    """Update traveler with ALL 33 FIELDS - FIXED VERSION"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -424,8 +429,10 @@ def update_traveler(traveler_id):
                 else:
                     values.append(data[field])
         
-        # Handle file uploads
+        # 🟢 FIXED: Handle document fields from BOTH file uploads AND JSON data
         document_fields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo']
+        
+        # Case 1: Document fields coming as file uploads (multipart/form-data)
         for doc_field in document_fields:
             if doc_field in files and files[doc_field]:
                 file = files[doc_field]
@@ -435,14 +442,21 @@ def update_traveler(traveler_id):
                         update_fields.append(f"{doc_field} = %s")
                         values.append(filename)
         
+        # 🟢 FIXED: Case 2 - Document fields coming as JSON data
+        for doc_field in document_fields:
+            if doc_field in data and data[doc_field] is not None and data[doc_field]:
+                update_fields.append(f"{doc_field} = %s")
+                values.append(data[doc_field])
+        
         # Add batch_id if changed
         if 'batch_id' in data and data['batch_id']:
             update_fields.append("batch_id = %s")
             values.append(new_batch_id)
         
         # Add extra_fields
-        update_fields.append("extra_fields = %s")
-        values.append(extra_fields)
+        if 'extra_fields' in data:
+            update_fields.append("extra_fields = %s")
+            values.append(extra_fields)
         
         # Add updated_at
         update_fields.append("updated_at = %s")
