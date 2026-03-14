@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session, current_app, send_file, abort
 import os
 import uuid
 from datetime import datetime
@@ -79,6 +79,8 @@ def get_upload_subfolder(doc_type):
         'document': 'documents'
     }
     return folders.get(doc_type, 'documents')
+
+# ==================== FILE UPLOAD ROUTES ====================
 
 @bp.route('', methods=['POST'])
 def upload_file():
@@ -251,6 +253,65 @@ def upload_multiple_files():
         'message': f'Successfully uploaded {len(uploaded_files)} files'
     })
 
+# ==================== FILE SERVING ROUTES ====================
+
+@bp.route('/files/<path:filename>')
+def serve_file(filename):
+    """Serve uploaded files - searches all subdirectories"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # Security: Prevent directory traversal
+    if '..' in filename or filename.startswith('/'):
+        abort(404)
+    
+    base_folder = current_app.config['UPLOAD_FOLDER']
+    
+    # Define all possible subdirectories where files might be stored
+    subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'documents', 'company', 'backups']
+    
+    # Log for debugging
+    print(f"🔍 Looking for file: {filename}")
+    
+    # Search each subdirectory
+    for subdir in subdirs:
+        folder_path = os.path.join(base_folder, subdir)
+        file_path = os.path.join(folder_path, filename)
+        
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            print(f"✅ Found file in {subdir}: {file_path}")
+            return send_file(file_path)
+    
+    # If we get here, file wasn't found
+    print(f"❌ File not found: {filename}")
+    abort(404)
+
+@bp.route('/<path:subdir>/<path:filename>')
+def serve_file_with_subdir(subdir, filename):
+    """Serve uploaded files with explicit subdirectory"""
+    # Check authentication
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # Security: Prevent directory traversal
+    if '..' in filename or '..' in subdir or filename.startswith('/') or subdir.startswith('/'):
+        abort(404)
+    
+    base_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(base_folder, subdir, filename)
+    
+    print(f"🔍 Looking for file with subdir: {subdir}/{filename}")
+    
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        print(f"✅ Found file: {file_path}")
+        return send_file(file_path)
+    else:
+        print(f"❌ File not found: {file_path}")
+        abort(404)
+
+# ==================== FILE MANAGEMENT ROUTES ====================
+
 @bp.route('/<path:filename>', methods=['DELETE'])
 def delete_file(filename):
     """Delete a file"""
@@ -400,7 +461,8 @@ def get_file_info(filename):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Helper function to update traveler document
+# ==================== HELPER FUNCTIONS ====================
+
 def update_traveler_document(traveler_id, doc_type, filename):
     """Update traveler record with document filename"""
     conn = None
@@ -444,7 +506,6 @@ def update_traveler_document(traveler_id, doc_type, filename):
         if conn:
             conn.close()
 
-# Helper function to clear traveler document
 def clear_traveler_document(traveler_id, doc_type):
     """Clear traveler document field"""
     conn = None
@@ -507,6 +568,8 @@ def log_activity(user_id, action, module, description, ip_address=None):
             cursor.close()
         if conn:
             conn.close()
+
+# ==================== ADMIN ROUTES ====================
 
 @bp.route('/cleanup', methods=['POST'])
 def cleanup_orphaned_files():
