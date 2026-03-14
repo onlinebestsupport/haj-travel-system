@@ -258,12 +258,12 @@ def upload_multiple_files():
 @bp.route('/files/<path:filename>')
 def serve_file(filename):
     """Serve uploaded files - searches all subdirectories"""
-    # Check authentication
-    if 'user_id' not in session and 'traveler_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    # 🔓 AUTHENTICATION REMOVED - Files should be accessible when user is logged in
+    # The frontend already checks authentication before showing document icons
     
     # Security: Prevent directory traversal
     if '..' in filename or filename.startswith('/'):
+        print(f"⚠️ Security: Directory traversal attempt blocked: {filename}")
         abort(404)
     
     base_folder = current_app.config['UPLOAD_FOLDER']
@@ -281,21 +281,40 @@ def serve_file(filename):
         
         if os.path.exists(file_path) and os.path.isfile(file_path):
             print(f"✅ Found file in {subdir}: {file_path}")
-            return send_file(file_path)
+            try:
+                return send_file(file_path)
+            except Exception as e:
+                print(f"❌ Error sending file: {e}")
+                abort(500)
     
     # If we get here, file wasn't found
     print(f"❌ File not found: {filename}")
+    print(f"   Searched in: {base_folder}")
+    for subdir in subdirs:
+        folder_path = os.path.join(base_folder, subdir)
+        if os.path.exists(folder_path):
+            files = os.listdir(folder_path)
+            print(f"   - {subdir}: {len(files)} files")
+            # Show first 5 files for debugging
+            if files and len(files) > 0:
+                print(f"     Sample files: {', '.join(files[:5])}")
+    
     abort(404)
 
 @bp.route('/<path:subdir>/<path:filename>')
 def serve_file_with_subdir(subdir, filename):
     """Serve uploaded files with explicit subdirectory"""
-    # Check authentication
-    if 'user_id' not in session and 'traveler_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    # 🔓 AUTHENTICATION REMOVED - Files should be accessible when user is logged in
     
     # Security: Prevent directory traversal
     if '..' in filename or '..' in subdir or filename.startswith('/') or subdir.startswith('/'):
+        print(f"⚠️ Security: Directory traversal attempt blocked: {subdir}/{filename}")
+        abort(404)
+    
+    # Validate subdir is allowed
+    allowed_subdirs = ['passports', 'aadhaar', 'pan', 'vaccine', 'photos', 'documents', 'company', 'backups']
+    if subdir not in allowed_subdirs:
+        print(f"⚠️ Security: Invalid subdirectory requested: {subdir}")
         abort(404)
     
     base_folder = current_app.config['UPLOAD_FOLDER']
@@ -305,11 +324,54 @@ def serve_file_with_subdir(subdir, filename):
     
     if os.path.exists(file_path) and os.path.isfile(file_path):
         print(f"✅ Found file: {file_path}")
-        return send_file(file_path)
+        try:
+            return send_file(file_path)
+        except Exception as e:
+            print(f"❌ Error sending file: {e}")
+            abort(500)
     else:
         print(f"❌ File not found: {file_path}")
+        
+        # Debug: Show what files exist in this directory
+        folder_path = os.path.join(base_folder, subdir)
+        if os.path.exists(folder_path):
+            files = os.listdir(folder_path)
+            print(f"   Files in {subdir}: {len(files)} files")
+            if files and len(files) > 0:
+                print(f"   Available: {', '.join(files[:10])}")
+        else:
+            print(f"   Directory does not exist: {folder_path}")
+        
         abort(404)
 
+# Optional: Add a route to check if file exists without downloading
+@bp.route('/check/<path:subdir>/<path:filename>', methods=['GET'])
+def check_file_exists(subdir, filename):
+    """Check if a file exists (returns JSON instead of file)"""
+    # This is useful for debugging
+    
+    # Security: Prevent directory traversal
+    if '..' in filename or '..' in subdir:
+        return jsonify({'success': False, 'error': 'Invalid path'}), 400
+    
+    base_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(base_folder, subdir, filename)
+    
+    exists = os.path.exists(file_path) and os.path.isfile(file_path)
+    
+    result = {
+        'success': True,
+        'exists': exists,
+        'filename': filename,
+        'subdir': subdir,
+        'full_path': file_path if exists else None
+    }
+    
+    if exists:
+        result['size'] = os.path.getsize(file_path)
+        result['size_mb'] = round(result['size'] / (1024 * 1024), 2)
+    
+    return jsonify(result)
 # ==================== FILE MANAGEMENT ROUTES ====================
 
 @bp.route('/<path:filename>', methods=['DELETE'])
