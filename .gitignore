@@ -1,0 +1,44 @@
+# Security sensitive files
+cookies.txt
+new-cookies.txt
+document.cookie
+*.cookie
+*.key
+*.pem
+*.crt
+
+# Garbage files from CLI
+#
+({
+0
+null)
+✅
+goToDashboard()
+curl
+psql
+python
+railway
+
+# Backup directories
+backup_*/
+final_backup_*/
+backup_before_*/
+
+# Backup files
+*.bak
+*.bak.*
+
+# Debug/test pages in admin
+public/admin/cookie-test.html
+public/admin/debug_users.html
+public/admin/simple-test.html
+
+# SQL files (use migrations instead)
+sql/*.sql
+!sql/migrations/
+
+# Local development files
+.env
+.env.local
+*.pyc
+__pycache__/
