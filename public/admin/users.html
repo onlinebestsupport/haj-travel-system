@@ -437,7 +437,9 @@
             .permissions-grid { grid-template-columns: 1fr; }
         }
     </style>
-</head>
+
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
 <body>
     <!-- ==================== HEADER SECTION ==================== -->
     <div class="admin-header">
@@ -1812,8 +1814,44 @@ function escapeHtml(text) {
                         body { font-family: Arial; padding: 30px; }
                         .permission-tag { background: #e1f0fa; color: #2980b9; padding: 2px 8px; border-radius: 12px; margin: 2px; display: inline-block; }
                     </style>
-                </head>
-                <body>${content}</body>
+                
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
+                <body>${content}
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading page...');
+        resetSessionTimer();
+        
+        // Monitor user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+        
+        // Load page-specific data
+        if (typeof loadPageData === 'function') {
+            await loadPageData();
+        }
+    }
+
+    // Session timer functions (if not already defined)
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+        console.log('Session timer reset');
+    }
+</script>
+
+</body>
                 </html>
             `);
             printWindow.document.close();
@@ -1947,5 +1985,39 @@ function escapeHtml(text) {
         showNotification(`Email client opened for ${selectedList.length} recipients`, 'success');
     }
 </script>
+
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading page...');
+        resetSessionTimer();
+        
+        // Monitor user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+        
+        // Load page-specific data
+        if (typeof loadPageData === 'function') {
+            await loadPageData();
+        }
+    }
+
+    // Session timer functions (if not already defined)
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+        console.log('Session timer reset');
+    }
+</script>
+
 </body>
 </html>

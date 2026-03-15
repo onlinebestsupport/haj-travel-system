@@ -751,7 +751,9 @@
             }
         }
     </style>
-</head>
+
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
 <body>
     <div class="admin-header">
         <div class="container">
@@ -1715,7 +1717,9 @@
                         .status-active { background: #d4edda; color: #155724; }
                         @media print { body { padding: 15px; } }
                     </style>
-                </head>
+                
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
                 <body>
                     <div class="receipt-header">
                         <h1>Alhudha Haj Travel</h1>
@@ -1724,7 +1728,41 @@
                     </div>
                     ${content}
                     <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">This is a computer generated receipt</p>
-                </body>
+                
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading page...');
+        resetSessionTimer();
+        
+        // Monitor user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+        
+        // Load page-specific data
+        if (typeof loadPageData === 'function') {
+            await loadPageData();
+        }
+    }
+
+    // Session timer functions (if not already defined)
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+        console.log('Session timer reset');
+    }
+</script>
+
+</body>
                 </html>
             `);
             printWindow.document.close();
@@ -1879,12 +1917,48 @@
                         .status-pending { background: #fff3cd; color: #856404; }
                         @media print { th { background: #2c3e50 !important; color: white !important; } }
                     </style>
-                </head>
+                
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
                 <body>
                     <h2>Alhudha Haj Travel - Payments List</h2>
                     <p>Generated on: ${new Date().toLocaleString()}</p>
                     ${table.outerHTML}
-                </body>
+                
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading page...');
+        resetSessionTimer();
+        
+        // Monitor user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+        
+        // Load page-specific data
+        if (typeof loadPageData === 'function') {
+            await loadPageData();
+        }
+    }
+
+    // Session timer functions (if not already defined)
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+        console.log('Session timer reset');
+    }
+</script>
+
+</body>
                 </html>
             `);
             printWindow.print();
@@ -1900,5 +1974,39 @@
         // ====== AUTO-COMPLETE ======
         document.getElementById('amount').addEventListener('input', updateSummary);
     </script>
+
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading page...');
+        resetSessionTimer();
+        
+        // Monitor user activity
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+        
+        // Load page-specific data
+        if (typeof loadPageData === 'function') {
+            await loadPageData();
+        }
+    }
+
+    // Session timer functions (if not already defined)
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+        console.log('Session timer reset');
+    }
+</script>
+
 </body>
 </html>
