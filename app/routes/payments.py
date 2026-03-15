@@ -8,37 +8,48 @@ bp = Blueprint('payments', __name__, url_prefix='/api/payments')
 @bp.route('', methods=['GET'])
 def get_payments():
     """Get all payments with enhanced details"""
-    conn, cursor = get_db()
+    try:
+        conn, cursor = get_db()
+        
+        cursor.execute('''
+            SELECT
+                p.*,
+                t.first_name, t.last_name, t.passport_no,
+                b.batch_name,
+                CASE
+                    WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
+                    ELSE p.status
+                END as current_status
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            JOIN batches b ON p.batch_id = b.id
+            ORDER BY
+                CASE
+                    WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 1
+                    WHEN p.status = 'pending' THEN 2
+                    ELSE 3
+                END,
+                p.payment_date DESC
+        ''')
 
-    cursor.execute('''
-        SELECT
-            p.*,
-            t.first_name, t.last_name, t.passport_no,
-            b.batch_name,
-            CASE
-                WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
-                ELSE p.status
-            END as current_status
-        FROM payments p
-        JOIN travelers t ON p.traveler_id = t.id
-        JOIN batches b ON p.batch_id = b.id
-        ORDER BY
-            CASE
-                WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 1
-                WHEN p.status = 'pending' THEN 2
-                ELSE 3
-            END,
-            p.payment_date DESC
-    ''')
+        payments = cursor.fetchall()
+        cursor.close()
+        conn.close()
 
-    payments = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        'success': True,
-        'payments': [dict(p) for p in payments]
-    })
+        return jsonify({
+            'success': True,
+            'payments': [dict(p) for p in payments]
+        })
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"❌ Payments API error: {str(e)}")
+        print(f"❌ Traceback: {error_details}")
+        return jsonify({
+            'success': False, 
+            'error': str(e),
+            'details': error_details
+        }), 500
 
 @bp.route('/<int:payment_id>', methods=['GET'])
 def get_payment(payment_id):
