@@ -14,7 +14,7 @@ def hash_password(password):
     """Hash a password using werkzeug security"""
     return generate_password_hash(password)
 
-ddef verify_password(password, password_hash):
+def verify_password(password, password_hash):
     """Verify a password against its hash"""
     if not password_hash:
         return False
