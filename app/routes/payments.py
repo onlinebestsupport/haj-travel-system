@@ -1,13 +1,19 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db
+from app.database import get_db, release_db
 from datetime import datetime, timedelta
 import json
+import traceback
 
 bp = Blueprint('payments', __name__, url_prefix='/api/payments')
 
 @bp.route('', methods=['GET'])
 def get_payments():
     """Get all payments with enhanced details"""
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
         
@@ -15,184 +21,163 @@ def get_payments():
             SELECT
                 p.*,
                 t.first_name, t.last_name, t.passport_no,
-                b.batch_name,
-                CASE
-                    WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
-                    ELSE p.status
-                END as current_status
+                b.batch_name
             FROM payments p
-            JOIN travelers t ON p.traveler_id = t.id
-            JOIN batches b ON p.batch_id = b.id
-            ORDER BY
-                CASE
-                    WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 1
-                    WHEN p.status = 'pending' THEN 2
-                    ELSE 3
-                END,
-                p.payment_date DESC
+            LEFT JOIN travelers t ON p.traveler_id = t.id
+            LEFT JOIN batches b ON p.batch_id = b.id
+            ORDER BY p.payment_date DESC
         ''')
 
         payments = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
+        
         return jsonify({
             'success': True,
             'payments': [dict(p) for p in payments]
         })
     except Exception as e:
-        import traceback
         error_details = traceback.format_exc()
         print(f"❌ Payments API error: {str(e)}")
         print(f"❌ Traceback: {error_details}")
-        return jsonify({
-            'success': False, 
-            'error': str(e),
-            'details': error_details
-        }), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/<int:payment_id>', methods=['GET'])
 def get_payment(payment_id):
     """Get single payment with complete details"""
-    conn, cursor = get_db()
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    cursor.execute('''
-        SELECT
-            p.*,
-            t.first_name, t.last_name, t.passport_no, t.mobile, t.email,
-            b.batch_name, b.price as batch_price,
-            CASE
-                WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
-                ELSE p.status
-            END as current_status
-        FROM payments p
-        JOIN travelers t ON p.traveler_id = t.id
-        JOIN batches b ON p.batch_id = b.id
-        WHERE p.id = %s
-    ''', (payment_id,))
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
 
-    payment = cursor.fetchone()
+        cursor.execute('''
+            SELECT
+                p.*,
+                t.first_name, t.last_name, t.passport_no, t.mobile, t.email,
+                b.batch_name
+            FROM payments p
+            LEFT JOIN travelers t ON p.traveler_id = t.id
+            LEFT JOIN batches b ON p.batch_id = b.id
+            WHERE p.id = %s
+        ''', (payment_id,))
 
-    if not payment:
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': 'Payment not found'}), 404
+        payment = cursor.fetchone()
 
-    # Get receipt if exists
-    cursor.execute('SELECT * FROM receipts WHERE payment_id = %s', (payment_id,))
-    receipt = cursor.fetchone()
+        if not payment:
+            return jsonify({'success': False, 'error': 'Payment not found'}), 404
 
-    cursor.close()
-    conn.close()
+        # Get receipt if exists
+        cursor.execute('SELECT * FROM receipts WHERE payment_id = %s', (payment_id,))
+        receipt = cursor.fetchone()
 
-    result = dict(payment)
-    if receipt:
-        result['receipt'] = dict(receipt)
+        result = dict(payment)
+        if receipt:
+            result['receipt'] = dict(receipt)
 
-    return jsonify({'success': True, 'payment': result})
+        return jsonify({'success': True, 'payment': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/traveler/<int:traveler_id>', methods=['GET'])
 def get_traveler_payments(traveler_id):
-    """Get payments for a specific traveler with enhanced details"""
-    conn, cursor = get_db()
+    """Get payments for a specific traveler"""
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    cursor.execute('''
-        SELECT
-            p.*,
-            b.batch_name,
-            CASE
-                WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
-                ELSE p.status
-            END as current_status
-        FROM payments p
-        JOIN batches b ON p.batch_id = b.id
-        WHERE p.traveler_id = %s
-        ORDER BY p.payment_date DESC
-    ''', (traveler_id,))
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
 
-    payments = cursor.fetchall()
+        cursor.execute('''
+            SELECT
+                p.*,
+                b.batch_name
+            FROM payments p
+            LEFT JOIN batches b ON p.batch_id = b.id
+            WHERE p.traveler_id = %s
+            ORDER BY p.payment_date DESC
+        ''', (traveler_id,))
 
-    # Calculate detailed totals
-    cursor.execute('''
-        SELECT
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as paid_count,
-            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-            MAX(CASE WHEN status = 'completed' THEN payment_date END) as last_payment_date
-        FROM payments
-        WHERE traveler_id = %s
-    ''', (traveler_id,))
+        payments = cursor.fetchall()
 
-    totals = cursor.fetchone()
+        # Calculate totals
+        cursor.execute('''
+            SELECT
+                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as paid_count,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+                MAX(CASE WHEN status = 'completed' THEN payment_date END) as last_payment_date
+            FROM payments
+            WHERE traveler_id = %s
+        ''', (traveler_id,))
 
-    # Get overdue payments
-    cursor.execute('''
-        SELECT COUNT(*) as overdue_count,
-               COALESCE(SUM(amount), 0) as overdue_amount
-        FROM payments
-        WHERE traveler_id = %s
-          AND status = 'pending'
-          AND due_date < CURRENT_DATE
-    ''', (traveler_id,))
+        totals = cursor.fetchone()
 
-    overdue = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    return jsonify({
-        'success': True,
-        'payments': [dict(p) for p in payments],
-        'totals': dict(totals) if totals else {},
-        'overdue': dict(overdue) if overdue else {'overdue_count': 0, 'overdue_amount': 0}
-    })
+        return jsonify({
+            'success': True,
+            'payments': [dict(p) for p in payments],
+            'totals': dict(totals) if totals else {}
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/batch/<int:batch_id>', methods=['GET'])
 def get_batch_payments(batch_id):
     """Get all payments for a specific batch"""
-    conn, cursor = get_db()
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    cursor.execute('''
-        SELECT
-            p.*,
-            t.first_name, t.last_name, t.passport_no,
-            CASE
-                WHEN p.status = 'pending' AND p.due_date < CURRENT_DATE THEN 'overdue'
-                ELSE p.status
-            END as current_status
-        FROM payments p
-        JOIN travelers t ON p.traveler_id = t.id
-        WHERE p.batch_id = %s
-        ORDER BY p.payment_date DESC
-    ''', (batch_id,))
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
 
-    payments = cursor.fetchall()
+        cursor.execute('''
+            SELECT
+                p.*,
+                t.first_name, t.last_name, t.passport_no
+            FROM payments p
+            LEFT JOIN travelers t ON p.traveler_id = t.id
+            WHERE p.batch_id = %s
+            ORDER BY p.payment_date DESC
+        ''', (batch_id,))
 
-    # Batch payment summary
-    cursor.execute('''
-        SELECT
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
-            COUNT(DISTINCT traveler_id) as paying_travelers
-        FROM payments
-        WHERE batch_id = %s
-    ''', (batch_id,))
+        payments = cursor.fetchall()
 
-    summary = cursor.fetchone()
+        # Batch payment summary
+        cursor.execute('''
+            SELECT
+                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
+                COUNT(DISTINCT traveler_id) as paying_travelers
+            FROM payments
+            WHERE batch_id = %s
+        ''', (batch_id,))
 
-    cursor.close()
-    conn.close()
+        summary = cursor.fetchone()
 
-    return jsonify({
-        'success': True,
-        'payments': [dict(p) for p in payments],
-        'summary': dict(summary) if summary else {}
-    })
+        return jsonify({
+            'success': True,
+            'payments': [dict(p) for p in payments],
+            'summary': dict(summary) if summary else {}
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('', methods=['POST'])
 def create_payment():
-    """Create new payment with enhanced features"""
+    """Create new payment"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
@@ -212,45 +197,33 @@ def create_payment():
     except ValueError:
         return jsonify({'success': False, 'error': 'Invalid amount format'}), 400
 
-    conn, cursor = get_db()
-
+    conn = None
+    cursor = None
     try:
-        # Check if traveler exists and belongs to batch
-        cursor.execute('''
-            SELECT id, first_name, last_name FROM travelers
-            WHERE id = %s AND batch_id = %s
-        ''', (data['traveler_id'], data['batch_id']))
+        conn, cursor = get_db()
 
+        # Check if traveler exists
+        cursor.execute('SELECT id, first_name, last_name FROM travelers WHERE id = %s', (data['traveler_id'],))
         traveler = cursor.fetchone()
         if not traveler:
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'Traveler not found or does not belong to this batch'}), 400
-
-        # Calculate due date if not provided (default 30 days)
-        due_date = data.get('due_date')
-        if not due_date:
-            due_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+            return jsonify({'success': False, 'error': 'Traveler not found'}), 400
 
         # Insert payment
         cursor.execute('''
             INSERT INTO payments (
-                traveler_id, batch_id, amount, payment_date, due_date,
-                payment_method, transaction_id, installment, status, remarks,
-                created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                traveler_id, batch_id, amount, payment_date,
+                payment_method, status, reference, notes, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (
             data['traveler_id'],
             data['batch_id'],
             amount,
             data['payment_date'],
-            due_date,
             data['payment_method'],
-            data.get('transaction_id'),
-            data.get('installment'),
             data.get('status', 'completed'),
-            data.get('remarks'),
+            data.get('reference'),
+            data.get('notes'),
             datetime.now()
         ))
 
@@ -258,15 +231,14 @@ def create_payment():
         payment_id = result['id'] if result else None
 
         # Create receipt automatically for completed payments
-        if data.get('status', 'completed') == 'completed':
+        if data.get('status', 'completed') == 'completed' and payment_id:
             receipt_number = f"REC-{datetime.now().strftime('%Y%m%d')}-{payment_id}"
 
             cursor.execute('''
                 INSERT INTO receipts (
                     receipt_number, traveler_id, payment_id, receipt_date,
-                    amount, payment_method, transaction_id, receipt_type,
-                    installment_info, remarks, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    amount, payment_method, created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
             ''', (
                 receipt_number,
                 data['traveler_id'],
@@ -274,24 +246,10 @@ def create_payment():
                 data['payment_date'],
                 amount,
                 data['payment_method'],
-                data.get('transaction_id'),
-                data.get('installment', 'payment'),
-                data.get('installment_info'),
-                f"Payment receipt for {data.get('installment', 'Payment')}",
                 datetime.now()
             ))
 
-        # Log activity
-        log_activity(
-            session['user_id'],
-            'create',
-            'payment',
-            f'Recorded payment of ₹{amount} for traveler {traveler["first_name"]} {traveler["last_name"]}'
-        )
-
         conn.commit()
-        cursor.close()
-        conn.close()
 
         return jsonify({
             'success': True,
@@ -300,10 +258,11 @@ def create_payment():
         })
 
     except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/<int:payment_id>', methods=['PUT'])
 def update_payment(payment_id):
@@ -313,147 +272,48 @@ def update_payment(payment_id):
 
     data = request.json
 
-    conn, cursor = get_db()
-
+    conn = None
+    cursor = None
     try:
-        # Check if payment exists
-        cursor.execute('SELECT id, traveler_id, amount FROM payments WHERE id = %s', (payment_id,))
-        payment = cursor.fetchone()
+        conn, cursor = get_db()
 
-        if not payment:
-            cursor.close()
-            conn.close()
+        # Check if payment exists
+        cursor.execute('SELECT id FROM payments WHERE id = %s', (payment_id,))
+        if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Payment not found'}), 404
 
         # Update payment
         cursor.execute('''
             UPDATE payments SET
-                amount = %s,
-                payment_date = %s,
-                due_date = %s,
-                payment_method = %s,
-                transaction_id = %s,
-                installment = %s,
-                status = %s,
-                remarks = %s,
+                amount = COALESCE(%s, amount),
+                payment_date = COALESCE(%s, payment_date),
+                payment_method = COALESCE(%s, payment_method),
+                reference = COALESCE(%s, reference),
+                notes = COALESCE(%s, notes),
+                status = COALESCE(%s, status),
                 updated_at = %s
             WHERE id = %s
         ''', (
-            data.get('amount', payment['amount']),
+            data.get('amount'),
             data.get('payment_date'),
-            data.get('due_date'),
             data.get('payment_method'),
-            data.get('transaction_id'),
-            data.get('installment'),
+            data.get('reference'),
+            data.get('notes'),
             data.get('status'),
-            data.get('remarks'),
             datetime.now(),
             payment_id
         ))
 
-        # Log activity
-        log_activity(
-            session['user_id'],
-            'update',
-            'payment',
-            f'Updated payment ID: {payment_id}'
-        )
-
         conn.commit()
-        cursor.close()
-        conn.close()
 
         return jsonify({'success': True, 'message': 'Payment updated successfully'})
 
     except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
-
-@bp.route('/<int:payment_id>/reverse', methods=['POST'])
-def reverse_payment(payment_id):
-    """Reverse/refund a payment"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
-    data = request.json
-
-    conn, cursor = get_db()
-
-    try:
-        # Check if payment exists and is completed
-        cursor.execute('''
-            SELECT p.*, t.first_name, t.last_name
-            FROM payments p
-            JOIN travelers t ON p.traveler_id = t.id
-            WHERE p.id = %s
-        ''', (payment_id,))
-
-        payment = cursor.fetchone()
-
-        if not payment:
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'Payment not found'}), 404
-
-        if payment['status'] != 'completed':
-            cursor.close()
-            conn.close()
-            return jsonify({'success': False, 'error': 'Only completed payments can be reversed'}), 400
-
-        # Update payment status to reversed
-        cursor.execute('''
-            UPDATE payments SET
-                status = 'reversed',
-                remarks = %s,
-                updated_at = %s
-            WHERE id = %s
-        ''', (
-            f"Reversed: {data.get('reason', 'No reason provided')} - {data.get('remarks', '')}",
-            datetime.now(),
-            payment_id
-        ))
-
-        # Create reversal record (optional - could create negative payment)
-        cursor.execute('''
-            INSERT INTO payments (
-                traveler_id, batch_id, amount, payment_date,
-                payment_method, transaction_id, installment, status, remarks,
-                created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (
-            payment['traveler_id'],
-            payment['batch_id'],
-            -payment['amount'],  # Negative amount for reversal
-            datetime.now().strftime('%Y-%m-%d'),
-            payment['payment_method'],
-            f"REV-{payment['transaction_id']}" if payment['transaction_id'] else None,
-            f"Reversal of {payment['installment']}" if payment['installment'] else 'Reversal',
-            'reversed',
-            f"Reversal of payment {payment_id}: {data.get('reason', '')} - {data.get('remarks', '')}",
-            datetime.now()
-        ))
-
-        # Log activity
-        log_activity(
-            session['user_id'],
-            'reverse',
-            'payment',
-            f'Reversed payment ID: {payment_id} of ₹{payment["amount"]}'
-        )
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({'success': True, 'message': 'Payment reversed successfully'})
-
-    except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/stats', methods=['GET'])
 def get_payment_stats():
@@ -461,118 +321,96 @@ def get_payment_stats():
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    conn, cursor = get_db()
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
 
-    # Overall statistics
-    cursor.execute('''
-        SELECT
-            COUNT(*) as total_transactions,
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
-            COALESCE(SUM(CASE WHEN status = 'reversed' THEN amount ELSE 0 END), 0) as total_reversed,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
-            COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-            COUNT(CASE WHEN status = 'reversed' THEN 1 END) as reversed_count
-        FROM payments
-    ''')
-    overall = cursor.fetchone()
+        # Overall statistics
+        cursor.execute('''
+            SELECT
+                COUNT(*) as total_transactions,
+                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
+                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
+            FROM payments
+        ''')
+        overall = cursor.fetchone()
 
-    # Payment method breakdown
-    cursor.execute('''
-        SELECT
-            payment_method,
-            COUNT(*) as count,
-            COALESCE(SUM(amount), 0) as total
-        FROM payments
-        WHERE status = 'completed'
-        GROUP BY payment_method
-        ORDER BY total DESC
-    ''')
-    method_breakdown = cursor.fetchall()
+        # Payment method breakdown
+        cursor.execute('''
+            SELECT
+                payment_method,
+                COUNT(*) as count,
+                COALESCE(SUM(amount), 0) as total
+            FROM payments
+            WHERE status = 'completed'
+            GROUP BY payment_method
+            ORDER BY total DESC
+        ''')
+        method_breakdown = cursor.fetchall()
 
-    # Monthly summary (last 6 months)
-    cursor.execute('''
-        SELECT
-            TO_CHAR(payment_date, 'YYYY-MM') as month,
-            COUNT(*) as transactions,
-            COALESCE(SUM(amount), 0) as total
-        FROM payments
-        WHERE status = 'completed'
-          AND payment_date >= CURRENT_DATE - INTERVAL '6 months'
-        GROUP BY TO_CHAR(payment_date, 'YYYY-MM')
-        ORDER BY month DESC
-    ''')
-    monthly = cursor.fetchall()
+        # Monthly summary (last 6 months)
+        cursor.execute('''
+            SELECT
+                TO_CHAR(payment_date, 'YYYY-MM') as month,
+                COUNT(*) as transactions,
+                COALESCE(SUM(amount), 0) as total
+            FROM payments
+            WHERE status = 'completed'
+              AND payment_date >= CURRENT_DATE - INTERVAL '6 months'
+            GROUP BY TO_CHAR(payment_date, 'YYYY-MM')
+            ORDER BY month DESC
+        ''')
+        monthly = cursor.fetchall()
 
-    # Overdue payments
-    cursor.execute('''
-        SELECT
-            COUNT(*) as overdue_count,
-            COALESCE(SUM(amount), 0) as overdue_amount
-        FROM payments
-        WHERE status = 'pending'
-          AND due_date < CURRENT_DATE
-    ''')
-    overdue = cursor.fetchone()
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_transactions': overall['total_transactions'] if overall else 0,
+                'total_collected': float(overall['total_collected']) if overall and overall['total_collected'] else 0,
+                'pending_amount': float(overall['total_pending']) if overall and overall['total_pending'] else 0,
+                'completed_count': overall['completed_count'] if overall else 0,
+                'pending_count': overall['pending_count'] if overall else 0
+            },
+            'payment_methods': [dict(m) for m in method_breakdown],
+            'monthly_summary': [dict(m) for m in monthly]
+        })
 
-    cursor.close()
-    conn.close()
-
-    # Format status counts
-    status_counts = {}
-    if overall:
-        status_counts['completed'] = overall['completed_count']
-        status_counts['pending'] = overall['pending_count']
-        status_counts['reversed'] = overall['reversed_count']
-
-    return jsonify({
-        'success': True,
-        'stats': {
-            'total_transactions': overall['total_transactions'] if overall else 0,
-            'total_collected': float(overall['total_collected']) if overall and overall['total_collected'] else 0,
-            'pending_amount': float(overall['total_pending']) if overall and overall['total_pending'] else 0,
-            'total_reversed': float(overall['total_reversed']) if overall and overall['total_reversed'] else 0,
-            'status_counts': status_counts,
-            'overdue': dict(overdue) if overdue else {'overdue_count': 0, 'overdue_amount': 0}
-        },
-        'payment_methods': [dict(m) for m in method_breakdown],
-        'monthly_summary': [dict(m) for m in monthly]
-    })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('/<int:payment_id>/receipt', methods=['GET'])
 def get_payment_receipt(payment_id):
     """Get receipt for a payment"""
-    conn, cursor = get_db()
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    cursor.execute('''
-        SELECT r.*, p.*, t.first_name, t.last_name, t.passport_no, b.batch_name
-        FROM receipts r
-        JOIN payments p ON r.payment_id = p.id
-        JOIN travelers t ON p.traveler_id = t.id
-        JOIN batches b ON p.batch_id = b.id
-        WHERE r.payment_id = %s
-    ''', (payment_id,))
-
-    receipt = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    if receipt:
-        return jsonify({'success': True, 'receipt': dict(receipt)})
-    else:
-        return jsonify({'success': False, 'error': 'Receipt not found'}), 404
-
-# Helper function to log activity
-def log_activity(user_id, action, module, description):
-    """Log user activity"""
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
-        cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
-            (user_id, action, module, description, request.remote_addr, datetime.now())
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
+
+        cursor.execute('''
+            SELECT r.*, p.*, t.first_name, t.last_name, t.passport_no, b.batch_name
+            FROM receipts r
+            JOIN payments p ON r.payment_id = p.id
+            JOIN travelers t ON p.traveler_id = t.id
+            JOIN batches b ON p.batch_id = b.id
+            WHERE r.payment_id = %s
+        ''', (payment_id,))
+
+        receipt = cursor.fetchone()
+
+        if receipt:
+            return jsonify({'success': True, 'receipt': dict(receipt)})
+        else:
+            return jsonify({'success': False, 'error': 'Receipt not found'}), 404
+
     except Exception as e:
-        print(f"⚠️ Activity log error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
