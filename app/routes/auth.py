@@ -14,13 +14,19 @@ def hash_password(password):
     """Hash a password using werkzeug security"""
     return generate_password_hash(password)
 
-def verify_password(password, password_hash):
+ddef verify_password(password, password_hash):
     """Verify a password against its hash"""
-    if not password_hash or password_hash.startswith('$2'):  # bcrypt format
+    if not password_hash:
+        return False
+    
+    # Check if it's a werkzeug hash (starts with pbkdf2:sha256)
+    if password_hash.startswith('pbkdf2:sha256'):
+        return check_password_hash(password_hash, password)
+    # Check if it's a bcrypt hash (starts with $2)
+    elif password_hash.startswith('$2'):
         return check_password_hash(password_hash, password)
     else:
-        # Legacy plain text comparison (temporary fallback)
-        # TODO: Remove after all passwords are migrated
+        # Legacy plain text comparison
         return password == password_hash
 
 def migrate_password_to_hash(conn, cursor, user_id, plain_password):
