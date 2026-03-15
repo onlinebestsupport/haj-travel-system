@@ -43,8 +43,12 @@ def save_uploaded_file(file, traveler_id, doc_type):
     
     return filename
 
+# In app/routes/travelers.py, replace the log_activity function with:
+
 def log_activity(user_id, action, module, description, ip_address=None):
-    """Log user activity"""
+    """Log user activity with proper connection handling"""
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
         cursor.execute(
@@ -52,10 +56,10 @@ def log_activity(user_id, action, module, description, ip_address=None):
             (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
         )
         conn.commit()
-        cursor.close()
-        conn.close()
     except Exception as e:
         print(f"⚠️ Error logging activity: {e}")
+    finally:
+        release_db(conn, cursor)
 
 @bp.route('', methods=['GET'])
 def get_travelers():
