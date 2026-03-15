@@ -54,7 +54,19 @@ _db_init_lock = threading.Lock()
 _db_init_started = False
 
 # ====== APP CONFIGURATION ======
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'alhudha-haj-secret-key-2026')
+# Use environment variable with strong fallback for development only
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
+        # In production, require SECRET_KEY to be set
+        raise ValueError("SECRET_KEY environment variable must be set in production")
+    else:
+        # Development fallback - generate from system randomness
+        import secrets
+        SECRET_KEY = secrets.token_hex(32)
+        print(f"⚠️ WARNING: Using generated development SECRET_KEY. Set SECRET_KEY in production!")
+
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -63,13 +75,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
 app.config['SESSION_COOKIE_DOMAIN'] = None
 app.config['SESSION_COOKIE_PATH'] = '/'
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SECURE'] = True  # ✅ FIXED: Set to True for HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
-app.config['SESSION_COOKIE_PERSISTENT'] = True
 
 # ====== 📁 DIRECTORY PATHS ======
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
