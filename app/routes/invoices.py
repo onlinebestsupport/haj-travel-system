@@ -58,7 +58,7 @@ def create_invoice():
 
     data = request.json
 
-    required = ['traveler_id', 'batch_id', 'base_amount', 'invoice_date']
+    required = ['traveler_id', 'batch_id', 'amount']
     for field in required:
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} is required'}), 400
@@ -67,53 +67,31 @@ def create_invoice():
     timestamp = int(datetime.now().timestamp())
     invoice_number = f"INV-{datetime.now().strftime('%Y%m%d')}-{data['traveler_id']}-{timestamp}"
 
-    # Calculate GST and TCS
-    try:
-        base_amount = float(data['base_amount'])
-    except ValueError:
-        return jsonify({'success': False, 'error': 'Invalid base amount'}), 400
-
-    gst_percent = float(data.get('gst_percent', 5))
-    tcs_percent = float(data.get('tcs_percent', 1))
-
-    gst_amount = base_amount * (gst_percent / 100)
-    tcs_amount = base_amount * (tcs_percent / 100)
-    total_amount = base_amount + gst_amount + tcs_amount
-
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
-
+        
+        # Based on actual schema: id, traveler_id, batch_id, invoice_number, amount, due_date, status, items, created_at, updated_at
         cursor.execute("""
             INSERT INTO invoices (
-                invoice_number, traveler_id, batch_id, invoice_date, due_date,
-                base_amount, gst_percent, gst_amount, tcs_percent, tcs_amount,
-                total_amount, hsn_code, place_of_supply, notes, created_at, updated_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                invoice_number, traveler_id, batch_id, amount, due_date, status, items, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
             invoice_number,
             data['traveler_id'],
             data['batch_id'],
-            data['invoice_date'],
+            data['amount'],
             data.get('due_date'),
-            base_amount,
-            gst_percent,
-            gst_amount,
-            tcs_percent,
-            tcs_amount,
-            total_amount,
-            data.get('hsn_code', '9985'),
-            data.get('place_of_supply'),
-            data.get('notes'),
+            data.get('status', 'pending'),
+            json.dumps(data.get('items', [])),
             datetime.now(),
             datetime.now()
         ))
 
         result = cursor.fetchone()
         invoice_id = result['id'] if result else None
-
         conn.commit()
 
         return jsonify({

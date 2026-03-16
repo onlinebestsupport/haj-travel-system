@@ -58,7 +58,7 @@ def create_receipt():
 
     data = request.json
 
-    required = ['traveler_id', 'amount', 'receipt_date', 'payment_method']
+    required = ['traveler_id', 'amount', 'receipt_date']
     for field in required:
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} is required'}), 400
@@ -71,12 +71,12 @@ def create_receipt():
     cursor = None
     try:
         conn, cursor = get_db()
-
+        
+        # Based on actual schema: id, traveler_id, payment_id, receipt_number, amount, receipt_date, created_at
         cursor.execute("""
             INSERT INTO receipts (
-                receipt_number, traveler_id, payment_id, amount, receipt_date,
-                payment_method, notes, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                receipt_number, traveler_id, payment_id, amount, receipt_date, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (
             receipt_number,
@@ -84,8 +84,6 @@ def create_receipt():
             data.get('payment_id'),
             data['amount'],
             data['receipt_date'],
-            data['payment_method'],
-            data.get('notes'),
             datetime.now()
         ))
 
