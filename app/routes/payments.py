@@ -16,10 +16,13 @@ def get_payments():
     cursor = None
     try:
         conn, cursor = get_db()
-        
+
+        # Explicitly list all columns from payments table
         cursor.execute('''
             SELECT
-                p.*,
+                p.id, p.traveler_id, p.batch_id, p.amount, 
+                p.payment_date, p.payment_method, p.status, 
+                p.reference, p.notes, p.created_at, p.updated_at,
                 t.first_name, t.last_name, t.passport_no,
                 b.batch_name
             FROM payments p
@@ -30,10 +33,17 @@ def get_payments():
 
         payments = cursor.fetchall()
         
+        # Convert to list of dicts
+        result = []
+        for p in payments:
+            payment_dict = dict(p)
+            result.append(payment_dict)
+
         return jsonify({
             'success': True,
-            'payments': [dict(p) for p in payments]
+            'payments': result
         })
+        
     except Exception as e:
         error_details = traceback.format_exc()
         print(f"❌ Payments API error: {str(e)}")
