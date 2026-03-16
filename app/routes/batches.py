@@ -24,60 +24,22 @@ def get_batches():
         if conn:
             release_db(conn, cursor)
 
-@bp.route('/<int:batch_id>', methods=['PUT'])
-def update_batch(batch_id):
-    """Update batch"""
-    if 'user_id' not in session:
+@bp.route('/<int:batch_id>', methods=['GET'])
+def get_batch(batch_id):
+    """Get single batch"""
+    if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    data = request.json
     
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
-        
-        # Check if batch exists
-        cursor.execute("SELECT id FROM batches WHERE id = %s", (batch_id,))
-        if not cursor.fetchone():
+        cursor.execute("SELECT * FROM batches WHERE id = %s", (batch_id,))
+        batch = cursor.fetchone()
+        if not batch:
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-        # Simple update with all possible fields
-        cursor.execute("""
-            UPDATE batches SET
-                batch_name = COALESCE(%s, batch_name),
-                total_seats = COALESCE(%s, total_seats),
-                price = COALESCE(%s, price),
-                departure_date = COALESCE(%s, departure_date),
-                return_date = COALESCE(%s, return_date),
-                status = COALESCE(%s, status),
-                description = COALESCE(%s, description),
-                updated_at = %s
-            WHERE id = %s
-        """, (
-            data.get('batch_name'),
-            data.get('total_seats'),
-            data.get('price'),
-            data.get('departure_date'),
-            data.get('return_date'),
-            data.get('status'),
-            data.get('description'),
-            datetime.now(),
-            batch_id
-        ))
-        
-        conn.commit()
-        
-        # Verify update
-        cursor.execute("SELECT price FROM batches WHERE id = %s", (batch_id,))
-        result = cursor.fetchone()
-        print(f"Updated price to: {result['price'] if result else 'N/A'}")
-        
-        return jsonify({'success': True, 'message': 'Batch updated successfully'})
-        
+        return jsonify({'success': True, 'batch': dict(batch)})
     except Exception as e:
-        if conn:
-            conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         if conn:
@@ -92,10 +54,8 @@ def create_batch():
     data = request.json
     
     # Validate required fields
-    required = ['batch_name']
-    for field in required:
-        if not data.get(field):
-            return jsonify({'success': False, 'error': f'{field} is required'}), 400
+    if not data.get('batch_name'):
+        return jsonify({'success': False, 'error': 'Batch name is required'}), 400
     
     conn = None
     cursor = None
@@ -152,40 +112,33 @@ def update_batch(batch_id):
         if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
         
-        # Build update query dynamically
-        updates = []
-        values = []
+        # Update batch
+        cursor.execute("""
+            UPDATE batches SET
+                batch_name = COALESCE(%s, batch_name),
+                total_seats = COALESCE(%s, total_seats),
+                price = COALESCE(%s, price),
+                departure_date = COALESCE(%s, departure_date),
+                return_date = COALESCE(%s, return_date),
+                status = COALESCE(%s, status),
+                description = COALESCE(%s, description),
+                updated_at = %s
+            WHERE id = %s
+        """, (
+            data.get('batch_name'),
+            data.get('total_seats'),
+            data.get('price'),
+            data.get('departure_date'),
+            data.get('return_date'),
+            data.get('status'),
+            data.get('description'),
+            datetime.now(),
+            batch_id
+        ))
         
-        # All fields that can be updated
-        updateable_fields = [
-            'batch_name', 'total_seats', 'price', 'departure_date', 
-            'return_date', 'status', 'description', 'itinerary',
-            'inclusions', 'exclusions', 'hotel_details', 
-            'transport_details', 'meal_plan'
-        ]
+        conn.commit()
+        return jsonify({'success': True, 'message': 'Batch updated successfully'})
         
-        for field in updateable_fields:
-            if field in data and data[field] is not None:
-                updates.append(f"{field} = %s")
-                values.append(data[field])
-        
-        if updates:
-            values.append(datetime.now())
-            values.append(batch_id)
-            query = f"UPDATE batches SET {', '.join(updates)}, updated_at = %s WHERE id = %s"
-            cursor.execute(query, values)
-            conn.commit()
-            
-            # Verify the update
-            cursor.execute("SELECT price FROM batches WHERE id = %s", (batch_id,))
-            result = cursor.fetchone()
-            if result:
-                print(f"Updated price: {result['price']}")
-            
-            return jsonify({'success': True, 'message': 'Batch updated successfully'})
-        else:
-            return jsonify({'success': True, 'message': 'No fields to update'})
-            
     except Exception as e:
         if conn:
             conn.rollback()
@@ -226,6 +179,7 @@ def delete_batch(batch_id):
         if conn:
             release_db(conn, cursor)
 
+# Additional endpoints (make sure these don't conflict)
 @bp.route('/<int:batch_id>/travelers', methods=['GET'])
 def get_batch_travelers(batch_id):
     """Get travelers in a batch"""
@@ -270,60 +224,7 @@ def get_batch_payments(batch_id):
         ''', (batch_id,))
         
         payments = cursor.fetchall()
-        
-        # Get payment summary
-        cursor.execute('''
-            SELECT
-                COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending,
-                COUNT(DISTINCT traveler_id) as paying_travelers
-            FROM payments
-            WHERE batch_id = %s
-        ''', (batch_id,))
-        
-        summary = cursor.fetchone()
-        
-        return jsonify({
-            'success': True,
-            'payments': [dict(p) for p in payments],
-            'summary': dict(summary) if summary else {}
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        if conn:
-            release_db(conn, cursor)
-
-@bp.route('/<int:batch_id>/stats', methods=['GET'])
-def get_batch_stats(batch_id):
-    """Get statistics for a batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn = None
-    cursor = None
-    try:
-        conn, cursor = get_db()
-        
-        # Get batch details with traveler count
-        cursor.execute('''
-            SELECT 
-                b.*,
-                COUNT(t.id) as traveler_count,
-                COALESCE(SUM(CASE WHEN p.status = 'completed' THEN p.amount ELSE 0 END), 0) as total_collected
-            FROM batches b
-            LEFT JOIN travelers t ON b.id = t.batch_id
-            LEFT JOIN payments p ON b.id = p.batch_id AND p.status = 'completed'
-            WHERE b.id = %s
-            GROUP BY b.id
-        ''', (batch_id,))
-        
-        batch = cursor.fetchone()
-        
-        if not batch:
-            return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-        return jsonify({'success': True, 'stats': dict(batch)})
+        return jsonify({'success': True, 'payments': [dict(p) for p in payments]})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
@@ -346,15 +247,12 @@ def get_batches_summary():
                 COUNT(*) as total_batches,
                 SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_batches,
                 SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_batches,
-                SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) as cancelled_batches,
                 COALESCE(SUM(total_seats), 0) as total_seats,
-                COALESCE(SUM(booked_seats), 0) as total_booked,
-                COALESCE(SUM(price * booked_seats), 0) as estimated_revenue
+                COALESCE(SUM(booked_seats), 0) as total_booked
             FROM batches
         ''')
         
         summary = cursor.fetchone()
-        
         return jsonify({'success': True, 'summary': dict(summary) if summary else {}})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
