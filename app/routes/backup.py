@@ -1,53 +1,38 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, jsonify, session
 from app.database import get_db, release_db
-from datetime import datetime
+import traceback
+import sys
+
+print("🔵 LOADING backup.py BLUEPRINT...", file=sys.stderr)
 
 bp = Blueprint('backup', __name__, url_prefix='/api/backup')
 
+print(f"🔵 Blueprint 'backup' created with url_prefix: /api/backup", file=sys.stderr)
+
 @bp.route('', methods=['GET'])
 def get_backups():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    """Get all backups"""
+    print("🔵 get_backups() called", file=sys.stderr)
     
-    conn, cursor = get_db()
     try:
-        cursor.execute('SELECT * FROM backup_history ORDER BY created_at DESC')
-        backups = cursor.fetchall()
-        return jsonify({'success': True, 'backups': [dict(b) for b in backups]})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
+        if 'user_id' not in session:
+            print("🔴 Unauthorized - no user_id in session", file=sys.stderr)
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-@bp.route('/create', methods=['POST'])
-def create_backup():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    conn, cursor = get_db()
-    try:
-        cursor.execute('INSERT INTO backup_history (backup_name, status, created_at) VALUES (%s, %s, %s) RETURNING id',
-                      (data.get('backup_name', f"Backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"), 'completed', datetime.now()))
-        result = cursor.fetchone()
-        conn.commit()
-        return jsonify({'success': True, 'backup_id': result['id']})
+        conn, cursor = get_db()
+        try:
+            cursor.execute('SELECT * FROM backup_history ORDER BY created_at DESC')
+            backups = cursor.fetchall()
+            return jsonify({'success': True, 'backups': [dict(b) for b in backups]})
+        except Exception as e:
+            print(f"🔴 Backup error: {str(e)}", file=sys.stderr)
+            print(f"🔴 Traceback: {traceback.format_exc()}", file=sys.stderr)
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
+            
     except Exception as e:
+        print(f"🔴 Unexpected error: {str(e)}", file=sys.stderr)
         return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
 
-@bp.route('/settings', methods=['GET'])
-def get_settings():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    try:
-        cursor.execute('SELECT * FROM backup_settings LIMIT 1')
-        settings = cursor.fetchone()
-        return jsonify({'success': True, 'settings': dict(settings) if settings else {}})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
+print("🔵 backup.py blueprint loaded successfully!", file=sys.stderr)
