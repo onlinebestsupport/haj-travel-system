@@ -60,12 +60,13 @@ def get_upload_folder(doc_type='document'):
     
     # Create folder if it doesn't exist
     try:
-    os.makedirs(folder_path, exist_ok=True)
+        conn, cursor = get_db()
+        # your code here
+        conn.commit()
     except Exception as e:
-        print(f"⚠️ Error creating upload folder {folder_path}: {e}")
-    
-    return folder_path
-
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
 def get_upload_subfolder(doc_type):
     """Get upload subfolder name for URL generation"""
     folders = {

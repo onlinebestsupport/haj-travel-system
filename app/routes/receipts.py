@@ -33,6 +33,11 @@ def get_receipts():
     except Exception as e:
         return jsonify({\'success\': False, \'error\': str(e)}), 500
     finally:
+        release_db(conn, cursor)
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
         release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
@@ -204,6 +209,11 @@ def get_payment_receipts(payment_id):
     except Exception as e:
         return jsonify({\'success\': False, \'error\': str(e)}), 500
     finally:
+        release_db(conn, cursor)
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
         release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
@@ -237,6 +247,11 @@ def get_traveler_receipts(traveler_id):
     ''', (traveler_id,))
     
     receipts = cursor.fetchall()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
         conn.commit()
     except Exception as e:
         return jsonify({\'success\': False, \'error\': str(e)}), 500
@@ -419,6 +434,11 @@ def get_receipts_by_date_range():
     
     receipts = cursor.fetchall()
     
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
         conn.commit()
     except Exception as e:
         return jsonify({\'success\': False, \'error\': str(e)}), 500

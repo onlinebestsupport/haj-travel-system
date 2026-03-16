@@ -50,23 +50,13 @@ def log_activity(user_id, action, module, description, ip_address=None):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
-        try:
-    cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
-            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
-        )
+        conn, cursor = get_db()
+        # your code here
         conn.commit()
     except Exception as e:
-        print(f"⚠️ Error logging activity: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
-        # Close cursor and connection properly without relying on release_db
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-@bp.route('', methods=['GET'])
+        release_db(conn, cursor)
 def get_travelers():
     """Get all travelers with complete details"""
     # Check authentication

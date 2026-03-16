@@ -15,23 +15,30 @@ def get_batches():
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
-        
+        conn, cursor = get_db()
         try:
-    cursor.execute('''
+            conn, cursor = get_db()
+        
+            try:
+            cursor.execute('''
             SELECT 
-                b.*,
-                COUNT(t.id) as traveler_count,
-                COALESCE(SUM(p.amount), 0) as total_collected
+            b.*,
+            COUNT(t.id) as traveler_count,
+            COALESCE(SUM(p.amount), 0) as total_collected
             FROM batches b
             LEFT JOIN travelers t ON b.id = t.batch_id
             LEFT JOIN payments p ON b.id = p.batch_id AND p.status = 'completed'
             GROUP BY b.id
             ORDER BY b.departure_date NULLS LAST, b.created_at DESC
-        ''')
+            ''')
         
-        batches = cursor.fetchall()
+            batches = cursor.fetchall()
         
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
         return jsonify({
             'success': True,
             'batches': batches
@@ -52,23 +59,30 @@ def get_batch(batch_id):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
+        try:
+            conn, cursor = get_db()
         
-        cursor.execute('''
+            cursor.execute('''
             SELECT 
-                b.*,
-                COUNT(t.id) as traveler_count,
-                COALESCE(SUM(p.amount), 0) as total_collected
+            b.*,
+            COUNT(t.id) as traveler_count,
+            COALESCE(SUM(p.amount), 0) as total_collected
             FROM batches b
             LEFT JOIN travelers t ON b.id = t.batch_id
             LEFT JOIN payments p ON b.id = p.batch_id AND p.status = 'completed'
             WHERE b.id = %s
             GROUP BY b.id
-        ''', (batch_id,))
+            ''', (batch_id,))
         
-        batch = cursor.fetchone()
+            batch = cursor.fetchone()
         
-        if not batch:
+            if not batch:
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
         
         # Get travelers in this batch
@@ -135,41 +149,48 @@ def create_batch():
     now = datetime.now()
     
     try:
-    cursor.execute('''
-        INSERT INTO batches (
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            INSERT INTO batches (
             batch_name, total_seats, booked_seats, price, 
             departure_date, return_date, status, description,
             itinerary, inclusions, exclusions, hotel_details,
             transport_details, meal_plan, created_at, updated_at
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id
-    ''', (
-        data['batch_name'],
-        data.get('total_seats', 150),
-        0,  # booked_seats starts at 0
-        data.get('price'),
-        data.get('departure_date'),
-        data.get('return_date'),
-        data.get('status', 'Open'),
-        data.get('description', ''),
-        data.get('itinerary', ''),
-        data.get('inclusions', ''),
-        data.get('exclusions', ''),
-        data.get('hotel_details', ''),
-        data.get('transport_details', ''),
-        data.get('meal_plan', ''),
-        now,
-        now
-    ))
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            ''', (
+            data['batch_name'],
+            data.get('total_seats', 150),
+            0,  # booked_seats starts at 0
+            data.get('price'),
+            data.get('departure_date'),
+            data.get('return_date'),
+            data.get('status', 'Open'),
+            data.get('description', ''),
+            data.get('itinerary', ''),
+            data.get('inclusions', ''),
+            data.get('exclusions', ''),
+            data.get('hotel_details', ''),
+            data.get('transport_details', ''),
+            data.get('meal_plan', ''),
+            now,
+            now
+            ))
     
-    batch_id = cursor.fetchone()['id']
-    conn.commit()
+            batch_id = cursor.fetchone()['id']
+            conn.commit()
     
-    # Log activity
-    log_activity(session['user_id'], 'create', 'batch', f'Created batch: {data["batch_name"]}')
+            # Log activity
+            log_activity(session['user_id'], 'create', 'batch', f'Created batch: {data["batch_name"]}')
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -191,10 +212,17 @@ def update_batch(batch_id):
     
     # Check if batch exists
     try:
-    cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
-    if not cursor.fetchone():
-        cursor.close()
-        conn.close()
+        conn, cursor = get_db()
+        try:
+            cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
+            if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Batch not found'}), 404
@@ -202,12 +230,19 @@ def update_batch(batch_id):
     now = datetime.now()
     
     try:
-    cursor.execute('''
-        UPDATE batches SET
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            UPDATE batches SET
             batch_name = %s,
             total_seats = %s,
             price = %s,
             departure_date = %s,
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
             return_date = %s,
             status = %s,
             description = %s,
@@ -262,13 +297,20 @@ def delete_batch(batch_id):
     
     # Check if batch has travelers
     try:
-    cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
-    result = cursor.fetchone()
-    count = result['count'] if result else 0
+        conn, cursor = get_db()
+        try:
+            cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
+            result = cursor.fetchone()
+            count = result['count'] if result else 0
     
-    if count > 0:
-        cursor.close()
-        conn.close()
+            if count > 0:
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
         return jsonify({
@@ -278,14 +320,21 @@ def delete_batch(batch_id):
     
     # Delete batch
     try:
-    cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
-    conn.commit()
+        conn, cursor = get_db()
+        try:
+            cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
+            conn.commit()
     
-    # Log activity
-    log_activity(session['user_id'], 'delete', 'batch', f'Deleted batch ID: {batch_id}')
+            # Log activity
+            log_activity(session['user_id'], 'delete', 'batch', f'Deleted batch ID: {batch_id}')
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -301,43 +350,57 @@ def get_batch_travelers(batch_id):
     
     # Check if batch exists
     try:
-    cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
-    batch = cursor.fetchone()
+        conn, cursor = get_db()
+        try:
+            cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
+            batch = cursor.fetchone()
     
-    if not batch:
-        cursor.close()
-        conn.close()
+            if not batch:
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Batch not found'}), 404
     
     # Get travelers
     try:
-    cursor.execute('''
-        SELECT 
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            SELECT 
             id, first_name, last_name, passport_no, mobile, email,
             passport_status, vaccine_status, wheelchair, pin
-        FROM travelers 
-        WHERE batch_id = %s
-        ORDER BY created_at DESC
-    ''', (batch_id,))
+            FROM travelers 
+            WHERE batch_id = %s
+            ORDER BY created_at DESC
+            ''', (batch_id,))
     
-    travelers = cursor.fetchall()
+            travelers = cursor.fetchall()
     
-    # Get payment summary
-    cursor.execute('''
-        SELECT 
+            # Get payment summary
+            cursor.execute('''
+            SELECT 
             COUNT(*) as payment_count,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_paid,
             COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as total_pending
-        FROM payments 
-        WHERE batch_id = %s
-    ''', (batch_id,))
+            FROM payments 
+            WHERE batch_id = %s
+            ''', (batch_id,))
     
-    payment_summary = cursor.fetchone()
+            payment_summary = cursor.fetchone()
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -354,22 +417,29 @@ def get_batch_payments(batch_id):
     conn, cursor = get_db()
     
     try:
-    cursor.execute('''
-        SELECT 
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            SELECT 
             p.*,
             t.first_name,
             t.last_name,
             t.passport_no
-        FROM payments p
-        JOIN travelers t ON p.traveler_id = t.id
-        WHERE p.batch_id = %s
-        ORDER BY p.payment_date DESC
-    ''', (batch_id,))
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            WHERE p.batch_id = %s
+            ORDER BY p.payment_date DESC
+            ''', (batch_id,))
     
-    payments = cursor.fetchall()
+            payments = cursor.fetchall()
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -385,13 +455,20 @@ def get_batch_stats(batch_id):
     
     # Basic batch info
     try:
-    cursor.execute('''
-        SELECT 
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            SELECT 
             batch_name,
             total_seats,
             (SELECT COUNT(*) FROM travelers WHERE batch_id = %s) as booked_seats,
             price,
             departure_date,
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
             return_date,
             status
         FROM batches WHERE id = %s
@@ -408,82 +485,89 @@ def get_batch_stats(batch_id):
     
     # Payment statistics
     try:
-    cursor.execute('''
-        SELECT 
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            SELECT 
             COUNT(*) as total_transactions,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
             COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending_amount,
             COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
             COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
-        FROM payments 
-        WHERE batch_id = %s
-    ''', (batch_id,))
+            FROM payments 
+            WHERE batch_id = %s
+            ''', (batch_id,))
     
-    payment_stats = cursor.fetchone()
+            payment_stats = cursor.fetchone()
     
-    # Payment method breakdown
-    cursor.execute('''
-        SELECT 
+            # Payment method breakdown
+            cursor.execute('''
+            SELECT 
             payment_method,
             COUNT(*) as count,
             COALESCE(SUM(amount), 0) as total
-        FROM payments 
-        WHERE batch_id = %s AND status = 'completed'
-        GROUP BY payment_method
-    ''', (batch_id,))
+            FROM payments 
+            WHERE batch_id = %s AND status = 'completed'
+            GROUP BY payment_method
+            ''', (batch_id,))
     
-    method_breakdown = cursor.fetchall()
+            method_breakdown = cursor.fetchall()
     
-    # Traveler status breakdown
-    cursor.execute('''
-        SELECT 
+            # Traveler status breakdown
+            cursor.execute('''
+            SELECT 
             passport_status,
             COUNT(*) as count
-        FROM travelers 
-        WHERE batch_id = %s
-        GROUP BY passport_status
-    ''', (batch_id,))
+            FROM travelers 
+            WHERE batch_id = %s
+            GROUP BY passport_status
+            ''', (batch_id,))
     
-    traveler_status = cursor.fetchall()
+            traveler_status = cursor.fetchall()
     
-    # Vaccine status breakdown
-    cursor.execute('''
-        SELECT 
+            # Vaccine status breakdown
+            cursor.execute('''
+            SELECT 
             vaccine_status,
             COUNT(*) as count
-        FROM travelers 
-        WHERE batch_id = %s
-        GROUP BY vaccine_status
-    ''', (batch_id,))
+            FROM travelers 
+            WHERE batch_id = %s
+            GROUP BY vaccine_status
+            ''', (batch_id,))
     
-    vaccine_status = cursor.fetchall()
+            vaccine_status = cursor.fetchall()
     
-    # Recent activity
-    cursor.execute('''
-        SELECT 
+            # Recent activity
+            cursor.execute('''
+            SELECT 
             'payment' as type,
             p.amount,
             p.payment_date as date,
             CONCAT(t.first_name, ' ', t.last_name) as traveler
-        FROM payments p
-        JOIN travelers t ON p.traveler_id = t.id
-        WHERE p.batch_id = %s
-        UNION ALL
-        SELECT 
+            FROM payments p
+            JOIN travelers t ON p.traveler_id = t.id
+            WHERE p.batch_id = %s
+            UNION ALL
+            SELECT 
             'traveler' as type,
             NULL as amount,
             t.created_at as date,
             CONCAT(t.first_name, ' ', t.last_name) as traveler
-        FROM travelers t
-        WHERE t.batch_id = %s
-        ORDER BY date DESC
-        LIMIT 10
-    ''', (batch_id, batch_id))
+            FROM travelers t
+            WHERE t.batch_id = %s
+            ORDER BY date DESC
+            LIMIT 10
+            ''', (batch_id, batch_id))
     
-    recent_activity = cursor.fetchall()
+            recent_activity = cursor.fetchall()
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -504,8 +588,10 @@ def get_batches_summary():
     
     # Overall statistics
     try:
-    cursor.execute('''
-        SELECT 
+        conn, cursor = get_db()
+        try:
+            cursor.execute('''
+            SELECT 
             COUNT(*) as total_batches,
             SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_batches,
             SUM(CASE WHEN status = 'Closing Soon' THEN 1 ELSE 0 END) as closing_soon,
@@ -514,30 +600,35 @@ def get_batches_summary():
             COALESCE(SUM(total_seats), 0) as total_seats,
             COALESCE(SUM(booked_seats), 0) as booked_seats,
             COALESCE(SUM(price * booked_seats), 0) as total_value
-        FROM batches
-    ''')
+            FROM batches
+            ''')
     
-    summary = cursor.fetchone()
+            summary = cursor.fetchone()
     
-    # Upcoming departures
-    cursor.execute('''
-        SELECT 
+            # Upcoming departures
+            cursor.execute('''
+            SELECT 
             id, batch_name, departure_date, booked_seats, total_seats,
             CASE 
-                WHEN total_seats > 0 THEN (booked_seats * 100.0 / total_seats)
-                ELSE 0
+            WHEN total_seats > 0 THEN (booked_seats * 100.0 / total_seats)
+            ELSE 0
             END as occupancy_rate
-        FROM batches
-        WHERE departure_date >= CURRENT_DATE
+            FROM batches
+            WHERE departure_date >= CURRENT_DATE
             AND status != 'Closed'
-        ORDER BY departure_date ASC
-        LIMIT 5
-    ''')
+            ORDER BY departure_date ASC
+            LIMIT 5
+            ''')
     
-    upcoming = cursor.fetchall()
+            upcoming = cursor.fetchall()
     
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     
@@ -551,15 +642,22 @@ def get_batches_summary():
 def log_activity(user_id, action, module, description):
     """Log user activity"""
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         try:
-    cursor.execute(
+            conn, cursor = get_db()
+            try:
+            cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, request.remote_addr, datetime.now())
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+            conn.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            release_db(conn, cursor)
     finally:
         release_db(conn, cursor)
     except Exception as e:
