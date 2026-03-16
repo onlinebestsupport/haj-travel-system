@@ -7,49 +7,19 @@ bp = Blueprint('batches', __name__, url_prefix='/api/batches')
 
 @bp.route('', methods=['GET'])
 def get_batches():
-    """Get all batches with enhanced details"""
-    # ✅ FIXED: Add authentication check
-    if 'user_id' not in session and 'traveler_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+    """Get all batches"""
     conn = None
     cursor = None
     try:
-            conn, cursor = get_db()
-        try:
-                conn, cursor = get_db()
-        
-            try:
-                cursor.execute('''
-            SELECT 
-            b.*,
-            COUNT(t.id) as traveler_count,
-            COALESCE(SUM(p.amount), 0) as total_collected
-            FROM batches b
-            LEFT JOIN travelers t ON b.id = t.batch_id
-            LEFT JOIN payments p ON b.id = p.batch_id AND p.status = 'completed'
-            GROUP BY b.id
-            ORDER BY b.departure_date NULLS LAST, b.created_at DESC
-            ''')
-        
-            batches = cursor.fetchall()
-        
-            conn.commit()
-        except Exception as e:
-            return jsonify({'success': False, 'error': str(e)}), 500
-        finally:
-            release_db(conn, cursor)
-        return jsonify({
-            'success': True,
-            'batches': batches
-        })
-        
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM batches ORDER BY created_at DESC")
+        batches = cursor.fetchall()
+        return jsonify({'success': True, 'batches': [dict(b) for b in batches]})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
-        release_db(conn, cursor)
-
-@bp.route('/<int:batch_id>', methods=['GET'])
+        if conn:
+            release_db(conn, cursor)
 def get_batch(batch_id):
     """Get single batch with details"""
     # ✅ FIXED: Add authentication check

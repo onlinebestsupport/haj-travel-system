@@ -11,29 +11,20 @@ bp = Blueprint('company', __name__, url_prefix='/api/company')
 
 @bp.route('/settings', methods=['GET'])
 def get_settings():
-    """Get complete company settings (ALL 48 FIELDS)"""
-    conn, cursor = get_db()
+    """Get company settings"""
+    conn = None
+    cursor = None
     try:
-        cursor.execute('SELECT * FROM company_settings WHERE id = 1')
-    settings = cursor.fetchone()
-        conn.commit()
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM company_settings LIMIT 1")
+        settings = cursor.fetchone()
+        return jsonify({'success': True, 'settings': dict(settings) if settings else {}})
     except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
-        release_db(conn, cursor)
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    if settings:
-        return jsonify({'success': True, 'settings': dict(settings)})
-    else:
-        # Return default empty structure if not found
+        if conn:
+            release_db(conn, cursor)
+
         return jsonify({
             'success': True, 
             'settings': {

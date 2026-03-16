@@ -6,51 +6,26 @@ import json
 bp = Blueprint('invoices', __name__, url_prefix='/api/invoices')
 
 @bp.route('', methods=['GET'])
-def get_invoices():
-    """Get all invoices"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    
-    # Note: Table creation should be in database.py, not here
-    # But if you need to ensure it exists, use IF NOT EXISTS with PostgreSQL syntax
-    
-    try:
-        cursor.execute('''
-        SELECT 
-            i.*,
-            t.first_name,
-            t.last_name,
-            t.passport_no,
-            b.batch_name
-        FROM invoices i
-        LEFT JOIN travelers t ON i.traveler_id = t.id
-        LEFT JOIN batches b ON i.batch_id = b.id
-        ORDER BY i.created_at DESC
-    ''')
-    
-    invoices = cursor.fetchall()
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    return jsonify({
-        'success': True,
-        'invoices': [dict(inv) for inv in invoices]
-    })
+def get_invoice(invoice_id):
+    """Get single invoice"""
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
 
-@bp.route('/<int:invoice_id>', methods=['GET'])
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))
+        invoice = cursor.fetchone()
+        if not invoice:
+            return jsonify({"success": False, "error": "Invoice not found"}), 404
+        return jsonify({"success": True, "invoice": dict(invoice)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
 def get_invoice(invoice_id):
     """Get single invoice"""
     if 'user_id' not in session:

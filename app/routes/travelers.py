@@ -50,10 +50,14 @@ def log_activity(user_id, action, module, description, ip_address=None):
     conn = None
     cursor = None
     try:
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            if conn:
+                release_db(conn, cursor)
         conn, cursor = get_db()
         # your code here
         conn.commit()
-    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -86,6 +90,8 @@ def get_travelers():
     travelers = cursor.fetchall()
     cursor.close()
     conn.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         release_db(conn, cursor)
     

@@ -6,49 +6,26 @@ import json
 bp = Blueprint('receipts', __name__, url_prefix='/api/receipts')
 
 @bp.route('', methods=['GET'])
-def get_receipts():
-    """Get all receipts"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    
-    try:
-        cursor.execute('''
-        SELECT 
-            r.*,
-            t.first_name,
-            t.last_name,
-            t.passport_no,
-            p.amount as payment_amount,
-            p.payment_date
-        FROM receipts r
-        LEFT JOIN travelers t ON r.traveler_id = t.id
-        LEFT JOIN payments p ON r.payment_id = p.id
-        ORDER BY r.created_at DESC
-    ''')
-    
-    receipts = cursor.fetchall()
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    return jsonify({
-        'success': True,
-        'receipts': [dict(r) for r in receipts]
-    })
+def get_receipt(receipt_id):
+    """Get single receipt"""
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
 
-@bp.route('/<int:receipt_id>', methods=['GET'])
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM receipts WHERE id = %s", (receipt_id,))
+        receipt = cursor.fetchone()
+        if not receipt:
+            return jsonify({"success": False, "error": "Receipt not found"}), 404
+        return jsonify({"success": True, "receipt": dict(receipt)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
 def get_receipt(receipt_id):
     """Get single receipt"""
     if 'user_id' not in session:

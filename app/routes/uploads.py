@@ -60,7 +60,7 @@ def get_upload_folder(doc_type='document'):
     
     # Create folder if it doesn't exist
     try:
-        conn, cursor = get_db()
+            conn, cursor = get_db()
         # your code here
         conn.commit()
     except Exception as e:
@@ -136,7 +136,7 @@ def upload_file():
     
     # Save file in appropriate folder
     try:
-        upload_folder = get_upload_folder(doc_type)
+            upload_folder = get_upload_folder(doc_type)
         file_path = os.path.join(upload_folder, new_filename)
         file.save(file_path)
         
@@ -153,11 +153,11 @@ def upload_file():
     # If this is for a traveler, update the traveler record
     if traveler_id and doc_type in ['passport', 'aadhaar', 'pan', 'vaccine', 'photo']:
         try:
-    update_traveler_document(traveler_id, doc_type, new_filename)
+        update_traveler_document(traveler_id, doc_type, new_filename)
         except Exception as e:
             # If database update fails, delete the uploaded file
             try:
-    os.remove(file_path)
+        os.remove(file_path)
             except:
                 pass
             return jsonify({
@@ -214,7 +214,7 @@ def upload_multiple_files():
             continue
         
         try:
-    # Check file type
+        # Check file type
             if not allowed_file(file.filename, doc_type):
                 errors.append(f"{file.filename}: File type not allowed")
                 continue
@@ -283,7 +283,7 @@ def serve_file(filename):
         if os.path.exists(file_path) and os.path.isfile(file_path):
             print(f"✅ Found file in {subdir}: {file_path}")
             try:
-    return send_file(file_path)
+        return send_file(file_path)
             except Exception as e:
                 print(f"❌ Error sending file: {e}")
                 abort(500)
@@ -326,7 +326,7 @@ def serve_file_with_subdir(subdir, filename):
     if os.path.exists(file_path) and os.path.isfile(file_path):
         print(f"✅ Found file: {file_path}")
         try:
-    return send_file(file_path)
+        return send_file(file_path)
         except Exception as e:
             print(f"❌ Error sending file: {e}")
             abort(500)
@@ -385,7 +385,7 @@ def delete_file(filename):
     traveler_id = request.args.get('traveler_id')
     
     try:
-    upload_folder = get_upload_folder(doc_type)
+        upload_folder = get_upload_folder(doc_type)
         file_path = os.path.join(upload_folder, secure_filename(filename))
         
         if not os.path.exists(file_path):
@@ -429,10 +429,10 @@ def get_traveler_documents(traveler_id):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         
         try:
-    cursor.execute('''
+        cursor.execute('''
             SELECT 
                 passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
             FROM travelers 
@@ -499,7 +499,7 @@ def get_file_info(filename):
     doc_type = request.args.get('doc_type', 'document')
     
     try:
-    upload_folder = get_upload_folder(doc_type)
+        upload_folder = get_upload_folder(doc_type)
         file_path = os.path.join(upload_folder, secure_filename(filename))
         
         if not os.path.exists(file_path):
@@ -532,7 +532,7 @@ def update_traveler_document(traveler_id, doc_type, filename):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         
         field_map = {
             'passport': 'passport_scan',
@@ -575,7 +575,7 @@ def clear_traveler_document(traveler_id, doc_type):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         
         field_map = {
             'passport': 'passport_scan',
@@ -618,7 +618,7 @@ def log_activity(user_id, action, module, description, ip_address=None):
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, ip_address, datetime.now())
@@ -644,7 +644,7 @@ def cleanup_orphaned_files():
     conn = None
     cursor = None
     try:
-    conn, cursor = get_db()
+        conn, cursor = get_db()
         
         # Get all referenced files from database
         cursor.execute('''
@@ -747,7 +747,7 @@ def delete_orphaned_files():
     
     for file_info in files_to_delete:
         try:
-    filepath = file_info if isinstance(file_info, str) else file_info.get('path')
+        filepath = file_info if isinstance(file_info, str) else file_info.get('path')
             if not filepath:
                 continue
                 
