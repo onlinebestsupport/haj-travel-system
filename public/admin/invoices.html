@@ -1564,7 +1564,22 @@
                 </head>
                 <body>
                     ${getInvoiceHTML(id, invoiceData)}
-                </body>
+                
+<script>
+// Initialize page with session check
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
+        SessionManager.initPage(function() {
+            console.log('Invoices page initialized');
+            if (typeof loadInvoicesData === 'function') {
+                loadInvoicesData();
+            }
+        });
+    }
+});
+</script>
+
+</body>
                 </html>
             `);
             
@@ -1771,7 +1786,22 @@
             printWindow.document.write(`
                 <html>
                 <head><title>Invoice Details</title></head>
-                <body>${content}</body>
+                <body>${content}
+<script>
+// Initialize page with session check
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
+        SessionManager.initPage(function() {
+            console.log('Invoices page initialized');
+            if (typeof loadInvoicesData === 'function') {
+                loadInvoicesData();
+            }
+        });
+    }
+});
+</script>
+
+</body>
                 </html>
             `);
             printWindow.print();
@@ -1849,5 +1879,20 @@
             }
         }
     </script>
+
+<script>
+// Initialize page with session check
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
+        SessionManager.initPage(function() {
+            console.log('Invoices page initialized');
+            if (typeof loadInvoicesData === 'function') {
+                loadInvoicesData();
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>

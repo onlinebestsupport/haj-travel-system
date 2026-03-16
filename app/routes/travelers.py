@@ -59,7 +59,11 @@ def log_activity(user_id, action, module, description, ip_address=None):
     except Exception as e:
         print(f"⚠️ Error logging activity: {e}")
     finally:
-        release_db(conn, cursor)
+        # Close cursor and connection properly without relying on release_db
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @bp.route('', methods=['GET'])
 def get_travelers():
