@@ -1,4 +1,3 @@
-# This file makes the routes directory a Python package
 from . import auth
 from . import admin
 from . import batches
@@ -8,5 +7,6 @@ from . import company
 from . import uploads
 from . import reports
 from . import invoices
-from . import receiptsfrom . import users
+from . import receipts
+from . import users
 from . import backup
