@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.database import get_db, init_db
 
 # Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users backup
+from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users, backup
 
 # ====== FLASK APP INITIALIZATION ======
 app = Flask(__name__)
