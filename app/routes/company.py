@@ -1,278 +1,127 @@
 from flask import Blueprint, request, jsonify, session, current_app
-from app.database import release_db, get_db
+from app.database import get_db, release_db
 from datetime import datetime
 import json
 import os
-from werkzeug.utils import secure_filename
 
 bp = Blueprint('company', __name__, url_prefix='/api/company')
 
-# ====== COMPANY SETTINGS MANAGEMENT ======
+# Default company settings
+DEFAULT_SETTINGS = {
+    'company_name': 'Alhudha Haj Travel',
+    'address': '',
+    'phone': '',
+    'email': '',
+    'website': '',
+    'gst': '',
+    'pan': '',
+    'logo': None,
+    'bank_name': '',
+    'bank_account': '',
+    'bank_ifsc': '',
+    'bank_branch': '',
+    'terms_conditions': '',
+    'invoice_prefix': 'INV',
+    'receipt_prefix': 'REC',
+    'footer_text': 'Thank you for your business!'
+}
 
 @bp.route('/settings', methods=['GET'])
 def get_settings():
     """Get company settings"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
         cursor.execute("SELECT * FROM company_settings LIMIT 1")
         settings = cursor.fetchone()
-        return jsonify({'success': True, 'settings': dict(settings) if settings else {}})
+        
+        if not settings:
+            # Return default settings if none exist
+            return jsonify({'success': True, 'settings': DEFAULT_SETTINGS})
+        
+        # Parse JSON fields
+        settings_dict = dict(settings)
+        
+        return jsonify({'success': True, 'settings': settings_dict})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         if conn:
             release_db(conn, cursor)
 
-        return jsonify({
-            'success': True, 
-            'settings': {
-                # Company Details
-                'legal_name': 'Alhudha Haj Service P Ltd.',
-                'display_name': 'Alhudha Haj Travel',
-                
-                # Address
-                'address_line1': '2/117, Second Floor, Armenian Street',
-                'address_line2': 'Mannady',
-                'city': 'Chennai',
-                'state': 'Tamil Nadu',
-                'country': 'India',
-                'pin_code': '600001',
-                
-                # Contact
-                'phone': '+91 44 1234 5678',
-                'mobile': '+91 98765 43210',
-                'email': 'info@alhudha.com',
-                'website': 'www.alhudha.com',
-                
-                # Tax Information
-                'gstin': '',
-                'pan': '',
-                'tan': '',
-                'tcs_no': '',
-                'tin': '',
-                'cin': '',
-                'iec': '',
-                'msme': '',
-                
-                # Bank Details
-                'bank_name': '',
-                'bank_branch': '',
-                'account_name': '',
-                'account_no': '',
-                'ifsc_code': '',
-                'micr_code': '',
-                'upi_id': '',
-                'qr_code': '',
-                
-                # Logo
-                'logo': ''
-            }
-        })
-
 @bp.route('/settings', methods=['POST'])
 def update_settings():
-    """Update complete company settings (ALL 48 FIELDS)"""
+    """Update company settings"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     data = request.json
     
-    conn, cursor = get_db()
-    
+    conn = None
+    cursor = None
     try:
+        conn, cursor = get_db()
+        
         # Check if settings exist
-        try:
-        cursor.execute('SELECT id FROM company_settings WHERE id = 1')
-        exists = cursor.fetchone()
+        cursor.execute("SELECT id FROM company_settings LIMIT 1")
+        existing = cursor.fetchone()
         
-        now = datetime.now()
-        
-        if exists:
+        if existing:
             # Update existing settings
-            cursor.execute('''
-                UPDATE company_settings SET
-                    -- Company Details
-                    legal_name = %s,
-                    display_name = %s,
-                    
-                    -- Address
-                    address_line1 = %s,
-                    address_line2 = %s,
-                    city = %s,
-                    state = %s,
-                    country = %s,
-                    pin_code = %s,
-                    
-                    -- Contact
-                    phone = %s,
-                    mobile = %s,
-                    email = %s,
-                    website = %s,
-                    
-                    -- Tax Information
-                    gstin = %s,
-                    pan = %s,
-                    tan = %s,
-                    tcs_no = %s,
-                    tin = %s,
-                    cin = %s,
-                    iec = %s,
-                    msme = %s,
-                    
-                    -- Bank Details
-                    bank_name = %s,
-                    bank_branch = %s,
-                    account_name = %s,
-                    account_no = %s,
-                    ifsc_code = %s,
-                    micr_code = %s,
-                    upi_id = %s,
-                    qr_code = %s,
-                    
-                    -- Logo
-                    logo = %s,
-                    
-                    -- Metadata
-                    updated_at = %s
-                WHERE id = 1
-            ''', (
-                # Company Details
-                data.get('legal_name'),
-                data.get('display_name'),
+            query = "UPDATE company_settings SET "
+            fields = []
+            values = []
+            
+            updatable_fields = [
+                'company_name', 'address', 'phone', 'email', 'website',
+                'gst', 'pan', 'logo', 'bank_name', 'bank_account',
+                'bank_ifsc', 'bank_branch', 'terms_conditions',
+                'invoice_prefix', 'receipt_prefix', 'footer_text'
+            ]
+            
+            for field in updatable_fields:
+                if field in data:
+                    fields.append(f"{field} = %s")
+                    values.append(data[field])
+            
+            if fields:
+                fields.append("updated_at = %s")
+                values.append(datetime.now())
+                values.append(existing['id'])
                 
-                # Address
-                data.get('address_line1'),
-                data.get('address_line2'),
-                data.get('city'),
-                data.get('state'),
-                data.get('country', 'India'),
-                data.get('pin_code'),
-                
-                # Contact
-                data.get('phone'),
-                data.get('mobile'),
-                data.get('email'),
-                data.get('website'),
-                
-                # Tax Information
-                data.get('gstin'),
-                data.get('pan'),
-                data.get('tan'),
-                data.get('tcs_no'),
-                data.get('tin'),
-                data.get('cin'),
-                data.get('iec'),
-                data.get('msme'),
-                
-                # Bank Details
-                data.get('bank_name'),
-                data.get('bank_branch'),
-                data.get('account_name'),
-                data.get('account_no'),
-                data.get('ifsc_code'),
-                data.get('micr_code'),
-                data.get('upi_id'),
-                data.get('qr_code'),
-                
-                # Logo
-                data.get('logo'),
-                
-                # Metadata
-                now
-            ))
+                query += ", ".join(fields) + " WHERE id = %s"
+                cursor.execute(query, values)
         else:
             # Insert new settings
-            cursor.execute('''
-                INSERT INTO company_settings (
-                    -- Company Details
-                    legal_name, display_name,
-                    
-                    -- Address
-                    address_line1, address_line2, city, state, country, pin_code,
-                    
-                    -- Contact
-                    phone, mobile, email, website,
-                    
-                    -- Tax Information
-                    gstin, pan, tan, tcs_no, tin, cin, iec, msme,
-                    
-                    -- Bank Details
-                    bank_name, bank_branch, account_name, account_no, ifsc_code, micr_code, upi_id, qr_code,
-                    
-                    -- Logo
-                    logo,
-                    
-                    -- Metadata
-                    created_at, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (
-                # Company Details
-                data.get('legal_name', 'Alhudha Haj Service P Ltd.'),
-                data.get('display_name', 'Alhudha Haj Travel'),
-                
-                # Address
-                data.get('address_line1'),
-                data.get('address_line2'),
-                data.get('city'),
-                data.get('state'),
-                data.get('country', 'India'),
-                data.get('pin_code'),
-                
-                # Contact
-                data.get('phone'),
-                data.get('mobile'),
-                data.get('email'),
-                data.get('website'),
-                
-                # Tax Information
-                data.get('gstin'),
-                data.get('pan'),
-                data.get('tan'),
-                data.get('tcs_no'),
-                data.get('tin'),
-                data.get('cin'),
-                data.get('iec'),
-                data.get('msme'),
-                
-                # Bank Details
-                data.get('bank_name'),
-                data.get('bank_branch'),
-                data.get('account_name'),
-                data.get('account_no'),
-                data.get('ifsc_code'),
-                data.get('micr_code'),
-                data.get('upi_id'),
-                data.get('qr_code'),
-                
-                # Logo
-                data.get('logo'),
-                
-                # Metadata
-                now,
-                now
-            ))
-        
-        # Log activity
-        log_activity(session['user_id'], 'update', 'company', 'Updated company settings', request.remote_addr)
+            fields = []
+            placeholders = []
+            values = []
+            
+            for field in DEFAULT_SETTINGS.keys():
+                fields.append(field)
+                placeholders.append("%s")
+                values.append(data.get(field, DEFAULT_SETTINGS[field]))
+            
+            values.append(datetime.now())
+            values.append(datetime.now())
+            
+            query = f"INSERT INTO company_settings ({', '.join(fields)}, created_at, updated_at) VALUES ({', '.join(placeholders)}, %s, %s)"
+            cursor.execute(query, values)
         
         conn.commit()
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
         
-        return jsonify({
-            'success': True, 
-            'message': 'Company settings updated successfully'
-        })
-        
+        return jsonify({'success': True, 'message': 'Settings updated successfully'})
     except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
 @bp.route('/logo', methods=['POST'])
 def upload_logo():
@@ -284,256 +133,216 @@ def upload_logo():
         return jsonify({'success': False, 'error': 'No logo file provided'}), 400
     
     file = request.files['logo']
-    
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No file selected'}), 400
     
     # Validate file type
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'svg', 'gif'}
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return jsonify({'success': False, 'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, svg'}), 400
+        return jsonify({'success': False, 'error': 'Invalid file type. Allowed: PNG, JPG, JPEG, SVG, GIF'}), 400
     
     # Generate unique filename
-    filename = secure_filename(file.filename)
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    ext = filename.rsplit('.', 1)[1].lower()
-    new_filename = f"logo_{timestamp}.{ext}"
+    import uuid
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"logo_{uuid.uuid4().hex}.{ext}"
     
     # Save file
     upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'company')
     os.makedirs(upload_folder, exist_ok=True)
-    file_path = os.path.join(upload_folder, new_filename)
+    file_path = os.path.join(upload_folder, filename)
     file.save(file_path)
     
     # Update database with logo path
-    conn, cursor = get_db()
+    conn = None
+    cursor = None
     try:
-        cursor.execute('''
-        UPDATE company_settings 
-        SET logo = %s, updated_at = %s
-        WHERE id = 1
-    ''', (f'/uploads/company/{new_filename}', datetime.now()))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    # Log activity
-    log_activity(session['user_id'], 'upload', 'company', 'Uploaded company logo', request.remote_addr)
-    
-    return jsonify({
-        'success': True,
-        'logo_url': f'/uploads/company/{new_filename}',
-        'message': 'Logo uploaded successfully'
-    })
-
-@bp.route('/details', methods=['GET'])
-def get_company_details():
-    """Get formatted company details for invoices/receipts"""
-    conn, cursor = get_db()
-    try:
-        cursor.execute('SELECT * FROM company_settings WHERE id = 1')
-    settings = cursor.fetchone()
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
-        conn.commit()
-    except Exception as e:
-        return jsonify({\'success\': False, \'error\': str(e)}), 500
-    finally:
-        release_db(conn, cursor)    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    if not settings:
-        return jsonify({'success': False, 'error': 'Company settings not found'}), 404
-    
-    settings = dict(settings)
-    
-    # Format full address
-    address_parts = []
-    if settings.get('address_line1'):
-        address_parts.append(settings['address_line1'])
-    if settings.get('address_line2'):
-        address_parts.append(settings['address_line2'])
-    if settings.get('city'):
-        address_parts.append(settings['city'])
-    if settings.get('state'):
-        address_parts.append(settings['state'])
-    if settings.get('pin_code'):
-        address_parts.append(settings['pin_code'])
-    if settings.get('country'):
-        address_parts.append(settings['country'])
-    
-    full_address = ', '.join(address_parts) if address_parts else ''
-    
-    return jsonify({
-        'success': True,
-        'company': {
-            'name': settings.get('display_name') or settings.get('legal_name'),
-            'legal_name': settings.get('legal_name'),
-            'address': full_address,
-            'address_line1': settings.get('address_line1'),
-            'address_line2': settings.get('address_line2'),
-            'city': settings.get('city'),
-            'state': settings.get('state'),
-            'country': settings.get('country'),
-            'pin_code': settings.get('pin_code'),
-            'phone': settings.get('phone'),
-            'mobile': settings.get('mobile'),
-            'email': settings.get('email'),
-            'website': settings.get('website'),
-            'gstin': settings.get('gstin'),
-            'pan': settings.get('pan'),
-            'tan': settings.get('tan'),
-            'tcs_no': settings.get('tcs_no'),
-            'tin': settings.get('tin'),
-            'cin': settings.get('cin'),
-            'iec': settings.get('iec'),
-            'msme': settings.get('msme'),
-            'bank_name': settings.get('bank_name'),
-            'bank_branch': settings.get('bank_branch'),
-            'account_name': settings.get('account_name'),
-            'account_no': settings.get('account_no'),
-            'ifsc_code': settings.get('ifsc_code'),
-            'micr_code': settings.get('micr_code'),
-            'upi_id': settings.get('upi_id'),
-            'qr_code': settings.get('qr_code'),
-            'logo': settings.get('logo')
-        }
-    })
-
-@bp.route('/bank-details', methods=['GET'])
-def get_bank_details():
-    """Get bank details only"""
-    conn, cursor = get_db()
-    try:
-        cursor.execute('''
-        SELECT 
-            bank_name, bank_branch, account_name, account_no,
-            ifsc_code, micr_code, upi_id, qr_code
-        FROM company_settings WHERE id = 1
-    ''')
-    bank = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    return jsonify({
-        'success': True,
-        'bank_details': dict(bank) if bank else {}
-    })
-
-@bp.route('/tax-details', methods=['GET'])
-def get_tax_details():
-    """Get tax details only"""
-    conn, cursor = get_db()
-    try:
-        cursor.execute('''
-        SELECT 
-            gstin, pan, tan, tcs_no, tin, cin, iec, msme
-        FROM company_settings WHERE id = 1
-    ''')
-    tax = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    return jsonify({
-        'success': True,
-        'tax_details': dict(tax) if tax else {}
-    })
-
-@bp.route('/contact-details', methods=['GET'])
-def get_contact_details():
-    """Get contact details only"""
-    conn, cursor = get_db()
-    try:
-        cursor.execute('''
-        SELECT 
-            phone, mobile, email, website,
-            address_line1, address_line2, city, state, country, pin_code
-        FROM company_settings WHERE id = 1
-    ''')
-    contact = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    finally:
-        release_db(conn, cursor)
-    
-    return jsonify({
-        'success': True,
-        'contact_details': dict(contact) if contact else {}
-    })
-
-@bp.route('/initialize', methods=['POST'])
-def initialize_settings():
-    """Initialize company settings with default values"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    
-    try:
-        # Check if settings already exist
-        try:
-        cursor.execute('SELECT id FROM company_settings WHERE id = 1')
-        exists = cursor.fetchone()
+        conn, cursor = get_db()
         
-        if not exists:
-            now = datetime.now()
-            cursor.execute('''
-                INSERT INTO company_settings (
-                    id, legal_name, display_name, country, created_at, updated_at
-                ) VALUES (1, %s, %s, %s, %s, %s)
-            ''', (
-                'Alhudha Haj Service P Ltd.',
-                'Alhudha Haj Travel',
-                'India',
-                now,
-                now
-            ))
-            conn.commit()
-            message = 'Company settings initialized with defaults'
+        # Check if settings exist
+        cursor.execute("SELECT id FROM company_settings LIMIT 1")
+        existing = cursor.fetchone()
+        
+        if existing:
+            cursor.execute("UPDATE company_settings SET logo = %s, updated_at = %s WHERE id = %s",
+                          (filename, datetime.now(), existing['id']))
         else:
-            message = 'Company settings already exist'
+            # Create settings with logo
+            fields = ['logo', 'created_at', 'updated_at']
+            placeholders = ['%s', '%s', '%s']
+            values = [filename, datetime.now(), datetime.now()]
+            
+            query = f"INSERT INTO company_settings ({', '.join(fields)}) VALUES ({', '.join(placeholders)})"
+            cursor.execute(query, values)
         
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
+        conn.commit()
         
         return jsonify({
             'success': True,
-            'message': message
+            'logo_url': f'/uploads/company/{filename}',
+            'message': 'Logo uploaded successfully'
         })
-        
     except Exception as e:
-        conn.rollback()
-        cursor.close()
-        conn.close()
-        return jsonify({'success': False, 'error': str(e)}), 400
+        if conn:
+            conn.rollback()
+        # Delete uploaded file if database update fails
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
-# Helper function to log activity
-def log_activity(user_id, action, module, description, ip_address=None):
-    """Log user activity"""
+@bp.route('/details', methods=['GET'])
+def get_company_details():
+    """Get company details for public display"""
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
-        try:
-        cursor.execute(
-            'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
-            (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
+        cursor.execute("SELECT company_name, address, phone, email, website, logo FROM company_settings LIMIT 1")
+        details = cursor.fetchone()
+        
+        if not details:
+            return jsonify({'success': True, 'details': {
+                'company_name': DEFAULT_SETTINGS['company_name'],
+                'address': '',
+                'phone': '',
+                'email': '',
+                'website': '',
+                'logo': None
+            }})
+        
+        details_dict = dict(details)
+        if details_dict.get('logo'):
+            details_dict['logo_url'] = f'/uploads/company/{details_dict["logo"]}'
+        
+        return jsonify({'success': True, 'details': details_dict})
     except Exception as e:
-        print(f"⚠️ Activity log error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/bank-details', methods=['GET'])
+def get_bank_details():
+    """Get bank details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT bank_name, bank_account, bank_ifsc, bank_branch FROM company_settings LIMIT 1")
+        details = cursor.fetchone()
+        
+        if not details:
+            return jsonify({'success': True, 'details': {
+                'bank_name': '',
+                'bank_account': '',
+                'bank_ifsc': '',
+                'bank_branch': ''
+            }})
+        
+        return jsonify({'success': True, 'details': dict(details)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/tax-details', methods=['GET'])
+def get_tax_details():
+    """Get tax details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT gst, pan FROM company_settings LIMIT 1")
+        details = cursor.fetchone()
+        
+        if not details:
+            return jsonify({'success': True, 'details': {
+                'gst': '',
+                'pan': ''
+            }})
+        
+        return jsonify({'success': True, 'details': dict(details)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/contact-details', methods=['GET'])
+def get_contact_details():
+    """Get contact details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT phone, email, address FROM company_settings LIMIT 1")
+        details = cursor.fetchone()
+        
+        if not details:
+            return jsonify({'success': True, 'details': {
+                'phone': '',
+                'email': '',
+                'address': ''
+            }})
+        
+        return jsonify({'success': True, 'details': dict(details)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/initialize', methods=['POST'])
+def initialize_settings():
+    """Initialize company settings with defaults"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        
+        # Check if settings already exist
+        cursor.execute("SELECT id FROM company_settings LIMIT 1")
+        if cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Settings already exist'}), 400
+        
+        # Insert default settings
+        fields = []
+        placeholders = []
+        values = []
+        
+        for field, value in DEFAULT_SETTINGS.items():
+            fields.append(field)
+            placeholders.append("%s")
+            values.append(value)
+        
+        values.append(datetime.now())
+        values.append(datetime.now())
+        
+        query = f"INSERT INTO company_settings ({', '.join(fields)}, created_at, updated_at) VALUES ({', '.join(placeholders)}, %s, %s)"
+        cursor.execute(query, values)
+        
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Company settings initialized successfully'})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
