@@ -20,7 +20,7 @@ load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Import database
-from app.database import get_db, init_db
+from app.database import get_db, init_db, release_db
 
 # Import route blueprints
 from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users, backup
@@ -671,6 +671,7 @@ def log_admin_action(user_id, action, description):
     """Log admin actions to database"""
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute("""
             INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -678,6 +679,8 @@ def log_admin_action(user_id, action, description):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Failed to log admin action: {e}")
 

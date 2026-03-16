@@ -5,6 +5,7 @@ Run: python fix_duplicate_backup_stats.py
 """
 
 import re
+from app.database import get_db
 
 with open('app/routes/admin.py', 'r', encoding='utf-8') as f:
     content = f.read()

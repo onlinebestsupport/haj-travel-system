@@ -691,6 +691,7 @@
             }
         }
     </style>
+    <script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <div class="login-wrapper">
@@ -1043,5 +1044,19 @@
             this.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     </script>
+
+<script>
+function logout() {
+    fetch('/api/logout', { 
+        method: 'POST', 
+        credentials: 'include' 
+    }).then(() => {
+        window.location.href = '/admin.login.html';
+    }).catch(() => {
+        window.location.href = '/admin.login.html';
+    });
+}
+</script>
+
 </body>
 </html>

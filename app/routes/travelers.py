@@ -51,6 +51,7 @@ def log_activity(user_id, action, module, description, ip_address=None):
     cursor = None
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
@@ -93,6 +94,8 @@ def get_travelers():
     travelers = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     # Convert to list of dicts and parse extra_fields
     result = []
@@ -124,7 +127,8 @@ def get_traveler(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             t.*, 
             b.batch_name,
@@ -145,10 +149,13 @@ def get_traveler(traveler_id):
     if not traveler:
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
     # Get payments
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -187,6 +194,8 @@ def get_traveler(traveler_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     result = dict(traveler)
     result['payments'] = [dict(p) for p in payments]
@@ -208,7 +217,8 @@ def get_traveler_by_passport(passport_no):
     """Get traveler by passport number"""
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT t.*, b.batch_name, b.price as batch_price, 
                b.departure_date, b.return_date, b.status as batch_status
         FROM travelers t
@@ -221,9 +231,12 @@ def get_traveler_by_passport(passport_no):
     if not traveler:
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -232,6 +245,8 @@ def get_traveler_by_passport(passport_no):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     result = dict(traveler)
     result['payments'] = [dict(p) for p in payments]
@@ -281,13 +296,17 @@ def create_traveler():
     
     try:
         # Check for duplicate passport
+        try:
         cursor.execute('SELECT id FROM travelers WHERE passport_no = %s', (data['passport_no'].upper(),))
         if cursor.fetchone():
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Passport number already exists'}), 400
         
         # Insert traveler first to get ID
+        try:
         cursor.execute('''
             INSERT INTO travelers (
                 first_name, last_name, passport_name, batch_id,
@@ -370,6 +389,8 @@ def create_traveler():
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True,
@@ -400,11 +421,14 @@ def update_traveler(traveler_id):
     conn, cursor = get_db()
     
     try:
+        try:
         cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = %s', (traveler_id,))
         existing = cursor.fetchone()
         if not existing:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         old_batch_id = existing['batch_id']
@@ -473,7 +497,8 @@ def update_traveler(traveler_id):
         if update_fields:
             query = f"UPDATE travelers SET {', '.join(update_fields)} WHERE id = %s"
             values.append(traveler_id)
-            cursor.execute(query, values)
+            try:
+        cursor.execute(query, values)
         
         # Update batch seats if batch changed
         if old_batch_id != new_batch_id:
@@ -486,6 +511,8 @@ def update_traveler(traveler_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({'success': True, 'message': 'Traveler updated successfully'})
         
@@ -504,12 +531,15 @@ def delete_traveler(traveler_id):
     conn, cursor = get_db()
     
     try:
+        try:
         cursor.execute('SELECT id, first_name, last_name, batch_id FROM travelers WHERE id = %s', (traveler_id,))
         traveler = cursor.fetchone()
         
         if not traveler:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Traveler not found'}), 404
         
         # Delete associated files
@@ -520,6 +550,7 @@ def delete_traveler(traveler_id):
             shutil.rmtree(traveler_dir)
         
         # Delete traveler record
+        try:
         cursor.execute('DELETE FROM travelers WHERE id = %s', (traveler_id,))
         
         # Update batch booked seats
@@ -531,6 +562,8 @@ def delete_traveler(traveler_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({'success': True, 'message': 'Traveler deleted successfully'})
         
@@ -553,7 +586,8 @@ def get_traveler_payments(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -575,6 +609,8 @@ def get_traveler_payments(traveler_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -595,7 +631,8 @@ def get_traveler_invoices(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM invoices 
         WHERE traveler_id = %s 
         ORDER BY created_at DESC
@@ -604,6 +641,8 @@ def get_traveler_invoices(traveler_id):
     invoices = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -623,7 +662,8 @@ def get_traveler_receipts(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM receipts 
         WHERE traveler_id = %s 
         ORDER BY created_at DESC
@@ -632,6 +672,8 @@ def get_traveler_receipts(traveler_id):
     receipts = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -651,7 +693,8 @@ def get_traveler_documents(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
         FROM travelers 
@@ -661,6 +704,8 @@ def get_traveler_documents(traveler_id):
     docs = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not docs:
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
@@ -706,10 +751,13 @@ def download_document(traveler_id, doc_type):
     
     conn, cursor = get_db()
     
-    cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = %s', (traveler_id,))
+    try:
+        cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = %s', (traveler_id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not result or not result[doc_type]:
         return jsonify({'success': False, 'error': 'Document not found'}), 404
@@ -731,7 +779,8 @@ def get_travelers_summary():
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             COUNT(*) as total_travelers,
             SUM(CASE WHEN passport_status = 'Active' THEN 1 ELSE 0 END) as active_passports,
@@ -782,6 +831,8 @@ def get_travelers_summary():
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -805,7 +856,8 @@ def search_travelers():
     conn, cursor = get_db()
     
     search_term = f'%{query}%'
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             t.id, t.first_name, t.last_name, t.passport_no, 
             t.mobile, t.email, t.passport_status,
@@ -826,6 +878,8 @@ def search_travelers():
     results = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -861,10 +915,13 @@ def export_travelers():
     
     query += " ORDER BY t.created_at DESC"
     
-    cursor.execute(query, params)
+    try:
+        cursor.execute(query, params)
     travelers = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if format_type == 'csv':
         output = io.StringIO()
@@ -922,7 +979,8 @@ def get_monthly_stats():
     conn, cursor = get_db()
     
     # Monthly registrations - PostgreSQL uses EXTRACT
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             TO_CHAR(created_at, 'MM') as month,
             COUNT(*) as count
@@ -950,6 +1008,8 @@ def get_monthly_stats():
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     # Initialize all months with zero
     months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']

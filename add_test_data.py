@@ -12,7 +12,8 @@ cursor = conn.cursor()
 print("🚀 Adding test data with correct columns...")
 
 # Add a batch with all required fields
-cursor.execute("""
+try:
+        cursor.execute("""
     INSERT INTO batches (
         batch_name, total_seats, booked_seats, price, 
         departure_date, return_date, status, created_at
@@ -109,4 +110,6 @@ print(f"   - Travelers: {traveler_count}")
 
 cursor.close()
 conn.close()
+    finally:
+        release_db(conn, cursor)
 print("\n✅ Done! Refresh your dashboard (F5)")

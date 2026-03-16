@@ -7,6 +7,7 @@ Run: python auto_fix_production.py
 
 import os
 import sys
+from app.database import get_db, release_db
 
 class AutoFixer:
     def __init__(self):

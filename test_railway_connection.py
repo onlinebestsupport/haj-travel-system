@@ -15,7 +15,8 @@ try:
     
     # Test query
     cursor = conn.cursor()
-    cursor.execute("SELECT version();")
+    try:
+        cursor.execute("SELECT version();")
     version = cursor.fetchone()
     print(f"📦 PostgreSQL version: {version[0]}")
     
@@ -36,6 +37,8 @@ try:
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
 except Exception as e:
     print(f"❌ Connection failed: {e}")

@@ -3,7 +3,7 @@ import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from app.database import get_db
+from app.database import release_db, get_db
 
 bp = Blueprint('uploads', __name__, url_prefix='/api/uploads')
 
@@ -430,6 +430,7 @@ def get_traveler_documents(traveler_id):
     try:
         conn, cursor = get_db()
         
+        try:
         cursor.execute('''
             SELECT 
                 passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
@@ -666,6 +667,8 @@ def cleanup_orphaned_files():
         
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         # Get all files in upload directories
         base_folder = current_app.config['UPLOAD_FOLDER']

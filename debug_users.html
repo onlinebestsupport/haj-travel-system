@@ -11,6 +11,7 @@
         pre { background: #2d2d2d; padding: 10px; border-radius: 5px; overflow: auto; }
         button { padding: 10px; margin: 5px; cursor: pointer; }
     </style>
+    <script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <h1>🔍 Users Page Debug Tool</h1>
@@ -125,5 +126,19 @@
             log('\n✅ All tests completed!', 'success');
         }
     </script>
+
+<script>
+function logout() {
+    fetch('/api/logout', { 
+        method: 'POST', 
+        credentials: 'include' 
+    }).then(() => {
+        window.location.href = '/admin.login.html';
+    }).catch(() => {
+        window.location.href = '/admin.login.html';
+    });
+}
+</script>
+
 </body>
 </html>

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db
+from app.database import release_db, get_db
 from datetime import datetime
 import json
 
@@ -16,7 +16,8 @@ def get_invoices():
     # Note: Table creation should be in database.py, not here
     # But if you need to ensure it exists, use IF NOT EXISTS with PostgreSQL syntax
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             i.*,
             t.first_name,
@@ -32,6 +33,8 @@ def get_invoices():
     invoices = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -46,7 +49,8 @@ def get_invoice(invoice_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             i.*,
             t.first_name,
@@ -65,6 +69,8 @@ def get_invoice(invoice_id):
     invoice = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not invoice:
         return jsonify({'success': False, 'error': 'Invoice not found'}), 404
@@ -104,6 +110,7 @@ def create_invoice():
     conn, cursor = get_db()
     
     try:
+        try:
         cursor.execute('''
             INSERT INTO invoices (
                 invoice_number, traveler_id, batch_id, invoice_date, due_date,
@@ -139,6 +146,8 @@ def create_invoice():
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True,
@@ -165,10 +174,13 @@ def update_invoice(invoice_id):
     
     try:
         # Check if invoice exists
+        try:
         cursor.execute('SELECT id FROM invoices WHERE id = %s', (invoice_id,))
         if not cursor.fetchone():
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Invoice not found'}), 404
         
         # Recalculate if base_amount changed
@@ -180,6 +192,7 @@ def update_invoice(invoice_id):
         tcs_amount = base_amount * (tcs_percent / 100)
         total_amount = base_amount + gst_amount + tcs_amount
         
+        try:
         cursor.execute('''
             UPDATE invoices SET
                 invoice_date = %s,
@@ -221,6 +234,8 @@ def update_invoice(invoice_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({'success': True, 'message': 'Invoice updated successfully'})
         
@@ -240,17 +255,21 @@ def delete_invoice(invoice_id):
     
     try:
         # Check if invoice has receipts
+        try:
         cursor.execute('SELECT COUNT(*) as count FROM receipts WHERE invoice_id = %s', (invoice_id,))
         result = cursor.fetchone()
         
         if result and result['count'] > 0:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({
                 'success': False, 
                 'error': 'Cannot delete invoice with associated receipts. Delete receipts first.'
             }), 400
         
+        try:
         cursor.execute('DELETE FROM invoices WHERE id = %s', (invoice_id,))
         
         # Log activity
@@ -259,6 +278,8 @@ def delete_invoice(invoice_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({'success': True, 'message': 'Invoice deleted successfully'})
         
@@ -276,6 +297,7 @@ def get_invoice_stats():
     
     conn, cursor = get_db()
     try:
+        try:
         cursor.execute('''
             SELECT 
                 COUNT(*) as total_invoices,
@@ -289,6 +311,8 @@ def get_invoice_stats():
         stats = cursor.fetchone()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         if stats:
             stats_dict = dict(stats)
@@ -324,7 +348,8 @@ def get_traveler_invoices(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             i.*,
             b.batch_name
@@ -337,6 +362,8 @@ def get_traveler_invoices(traveler_id):
     invoices = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -351,7 +378,8 @@ def get_invoice_by_number(invoice_number):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             i.*,
             t.first_name,
@@ -369,6 +397,8 @@ def get_invoice_by_number(invoice_number):
     invoice = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not invoice:
         return jsonify({'success': False, 'error': 'Invoice not found'}), 404
@@ -388,12 +418,15 @@ def mark_invoice_paid(invoice_id):
     
     try:
         # Get current invoice
+        try:
         cursor.execute('SELECT total_amount, paid_amount, status FROM invoices WHERE id = %s', (invoice_id,))
         invoice = cursor.fetchone()
         
         if not invoice:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Invoice not found'}), 404
         
         total_amount = float(invoice['total_amount'])
@@ -411,6 +444,7 @@ def mark_invoice_paid(invoice_id):
         # Update paid amount
         new_status = 'paid' if abs(new_paid - total_amount) < 0.01 else 'partial'
         
+        try:
         cursor.execute('''
             UPDATE invoices SET
                 paid_amount = %s,
@@ -430,6 +464,8 @@ def mark_invoice_paid(invoice_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True,
@@ -449,6 +485,7 @@ def log_activity(user_id, action, module, description):
     """Log user activity"""
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, request.remote_addr, datetime.now())
@@ -456,5 +493,7 @@ def log_activity(user_id, action, module, description):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Activity log error: {e}")

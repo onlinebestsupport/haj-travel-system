@@ -5,6 +5,7 @@ Run: python add_missing_apis_fixed.py
 """
 
 import os
+from app.database import get_db, release_db
 
 def add_to_admin_py():
     """Add backup API endpoints to admin.py"""

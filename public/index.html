@@ -893,6 +893,7 @@
             animation: fadeInUp 0.6s ease forwards;
         }
     </style>
+    <script src="/admin/js/session-manager.js"></script>
 </head>
 <body>
     <!-- ALERT BANNER - TOP OF PAGE (ABSOLUTELY FIRST ELEMENT) -->
@@ -1437,5 +1438,19 @@
             }
         });
     </script>
+
+<script>
+function logout() {
+    fetch('/api/logout', { 
+        method: 'POST', 
+        credentials: 'include' 
+    }).then(() => {
+        window.location.href = '/admin.login.html';
+    }).catch(() => {
+        window.location.href = '/admin.login.html';
+    });
+}
+</script>
+
 </body>
 </html>

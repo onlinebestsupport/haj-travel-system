@@ -15,7 +15,8 @@ print("="*50)
 
 # Check batches table
 try:
-    cursor.execute("""
+    try:
+        cursor.execute("""
         SELECT column_name, data_type 
         FROM information_schema.columns 
         WHERE table_name = 'batches'
@@ -90,4 +91,6 @@ except Exception as e:
 
 cursor.close()
 conn.close()
+    finally:
+        release_db(conn, cursor)
 print("\n" + "="*50)

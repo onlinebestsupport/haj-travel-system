@@ -67,6 +67,7 @@ def reset_database():
         
         # Drop all tables
         print("\n🗑️  Dropping all tables...")
+        try:
         cursor.execute("""
             DROP TABLE IF EXISTS 
                 activity_log,
@@ -99,6 +100,8 @@ def reset_database():
         
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         print("\n" + "="*60)
         print("✅ DATABASE RESET COMPLETE!")

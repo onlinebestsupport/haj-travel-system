@@ -17,6 +17,7 @@ def get_batches():
     try:
         conn, cursor = get_db()
         
+        try:
         cursor.execute('''
             SELECT 
                 b.*,
@@ -107,6 +108,8 @@ def get_batch(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True, 
@@ -131,7 +134,8 @@ def create_batch():
     
     now = datetime.now()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         INSERT INTO batches (
             batch_name, total_seats, booked_seats, price, 
             departure_date, return_date, status, description,
@@ -166,6 +170,8 @@ def create_batch():
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True, 
@@ -184,15 +190,19 @@ def update_batch(batch_id):
     conn, cursor = get_db()
     
     # Check if batch exists
-    cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
+    try:
+        cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
     if not cursor.fetchone():
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Batch not found'}), 404
     
     now = datetime.now()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         UPDATE batches SET
             batch_name = %s,
             total_seats = %s,
@@ -234,6 +244,8 @@ def update_batch(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True, 
@@ -249,20 +261,24 @@ def delete_batch(batch_id):
     conn, cursor = get_db()
     
     # Check if batch has travelers
-    cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
+    try:
+        cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
     result = cursor.fetchone()
     count = result['count'] if result else 0
     
     if count > 0:
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({
             'success': False, 
             'error': f'Cannot delete batch with {count} traveler(s). Reassign travelers first.'
         }), 400
     
     # Delete batch
-    cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
+    try:
+        cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
     conn.commit()
     
     # Log activity
@@ -270,6 +286,8 @@ def delete_batch(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True, 
@@ -282,16 +300,20 @@ def get_batch_travelers(batch_id):
     conn, cursor = get_db()
     
     # Check if batch exists
-    cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
+    try:
+        cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
     batch = cursor.fetchone()
     
     if not batch:
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Batch not found'}), 404
     
     # Get travelers
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             id, first_name, last_name, passport_no, mobile, email,
             passport_status, vaccine_status, wheelchair, pin
@@ -316,6 +338,8 @@ def get_batch_travelers(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -329,7 +353,8 @@ def get_batch_payments(batch_id):
     """Get all payments for a specific batch"""
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             p.*,
             t.first_name,
@@ -345,6 +370,8 @@ def get_batch_payments(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -357,7 +384,8 @@ def get_batch_stats(batch_id):
     conn, cursor = get_db()
     
     # Basic batch info
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             batch_name,
             total_seats,
@@ -374,10 +402,13 @@ def get_batch_stats(batch_id):
     if not batch_info:
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': False, 'error': 'Batch not found'}), 404
     
     # Payment statistics
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             COUNT(*) as total_transactions,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
@@ -453,6 +484,8 @@ def get_batch_stats(batch_id):
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -470,7 +503,8 @@ def get_batches_summary():
     conn, cursor = get_db()
     
     # Overall statistics
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             COUNT(*) as total_batches,
             SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_batches,
@@ -504,6 +538,8 @@ def get_batches_summary():
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -516,6 +552,7 @@ def log_activity(user_id, action, module, description):
     """Log user activity"""
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, request.remote_addr, datetime.now())
@@ -523,5 +560,7 @@ def log_activity(user_id, action, module, description):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Activity log error: {e}")  # Log error instead of failing silently

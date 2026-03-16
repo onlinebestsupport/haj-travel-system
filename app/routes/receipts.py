@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db
+from app.database import release_db, get_db
 from datetime import datetime
 import json
 
@@ -13,7 +13,8 @@ def get_receipts():
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             r.*,
             t.first_name,
@@ -30,6 +31,8 @@ def get_receipts():
     receipts = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -44,7 +47,8 @@ def get_receipt(receipt_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             r.*,
             t.first_name,
@@ -64,6 +68,8 @@ def get_receipt(receipt_id):
     receipt = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not receipt:
         return jsonify({'success': False, 'error': 'Receipt not found'}), 404
@@ -99,22 +105,29 @@ def create_receipt():
     
     try:
         # Check if payment exists
+        try:
         cursor.execute('SELECT id, amount FROM payments WHERE id = %s', (data['payment_id'],))
         payment = cursor.fetchone()
         
         if not payment:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Payment not found'}), 404
         
         # Check if invoice exists if invoice_id provided
         if data.get('invoice_id'):
-            cursor.execute('SELECT id FROM invoices WHERE id = %s', (data['invoice_id'],))
+            try:
+        cursor.execute('SELECT id FROM invoices WHERE id = %s', (data['invoice_id'],))
             if not cursor.fetchone():
                 cursor.close()
                 conn.close()
+    finally:
+        release_db(conn, cursor)
                 return jsonify({'success': False, 'error': 'Invoice not found'}), 404
         
+        try:
         cursor.execute('''
             INSERT INTO receipts (
                 receipt_number, traveler_id, payment_id, invoice_id,
@@ -151,6 +164,8 @@ def create_receipt():
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True,
@@ -173,7 +188,8 @@ def get_payment_receipts(payment_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT * FROM receipts 
         WHERE payment_id = %s
         ORDER BY created_at DESC
@@ -182,6 +198,8 @@ def get_payment_receipts(payment_id):
     receipts = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -196,7 +214,8 @@ def get_traveler_receipts(traveler_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             r.*,
             p.amount as payment_amount,
@@ -212,6 +231,8 @@ def get_traveler_receipts(traveler_id):
     receipts = cursor.fetchall()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -226,7 +247,8 @@ def print_receipt(receipt_id):
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             r.*,
             t.first_name,
@@ -252,6 +274,8 @@ def print_receipt(receipt_id):
     receipt = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not receipt:
         return jsonify({'success': False, 'error': 'Receipt not found'}), 404
@@ -295,6 +319,7 @@ def log_activity(user_id, action, module, description):
     """Log user activity"""
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, request.remote_addr, datetime.now())
@@ -302,6 +327,8 @@ def log_activity(user_id, action, module, description):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Activity log error: {e}")
 
@@ -315,14 +342,18 @@ def delete_receipt(receipt_id):
     
     try:
         # Get receipt details for logging
+        try:
         cursor.execute('SELECT receipt_number FROM receipts WHERE id = %s', (receipt_id,))
         receipt = cursor.fetchone()
         
         if not receipt:
             cursor.close()
             conn.close()
+    finally:
+        release_db(conn, cursor)
             return jsonify({'success': False, 'error': 'Receipt not found'}), 404
         
+        try:
         cursor.execute('DELETE FROM receipts WHERE id = %s', (receipt_id,))
         
         # Log activity
@@ -336,6 +367,8 @@ def delete_receipt(receipt_id):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({'success': True, 'message': 'Receipt deleted successfully'})
         
@@ -359,7 +392,8 @@ def get_receipts_by_date_range():
     
     conn, cursor = get_db()
     
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             r.*,
             t.first_name,
@@ -386,6 +420,8 @@ def get_receipts_by_date_range():
     
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -407,6 +443,7 @@ def get_receipt_stats():
     
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute("""
             SELECT 
                 COUNT(*) as total_receipts,
@@ -417,6 +454,8 @@ def get_receipt_stats():
         stats = cursor.fetchone()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         return jsonify({'success': True, 'data': stats}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

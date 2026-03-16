@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session, current_app
-from app.database import get_db
+from app.database import release_db, get_db
 from datetime import datetime
 import json
 import os
@@ -13,10 +13,13 @@ bp = Blueprint('company', __name__, url_prefix='/api/company')
 def get_settings():
     """Get complete company settings (ALL 48 FIELDS)"""
     conn, cursor = get_db()
-    cursor.execute('SELECT * FROM company_settings WHERE id = 1')
+    try:
+        cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if settings:
         return jsonify({'success': True, 'settings': dict(settings)})
@@ -80,6 +83,7 @@ def update_settings():
     
     try:
         # Check if settings exist
+        try:
         cursor.execute('SELECT id FROM company_settings WHERE id = 1')
         exists = cursor.fetchone()
         
@@ -256,6 +260,8 @@ def update_settings():
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True, 
@@ -301,7 +307,8 @@ def upload_logo():
     
     # Update database with logo path
     conn, cursor = get_db()
-    cursor.execute('''
+    try:
+        cursor.execute('''
         UPDATE company_settings 
         SET logo = %s, updated_at = %s
         WHERE id = 1
@@ -309,6 +316,8 @@ def upload_logo():
     conn.commit()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     # Log activity
     log_activity(session['user_id'], 'upload', 'company', 'Uploaded company logo', request.remote_addr)
@@ -323,10 +332,13 @@ def upload_logo():
 def get_company_details():
     """Get formatted company details for invoices/receipts"""
     conn, cursor = get_db()
-    cursor.execute('SELECT * FROM company_settings WHERE id = 1')
+    try:
+        cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     if not settings:
         return jsonify({'success': False, 'error': 'Company settings not found'}), 404
@@ -390,7 +402,8 @@ def get_company_details():
 def get_bank_details():
     """Get bank details only"""
     conn, cursor = get_db()
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             bank_name, bank_branch, account_name, account_no,
             ifsc_code, micr_code, upi_id, qr_code
@@ -399,6 +412,8 @@ def get_bank_details():
     bank = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -409,7 +424,8 @@ def get_bank_details():
 def get_tax_details():
     """Get tax details only"""
     conn, cursor = get_db()
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             gstin, pan, tan, tcs_no, tin, cin, iec, msme
         FROM company_settings WHERE id = 1
@@ -417,6 +433,8 @@ def get_tax_details():
     tax = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -427,7 +445,8 @@ def get_tax_details():
 def get_contact_details():
     """Get contact details only"""
     conn, cursor = get_db()
-    cursor.execute('''
+    try:
+        cursor.execute('''
         SELECT 
             phone, mobile, email, website,
             address_line1, address_line2, city, state, country, pin_code
@@ -436,6 +455,8 @@ def get_contact_details():
     contact = cursor.fetchone()
     cursor.close()
     conn.close()
+    finally:
+        release_db(conn, cursor)
     
     return jsonify({
         'success': True,
@@ -452,6 +473,7 @@ def initialize_settings():
     
     try:
         # Check if settings already exist
+        try:
         cursor.execute('SELECT id FROM company_settings WHERE id = 1')
         exists = cursor.fetchone()
         
@@ -475,6 +497,8 @@ def initialize_settings():
         
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         return jsonify({
             'success': True,
@@ -492,6 +516,7 @@ def log_activity(user_id, action, module, description, ip_address=None):
     """Log user activity"""
     try:
         conn, cursor = get_db()
+        try:
         cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
@@ -499,5 +524,7 @@ def log_activity(user_id, action, module, description, ip_address=None):
         conn.commit()
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Activity log error: {e}")

@@ -796,5 +796,30 @@
         // Simple console log wrapper to avoid SessionManager errors
         console.log('✅ Login page loaded - waiting for scripts...');
     </script>
+
+<script>
+function logout() {
+    fetch('/api/logout', { 
+        method: 'POST', 
+        credentials: 'include' 
+    }).then(() => {
+        window.location.href = '/admin.login.html';
+    }).catch(() => {
+        window.location.href = '/admin.login.html';
+    });
+}
+
+// Auto-check session on page load
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/check-session', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.authenticated && !window.location.pathname.includes('login')) {
+                window.location.href = '/admin.login.html';
+            }
+        });
+});
+</script>
+
 </body>
 </html>

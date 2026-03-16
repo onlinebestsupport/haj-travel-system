@@ -8,7 +8,7 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.database import get_db, init_db
+from app.database import get_db, init_db, release_db
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,7 @@ def reset_database():
         
         # Drop all tables in correct order (respect foreign keys)
         print("Dropping existing tables...")
+        try:
         cursor.execute("DROP TABLE IF EXISTS receipts CASCADE")
         cursor.execute("DROP TABLE IF EXISTS payments CASCADE")
         cursor.execute("DROP TABLE IF EXISTS invoices CASCADE")
@@ -50,6 +51,8 @@ def reset_database():
         
         cursor.close()
         conn.close()
+    finally:
+        release_db(conn, cursor)
         
         print("\n✅ Database reset complete!")
         return True

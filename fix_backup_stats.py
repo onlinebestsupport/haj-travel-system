@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+from app.database import get_db
 
 with open('app/routes/admin.py', 'r', encoding='utf-8') as f:
     content = f.read()
