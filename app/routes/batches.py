@@ -24,22 +24,60 @@ def get_batches():
         if conn:
             release_db(conn, cursor)
 
-@bp.route('/<int:batch_id>', methods=['GET'])
-def get_batch(batch_id):
-    """Get single batch"""
-    if 'user_id' not in session and 'traveler_id' not in session:
+@bp.route('/<int:batch_id>', methods=['PUT'])
+def update_batch(batch_id):
+    """Update batch"""
+    if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
     
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
-        cursor.execute("SELECT * FROM batches WHERE id = %s", (batch_id,))
-        batch = cursor.fetchone()
-        if not batch:
+        
+        # Check if batch exists
+        cursor.execute("SELECT id FROM batches WHERE id = %s", (batch_id,))
+        if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        return jsonify({'success': True, 'batch': dict(batch)})
+        
+        # Simple update with all possible fields
+        cursor.execute("""
+            UPDATE batches SET
+                batch_name = COALESCE(%s, batch_name),
+                total_seats = COALESCE(%s, total_seats),
+                price = COALESCE(%s, price),
+                departure_date = COALESCE(%s, departure_date),
+                return_date = COALESCE(%s, return_date),
+                status = COALESCE(%s, status),
+                description = COALESCE(%s, description),
+                updated_at = %s
+            WHERE id = %s
+        """, (
+            data.get('batch_name'),
+            data.get('total_seats'),
+            data.get('price'),
+            data.get('departure_date'),
+            data.get('return_date'),
+            data.get('status'),
+            data.get('description'),
+            datetime.now(),
+            batch_id
+        ))
+        
+        conn.commit()
+        
+        # Verify update
+        cursor.execute("SELECT price FROM batches WHERE id = %s", (batch_id,))
+        result = cursor.fetchone()
+        print(f"Updated price to: {result['price'] if result else 'N/A'}")
+        
+        return jsonify({'success': True, 'message': 'Batch updated successfully'})
+        
     except Exception as e:
+        if conn:
+            conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         if conn:
