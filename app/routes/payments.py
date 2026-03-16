@@ -193,8 +193,8 @@ def create_payment():
 
     data = request.json
 
-    # Validate required fields
-    required = ['traveler_id', 'batch_id', 'amount', 'payment_date', 'payment_method']
+    # Validate required fields based on actual schema
+    required = ['traveler_id', 'batch_id', 'amount', 'payment_date']
     for field in required:
         if not data.get(field):
             return jsonify({'success': False, 'error': f'{field} is required'}), 400
@@ -218,46 +218,23 @@ def create_payment():
         if not traveler:
             return jsonify({'success': False, 'error': 'Traveler not found'}), 400
 
-        # Insert payment
+        # Insert payment - based on actual schema: id, traveler_id, batch_id, amount, payment_date, status, created_at
         cursor.execute('''
             INSERT INTO payments (
-                traveler_id, batch_id, amount, payment_date,
-                payment_method, status, reference, notes, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                traveler_id, batch_id, amount, payment_date, status, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (
             data['traveler_id'],
             data['batch_id'],
             amount,
             data['payment_date'],
-            data['payment_method'],
             data.get('status', 'completed'),
-            data.get('reference'),
-            data.get('notes'),
             datetime.now()
         ))
 
         result = cursor.fetchone()
         payment_id = result['id'] if result else None
-
-        # Create receipt automatically for completed payments
-        if data.get('status', 'completed') == 'completed' and payment_id:
-            receipt_number = f"REC-{datetime.now().strftime('%Y%m%d')}-{payment_id}"
-
-            cursor.execute('''
-                INSERT INTO receipts (
-                    receipt_number, traveler_id, payment_id, receipt_date,
-                    amount, payment_method, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ''', (
-                receipt_number,
-                data['traveler_id'],
-                payment_id,
-                data['payment_date'],
-                amount,
-                data['payment_method'],
-                datetime.now()
-            ))
 
         conn.commit()
 
@@ -272,7 +249,8 @@ def create_payment():
             conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
     finally:
-        release_db(conn, cursor)
+        if conn:
+            release_db(conn, cursor)
 
 @bp.route('/<int:payment_id>', methods=['PUT'])
 def update_payment(payment_id):

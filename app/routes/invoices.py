@@ -58,6 +58,7 @@ def create_invoice():
 
     data = request.json
 
+    # Validate required fields - based on actual schema
     required = ['traveler_id', 'batch_id', 'amount']
     for field in required:
         if not data.get(field):
