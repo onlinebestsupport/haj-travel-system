@@ -79,8 +79,7 @@ def get_users():
     try:
         def fetch_users(conn, cursor):
             cursor.execute('''
-                SELECT id, username, full_name, email, phone, department,
-                       role, permissions, is_active, last_login, created_at
+                SELECT id, username, name, email, role, is_active, last_login, created_at
                 FROM users ORDER BY username
             ''')
             return cursor.fetchall()
@@ -89,16 +88,8 @@ def get_users():
         if users is None:
             return jsonify({'success': False, 'error': 'Failed to fetch users'}), 500
         
-        # Parse permissions
-        result = []
-        for user in users:
-            user_dict = dict(user)
-            perms = user_dict.get('permissions', '{}')
-            try:
-                user_dict['permissions'] = json.loads(perms) if isinstance(perms, str) else perms
-            except:
-                user_dict['permissions'] = {}
-            result.append(user_dict)
+        # No permissions to parse since column doesn't exist
+        result = [dict(user) for user in users]
         
         return jsonify({'success': True, 'users': result})
     except Exception as e:
@@ -112,21 +103,14 @@ def get_user(user_id):
     """Get single user"""
     try:
         def fetch_user(conn, cursor, uid):
-            cursor.execute('SELECT * FROM users WHERE id = %s', (uid,))
+            cursor.execute('SELECT id, username, name, email, role, is_active, last_login, created_at FROM users WHERE id = %s', (uid,))
             return cursor.fetchone()
         
         user = safe_db_operation(fetch_user)(user_id)
         if not user:
             return jsonify({'success': False, 'error': 'User not found'}), 404
         
-        user_dict = dict(user)
-        perms = user_dict.get('permissions', '{}')
-        try:
-            user_dict['permissions'] = json.loads(perms) if isinstance(perms, str) else perms
-        except:
-            user_dict['permissions'] = {}
-        
-        return jsonify({'success': True, 'user': user_dict})
+        return jsonify({'success': True, 'user': dict(user)})
     except Exception as e:
         print(f"❌ Get user error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
