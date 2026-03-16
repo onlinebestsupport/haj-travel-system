@@ -20,12 +20,14 @@ def reset_database():
     print("🔄 RESETTING DATABASE")
     print("=" * 60)
     
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
         
         # Drop all tables in correct order (respect foreign keys)
         print("Dropping existing tables...")
-        try:
+        
         cursor.execute("DROP TABLE IF EXISTS receipts CASCADE")
         cursor.execute("DROP TABLE IF EXISTS payments CASCADE")
         cursor.execute("DROP TABLE IF EXISTS invoices CASCADE")
@@ -49,17 +51,15 @@ def reset_database():
         init_db()
         print("✅ Tables created successfully")
         
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
-        
         print("\n✅ Database reset complete!")
         return True
         
     except Exception as e:
         print(f"\n❌ Error resetting database: {e}")
         return False
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
 if __name__ == "__main__":
     reset_database()
