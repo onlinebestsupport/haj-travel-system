@@ -64,12 +64,22 @@ def log_activity(user_id, action, module, description, ip_address=None):
     finally:
         release_db(conn, cursor)
 def get_travelers():
-    """Get all travelers with complete details"""
-    # Check authentication
+    """Get all travelers"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
-    conn, cursor = get_db()
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM travelers ORDER BY created_at DESC")
+        travelers = cursor.fetchall()
+        return jsonify({'success': True, 'travelers': [dict(t) for t in travelers]})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
     
     cursor.execute('''
         SELECT 

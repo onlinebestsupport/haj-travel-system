@@ -146,26 +146,26 @@ def create_invoice():
         conn.close()
         return jsonify({'success': False, 'error': str(e)}), 400
 
-@bp.route('/<int:invoice_id>', methods=['PUT'])
-def update_invoice(invoice_id):
-    """Update invoice"""
+@bp.route('/<int:invoice_id>', methods=['GET'])
+def get_invoice(invoice_id):
+    """Get single invoice"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    
-    conn, cursor = get_db()
-    
+
+    conn = None
+    cursor = None
     try:
-        # Check if invoice exists
-        try:
-        cursor.execute('SELECT id FROM invoices WHERE id = %s', (invoice_id,))
-        if not cursor.fetchone():
-            cursor.close()
-            conn.close()
-    finally:
-        release_db(conn, cursor)
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))
+        invoice = cursor.fetchone()
+        if not invoice:
             return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+        return jsonify({'success': True, 'invoice': dict(invoice)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
         
         # Recalculate if base_amount changed
         base_amount = float(data.get('base_amount', 0))

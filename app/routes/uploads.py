@@ -59,14 +59,9 @@ def get_upload_folder(doc_type='document'):
     folder_path = os.path.join(base_folder, subfolder)
     
     # Create folder if it doesn't exist
-    try:
-            conn, cursor = get_db()
-        # your code here
-        conn.commit()
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        release_db(conn, cursor)
+    os.makedirs(folder_path, exist_ok=True)
+    return folder_path
+
 def get_upload_subfolder(doc_type):
     """Get upload subfolder name for URL generation"""
     folders = {
@@ -136,7 +131,7 @@ def upload_file():
     
     # Save file in appropriate folder
     try:
-            upload_folder = get_upload_folder(doc_type)
+        upload_folder = get_upload_folder(doc_type)
         file_path = os.path.join(upload_folder, new_filename)
         file.save(file_path)
         
@@ -153,11 +148,11 @@ def upload_file():
     # If this is for a traveler, update the traveler record
     if traveler_id and doc_type in ['passport', 'aadhaar', 'pan', 'vaccine', 'photo']:
         try:
-        update_traveler_document(traveler_id, doc_type, new_filename)
+            update_traveler_document(traveler_id, doc_type, new_filename)
         except Exception as e:
             # If database update fails, delete the uploaded file
             try:
-        os.remove(file_path)
+                os.remove(file_path)
             except:
                 pass
             return jsonify({
@@ -214,7 +209,7 @@ def upload_multiple_files():
             continue
         
         try:
-        # Check file type
+            # Check file type
             if not allowed_file(file.filename, doc_type):
                 errors.append(f"{file.filename}: File type not allowed")
                 continue
@@ -259,9 +254,6 @@ def upload_multiple_files():
 @bp.route('/files/<path:filename>')
 def serve_file(filename):
     """Serve uploaded files - searches all subdirectories"""
-    # 🔓 AUTHENTICATION REMOVED - Files should be accessible when user is logged in
-    # The frontend already checks authentication before showing document icons
-    
     # Security: Prevent directory traversal
     if '..' in filename or filename.startswith('/'):
         print(f"⚠️ Security: Directory traversal attempt blocked: {filename}")
@@ -283,30 +275,18 @@ def serve_file(filename):
         if os.path.exists(file_path) and os.path.isfile(file_path):
             print(f"✅ Found file in {subdir}: {file_path}")
             try:
-        return send_file(file_path)
+                return send_file(file_path)
             except Exception as e:
                 print(f"❌ Error sending file: {e}")
                 abort(500)
     
     # If we get here, file wasn't found
     print(f"❌ File not found: {filename}")
-    print(f"   Searched in: {base_folder}")
-    for subdir in subdirs:
-        folder_path = os.path.join(base_folder, subdir)
-        if os.path.exists(folder_path):
-            files = os.listdir(folder_path)
-            print(f"   - {subdir}: {len(files)} files")
-            # Show first 5 files for debugging
-            if files and len(files) > 0:
-                print(f"     Sample files: {', '.join(files[:5])}")
-    
     abort(404)
 
 @bp.route('/<path:subdir>/<path:filename>')
 def serve_file_with_subdir(subdir, filename):
     """Serve uploaded files with explicit subdirectory"""
-    # 🔓 AUTHENTICATION REMOVED - Files should be accessible when user is logged in
-    
     # Security: Prevent directory traversal
     if '..' in filename or '..' in subdir or filename.startswith('/') or subdir.startswith('/'):
         print(f"⚠️ Security: Directory traversal attempt blocked: {subdir}/{filename}")
@@ -326,31 +306,18 @@ def serve_file_with_subdir(subdir, filename):
     if os.path.exists(file_path) and os.path.isfile(file_path):
         print(f"✅ Found file: {file_path}")
         try:
-        return send_file(file_path)
+            return send_file(file_path)
         except Exception as e:
             print(f"❌ Error sending file: {e}")
             abort(500)
     else:
         print(f"❌ File not found: {file_path}")
-        
-        # Debug: Show what files exist in this directory
-        folder_path = os.path.join(base_folder, subdir)
-        if os.path.exists(folder_path):
-            files = os.listdir(folder_path)
-            print(f"   Files in {subdir}: {len(files)} files")
-            if files and len(files) > 0:
-                print(f"   Available: {', '.join(files[:10])}")
-        else:
-            print(f"   Directory does not exist: {folder_path}")
-        
         abort(404)
 
 # Optional: Add a route to check if file exists without downloading
 @bp.route('/check/<path:subdir>/<path:filename>', methods=['GET'])
 def check_file_exists(subdir, filename):
     """Check if a file exists (returns JSON instead of file)"""
-    # This is useful for debugging
-    
     # Security: Prevent directory traversal
     if '..' in filename or '..' in subdir:
         return jsonify({'success': False, 'error': 'Invalid path'}), 400
@@ -373,6 +340,7 @@ def check_file_exists(subdir, filename):
         result['size_mb'] = round(result['size'] / (1024 * 1024), 2)
     
     return jsonify(result)
+
 # ==================== FILE MANAGEMENT ROUTES ====================
 
 @bp.route('/<path:filename>', methods=['DELETE'])
@@ -431,7 +399,6 @@ def get_traveler_documents(traveler_id):
     try:
         conn, cursor = get_db()
         
-        try:
         cursor.execute('''
             SELECT 
                 passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
@@ -666,64 +633,61 @@ def cleanup_orphaned_files():
                 if value:
                     referenced_files.add(value)
         
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
-        
-        # Get all files in upload directories
-        base_folder = current_app.config['UPLOAD_FOLDER']
-        orphaned = []
-        orphaned_by_folder = {}
-        total_size = 0
-        
-        for doc_type, folder_name in [
-            ('passport', 'passports'),
-            ('aadhaar', 'aadhaar'),
-            ('pan', 'pan'),
-            ('vaccine', 'vaccine'),
-            ('photo', 'photos'),
-            ('document', 'documents'),
-            ('logo', 'company'),
-            ('backup', 'backups')
-        ]:
-            folder = os.path.join(base_folder, folder_name)
-            if os.path.exists(folder):
-                orphaned_by_folder[folder_name] = []
-                for filename in os.listdir(folder):
-                    filepath = os.path.join(folder, filename)
-                    if os.path.isfile(filepath) and filename not in referenced_files:
-                        file_size = os.path.getsize(filepath)
-                        orphaned.append({
-                            'path': filepath,
-                            'filename': filename,
-                            'size': file_size,
-                            'folder': folder_name
-                        })
-                        orphaned_by_folder[folder_name].append(filename)
-                        total_size += file_size
-        
-        # Log activity
-        log_activity(
-            session['user_id'],
-            'cleanup_check',
-            'uploads',
-            f'Found {len(orphaned)} orphaned files ({round(total_size / (1024*1024), 2)} MB)',
-            request.remote_addr
-        )
-        
-        return jsonify({
-            'success': True,
-            'orphaned_count': len(orphaned),
-            'orphaned_by_folder': orphaned_by_folder,
-            'orphaned_files': orphaned[:50],  # Limit to first 50 for response
-            'total_size_bytes': total_size,
-            'total_size_mb': round(total_size / (1024 * 1024), 2),
-            'message': f'Found {len(orphaned)} orphaned files. Use POST /cleanup/delete to remove them.'
-        })
-        
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
+    
+    # Get all files in upload directories
+    base_folder = current_app.config['UPLOAD_FOLDER']
+    orphaned = []
+    orphaned_by_folder = {}
+    total_size = 0
+    
+    for doc_type, folder_name in [
+        ('passport', 'passports'),
+        ('aadhaar', 'aadhaar'),
+        ('pan', 'pan'),
+        ('vaccine', 'vaccine'),
+        ('photo', 'photos'),
+        ('document', 'documents'),
+        ('logo', 'company'),
+        ('backup', 'backups')
+    ]:
+        folder = os.path.join(base_folder, folder_name)
+        if os.path.exists(folder):
+            orphaned_by_folder[folder_name] = []
+            for filename in os.listdir(folder):
+                filepath = os.path.join(folder, filename)
+                if os.path.isfile(filepath) and filename not in referenced_files:
+                    file_size = os.path.getsize(filepath)
+                    orphaned.append({
+                        'path': filepath,
+                        'filename': filename,
+                        'size': file_size,
+                        'folder': folder_name
+                    })
+                    orphaned_by_folder[folder_name].append(filename)
+                    total_size += file_size
+    
+    # Log activity
+    log_activity(
+        session['user_id'],
+        'cleanup_check',
+        'uploads',
+        f'Found {len(orphaned)} orphaned files ({round(total_size / (1024*1024), 2)} MB)',
+        request.remote_addr
+    )
+    
+    return jsonify({
+        'success': True,
+        'orphaned_count': len(orphaned),
+        'orphaned_by_folder': orphaned_by_folder,
+        'orphaned_files': orphaned[:50],
+        'total_size_bytes': total_size,
+        'total_size_mb': round(total_size / (1024 * 1024), 2),
+        'message': f'Found {len(orphaned)} orphaned files. Use POST /cleanup/delete to remove them.'
+    })
 
 @bp.route('/cleanup/delete', methods=['POST'])
 def delete_orphaned_files():
@@ -747,7 +711,7 @@ def delete_orphaned_files():
     
     for file_info in files_to_delete:
         try:
-        filepath = file_info if isinstance(file_info, str) else file_info.get('path')
+            filepath = file_info if isinstance(file_info, str) else file_info.get('path')
             if not filepath:
                 continue
                 
@@ -777,7 +741,7 @@ def delete_orphaned_files():
     return jsonify({
         'success': True,
         'deleted_count': len(deleted),
-        'deleted': deleted[:30],  # Limit response
+        'deleted': deleted[:30],
         'total_size_bytes': total_size,
         'total_size_mb': round(total_size / (1024 * 1024), 2),
         'errors': errors,
@@ -847,7 +811,7 @@ def get_upload_stats():
                 'file_count': len(files),
                 'total_size_bytes': folder_size,
                 'total_size_mb': round(folder_size / (1024 * 1024), 2),
-                'files': files[:20]  # Limit preview
+                'files': files[:20]
             }
             total_files += len(files)
             total_size += folder_size

@@ -20,6 +20,7 @@ def get_batches():
     finally:
         if conn:
             release_db(conn, cursor)
+
 def get_batch(batch_id):
     """Get single batch with details"""
     # ✅ FIXED: Add authentication check

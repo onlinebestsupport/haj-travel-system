@@ -243,46 +243,26 @@ def get_traveler_receipts(traveler_id):
         'receipts': [dict(r) for r in receipts]
     })
 
-@bp.route('/<int:receipt_id>/print', methods=['GET'])
-def print_receipt(receipt_id):
-    """Get receipt data formatted for printing"""
+@bp.route('/<int:receipt_id>', methods=['GET'])
+def get_receipt(receipt_id):
+    """Get single receipt"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn, cursor = get_db()
-    
+
+    conn = None
+    cursor = None
     try:
-        cursor.execute('''
-        SELECT 
-            r.*,
-            t.first_name,
-            t.last_name,
-            t.passport_no,
-            t.mobile,
-            t.email,
-            p.amount as payment_amount,
-            p.payment_date,
-            p.payment_method,
-            p.transaction_id,
-            b.batch_name,
-            i.invoice_number,
-            i.total_amount as invoice_total
-        FROM receipts r
-        LEFT JOIN travelers t ON r.traveler_id = t.id
-        LEFT JOIN payments p ON r.payment_id = p.id
-        LEFT JOIN batches b ON p.batch_id = b.id
-        LEFT JOIN invoices i ON r.invoice_id = i.id
-        WHERE r.id = %s
-    ''', (receipt_id,))
-    
-    receipt = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM receipts WHERE id = %s", (receipt_id,))
+        receipt = cursor.fetchone()
+        if not receipt:
+            return jsonify({'success': False, 'error': 'Receipt not found'}), 404
+        return jsonify({'success': True, 'receipt': dict(receipt)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
-        release_db(conn, cursor)
-    
-    if not receipt:
-        return jsonify({'success': False, 'error': 'Receipt not found'}), 404
+        if conn:
+            release_db(conn, cursor)
     
     receipt_dict = dict(receipt)
     
