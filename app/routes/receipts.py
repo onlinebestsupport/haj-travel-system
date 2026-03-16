@@ -29,7 +29,11 @@ def get_receipts():
     ''')
     
     receipts = cursor.fetchall()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)
@@ -196,7 +200,11 @@ def get_payment_receipts(payment_id):
     ''', (payment_id,))
     
     receipts = cursor.fetchall()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)
@@ -229,7 +237,11 @@ def get_traveler_receipts(traveler_id):
     ''', (traveler_id,))
     
     receipts = cursor.fetchall()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)
@@ -407,7 +419,11 @@ def get_receipts_by_date_range():
     
     receipts = cursor.fetchall()
     
-    # Calculate totals
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    # Calculate totals
     cursor.execute('''
         SELECT 
             COUNT(*) as count,

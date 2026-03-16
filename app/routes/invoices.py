@@ -31,7 +31,11 @@ def get_invoices():
     ''')
     
     invoices = cursor.fetchall()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)
@@ -360,7 +364,11 @@ def get_traveler_invoices(traveler_id):
     ''', (traveler_id,))
     
     invoices = cursor.fetchall()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)

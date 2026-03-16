@@ -16,7 +16,11 @@ def get_settings():
     try:
         cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)
@@ -335,7 +339,11 @@ def get_company_details():
     try:
         cursor.execute('SELECT * FROM company_settings WHERE id = 1')
     settings = cursor.fetchone()
-    cursor.close()
+        conn.commit()
+    except Exception as e:
+        return jsonify({\'success\': False, \'error\': str(e)}), 500
+    finally:
+        release_db(conn, cursor)    cursor.close()
     conn.close()
     finally:
         release_db(conn, cursor)

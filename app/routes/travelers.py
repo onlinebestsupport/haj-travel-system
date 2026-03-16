@@ -50,9 +50,9 @@ def log_activity(user_id, action, module, description, ip_address=None):
     conn = None
     cursor = None
     try:
-        conn, cursor = get_db()
+    conn, cursor = get_db()
         try:
-        cursor.execute(
+    cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, ip_address or request.remote_addr, datetime.now())
         )
@@ -103,7 +103,7 @@ def get_travelers():
         t_dict = dict(t)
         if t_dict.get('extra_fields'):
             try:
-                if isinstance(t_dict['extra_fields'], str):
+    if isinstance(t_dict['extra_fields'], str):
                     t_dict['extra_fields'] = json.loads(t_dict['extra_fields'])
             except:
                 t_dict['extra_fields'] = {}
@@ -128,7 +128,7 @@ def get_traveler(traveler_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             t.*, 
             b.batch_name,
@@ -155,7 +155,7 @@ def get_traveler(traveler_id):
     
     # Get payments
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -205,7 +205,7 @@ def get_traveler(traveler_id):
     
     if result.get('extra_fields'):
         try:
-            if isinstance(result['extra_fields'], str):
+    if isinstance(result['extra_fields'], str):
                 result['extra_fields'] = json.loads(result['extra_fields'])
         except:
             result['extra_fields'] = {}
@@ -218,7 +218,7 @@ def get_traveler_by_passport(passport_no):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT t.*, b.batch_name, b.price as batch_price, 
                b.departure_date, b.return_date, b.status as batch_status
         FROM travelers t
@@ -236,7 +236,7 @@ def get_traveler_by_passport(passport_no):
         return jsonify({'success': False, 'error': 'Traveler not found'}), 404
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -253,7 +253,7 @@ def get_traveler_by_passport(passport_no):
     
     if result.get('extra_fields'):
         try:
-            if isinstance(result['extra_fields'], str):
+    if isinstance(result['extra_fields'], str):
                 result['extra_fields'] = json.loads(result['extra_fields'])
         except:
             result['extra_fields'] = {}
@@ -282,7 +282,7 @@ def create_traveler():
     
     # Validate batch_id is integer
     try:
-        batch_id = int(data['batch_id'])
+    batch_id = int(data['batch_id'])
     except ValueError:
         return jsonify({'success': False, 'error': 'Invalid batch_id'}), 400
     
@@ -295,9 +295,9 @@ def create_traveler():
     conn, cursor = get_db()
     
     try:
-        # Check for duplicate passport
+    # Check for duplicate passport
         try:
-        cursor.execute('SELECT id FROM travelers WHERE passport_no = %s', (data['passport_no'].upper(),))
+    cursor.execute('SELECT id FROM travelers WHERE passport_no = %s', (data['passport_no'].upper(),))
         if cursor.fetchone():
             cursor.close()
             conn.close()
@@ -307,7 +307,7 @@ def create_traveler():
         
         # Insert traveler first to get ID
         try:
-        cursor.execute('''
+    cursor.execute('''
             INSERT INTO travelers (
                 first_name, last_name, passport_name, batch_id,
                 passport_no, passport_issue_date, passport_expiry_date,
@@ -421,8 +421,8 @@ def update_traveler(traveler_id):
     conn, cursor = get_db()
     
     try:
-        try:
-        cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = %s', (traveler_id,))
+    try:
+    cursor.execute('SELECT id, batch_id, first_name, last_name FROM travelers WHERE id = %s', (traveler_id,))
         existing = cursor.fetchone()
         if not existing:
             cursor.close()
@@ -498,7 +498,7 @@ def update_traveler(traveler_id):
             query = f"UPDATE travelers SET {', '.join(update_fields)} WHERE id = %s"
             values.append(traveler_id)
             try:
-        cursor.execute(query, values)
+    cursor.execute(query, values)
         
         # Update batch seats if batch changed
         if old_batch_id != new_batch_id:
@@ -531,8 +531,8 @@ def delete_traveler(traveler_id):
     conn, cursor = get_db()
     
     try:
-        try:
-        cursor.execute('SELECT id, first_name, last_name, batch_id FROM travelers WHERE id = %s', (traveler_id,))
+    try:
+    cursor.execute('SELECT id, first_name, last_name, batch_id FROM travelers WHERE id = %s', (traveler_id,))
         traveler = cursor.fetchone()
         
         if not traveler:
@@ -551,7 +551,7 @@ def delete_traveler(traveler_id):
         
         # Delete traveler record
         try:
-        cursor.execute('DELETE FROM travelers WHERE id = %s', (traveler_id,))
+    cursor.execute('DELETE FROM travelers WHERE id = %s', (traveler_id,))
         
         # Update batch booked seats
         cursor.execute('UPDATE batches SET booked_seats = booked_seats - 1 WHERE id = %s', (traveler['batch_id'],))
@@ -587,7 +587,7 @@ def get_traveler_payments(traveler_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT * FROM payments 
         WHERE traveler_id = %s 
         ORDER BY payment_date DESC
@@ -632,7 +632,7 @@ def get_traveler_invoices(traveler_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT * FROM invoices 
         WHERE traveler_id = %s 
         ORDER BY created_at DESC
@@ -663,7 +663,7 @@ def get_traveler_receipts(traveler_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT * FROM receipts 
         WHERE traveler_id = %s 
         ORDER BY created_at DESC
@@ -694,7 +694,7 @@ def get_traveler_documents(traveler_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             passport_scan, aadhaar_scan, pan_scan, vaccine_scan, photo
         FROM travelers 
@@ -752,7 +752,7 @@ def download_document(traveler_id, doc_type):
     conn, cursor = get_db()
     
     try:
-        cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = %s', (traveler_id,))
+    cursor.execute(f'SELECT {doc_type} FROM travelers WHERE id = %s', (traveler_id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -780,7 +780,7 @@ def get_travelers_summary():
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             COUNT(*) as total_travelers,
             SUM(CASE WHEN passport_status = 'Active' THEN 1 ELSE 0 END) as active_passports,
@@ -857,7 +857,7 @@ def search_travelers():
     
     search_term = f'%{query}%'
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             t.id, t.first_name, t.last_name, t.passport_no, 
             t.mobile, t.email, t.passport_status,
@@ -916,7 +916,7 @@ def export_travelers():
     query += " ORDER BY t.created_at DESC"
     
     try:
-        cursor.execute(query, params)
+    cursor.execute(query, params)
     travelers = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -980,7 +980,7 @@ def get_monthly_stats():
     
     # Monthly registrations - PostgreSQL uses EXTRACT
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             TO_CHAR(created_at, 'MM') as month,
             COUNT(*) as count

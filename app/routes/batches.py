@@ -15,10 +15,10 @@ def get_batches():
     conn = None
     cursor = None
     try:
-        conn, cursor = get_db()
+    conn, cursor = get_db()
         
         try:
-        cursor.execute('''
+    cursor.execute('''
             SELECT 
                 b.*,
                 COUNT(t.id) as traveler_count,
@@ -52,7 +52,7 @@ def get_batch(batch_id):
     conn = None
     cursor = None
     try:
-        conn, cursor = get_db()
+    conn, cursor = get_db()
         
         cursor.execute('''
             SELECT 
@@ -135,7 +135,7 @@ def create_batch():
     now = datetime.now()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         INSERT INTO batches (
             batch_name, total_seats, booked_seats, price, 
             departure_date, return_date, status, description,
@@ -191,7 +191,7 @@ def update_batch(batch_id):
     
     # Check if batch exists
     try:
-        cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
+    cursor.execute('SELECT id FROM batches WHERE id = %s', (batch_id,))
     if not cursor.fetchone():
         cursor.close()
         conn.close()
@@ -202,7 +202,7 @@ def update_batch(batch_id):
     now = datetime.now()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         UPDATE batches SET
             batch_name = %s,
             total_seats = %s,
@@ -262,7 +262,7 @@ def delete_batch(batch_id):
     
     # Check if batch has travelers
     try:
-        cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
+    cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE batch_id = %s', (batch_id,))
     result = cursor.fetchone()
     count = result['count'] if result else 0
     
@@ -278,7 +278,7 @@ def delete_batch(batch_id):
     
     # Delete batch
     try:
-        cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
+    cursor.execute('DELETE FROM batches WHERE id = %s', (batch_id,))
     conn.commit()
     
     # Log activity
@@ -301,7 +301,7 @@ def get_batch_travelers(batch_id):
     
     # Check if batch exists
     try:
-        cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
+    cursor.execute('SELECT id, batch_name FROM batches WHERE id = %s', (batch_id,))
     batch = cursor.fetchone()
     
     if not batch:
@@ -313,7 +313,7 @@ def get_batch_travelers(batch_id):
     
     # Get travelers
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             id, first_name, last_name, passport_no, mobile, email,
             passport_status, vaccine_status, wheelchair, pin
@@ -354,7 +354,7 @@ def get_batch_payments(batch_id):
     conn, cursor = get_db()
     
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             p.*,
             t.first_name,
@@ -385,7 +385,7 @@ def get_batch_stats(batch_id):
     
     # Basic batch info
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             batch_name,
             total_seats,
@@ -408,7 +408,7 @@ def get_batch_stats(batch_id):
     
     # Payment statistics
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             COUNT(*) as total_transactions,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_collected,
@@ -504,7 +504,7 @@ def get_batches_summary():
     
     # Overall statistics
     try:
-        cursor.execute('''
+    cursor.execute('''
         SELECT 
             COUNT(*) as total_batches,
             SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_batches,
@@ -551,9 +551,9 @@ def get_batches_summary():
 def log_activity(user_id, action, module, description):
     """Log user activity"""
     try:
-        conn, cursor = get_db()
+    conn, cursor = get_db()
         try:
-        cursor.execute(
+    cursor.execute(
             'INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at) VALUES (%s, %s, %s, %s, %s, %s)',
             (user_id, action, module, description, request.remote_addr, datetime.now())
         )
