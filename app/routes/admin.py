@@ -122,57 +122,51 @@ def create_user():
     """Create new user"""
     try:
         data = request.json
-        if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
         
-        required = ['username', 'password', 'email', 'role']
+        # Validate required fields
+        required = ['username', 'password', 'name', 'email', 'role']
         for field in required:
             if not data.get(field):
-                return jsonify({'success': False, 'error': f'{field} required'}), 400
+                return jsonify({'success': False, 'error': f'{field} is required'}), 400
         
-        # Validate email format
-        if '@' not in data['email']:
-            return jsonify({'success': False, 'error': 'Invalid email format'}), 400
+        # Check if username already exists
+        def check_user(conn, cursor):
+            cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
+            return cursor.fetchone()
         
-        # Validate password length
-        if len(data['password']) < 6:
-            return jsonify({'success': False, 'error': 'Password must be at least 6 characters'}), 400
+        existing = safe_db_operation(check_user)()
+        if existing:
+            return jsonify({'success': False, 'error': 'Username already exists'}), 400
         
         # Hash password
-        password_hash = hashlib.sha256(data['password'].encode()).hexdigest()
-        permissions = json.dumps(data.get('permissions', {}))
+        from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(data['password'])
         
+        # Insert user
         def create(conn, cursor):
-            # Check duplicates
-            cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
-            if cursor.fetchone():
-                return {'error': 'Username already exists'}
-            
-            cursor.execute('SELECT id FROM users WHERE email = %s', (data['email'],))
-            if cursor.fetchone():
-                return {'error': 'Email already exists'}
-            
             cursor.execute('''
-                INSERT INTO users (username, password, full_name, email, phone, department,
-                                 role, permissions, is_active, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO users (username, password_hash, name, email, role, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
-            ''', (data['username'], password_hash, data.get('full_name'), data['email'],
-                  data.get('phone'), data.get('department'), data['role'], permissions,
-                  True, datetime.now(), datetime.now()))
+            ''', (
+                data['username'],
+                password_hash,
+                data['name'],
+                data['email'],
+                data['role'],
+                datetime.now()
+            ))
+            result = cursor.fetchone()
+            return result['id'] if result else None
+        
+        user_id = safe_db_operation(create)()
+        
+        if user_id:
+            return jsonify({'success': True, 'user_id': user_id, 'message': 'User created successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to create user'}), 500
             
-            return {'id': cursor.fetchone()['id']}
-        
-        result = safe_db_operation(create)()
-        if result and 'error' in result:
-            return jsonify({'success': False, 'error': result['error']}), 400
-        
-        log_critical_action(session['user_id'], 'CREATE_USER', 
-                           f'Created user: {data["username"]}', get_client_ip())
-        
-        return jsonify({'success': True, 'user_id': result['id'], 'message': 'User created successfully'})
     except Exception as e:
-        print(f"❌ Create user error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ====== ✏️ UPDATE USER ======

@@ -118,11 +118,16 @@ def update_batch(batch_id):
         updates = []
         values = []
         
-        updateable_fields = ['batch_name', 'total_seats', 'price', 'departure_date', 
-                            'return_date', 'status', 'description']
+        # All fields that can be updated
+        updateable_fields = [
+            'batch_name', 'total_seats', 'price', 'departure_date', 
+            'return_date', 'status', 'description', 'itinerary',
+            'inclusions', 'exclusions', 'hotel_details', 
+            'transport_details', 'meal_plan'
+        ]
         
         for field in updateable_fields:
-            if field in data:
+            if field in data and data[field] is not None:
                 updates.append(f"{field} = %s")
                 values.append(data[field])
         
@@ -132,8 +137,17 @@ def update_batch(batch_id):
             query = f"UPDATE batches SET {', '.join(updates)}, updated_at = %s WHERE id = %s"
             cursor.execute(query, values)
             conn.commit()
-        
-        return jsonify({'success': True, 'message': 'Batch updated successfully'})
+            
+            # Verify the update
+            cursor.execute("SELECT price FROM batches WHERE id = %s", (batch_id,))
+            result = cursor.fetchone()
+            if result:
+                print(f"Updated price: {result['price']}")
+            
+            return jsonify({'success': True, 'message': 'Batch updated successfully'})
+        else:
+            return jsonify({'success': True, 'message': 'No fields to update'})
+            
     except Exception as e:
         if conn:
             conn.rollback()
