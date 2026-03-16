@@ -136,7 +136,7 @@ def upload_file():
     
     # Save file in appropriate folder
     try:
-    upload_folder = get_upload_folder(doc_type)
+        upload_folder = get_upload_folder(doc_type)
         file_path = os.path.join(upload_folder, new_filename)
         file.save(file_path)
         
