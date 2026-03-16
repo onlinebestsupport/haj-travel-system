@@ -669,20 +669,20 @@ def internal_error(error):
 # ====== 🔧 HELPER FUNCTIONS ======
 def log_admin_action(user_id, action, description):
     """Log admin actions to database"""
+    conn = None
+    cursor = None
     try:
         conn, cursor = get_db()
-        try:
         cursor.execute("""
             INSERT INTO activity_log (user_id, action, module, description, ip_address, created_at)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (user_id, action, 'frontpage', description, request.remote_addr, datetime.now()))
         conn.commit()
-        cursor.close()
-        conn.close()
-    finally:
-        release_db(conn, cursor)
     except Exception as e:
         print(f"⚠️ Failed to log admin action: {e}")
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
 def check_required_files():
     """Check if required files exist"""
