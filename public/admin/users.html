@@ -1854,49 +1854,27 @@ function escapeHtml(text) {
 </body>
                 </html>
             `);
-            printWindow.document.close();
             printWindow.print();
         };
 
         // ==================== CLOSE MODALS SECTION ====================
-        window.closeDetailsModal = function() {
-            document.getElementById('userDetailsModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
         };
 
-        window.closeAllModals = function() {
-            document.getElementById('userDetailsModal').style.display = 'none';
-            document.getElementById('editUserModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
         };
     
     // ==================== PAGINATION VARIABLES ====================
-    let currentPage = 1;
-    let itemsPerPage = 10;
 
-    function updatePaginationInfo() {
-        const total = window.allUsers ? window.allUsers.length : 0;
-        document.getElementById('totalCount').textContent = total;
-        const start = (currentPage - 1) * itemsPerPage + 1;
-        const end = Math.min(currentPage * itemsPerPage, total);
-        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
-        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
         
-        const prevBtn = document.getElementById('prevPageBtn');
-        const nextBtn = document.getElementById('nextPageBtn');
         if (prevBtn) prevBtn.disabled = currentPage === 1;
         if (nextBtn) nextBtn.disabled = end >= total;
     }
 
-    function previousPage() {
         if (currentPage > 1) {
             currentPage--;
             loadUsers();
         }
     }
 
-    function nextPage() {
-        if (currentPage * itemsPerPage < (window.allUsers ? window.allUsers.length : 0)) {
             currentPage++;
             loadUsers();
         }
@@ -1904,23 +1882,17 @@ function escapeHtml(text) {
 
 
     // ==================== EXPORT FUNCTION ====================
-    function exportUsersToCSV() {
         if (!allUsers || allUsers.length === 0) {
             showNotification('No users to export', 'error');
             return;
         }
         
-        let csv = [];
         csv.push('"ID","Username","Full Name","Email","Role","Department","Status","Last Login","Created"');
         
         allUsers.forEach(user => {
             csv.push(`"${user.id}","${user.username}","${user.full_name || ''}","${user.email}","${user.role}","${user.department || ''}","${user.is_active ? 'Active' : 'Inactive'}","${user.last_login || ''}","${user.created_at || ''}"`);
         });
         
-        const csvContent = csv.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
         a.href = url;
         a.download = `users_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
@@ -1930,49 +1902,33 @@ function escapeHtml(text) {
 
 
     // ==================== BULK ACTIONS ====================
-    function toggleSelectAll() {
-        const checkboxes = document.querySelectorAll('.user-checkbox');
-        const selectAll = document.getElementById('selectAllUsers');
         
         checkboxes.forEach(cb => {
             cb.checked = selectAll.checked;
-            const userId = cb.value;
             if (selectAll.checked) {
                 selectedUsers.add(userId);
             } else {
-                selectedUsers.delete(userId);
             }
         });
         
         updateBulkButtons();
     }
 
-    function toggleUserSelection(checkbox, userId) {
         if (checkbox.checked) {
             selectedUsers.add(userId);
         } else {
-            selectedUsers.delete(userId);
-            document.getElementById('selectAllUsers').checked = false;
         }
         updateBulkButtons();
     }
 
-    function updateBulkButtons() {
-        const hasSelection = selectedUsers.size > 0;
-        const bulkEmailBtn = document.getElementById('bulkEmailBtn');
-        const bulkActivateBtn = document.getElementById('bulkActivateBtn');
-        const bulkDeactivateBtn = document.getElementById('bulkDeactivateBtn');
         
         if (bulkEmailBtn) bulkEmailBtn.disabled = !hasSelection;
         if (bulkActivateBtn) bulkActivateBtn.disabled = !hasSelection;
         if (bulkDeactivateBtn) bulkDeactivateBtn.disabled = !hasSelection;
     }
 
-    function bulkEmail() {
         if (selectedUsers.size === 0) return;
         
-        const selectedList = Array.from(selectedUsers).map(id => {
-            const user = allUsers.find(u => u.id == id);
             return user?.email;
         }).filter(Boolean);
         
@@ -1981,11 +1937,57 @@ function escapeHtml(text) {
             return;
         }
         
-        window.location.href = `mailto:${selectedList.join(',')}`;
         showNotification(`Email client opened for ${selectedList.length} recipients`, 'success');
     }
 </script>
 
+<script>
+            printWindow.document.close();
+        window.closeDetailsModal = function() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        window.closeAllModals = function() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+            document.getElementById('editUserModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    function updatePaginationInfo() {
+        const total = window.allUsers ? window.allUsers.length : 0;
+        document.getElementById('totalCount').textContent = total;
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(currentPage * itemsPerPage, total);
+        document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
+        document.getElementById('showingTo').textContent = total > 0 ? end : 0;
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+    function previousPage() {
+    function nextPage() {
+        if (currentPage * itemsPerPage < (window.allUsers ? window.allUsers.length : 0)) {
+    function exportUsersToCSV() {
+        let csv = [];
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        const selectAll = document.getElementById('selectAllUsers');
+            const userId = cb.value;
+                selectedUsers.delete(userId);
+    function toggleUserSelection(checkbox, userId) {
+            selectedUsers.delete(userId);
+            document.getElementById('selectAllUsers').checked = false;
+    function updateBulkButtons() {
+        const hasSelection = selectedUsers.size > 0;
+        const bulkEmailBtn = document.getElementById('bulkEmailBtn');
+        const bulkActivateBtn = document.getElementById('bulkActivateBtn');
+        const bulkDeactivateBtn = document.getElementById('bulkDeactivateBtn');
+    function bulkEmail() {
+        const selectedList = Array.from(selectedUsers).map(id => {
+            const user = allUsers.find(u => u.id == id);
+        window.location.href = `mailto:${selectedList.join(',')}`;
+</script>
 <script>
     // Initialize page with session check
     document.addEventListener('DOMContentLoaded', async function() {

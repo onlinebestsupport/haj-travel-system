@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Font Awesome 6 (optimized load) -->
+    <link rel="stylesheet" href="/admin/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
     
     <!-- Google Fonts (optimized) -->
@@ -592,6 +593,7 @@
             align-items: center;
             justify-content: center;
             font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .activity-icon.payment {
@@ -616,6 +618,7 @@
         .activity-details p {
             font-weight: 500;
             margin-bottom: 5px;
+            word-break: break-word;
         }
 
         .activity-details small {
@@ -650,11 +653,16 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            font-size: 0.95rem;
         }
 
         .quick-action-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(30, 60, 114, 0.3);
+        }
+
+        .quick-action-btn:active {
+            transform: translateY(-1px);
         }
 
         .quick-action-btn i {
@@ -827,7 +835,9 @@
             animation: fadeInUp 0.5s ease forwards;
         }
     </style>
-</head>
+
+    <script src="/admin/js/session-manager.js"></script>
+    </head>
 <body>
     <div class="app-wrapper">
         <!-- Sidebar -->
@@ -956,7 +966,7 @@
                         <div class="date" id="headerDate"></div>
                         <div class="time" id="headerTime"></div>
                     </div>
-                    <button onclick="logout()" class="quick-action-btn" style="padding: 10px 20px; margin: 0;">
+                    <button id="logoutBtn" class="quick-action-btn" style="padding: 10px 20px; margin: 0;">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </button>
@@ -1017,19 +1027,19 @@
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <button class="quick-action-btn" onclick="window.location.href='travelers.html?action=add'">
+                <button class="quick-action-btn" onclick="navigateTo('travelers.html?action=add')">
                     <i class="fas fa-user-plus"></i>
                     <span>Add Traveler</span>
                 </button>
-                <button class="quick-action-btn secondary" onclick="window.location.href='payments.html?action=add'">
+                <button class="quick-action-btn secondary" onclick="navigateTo('payments.html?action=add')">
                     <i class="fas fa-plus-circle"></i>
                     <span>Record Payment</span>
                 </button>
-                <button class="quick-action-btn warning" onclick="window.location.href='invoices.html?action=create'">
+                <button class="quick-action-btn warning" onclick="navigateTo('invoices.html?action=create')">
                     <i class="fas fa-file-invoice"></i>
                     <span>Create Invoice</span>
                 </button>
-                <button class="quick-action-btn info" onclick="window.location.href='reports.html'">
+                <button class="quick-action-btn info" onclick="navigateTo('reports.html')">
                     <i class="fas fa-chart-line"></i>
                     <span>Generate Report</span>
                 </button>
@@ -1063,7 +1073,7 @@
                 <a href="payments.html" class="module-card">
                     <div class="module-icon"><i class="fas fa-credit-card"></i></div>
                     <h3>Payments</h3>
-                    <p>Track payments & receipts</p>
+                    <p>Track payments &amp; receipts</p>
                     <div class="module-stats">
                         <span><i class="fas fa-check"></i> <span class="module-payment-count">0</span></span>
                         <span><i class="fas fa-clock"></i> 0 Pending</span>
@@ -1072,7 +1082,7 @@
                 <a href="invoices.html" class="module-card">
                     <div class="module-icon"><i class="fas fa-file-invoice"></i></div>
                     <h3>Invoices</h3>
-                    <p>Generate & manage invoices</p>
+                    <p>Generate &amp; manage invoices</p>
                     <div class="module-stats">
                         <span><i class="fas fa-file"></i> <span class="module-invoice-count">0</span></span>
                         <span><i class="fas fa-rupee-sign"></i> ₹0</span>
@@ -1090,7 +1100,7 @@
                 <a href="reports.html" class="module-card">
                     <div class="module-icon"><i class="fas fa-chart-bar"></i></div>
                     <h3>Reports</h3>
-                    <p>Analytics & insights</p>
+                    <p>Analytics &amp; insights</p>
                     <div class="module-stats">
                         <span><i class="fas fa-chart-line"></i> 0 Reports</span>
                         <span><i class="fas fa-download"></i> Export</span>
@@ -1108,7 +1118,7 @@
                 <a href="email.html" class="module-card">
                     <div class="module-icon"><i class="fas fa-envelope"></i></div>
                     <h3>Email</h3>
-                    <p>Send & receive emails</p>
+                    <p>Send &amp; receive emails</p>
                     <div class="module-stats">
                         <span><i class="fas fa-inbox"></i> 0</span>
                         <span><i class="fas fa-clock"></i> 0 Unread</span>
@@ -1135,7 +1145,7 @@
                 <a href="backup.html" class="module-card">
                     <div class="module-icon"><i class="fas fa-database"></i></div>
                     <h3>Backup</h3>
-                    <p>Database backup & restore</p>
+                    <p>Database backup &amp; restore</p>
                     <div class="module-stats">
                         <span><i class="fas fa-save"></i> 0</span>
                         <span><i class="fas fa-clock"></i> Last: Today</span>
@@ -1194,13 +1204,17 @@
 
             <!-- Footer -->
             <div class="footer">
-                <p>© 2026 Alhudha Haj Travel System. All rights reserved. | v2.0.0</p>
+                <p>© 2026 Alhudha Haj Travel System. All rights reserved. | v2.1.0</p>
             </div>
         </main>
     </div>
 
     <!-- Session Warning Banner -->
-    <div id="sessionWarning" onclick="extendSession()">
+
+    <div id="sessionWarning" onclick="SessionManager.extendSession()">
+
+    <div id="sessionWarning">
+
         <i class="fas fa-exclamation-triangle"></i> 
         <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
     </div>
@@ -1208,25 +1222,24 @@
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
-    <!-- Session Manager Script (Create this file at /admin/js/session-manager.js) -->
+    <!-- Session Manager Script -->
     <script>
-        // Session Manager - Centralized authentication handling
+        'use strict';
+
+        // ====== SESSION MANAGER ======
         const SessionManager = {
-            // Check session and redirect if not authenticated
             initPage: async function(callback) {
                 try {
-                    const session = await this.checkSession();
+                    const session = await this.SessionManager.checkSession();
                     
                     if (!session.authenticated) {
-                        console.log('⚠️ Not logged in, redirecting to login...');
+                        console.SessionManager.log('⚠️ Not logged in, redirecting to login...');
                         window.location.href = '/admin.login.html';
                         return false;
                     }
                     
-                    // Update UI with user info
                     this.updateUI(session);
                     
-                    // Execute page-specific callback
                     if (callback && typeof callback === 'function') {
                         await callback();
                     }
@@ -1239,7 +1252,6 @@
                 }
             },
 
-            // Check session with backend
             checkSession: async function() {
                 const response = await fetch('/api/check-session', {
                     credentials: 'include',
@@ -1255,15 +1267,7 @@
                 return await response.json();
             },
 
-            // Update UI based on session data
             updateUI: function(session) {
-                // Update role badge if it exists
-                const roleBadge = document.getElementById('roleBadge');
-                if (roleBadge) {
-                    roleBadge.textContent = session.role || 'Admin';
-                }
-                
-                // Store session data if needed
                 if (session.authenticated) {
                     sessionStorage.setItem('userRole', session.role || 'Admin');
                     sessionStorage.setItem('username', session.username || '');
@@ -1271,33 +1275,23 @@
                 }
             },
 
-            // Logout function
             logout: async function() {
                 try {
-                    const response = await fetch('/api/logout', {
+                    await fetch('/api/logout', {
                         method: 'POST',
                         credentials: 'include',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
-                    
-                    // Clear session storage
-                    sessionStorage.removeItem('userRole');
-                    sessionStorage.removeItem('username');
-                    sessionStorage.removeItem('adminLoggedIn');
-                    
-                    // Redirect to login
-                    window.location.href = '/admin.login.html';
-                    
                 } catch (error) {
                     console.error('Logout error:', error);
-                    // Still redirect even if logout fails
+                } finally {
+                    sessionStorage.clear();
                     window.location.href = '/admin.login.html';
                 }
             },
 
-            // Get current session data from storage
             getCurrentUser: function() {
                 return {
                     role: sessionStorage.getItem('userRole'),
@@ -1305,7 +1299,6 @@
                 };
             },
 
-            // Check if user is authenticated (client-side)
             isAuthenticated: function() {
                 return !!sessionStorage.getItem('adminLoggedIn');
             }
@@ -1314,47 +1307,92 @@
 
     <!-- Main Dashboard Script -->
     <script>
-        // ==================== OPTIMIZED JAVASCRIPT WITH FIXES ====================
-        
-        // Use strict mode to catch errors
         'use strict';
 
-        // ==================== GLOBAL VARIABLES ====================
+        // ====== GLOBAL VARIABLES ======
         let chartInstances = {
             paymentsChart: null,
             travelersChart: null
         };
         
         let intervals = [];
+
+        let sessionWarningTimeout = undefined;
+        let sessionLogoutTimeout = undefined;
+        let warningShown = false;
+        let notificationTimeout = undefined;
+
+        let eventListeners = [];
         let sessionWarningTimeout = null;
         let sessionLogoutTimeout = null;
         let warningShown = false;
         let notificationTimeout = null;
+        let apiRetryCount = 0;
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 1000;
 
-        // ==================== PAGE INITIALIZATION ====================
+        // ====== UTILITY FUNCTIONS ======
+        function sanitizeHTML(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+                }
+            }
+        }
+
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+
+
+        // ====== PAGE INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                // Initialize with SessionManager
                 await SessionManager.initPage(initializeDashboard);
             } catch (error) {
                 console.error('Failed to initialize dashboard:', error);
-                showNotification('Failed to load dashboard', 'error');
+                SessionManager.showNotification('Failed to load dashboard', 'error');
             }
         });
 
-        // Dashboard initialization function (called after auth check)
+        // Dashboard initialization
         async function initializeDashboard() {
-            console.log('✅ User authenticated, loading dashboard...');
+            console.SessionManager.log('✅ User authenticated, loading dashboard...');
             
-            // Update UI with user info from session
             updateUserInterface();
+
             
             // Initialize session management
+            SessionManager.resetSessionTimer();
+
             resetSessionTimer();
+
             
-            // Monitor user activity
-            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, resetSessionTimer);
+            // Add activity listeners with cleanup tracking
+            const userActivityHandler = resetSessionTimer;
+            const events = ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+            
+            events.forEach(event => {
+                document.addEventListener(event, userActivityHandler);
+                eventListeners.push({ event, handler: userActivityHandler });
             });
             
             // Load dashboard data
@@ -1362,11 +1400,10 @@
             updateDateTime();
             await loadRecentActivity();
             
-            // Initialize charts after Chart.js loads
+            // Initialize charts
             if (typeof Chart !== 'undefined') {
                 initializeCharts();
             } else {
-                // Wait for Chart.js to load
                 const checkChart = setInterval(() => {
                     if (typeof Chart !== 'undefined') {
                         clearInterval(checkChart);
@@ -1376,7 +1413,7 @@
                 intervals.push(checkChart);
             }
             
-            // Update time every second (optimized with requestAnimationFrame)
+            // Update time every second
             const timeInterval = setInterval(() => {
                 if (!document.hidden) {
                     window.requestAnimationFrame(updateDateTime);
@@ -1384,7 +1421,13 @@
             }, 1000);
             intervals.push(timeInterval);
             
-            // Handle visibility change
+            // Handle logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+            
+            // Refresh data when tab becomes visible
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) {
                     loadDashboardStats();
@@ -1393,24 +1436,24 @@
             });
         }
 
-        // Update UI with user info from session
         function updateUserInterface() {
             try {
                 const user = SessionManager.getCurrentUser();
                 const userName = user.username || 'Admin';
                 const userRole = user.role || 'admin';
                 
-                const greetingName = document.getElementById('greetingName');
-                const userDisplayName = document.getElementById('userDisplayName');
-                const userRoleDisplay = document.getElementById('userRoleDisplay');
-                const userAvatar = document.getElementById('userAvatar');
+                const elements = {
+                    greetingName: document.getElementById('greetingName'),
+                    userDisplayName: document.getElementById('userDisplayName'),
+                    userRoleDisplay: document.getElementById('userRoleDisplay'),
+                    userAvatar: document.getElementById('userAvatar')
+                };
                 
-                if (greetingName) greetingName.textContent = userName;
-                if (userDisplayName) userDisplayName.textContent = userName;
-                if (userRoleDisplay) userRoleDisplay.textContent = formatRole(userRole);
+                if (elements.greetingName) elements.greetingName.textContent = userName;
+                if (elements.userDisplayName) elements.userDisplayName.textContent = userName;
+                if (elements.userRoleDisplay) elements.userRoleDisplay.textContent = formatRole(userRole);
                 
-                // Set avatar initials
-                if (userAvatar) {
+                if (elements.userAvatar) {
                     const nameParts = userName.split(' ');
                     let initials = '';
                     for (let i = 0; i < Math.min(2, nameParts.length); i++) {
@@ -1418,34 +1461,25 @@
                             initials += nameParts[i][0].toUpperCase();
                         }
                     }
-                    userAvatar.textContent = initials || 'AD';
-                }
-                
-                // Update role badge in sidebar if exists
-                const roleBadge = document.getElementById('roleBadge');
-                if (roleBadge) {
-                    roleBadge.textContent = formatRole(userRole);
+                    elements.userAvatar.textContent = initials || 'AD';
                 }
             } catch (e) {
                 console.error('Error updating user interface:', e);
             }
         }
 
-        // ==================== SESSION MANAGEMENT ====================
-        function resetSessionTimer() {
+        // ====== SESSION MANAGEMENT ======
+        function SessionManager.resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             
-            hideSessionWarning();
+            SessionManager.hideSessionWarning();
             
-            // Show warning after 25 minutes (1500000 ms)
             sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
-            
-            // Auto logout after 30 minutes (1800000 ms)
             sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
         }
 
-        function showSessionWarning() {
+        function SessionManager.showSessionWarning() {
             if (warningShown) return;
             
             const warning = document.getElementById('sessionWarning');
@@ -1454,10 +1488,11 @@
             
             message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
             warning.style.display = 'block';
+            warning.onclick = extendSession;
             warningShown = true;
         }
 
-        function hideSessionWarning() {
+        function SessionManager.hideSessionWarning() {
             const warning = document.getElementById('sessionWarning');
             if (warning) {
                 warning.style.display = 'none';
@@ -1465,46 +1500,63 @@
             warningShown = false;
         }
 
-        function showSessionExpiredWarning() {
-            hideSessionWarning();
-            showNotification('Your session has expired. Redirecting to login...', 'warning');
+        function SessionManager.showSessionExpiredWarning() {
+            SessionManager.hideSessionWarning();
+            SessionManager.showNotification('Your session has expired. Redirecting to login...', 'warning');
             
             setTimeout(() => {
                 window.location.href = '/admin.login.html';
             }, 3000);
         }
 
-        async function extendSession() {
+        async function SessionManager.extendSession() {
             try {
-                await SessionManager.checkSession();
-                hideSessionWarning();
-                resetSessionTimer();
-                showNotification('Session extended successfully', 'success');
+                await SessionManager.SessionManager.checkSession();
+                SessionManager.hideSessionWarning();
+                SessionManager.resetSessionTimer();
+                SessionManager.showNotification('Session extended successfully', 'success');
             } catch (error) {
                 console.error('Session extension failed:', error);
-                showSessionExpiredWarning();
+                SessionManager.showSessionExpiredWarning();
             }
         }
 
-        // ==================== CLEANUP ====================
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await SessionManager.logout();
+            }
+        }
+
+        // ====== CLEANUP ======
         window.addEventListener('beforeunload', function() {
+            // Clear all intervals
             intervals.forEach(interval => clearInterval(interval));
+            intervals = [];
             
+            // Clear all timeouts
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             if (notificationTimeout) clearTimeout(notificationTimeout);
+            
+            // Remove event listeners
+            eventListeners.forEach(({ event, handler }) => {
+                document.removeEventListener(event, handler);
+            });
+            eventListeners = [];
             
             // Destroy chart instances
             Object.values(chartInstances).forEach(chart => {
                 if (chart && typeof chart.destroy === 'function') {
                     try {
                         chart.destroy();
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Error destroying chart:', e);
+                    }
                 }
             });
         });
 
-        // ==================== DATE/TIME ====================
+        // ====== DATE/TIME ======
         function updateDateTime() {
             try {
                 const now = new Date();
@@ -1514,60 +1566,54 @@
                 const headerDateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
                 const headerTimeOptions = { hour: '2-digit', minute: '2-digit' };
                 
-                const currentDate = document.getElementById('currentDate');
-                const currentTime = document.getElementById('currentTime');
-                const headerDate = document.getElementById('headerDate');
-                const headerTime = document.getElementById('headerTime');
+                const elements = {
+                    currentDate: document.getElementById('currentDate'),
+                    currentTime: document.getElementById('currentTime'),
+                    headerDate: document.getElementById('headerDate'),
+                    headerTime: document.getElementById('headerTime')
+                };
                 
-                if (currentDate) currentDate.textContent = now.toLocaleDateString('en-US', dateOptions);
-                if (currentTime) currentTime.textContent = now.toLocaleTimeString('en-US', timeOptions);
-                if (headerDate) headerDate.textContent = now.toLocaleDateString('en-US', headerDateOptions);
-                if (headerTime) headerTime.textContent = now.toLocaleTimeString('en-US', headerTimeOptions);
+                if (elements.currentDate) elements.currentDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+                if (elements.currentTime) elements.currentTime.textContent = now.toLocaleTimeString('en-US', timeOptions);
+                if (elements.headerDate) elements.headerDate.textContent = now.toLocaleDateString('en-US', headerDateOptions);
+                if (elements.headerTime) elements.headerTime.textContent = now.toLocaleTimeString('en-US', headerTimeOptions);
             } catch (e) {
                 console.error('Date update error:', e);
             }
         }
 
-        // ==================== LOAD DASHBOARD STATS ====================
+        // ====== LOAD DASHBOARD STATS ======
         async function loadDashboardStats() {
             try {
-                // Show loading skeletons
                 document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
                     el.classList.add('skeleton');
                 });
                 
-                const response = await fetch('/api/admin/dashboard/stats', { 
+                const response = await fetchWithRetry('/api/admin/dashboard/stats', { 
                     credentials: 'include',
                     headers: {
                         'Cache-Control': 'no-cache'
                     }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
                 const data = await response.json();
                 
                 if (data.success) {
                     const stats = data.stats || {};
                     
-                    // Get user count in parallel
                     let userCount = 0;
                     try {
-                        const userResponse = await fetch('/api/admin/users', { 
+                        const userResponse = await fetchWithRetry('/api/admin/users', { 
                             credentials: 'include',
                             headers: { 'Cache-Control': 'no-cache' }
                         });
                         const userData = await userResponse.json();
-                        userCount = userData.success && userData.users ? userData.users.length : 
-                                   stats.total_users || 0;
+                        userCount = userData.success && userData.users ? userData.users.length : stats.total_users || 0;
                     } catch (e) {
                         console.warn('Could not fetch users:', e);
                         userCount = stats.total_users || 0;
                     }
                     
-                    // Update all stat elements
                     const updates = {
                         'totalTravelers': stats.total_travelers || 0,
                         'activeBatches': stats.active_batches || 0,
@@ -1581,62 +1627,60 @@
                         'userCount': userCount
                     };
                     
-                    // Apply updates
                     Object.entries(updates).forEach(([id, value]) => {
                         const el = document.getElementById(id);
                         if (el) el.textContent = value;
                     });
                     
-                    // Update module stats
-                    const moduleTraveler = document.querySelector('.module-traveler-count');
-                    const moduleBatch = document.querySelector('.module-batch-count');
-                    const modulePayment = document.querySelector('.module-payment-count');
-                    const moduleInvoice = document.querySelector('.module-invoice-count');
-                    const moduleReceipt = document.querySelector('.module-receipt-count');
-                    const moduleUser = document.querySelector('.module-user-count');
+                    const moduleSelectors = {
+                        '.module-traveler-count': stats.total_travelers || 0,
+                        '.module-batch-count': stats.total_batches || 0,
+                        '.module-payment-count': stats.paid_count || 0,
+                        '.module-invoice-count': 0,
+                        '.module-receipt-count': stats.paid_count || 0,
+                        '.module-user-count': userCount
+                    };
                     
-                    if (moduleTraveler) moduleTraveler.textContent = stats.total_travelers || 0;
-                    if (moduleBatch) moduleBatch.textContent = stats.total_batches || 0;
-                    if (modulePayment) modulePayment.textContent = stats.paid_count || 0;
-                    if (moduleInvoice) moduleInvoice.textContent = '0';
-                    if (moduleReceipt) moduleReceipt.textContent = stats.paid_count || 0;
-                    if (moduleUser) moduleUser.textContent = userCount;
+                    Object.entries(moduleSelectors).forEach(([selector, value]) => {
+                        const el = document.querySelector(selector);
+                        if (el) el.textContent = value;
+                    });
                     
-                    // Remove skeletons
                     document.querySelectorAll('.stat-number, .badge, .module-stats span, [id$="Count"]').forEach(el => {
                         el.classList.remove('skeleton');
                     });
                     
-                    console.log('✅ Dashboard stats loaded:', { 
+
+                    console.SessionManager.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,
                         payments: stats.paid_count
                     });
+
+                    console.log('✅ Dashboard stats loaded');
+
                 }
             } catch (error) {
                 console.error('❌ Error loading dashboard stats:', error);
-                showNotification('Error loading dashboard data', 'error');
+                SessionManager.showNotification('Error loading dashboard data', 'error');
             }
         }
 
-        // ==================== CHARTS ====================
+        // ====== CHARTS ======
         function initializeCharts() {
             try {
-                // Destroy existing charts
                 if (chartInstances.paymentsChart) {
                     chartInstances.paymentsChart.destroy();
-                    chartInstances.paymentsChart = null;
+                    chartInstances.paymentsChart = undefined;
                 }
                 
                 if (chartInstances.travelersChart) {
                     chartInstances.travelersChart.destroy();
-                    chartInstances.travelersChart = null;
+                    chartInstances.travelersChart = undefined;
                 }
                 
-                // Use requestAnimationFrame for smoother rendering
                 window.requestAnimationFrame(() => {
-                    // Payments Chart (Pie)
                     const paymentsCanvas = document.getElementById('paymentsChart');
                     if (paymentsCanvas && typeof Chart !== 'undefined') {
                         const paymentsCtx = paymentsCanvas.getContext('2d');
@@ -1673,7 +1717,6 @@
                         });
                     }
 
-                    // Travelers Chart (Bar)
                     const travelersCanvas = document.getElementById('travelersChart');
                     if (travelersCanvas && typeof Chart !== 'undefined') {
                         const travelersCtx = travelersCanvas.getContext('2d');
@@ -1713,10 +1756,10 @@
             }
         }
 
-        // ==================== RECENT ACTIVITY ====================
+        // ====== RECENT ACTIVITY ======
         async function loadRecentActivity() {
             try {
-                const response = await fetch('/api/admin/dashboard/stats', { 
+                const response = await fetchWithRetry('/api/admin/dashboard/stats', { 
                     credentials: 'include',
                     headers: { 'Cache-Control': 'no-cache' }
                 });
@@ -1729,42 +1772,39 @@
                 if (data.success) {
                     const activities = [];
                     
-                    // Add recent travelers
                     if (data.recent_travelers && data.recent_travelers.length > 0) {
                         data.recent_travelers.slice(0, 2).forEach(t => {
                             activities.push({
                                 type: 'traveler',
                                 icon: 'fa-user-plus',
                                 color: 'traveler',
-                                text: `New traveler: ${t.first_name || ''} ${t.last_name || ''}`.trim(),
-                                details: t.passport_no ? `Passport: ${t.passport_no}` : '',
+                                text: `New traveler: ${sanitizeHTML(t.first_name || '')} ${sanitizeHTML(t.last_name || '')}`.trim(),
+                                details: t.passport_no ? `Passport: ${sanitizeHTML(t.passport_no)}` : '',
                                 time: t.created_at ? new Date(t.created_at).toLocaleString() : 'Just now'
                             });
                         });
                     }
                     
-                    // Add recent payments
                     if (data.recent_payments && data.recent_payments.length > 0) {
                         data.recent_payments.slice(0, 2).forEach(p => {
                             activities.push({
                                 type: 'payment',
                                 icon: 'fa-credit-card',
                                 color: 'payment',
-                                text: `Payment: ${p.first_name || ''} ${p.last_name || ''}`.trim(),
+                                text: `Payment: ${sanitizeHTML(p.first_name || '')} ${sanitizeHTML(p.last_name || '')}`.trim(),
                                 amount: p.amount ? `₹${p.amount.toLocaleString()}` : '',
                                 time: p.payment_date ? new Date(p.payment_date).toLocaleString() : 'Just now'
                             });
                         });
                     }
                     
-                    // Add upcoming batches
                     if (data.upcoming_batches && data.upcoming_batches.length > 0) {
                         data.upcoming_batches.slice(0, 1).forEach(b => {
                             activities.push({
                                 type: 'batch',
                                 icon: 'fa-layer-group',
                                 color: 'batch',
-                                text: `Batch: ${b.batch_name || ''}`,
+                                text: `Batch: ${sanitizeHTML(b.batch_name || '')}`,
                                 details: b.booked_seats ? `Seats: ${b.booked_seats}/${b.total_seats || 0}` : '',
                                 time: b.departure_date ? `Departs: ${new Date(b.departure_date).toLocaleDateString()}` : ''
                             });
@@ -1776,19 +1816,18 @@
                         return;
                     }
                     
-                    // Build HTML efficiently
                     let html = '';
                     for (let i = 0; i < Math.min(5, activities.length); i++) {
                         const a = activities[i];
-                        html += '<div class="activity-item">' +
-                            '<div class="activity-icon ' + a.color + '">' +
-                                '<i class="fas ' + a.icon + '"></i>' +
-                            '</div>' +
-                            '<div class="activity-details">' +
-                                '<p>' + a.text + (a.amount ? ' <span class="activity-amount">' + a.amount + '</span>' : '') + '</p>' +
-                                '<small><i class="fas fa-clock"></i> ' + a.time + (a.details ? ' • ' + a.details : '') + '</small>' +
-                            '</div>' +
-                        '</div>';
+                        html += `<div class="activity-item">
+                            <div class="activity-icon ${a.color}">
+                                <i class="fas ${a.icon}"></i>
+                            </div>
+                            <div class="activity-details">
+                                <p>${a.text}${a.amount ? ` <span class="activity-amount">${a.amount}</span>` : ''}</p>
+                                <small><i class="fas fa-clock"></i> ${a.time}${a.details ? ` • ${a.details}` : ''}</small>
+                            </div>
+                        </div>`;
                     }
                     
                     activityList.innerHTML = html;
@@ -1798,27 +1837,24 @@
             }
         }
 
-        // ==================== LOGOUT ====================
-        async function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                await SessionManager.logout();
-            }
-        }
-
-        // ==================== NOTIFICATION ====================
-        function showNotification(message, type = 'success') {
+        // ====== NOTIFICATION ======
+        function SessionManager.showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
             
-            const icon = type === 'success' ? 'check-circle' : 
-                        type === 'error' ? 'exclamation-circle' : 
-                        type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+            const icons = {
+                'success': 'check-circle',
+                'error': 'exclamation-circle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle'
+            };
+            
+            const icon = icons[type] || 'info-circle';
             
             notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+            notification.innerHTML = `<i class="fas fa-${icon}"></i> ${sanitizeHTML(message)}`;
             notification.style.display = 'block';
             
-            // Clear existing timeout
             if (notificationTimeout) {
                 clearTimeout(notificationTimeout);
             }
@@ -1828,7 +1864,7 @@
             }, 3000);
         }
 
-        // ==================== HELPER FUNCTIONS ====================
+        // ====== HELPER FUNCTIONS ======
         function formatRole(role) {
             try {
                 if (!role) return 'Administrator';
@@ -1840,25 +1876,92 @@
             }
         }
 
-        // ==================== CHART PERIOD CHANGE ====================
+        // ====== CHART PERIOD CHANGE ======
         document.addEventListener('DOMContentLoaded', function() {
             const paymentSelect = document.getElementById('paymentChartPeriod');
             const travelersSelect = document.getElementById('travelersChartPeriod');
             
             if (paymentSelect) {
                 paymentSelect.addEventListener('change', (e) => {
-                    showNotification(`Updating payment chart for ${e.target.value}`, 'info');
+
+                    SessionManager.showNotification(`Updating payment chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
+
+                    showNotification(`Updating payment chart for ${e.target.value}`, 'info');
+
                 });
             }
 
             if (travelersSelect) {
                 travelersSelect.addEventListener('change', (e) => {
-                    showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+
+                    SessionManager.showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
+
+                    showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+
                 });
             }
         });
     </script>
+    <script>
+    // FORCE DASHBOARD DATA LOAD
+    (async function() {
+        console.log('🚀 Force loading dashboard...');
+        
+        try {
+            const response = await fetch('/api/admin/dashboard/stats', {
+                credentials: 'include',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            console.log('📊 Dashboard data:', data);
+            
+            if (data.success && data.stats) {
+                const s = data.stats;
+                
+                // Update all stat cards
+                const updates = {
+                    'totalTravelers': s.total_travelers || 0,
+                    'activeBatches': s.active_batches || 0,
+                    'totalCollections': '₹' + (s.total_collected || 0).toLocaleString(),
+                    'pendingPayments': '₹' + (s.pending_amount || 0).toLocaleString(),
+                    'travelerCount': s.total_travelers || 0,
+                    'batchCount': s.total_batches || 0,
+                    'paymentCount': s.paid_count || 0,
+                    'userCount': s.total_users || 5
+                };
+                
+                for (let [id, value] of Object.entries(updates)) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = value;
+                        el.classList.remove('skeleton');
+                    }
+                }
+                
+                // Update module stats
+                const moduleUpdates = {
+                    '.module-traveler-count': s.total_travelers || 0,
+                    '.module-batch-count': s.total_batches || 0,
+                    '.module-payment-count': s.paid_count || 0,
+                    '.module-user-count': s.total_users || 5
+                };
+                
+                for (let [selector, value] of Object.entries(moduleUpdates)) {
+                    const el = document.querySelector(selector);
+                    if (el) el.textContent = value;
+                }
+                
+                console.log('✅ Dashboard updated with live data');
+            }
+        } catch (error) {
+            console.error('❌ Error loading dashboard:', error);
+        }
+    })();
+</script>
 </body>
 </html>

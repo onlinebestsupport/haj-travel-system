@@ -1583,25 +1583,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </html>
             `);
             
-            printWindow.document.close();
             printWindow.print();
         }
 
-        function getInvoiceData(id) {
             // Get current company address from form or saved template
-            const address = {
-                name: document.getElementById('companyName')?.value || companyAddress.name || 'Alhudha Haj Travel',
-                address1: document.getElementById('companyAddress1')?.value || companyAddress.address1 || '123, Haj House',
-                address2: document.getElementById('companyAddress2')?.value || companyAddress.address2 || 'Mumbai - 400001',
-                cityState: document.getElementById('companyCityState')?.value || companyAddress.cityState || 'Maharashtra, India',
-                phone: document.getElementById('companyPhone')?.value || companyAddress.phone || '+91 98765 43210',
-                email: document.getElementById('companyEmail')?.value || companyAddress.email || 'accounts@alhudha.com',
-                gstin: document.getElementById('companyGSTIN')?.value || companyAddress.gstin || '27ABCDE1234F1Z5',
-                pan: document.getElementById('companyPAN')?.value || companyAddress.pan || 'ABCDE1234F',
-                bank: document.getElementById('companyBank')?.value || companyAddress.bank || 'State Bank of India',
-                account: document.getElementById('companyAccount')?.value || companyAddress.account || '12345678901',
-                ifsc: document.getElementById('companyIFSC')?.value || companyAddress.ifsc || 'SBIN0012345',
-                branch: document.getElementById('companyBranch')?.value || companyAddress.branch || 'Mumbai Main'
             };
 
             return {
@@ -1638,7 +1623,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
 
-        function getInvoiceHTML(id, data) {
             return `
                 <div class="invoice-print-template">
                     <div class="invoice-header">
@@ -1774,19 +1758,37 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // Helper function to convert number to words
-        function numberToWords(num) {
             // Simple implementation - in production, use a proper library
             return num.toLocaleString('en-IN') + ' Rupees';
         }
 
+                <html>
+                <head><title>Invoice Details</title></head>
+                <body>${content}
+<script>
+            printWindow.document.close();
+        function getInvoiceData(id) {
+            const address = {
+                name: document.getElementById('companyName')?.value || companyAddress.name || 'Alhudha Haj Travel',
+                address1: document.getElementById('companyAddress1')?.value || companyAddress.address1 || '123, Haj House',
+                address2: document.getElementById('companyAddress2')?.value || companyAddress.address2 || 'Mumbai - 400001',
+                cityState: document.getElementById('companyCityState')?.value || companyAddress.cityState || 'Maharashtra, India',
+                phone: document.getElementById('companyPhone')?.value || companyAddress.phone || '+91 98765 43210',
+                email: document.getElementById('companyEmail')?.value || companyAddress.email || 'accounts@alhudha.com',
+                gstin: document.getElementById('companyGSTIN')?.value || companyAddress.gstin || '27ABCDE1234F1Z5',
+                pan: document.getElementById('companyPAN')?.value || companyAddress.pan || 'ABCDE1234F',
+                bank: document.getElementById('companyBank')?.value || companyAddress.bank || 'State Bank of India',
+                account: document.getElementById('companyAccount')?.value || companyAddress.account || '12345678901',
+                ifsc: document.getElementById('companyIFSC')?.value || companyAddress.ifsc || 'SBIN0012345',
+                branch: document.getElementById('companyBranch')?.value || companyAddress.branch || 'Mumbai Main'
+        function getInvoiceHTML(id, data) {
+        // Helper function to convert number to words
+        function numberToWords(num) {
         function printInvoiceDetails() {
             const content = document.getElementById('invoiceDetails').innerHTML;
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
-                <html>
-                <head><title>Invoice Details</title></head>
-                <body>${content}
+</script>
 <script>
 // Initialize page with session check
 document.addEventListener('DOMContentLoaded', function() {
@@ -1807,28 +1809,20 @@ document.addEventListener('DOMContentLoaded', function() {
             printWindow.print();
         }
 
-        function downloadInvoicePDF() {
             showNotification('PDF download feature coming soon!', 'info');
         }
 
         // ====== INVOICE ACTIONS SECTION ======
-        function viewInvoice(id) {
             currentInvoiceId = id;
-            const invoiceData = getInvoiceData(id);
             
-            document.getElementById('invoiceDetails').innerHTML = getInvoiceHTML(id, invoiceData);
-            document.getElementById('invoiceModal').style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
 
-        function downloadPDF(id) {
             showNotification(`Generating PDF for invoice ${id}...`, 'info');
             setTimeout(() => {
                 showNotification(`Invoice ${id} PDF downloaded`, 'success');
             }, 2000);
         }
 
-        function emailInvoice(id) {
             showNotification(`Preparing email for invoice ${id}...`, 'info');
             setTimeout(() => {
                 showNotification(`Invoice ${id} sent via email`, 'success');
@@ -1836,18 +1830,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ====== FILTER FUNCTIONS SECTION ======
-        function applyFilters() {
             showNotification('Filters applied', 'success');
         }
 
-        function resetFilters() {
-            document.getElementById('searchInvoice').value = '';
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('dateFilter').value = 'all';
             showNotification('Filters reset', 'info');
         }
 
-        function exportInvoices() {
             showNotification('Exporting invoices...', 'info');
             setTimeout(() => {
                 showNotification('Invoices exported successfully!', 'success');
@@ -1855,31 +1843,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ====== PAGINATION SECTION ======
-        function previousPage() {
             showNotification('Previous page', 'info');
         }
 
-        function nextPage() {
             showNotification('Next page', 'info');
         }
 
         // ====== CLOSE MODALS ON OUTSIDE CLICK SECTION ======
-        window.onclick = function(event) {
-            const createModal = document.getElementById('createInvoiceModal');
-            const viewModal = document.getElementById('invoiceModal');
             
             if (event.target == createModal) {
                 createModal.style.display = 'none';
-                document.body.style.overflow = ''; // Restore scrolling
                 loadAddressTemplate(); // Reload address when closing
             }
             if (event.target == viewModal) {
                 viewModal.style.display = 'none';
-                document.body.style.overflow = ''; // Restore scrolling
             }
         }
     </script>
 
+<script>
+        function downloadInvoicePDF() {
+        function viewInvoice(id) {
+            const invoiceData = getInvoiceData(id);
+            document.getElementById('invoiceDetails').innerHTML = getInvoiceHTML(id, invoiceData);
+            document.getElementById('invoiceModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        function downloadPDF(id) {
+        function emailInvoice(id) {
+        function applyFilters() {
+        function resetFilters() {
+            document.getElementById('searchInvoice').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateFilter').value = 'all';
+        function exportInvoices() {
+        function previousPage() {
+        function nextPage() {
+        window.onclick = function(event) {
+            const createModal = document.getElementById('createInvoiceModal');
+            const viewModal = document.getElementById('invoiceModal');
+                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = ''; // Restore scrolling
+</script>
 <script>
 // Initialize page with session check
 document.addEventListener('DOMContentLoaded', function() {

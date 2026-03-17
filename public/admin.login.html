@@ -675,7 +675,6 @@
                     <strong>Already logged in as <span id="sessionUserName"></span></strong>
                     <small>Session will expire in <span id="sessionExpiry">30 minutes</span></small>
                 </div>
-                <button onclick="window.location.href='/admin/dashboard.html'" class="login-btn" style="width: auto; padding: 10px 20px; margin: 0;">
                     Go to Dashboard
                 </button>
             </div>
@@ -697,7 +696,6 @@
                     </label>
                     <div class="input-wrapper">
                         <i class="fas fa-user"></i>
-                        <input type="text" id="username" placeholder="Enter your username" required autofocus autocomplete="off">
                     </div>
                 </div>
                 
@@ -707,7 +705,6 @@
                     </label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="Enter your password" required autocomplete="off">
                         <i class="fas fa-eye password-toggle" id="togglePassword" onclick="togglePasswordVisibility()"></i>
                     </div>
                 </div>
@@ -733,6 +730,11 @@
 
     <!-- ==================== 🚀 EXTERNAL SCRIPTS (CRITICAL FIX) ==================== -->
     <!-- Load login.js first, then session-manager.js -->
+<script>
+                <button onclick="window.location.href='/admin/dashboard.html'" class="login-btn" style="width: auto; padding: 10px 20px; margin: 0;">
+                        <input type="text" id="username" placeholder="Enter your username" required autofocus autocomplete="off">
+                        <input type="password" id="password" placeholder="Enter your password" required autocomplete="off">
+</script>
     <script src="/js/login.js"></script>
     <script src="/admin/js/session-manager.js"></script>
     

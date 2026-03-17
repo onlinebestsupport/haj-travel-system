@@ -1765,27 +1765,16 @@
 </body>
                 </html>
             `);
-            printWindow.document.close();
             printWindow.print();
         }
 
         // ====== REVERSAL FUNCTIONS ======
-        function showReverseModal(paymentId, amount) {
             currentPaymentId = paymentId;
-            document.getElementById('reverse_payment_id').value = paymentId;
-            document.getElementById('reverse_amount').value = amount.toLocaleString();
-            document.getElementById('reverseModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
         }
 
-        function closeReverseModal() {
-            document.getElementById('reverseModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-            document.getElementById('reverseForm').reset();
             currentPaymentId = null;
         }
 
-        function reversePayment() {
             if (!currentPaymentId) {
                 showNotification('No payment selected', 'error');
                 return;
@@ -1794,11 +1783,7 @@
             showReverseModal(currentPaymentId, 0);
         }
 
-        function processReversal() {
-            const reversalData = {
                 payment_id: currentPaymentId,
-                reason: document.getElementById('reverse_reason').value,
-                remarks: document.getElementById('reverse_remarks').value
             };
             
             if (!reversalData.reason) {
@@ -1813,36 +1798,23 @@
         }
 
         // ====== FILTER FUNCTIONS ======
-        function filterPayments() {
-            const search = document.getElementById('searchPayments').value.toLowerCase().trim();
-            const statusFilter = document.getElementById('paymentStatusFilter').value;
-            const methodFilter = document.getElementById('paymentMethodFilter').value;
             
             if (!search && statusFilter === 'all' && methodFilter === 'all') {
                 displayPayments();
                 return;
             }
             
-            const filtered = paymentsData.filter(p => {
                 // Search filter
-                let matchesSearch = true;
                 if (search) {
-                    const travelerName = (p.first_name && p.last_name ? 
                         `${p.first_name} ${p.last_name}` : p.traveler_name || '').toLowerCase();
-                    const passport = (p.passport_no || p.traveler_passport || '').toLowerCase();
-                    const transactionId = (p.transaction_id || '').toLowerCase();
                     matchesSearch = travelerName.includes(search) || passport.includes(search) || transactionId.includes(search);
                 }
                 
                 // Status filter
-                let matchesStatus = true;
                 if (statusFilter !== 'all') {
                     if (statusFilter === 'Overdue') {
-                        const today = new Date();
-                        const dueDate = p.due_date ? new Date(p.due_date) : null;
                         matchesStatus = p.status === 'pending' && dueDate && dueDate < today;
                     } else if (statusFilter === 'Paid') {
-                        matchesStatus = p.status === 'completed';
                     } else if (statusFilter === 'Pending') {
                         matchesStatus = p.status === 'pending';
                     } else if (statusFilter === 'Reversed') {
@@ -1851,7 +1823,6 @@
                 }
                 
                 // Method filter
-                let matchesMethod = true;
                 if (methodFilter !== 'all') {
                     matchesMethod = (p.payment_method || '') === methodFilter;
                 }
@@ -1860,39 +1831,26 @@
             });
             
             currentPage = 1;
-            const originalData = paymentsData;
             paymentsData = filtered;
             displayPayments();
             paymentsData = originalData;
         }
 
-        function resetFilters() {
-            document.getElementById('searchPayments').value = '';
-            document.getElementById('paymentStatusFilter').value = 'all';
-            document.getElementById('paymentMethodFilter').value = 'all';
             displayPayments();
         }
 
         // ====== EXPORT FUNCTIONS ======
-        function exportPaymentsToExcel() {
-            let csv = [];
             
             // Headers
             csv.push('"ID","Traveler Name","Passport","Batch","Installment","Amount","Payment Date","Due Date","Method","Transaction ID","Status","Remarks"');
             
             // Data rows
             paymentsData.forEach(p => {
-                const travelerName = p.first_name && p.last_name ? 
                     `${p.first_name} ${p.last_name}` : (p.traveler_name || '');
-                const passport = p.passport_no || p.traveler_passport || '';
                 
                 csv.push(`"${p.id}","${travelerName}","${passport}","${p.batch_name || ''}","${p.installment || ''}","${p.amount || 0}","${p.payment_date || ''}","${p.due_date || ''}","${p.payment_method || ''}","${p.transaction_id || ''}","${p.status || ''}","${(p.remarks || '').replace(/"/g, '""')}"`);
             });
             
-            const csvContent = csv.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
             a.href = url;
             a.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
@@ -1900,10 +1858,6 @@
             showNotification('Payments exported successfully!', 'success');
         }
 
-        function printPaymentsTable() {
-            const table = document.getElementById('paymentsTable');
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
                 <html>
                 <head>
                     <title>Payments List</title>
@@ -1918,6 +1872,54 @@
                         @media print { th { background: #2c3e50 !important; color: white !important; } }
                     </style>
                 
+<script>
+            printWindow.document.close();
+        function showReverseModal(paymentId, amount) {
+            document.getElementById('reverse_payment_id').value = paymentId;
+            document.getElementById('reverse_amount').value = amount.toLocaleString();
+            document.getElementById('reverseModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        function closeReverseModal() {
+            document.getElementById('reverseModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('reverseForm').reset();
+        function reversePayment() {
+        function processReversal() {
+            const reversalData = {
+                reason: document.getElementById('reverse_reason').value,
+                remarks: document.getElementById('reverse_remarks').value
+        function filterPayments() {
+            const search = document.getElementById('searchPayments').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('paymentStatusFilter').value;
+            const methodFilter = document.getElementById('paymentMethodFilter').value;
+            const filtered = paymentsData.filter(p => {
+                let matchesSearch = true;
+                    const travelerName = (p.first_name && p.last_name ? 
+                    const passport = (p.passport_no || p.traveler_passport || '').toLowerCase();
+                    const transactionId = (p.transaction_id || '').toLowerCase();
+                let matchesStatus = true;
+                        const today = new Date();
+                        const dueDate = p.due_date ? new Date(p.due_date) : null;
+                        matchesStatus = p.status === 'completed';
+                let matchesMethod = true;
+            const originalData = paymentsData;
+        function resetFilters() {
+            document.getElementById('searchPayments').value = '';
+            document.getElementById('paymentStatusFilter').value = 'all';
+            document.getElementById('paymentMethodFilter').value = 'all';
+        function exportPaymentsToExcel() {
+            let csv = [];
+                const travelerName = p.first_name && p.last_name ? 
+                const passport = p.passport_no || p.traveler_passport || '';
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+        function printPaymentsTable() {
+            const table = document.getElementById('paymentsTable');
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+</script>
     <script src="/admin/js/session-manager.js"></script>
     </head>
                 <body>
@@ -1965,16 +1967,18 @@
         }
 
         // ====== CLOSE ALL MODALS ======
+        }
+
+        // ====== AUTO-COMPLETE ======
+    </script>
+
+<script>
         function closeAllModals() {
             document.getElementById('paymentModal').style.display = 'none';
             document.getElementById('reverseModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        // ====== AUTO-COMPLETE ======
         document.getElementById('amount').addEventListener('input', updateSummary);
-    </script>
-
+</script>
 <script>
     // Initialize page with session check
     document.addEventListener('DOMContentLoaded', async function() {
