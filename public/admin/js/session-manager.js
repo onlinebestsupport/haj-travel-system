@@ -1,3 +1,12 @@
+
+// Start timers function - called from page load
+function startTimers() {
+    console.log('Session timers started');
+    // Reset session timer on user activity
+    if (typeof resetSessionTimer === 'function') {
+        resetSessionTimer();
+    }
+}
 window.SessionManager = {
     SESSION_TIMEOUT: 30 * 60 * 1000,
     WARNING_BEFORE: 2 * 60 * 1000,
