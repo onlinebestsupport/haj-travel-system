@@ -1,44 +1,54 @@
+// Session Manager for Admin Pages
+const SessionManager = {
+    initPage: async function(callback) {
+        try {
+            const session = await this.checkSession();
+            if (!session.authenticated) {
+                window.location.href = '/admin.login.html';
+                return false;
+            }
+            if (callback && typeof callback === 'function') {
+                await callback();
+            }
+            return true;
+        } catch (error) {
+            console.error('Session init failed:', error);
+            window.location.href = '/admin.login.html';
+            return false;
+        }
+    },
 
-// Start timers function - called from page load
-function startTimers() {
-    console.log('Session timers started');
-    // Reset session timer on user activity
-    if (typeof resetSessionTimer === 'function') {
-        resetSessionTimer();
-    }
-}
-window.SessionManager = {
-    SESSION_TIMEOUT: 30 * 60 * 1000,
-    WARNING_BEFORE: 2 * 60 * 1000,
-    checkSession() {
-        // Call to check session status
-        fetch('/api/admin/check-session').catch(() => {
-            return fetch('/api/check-session');
+    checkSession: async function() {
+        const response = await fetch('/api/check-session', {
+            credentials: 'include'
         });
+        return await response.json();
     },
-    initPage(loadFn) {
-        // Initialize page functionality
-        loadFn();
-    },
-    logout() {
-        // Perform logout
-        fetch('/api/admin/logout', { method: 'POST' }).catch(() => {
-            return fetch('/api/logout', { method: 'POST' });
-        });
-    },
-    showNotification(message) {
-        // Show user notification
-        alert(message);
-    },
-    closeAllModals() {
-        // Logic to close all modals
-    },
-    authenticatedFetch(url) {
-        // Authenticated fetch logic
+
+    logout: async function() {
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        window.location.href = '/admin.login.html';
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Ensure no stray properties are defined here
-    startTimers();  // Ensure valid usage of startTimers
-});
+// Start timers function
+function startTimers() {
+    console.log('Session timers started');
+    // Reset session on activity
+    let timeout;
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            if (window.location.pathname !== '/admin.login.html') {
+                SessionManager.checkSession().then(session => {
+                    if (!session.authenticated) {
+                        window.location.href = '/admin.login.html';
+                    }
+                });
+            }
+        }, 30 * 60 * 1000);
+    }
+    document.addEventListener('click', resetTimer);
+    document.addEventListener('keypress', resetTimer);
+    resetTimer();
+}

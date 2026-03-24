@@ -745,16 +745,32 @@
         
         // Fill credentials from demo cards
         function fillCredentials(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
-            
-            document.getElementById('username').style.backgroundColor = '#e8f4f8';
-            document.getElementById('password').style.backgroundColor = '#e8f4f8';
-            
-            setTimeout(() => {
-                document.getElementById('username').style.backgroundColor = '';
-                document.getElementById('password').style.backgroundColor = '';
-            }, 500);
+    var usernameField = document.getElementById('username');
+    var passwordField = document.getElementById('password');
+    
+    if (usernameField && passwordField) {
+        usernameField.value = username;
+        passwordField.value = password;
+        console.log('Credentials filled for: ' + username);
+        
+        // Optional: auto-submit
+        var form = usernameField.closest('form');
+        if (form && typeof autoSubmit === 'undefined') {
+            // Uncomment to auto-submit: form.submit();
+        }
+    } else {
+        console.error('Login form elements not found');
+        // Retry after a short delay
+        setTimeout(function() {
+            var retryUsername = document.getElementById('username');
+            var retryPassword = document.getElementById('password');
+            if (retryUsername && retryPassword) {
+                retryUsername.value = username;
+                retryPassword.value = password;
+            }
+        }, 100);
+    }
+}, 500);
             
             document.getElementById('password').focus();
         }
