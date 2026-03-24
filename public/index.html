@@ -161,6 +161,7 @@
 
         /* Top Bar */
         .top-bar {
+    background: var(--primary-color);
             color: white;
             padding: 8px 0;
             font-size: 0.9rem;
@@ -319,6 +320,7 @@
         }
 
         .btn-primary {
+    background: var(--primary-color);
             color: white;
         }
 
@@ -468,7 +470,7 @@
 
         .packages-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
@@ -653,6 +655,7 @@
 
         /* Footer */
         .footer {
+    background: var(--dark-color);
             color: white;
             padding: 60px 0 30px;
         }
@@ -839,8 +842,19 @@
         .fadeInUp {
             animation: fadeInUp 0.6s ease forwards;
         }
-    </style>
-<script>
+    
+/* iOS fix for background-attachment: fixed */
+.hero {
+    background-attachment: scroll;
+}
+@supports (background-attachment: fixed) and (not (-webkit-overflow-scrolling: touch)) {
+    .hero {
+        background-attachment: fixed;
+    }
+}
+</style>
+
+        <style>
             color: var(--dark-color);
             background: linear-gradient(135deg, var(--warning-color), var(--warning-color-dark));
             color: var(--warning-color-dark);
@@ -894,9 +908,7 @@
             color: var(--secondary-color);
             color: var(--secondary-color);
             background: var(--dark-color);
-</script>
-    <script src="/admin/js/session-manager.js"></script>
-    <script src="/admin/js/mobile-fix.js"></script>
+</style>
 </head>
 <body>
     <!-- ALERT BANNER - TOP OF PAGE (ABSOLUTELY FIRST ELEMENT) -->
@@ -1159,10 +1171,10 @@
             }
             
             // Apply features
-            SessionManager.renderFeatures(config.features);
+            renderFeatures(config.features);
             
             // Apply packages
-            SessionManager.renderPackages(config.packages, config.contact);
+            renderPackages(config.packages, config.contact);
             
             // Apply contact info
             renderContactInfo(config.contact);
@@ -1193,7 +1205,7 @@
             linkEl.href = alert.link || '#';
             
             // Apply color
-            banner.style.background = `linear-gradient(135deg, ${alert.color}, ${SessionManager.adjustColor(alert.color, -20)})`;
+            banner.style.background = `linear-gradient(135deg, ${alert.color}, ${adjustColor(alert.color, -20)})`;
             
             // Apply animation style
             banner.className = 'alert-banner active ' + alert.style;
@@ -1221,13 +1233,13 @@
             }
         }
 
-        function SessionManager.adjustColor(hex, percent) {
+        function adjustColor(hex, percent) {
             // Simple color adjustment
             return hex; // In production, use a proper color library
         }
 
         // ==================== FEATURES RENDERING ====================
-        function SessionManager.renderFeatures(features) {
+        function renderFeatures(features) {
             const grid = document.getElementById('featuresGrid');
             
             if (!features || features.length === 0) {
@@ -1266,7 +1278,7 @@
         }
 
         // ==================== PACKAGES RENDERING ====================
-        function SessionManager.renderPackages(packages, contact) {
+        function renderPackages(packages, contact) {
             const grid = document.getElementById('packagesGrid');
             
             if (!packages || packages.length === 0) {
@@ -1394,10 +1406,10 @@
                         email: localStorage.getItem('bookingEmail') || 'bookings@alhudha.com'
                     };
                     
-                    SessionManager.renderPackages(packages, contact);
+                    renderPackages(packages, contact);
                 }
             } catch (error) {
-                console.SessionManager.log('Using demo packages');
+                console.log('Using demo packages');
             }
         }
 
