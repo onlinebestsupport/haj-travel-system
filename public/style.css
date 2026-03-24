@@ -1268,3 +1268,99 @@ a:hover {
     visibility: visible;
     opacity: 1;
 }
+
+/* ===== MOBILE RESPONSIVE FIXES ===== */
+@media (max-width: 768px) {
+    /* Fix hero section */
+    .hero h1 {
+        font-size: 2rem !important;
+    }
+    
+    /* Fix packages grid - change min-width to 280px */
+    .packages-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+        gap: 15px !important;
+    }
+    
+    /* Fix about content - make single column */
+    .about-content {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+    
+    /* Fix contact info - wrap on mobile */
+    .contact-info {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 15px !important;
+    }
+    
+    /* Fix navbar - hide desktop menu, show mobile toggle */
+    .nav-links {
+        display: none !important;
+        flex-direction: column !important;
+        position: absolute !important;
+        top: 70px !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: var(--secondary-color, #2c3e50) !important;
+        padding: 20px !important;
+        z-index: 1000 !important;
+    }
+    
+    .nav-links.active {
+        display: flex !important;
+    }
+    
+    .mobile-toggle {
+        display: block !important;
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        font-size: 24px !important;
+        cursor: pointer !important;
+    }
+    
+    /* Fix hero section for iOS */
+    .hero {
+        background-attachment: scroll !important;
+    }
+    
+    /* Fix table overflow */
+    .table-container {
+        overflow-x: auto !important;
+    }
+    
+    table {
+        min-width: 600px !important;
+    }
+    
+    /* Fix buttons spacing */
+    .action-buttons {
+        flex-direction: column !important;
+    }
+    
+    .action-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* Fix form grids */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Mobile menu toggle button */
+.mobile-toggle {
+    display: none;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+}

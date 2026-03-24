@@ -107,5 +107,20 @@
         });
     </script>
     
+
+<script>
+// Mobile menu toggle
+document.addEventListener('DOMContentLoaded', function() {
+    var mobileToggle = document.querySelector('.mobile-toggle');
+    var navLinks = document.querySelector('.nav-links');
+    
+    if (mobileToggle && navLinks) {
+        mobileToggle.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+        });
+    }
+});
+</script>
+
 </body>
 </html>

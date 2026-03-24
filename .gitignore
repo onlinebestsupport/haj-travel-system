@@ -42,3 +42,37 @@ sql/*.sql
 .env.local
 *.pyc
 __pycache__/
+
+# Backup directories
+backup_*/
+final_backup_*/
+backup_before_*/
+
+# Fix scripts
+scripts/dev/
+
+# Backup files
+*.bak
+*.bak.*
+
+# Security sensitive files
+cookies.txt
+new-cookies.txt
+document.cookie
+
+# Garbage files
+#
+({
+0
+null)
+✅
+goToDashboard()
+curl
+psql
+python
+railway
+
+# Local development
+.env.local
+*.pyc
+__pycache__/
