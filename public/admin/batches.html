@@ -1370,106 +1370,67 @@
                         .status-active { background: #d4edda; color: #155724; }
                         .status-pending { background: #fff3cd; color: #856404; }
                     </style>
-                
-    <script src="/admin/js/session-manager.js"></script>
-        <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>
                     <h2>Alhudha Haj Travel - Batch Details</h2>
                     <p>Generated on: ${new Date().toLocaleString()}</p>
                     ${content}
-                
-<script>
-    // Initialize page with session check
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            await SessionManager.initPage(initializePage);
-        } catch (error) {
-            console.error('Failed to initialize page:', error);
-            showNotification('Failed to load page', 'error');
-        }
-    });
-
-    async function initializePage() {
-        console.log('✅ User authenticated, loading page...');
-        resetSessionTimer();
-        
-        // Monitor user activity
-        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, resetSessionTimer);
-        });
-        
-        // Load page-specific data
-        if (typeof loadPageData === 'function') {
-            await loadPageData();
-        }
-    }
-
-    // Session timer functions (if not already defined)
-    function resetSessionTimer() {
-        // This will be overridden by session-manager.js
-        console.log('Session timer reset');
-    }
-</script>
-
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                </body>
                 </html>
             `);
+            printWindow.document.close();
             printWindow.print();
         }
 
         // ====== SEARCH BATCHES ======
-            
+        function searchBatches() {
+            const search = document.getElementById('searchBatches').value.toLowerCase().trim();
             if (!search) {
                 displayBatches();
                 return;
             }
-            
-                
+            const filtered = batchesData.filter(b => {
+                const name = (b.batch_name || '').toLowerCase();
+                const departure = (b.departure_date || '').toLowerCase();
+                const status = (b.status || '').toLowerCase();
                 return name.includes(search) || departure.includes(search) || status.includes(search);
             });
-            
+            const originalData = batchesData;
             currentPage = 1;
             batchesData = filtered;
             displayBatches();
             batchesData = originalData;
         }
 
+        function clearSearch() {
+            document.getElementById('searchBatches').value = '';
             displayBatches();
         }
 
         // ====== EXPORT FUNCTIONS ======
-            
+        function exportBatchesToExcel() {
+            let csv = [];
             // Headers
             csv.push('"ID","Batch Name","Departure Date","Return Date","Price","Total Seats","Booked Seats","Available Seats","Status","Description"');
-            
             // Data rows
             batchesData.forEach(b => {
+                const availableSeats = (b.total_seats || 0) - (b.booked_seats || 0);
                 csv.push(`"${b.id}","${b.batch_name || ''}","${b.departure_date || ''}","${b.return_date || ''}","${b.price || 0}","${b.total_seats || 0}","${b.booked_seats || 0}","${availableSeats}","${b.status || ''}","${(b.description || '').replace(/"/g, '""')}"`);
             });
-            
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = url;
             a.download = `batches_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            
             showNotification('Batches exported successfully!', 'success');
         }
 
+        function printBatches() {
+            const table = document.getElementById('batchesTable');
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
                 <html>
                 <head>
                     <title>Batches List</title>
@@ -1484,103 +1445,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         .status-inactive { background: #f8d7da; color: #721c24; }
                         @media print { th { background: #2c3e50 !important; color: white !important; } }
                     </style>
-                
-<script>
-        function searchBatches() {
-            const search = document.getElementById('searchBatches').value.toLowerCase().trim();
-            const filtered = batchesData.filter(b => {
-                const name = (b.batch_name || '').toLowerCase();
-                const departure = (b.departure_date || '').toLowerCase();
-                const status = (b.status || '').toLowerCase();
-            const originalData = batchesData;
-        function clearSearch() {
-            document.getElementById('searchBatches').value = '';
-        function exportBatchesToExcel() {
-            let csv = [];
-                const availableSeats = (b.total_seats || 0) - (b.booked_seats || 0);
-            const csvContent = csv.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-        function printBatches() {
-            const table = document.getElementById('batchesTable');
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-</script>
-    <script src="/admin/js/session-manager.js"></script>
-        <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>
                     <h2>Alhudha Haj Travel - Batches List</h2>
                     <p>Generated on: ${new Date().toLocaleString()}</p>
                     ${table.outerHTML}
-                
-<script>
-    // Initialize page with session check
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            await SessionManager.initPage(initializePage);
-        } catch (error) {
-            console.error('Failed to initialize page:', error);
-            showNotification('Failed to load page', 'error');
-        }
-    });
-
-    async function initializePage() {
-        console.log('✅ User authenticated, loading page...');
-        resetSessionTimer();
-        
-        // Monitor user activity
-        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, resetSessionTimer);
-        });
-        
-        // Load page-specific data
-        if (typeof loadPageData === 'function') {
-            await loadPageData();
-        }
-    }
-
-    // Session timer functions (if not already defined)
-    function resetSessionTimer() {
-        // This will be overridden by session-manager.js
-        console.log('Session timer reset');
-    }
-</script>
-
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                </body>
                 </html>
             `);
+            printWindow.document.close();
             printWindow.print();
         }
 
         // Close modal when clicking outside
-            if (event.target == viewModal) {
-                viewModal.style.display = 'none';
-            }
-        }
-    </script>
-
-<script>
         window.onclick = function(event) {
             const viewModal = document.getElementById('viewBatchModal');
+            if (event.target == viewModal) {
+                viewModal.style.display = 'none';
                 document.getElementById('modalOverlay').style.display = 'none';
-</script>
+            }
+        };
+    </script>
+
 <script>
     // Initialize page with session check
     document.addEventListener('DOMContentLoaded', async function() {

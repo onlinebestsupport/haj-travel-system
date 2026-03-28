@@ -1345,9 +1345,7 @@
                             button { display: none; }
                         }
                     </style>
-                    <script src="/admin/js/session-manager.js"></script>
-    <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>
                     <h1>🕋 My Haj Journey - Complete Details</h1>
                     <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
@@ -1357,13 +1355,7 @@
                         <p>Alhudha Haj Travel System - Official Document</p>
                         <p>May Allah accept your journey</p>
                     </div>
-                
-// Clear interval on page unload
-window.addEventListener('beforeunload', function() {
-    if (updateTimer) clearInterval(updateTimer);
-});
-
-</body>
+                </body>
                 </html>
             `);
             

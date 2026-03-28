@@ -1562,44 +1562,13 @@
                         .signature-line { margin-top: 40px; border-top: 1px solid #2c3e50; width: 200px; margin-left: auto; margin-right: auto; }
                         @media print { body { background: white; padding: 0; } .invoice-print-template { box-shadow: none; padding: 0; } }
                     </style>
-                    <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>
                     ${getInvoiceHTML(id, invoiceData)}
-                
-<script>
-// Initialize page with session check
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
-        SessionManager.initPage(function() {
-            console.log('Invoices page initialized');
-            if (typeof loadInvoicesData === 'function') {
-                loadInvoicesData();
-            }
-        });
-    }
-});
-</script>
-
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                </body>
                 </html>
             `);
-            
+            printWindow.document.close();
             printWindow.print();
         }
 
@@ -1779,83 +1748,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return num.toLocaleString('en-IN') + ' Rupees';
         }
 
-                <html>
-                <head><title>Invoice Details</title>    <script src="/admin/js/mobile-fix.js"></script>
-</head>
-                <body>${content}
-<script>
-            printWindow.document.close();
-        function getInvoiceData(id) {
-            const address = {
-                name: document.getElementById('companyName')?.value || companyAddress.name || 'Alhudha Haj Travel',
-                address1: document.getElementById('companyAddress1')?.value || companyAddress.address1 || '123, Haj House',
-                address2: document.getElementById('companyAddress2')?.value || companyAddress.address2 || 'Mumbai - 400001',
-                cityState: document.getElementById('companyCityState')?.value || companyAddress.cityState || 'Maharashtra, India',
-                phone: document.getElementById('companyPhone')?.value || companyAddress.phone || '+91 98765 43210',
-                email: document.getElementById('companyEmail')?.value || companyAddress.email || 'accounts@alhudha.com',
-                gstin: document.getElementById('companyGSTIN')?.value || companyAddress.gstin || '27ABCDE1234F1Z5',
-                pan: document.getElementById('companyPAN')?.value || companyAddress.pan || 'ABCDE1234F',
-                bank: document.getElementById('companyBank')?.value || companyAddress.bank || 'State Bank of India',
-                account: document.getElementById('companyAccount')?.value || companyAddress.account || '12345678901',
-                ifsc: document.getElementById('companyIFSC')?.value || companyAddress.ifsc || 'SBIN0012345',
-                branch: document.getElementById('companyBranch')?.value || companyAddress.branch || 'Mumbai Main'
-        function getInvoiceHTML(id, data) {
-        // Helper function to convert number to words
-        function numberToWords(num) {
         function printInvoiceDetails() {
             const content = document.getElementById('invoiceDetails').innerHTML;
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
-</script>
-<script>
-// Initialize page with session check
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
-        SessionManager.initPage(function() {
-            console.log('Invoices page initialized');
-            if (typeof loadInvoicesData === 'function') {
-                loadInvoicesData();
-            }
-        });
-    }
-});
-</script>
-
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                <html>
+                <head><title>Invoice Details</title></head>
+                <body>${content}</body>
                 </html>
             `);
+            printWindow.document.close();
             printWindow.print();
         }
 
+        function downloadInvoicePDF() {
             showNotification('PDF download feature coming soon!', 'info');
         }
 
         // ====== INVOICE ACTIONS SECTION ======
+        function viewInvoice(id) {
+            const invoiceData = getInvoiceData(id);
+            document.getElementById('invoiceDetails').innerHTML = getInvoiceHTML(id, invoiceData);
+            document.getElementById('invoiceModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
             currentInvoiceId = id;
-            
         }
 
+        function downloadPDF(id) {
             showNotification(`Generating PDF for invoice ${id}...`, 'info');
             setTimeout(() => {
                 showNotification(`Invoice ${id} PDF downloaded`, 'success');
             }, 2000);
         }
 
+        function emailInvoice(id) {
             showNotification(`Preparing email for invoice ${id}...`, 'info');
             setTimeout(() => {
                 showNotification(`Invoice ${id} sent via email`, 'success');
@@ -1863,12 +1789,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ====== FILTER FUNCTIONS SECTION ======
+        function applyFilters() {
             showNotification('Filters applied', 'success');
         }
 
+        function resetFilters() {
+            document.getElementById('searchInvoice').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateFilter').value = 'all';
             showNotification('Filters reset', 'info');
         }
 
+        function exportInvoices() {
             showNotification('Exporting invoices...', 'info');
             setTimeout(() => {
                 showNotification('Invoices exported successfully!', 'success');
@@ -1876,22 +1808,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ====== PAGINATION SECTION ======
+        function previousPage() {
             showNotification('Previous page', 'info');
         }
 
+        function nextPage() {
             showNotification('Next page', 'info');
         }
 
         // ====== CLOSE MODALS ON OUTSIDE CLICK SECTION ======
-            
+        window.onclick = function(event) {
+            const createModal = document.getElementById('createInvoiceModal');
+            const viewModal = document.getElementById('invoiceModal');
             if (event.target == createModal) {
                 createModal.style.display = 'none';
-                loadAddressTemplate(); // Reload address when closing
+                loadAddressTemplate();
+                document.body.style.overflow = '';
             }
             if (event.target == viewModal) {
                 viewModal.style.display = 'none';
+                document.body.style.overflow = '';
             }
-        }
+        };
     </script>
 
 <script>

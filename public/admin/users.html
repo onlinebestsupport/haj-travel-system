@@ -1815,62 +1815,12 @@ function escapeHtml(text) {
                         body { font-family: Arial; padding: 30px; }
                         .permission-tag { background: #e1f0fa; color: #2980b9; padding: 2px 8px; border-radius: 12px; margin: 2px; display: inline-block; }
                     </style>
-                
-    <script src="/admin/js/session-manager.js"></script>
-        <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>${content}
-<script>
-    // Initialize page with session check
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            await SessionManager.initPage(initializePage);
-        } catch (error) {
-            console.error('Failed to initialize page:', error);
-            showNotification('Failed to load page', 'error');
-        }
-    });
-
-    async function initializePage() {
-        console.log('✅ User authenticated, loading page...');
-        resetSessionTimer();
-        
-        // Monitor user activity
-        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, resetSessionTimer);
-        });
-        
-        // Load page-specific data
-        if (typeof loadPageData === 'function') {
-            await loadPageData();
-        }
-    }
-
-    // Session timer functions (if not already defined)
-    function resetSessionTimer() {
-        // This will be overridden by session-manager.js
-        console.log('Session timer reset');
-    }
-</script>
-
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                </body>
                 </html>
             `);
+            printWindow.document.close();
             printWindow.print();
         };
 
