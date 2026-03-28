@@ -2028,47 +2028,47 @@
         travelersData = [
             { 
                 id: 1, 
-                first_name: 'Ahmed', 
-                last_name: 'Khan', 
-                passport_name: 'Ahmed Khan',
-                passport_no: 'A1234567', 
-                mobile: '9876543210',
-                email: 'ahmed@email.com',
+                first_name: 'John', 
+                last_name: 'Doe', 
+                passport_name: 'John Doe',
+                passport_no: 'A0000001', 
+                mobile: '9000000000',
+                email: 'example@email.com',
                 batch_id: 1,
                 batch_name: 'Haj Platinum 2026',
                 passport_status: 'Active',
-                passport_issue_date: '2025-10-11',
-                passport_expiry_date: '2035-10-11',
-                dob: '1965-10-11',
+                passport_issue_date: '2020-01-01',
+                passport_expiry_date: '2030-01-01',
+                dob: '1990-01-01',
                 vaccine_status: 'Fully Vaccinated',
                 wheelchair: 'No',
                 gender: 'Male',
-                aadhaar: '1234 5678 9012',
-                pan: 'ABCDE1234F',
-                aadhaar_pan_linked: 'Yes',
-                created_at: '2026-01-15T10:30:00'
+                aadhaar: '0000 0000 0000',
+                pan: 'AAAAA0000A',
+                aadhaar_pan_linked: 'No',
+                created_at: '2026-01-01T10:00:00'
             },
             { 
                 id: 2, 
-                first_name: 'Fatima', 
-                last_name: 'Begum', 
-                passport_name: 'Fatima Begum',
-                passport_no: 'B7654321', 
-                mobile: '8765432109',
-                email: 'fatima@email.com',
+                first_name: 'Jane', 
+                last_name: 'Doe', 
+                passport_name: 'Jane Doe',
+                passport_no: 'A0000002', 
+                mobile: '9000000001',
+                email: 'example2@email.com',
                 batch_id: 2,
                 batch_name: 'Haj Gold 2026',
                 passport_status: 'Active',
-                passport_issue_date: '2025-10-11',
-                passport_expiry_date: '2035-10-11',
-                dob: '1965-10-11',
-                vaccine_status: 'Partially Vaccinated',
+                passport_issue_date: '2020-01-01',
+                passport_expiry_date: '2030-01-01',
+                dob: '1990-01-01',
+                vaccine_status: 'Not Vaccinated',
                 wheelchair: 'No',
                 gender: 'Female',
-                aadhaar: '2345 6789 0123',
-                pan: 'FGHIJ5678K',
-                aadhaar_pan_linked: 'Pending',
-                created_at: '2026-01-20T14:30:00'
+                aadhaar: '0000 0000 0001',
+                pan: 'AAAAA0000B',
+                aadhaar_pan_linked: 'No',
+                created_at: '2026-01-01T10:00:00'
             }
         ];
         updateDashboardStats();
@@ -2621,7 +2621,7 @@
         closeDocumentViewer();
     }
 
- <script>
+
 // ====== PRINT FUNCTIONS ======
 function printTravelerDetails() {
     // ... existing code ...
@@ -2636,14 +2636,14 @@ function printTravelersTable() {
             <title>Travelers List</title>
             <style>
                 /* styles here */
-            </style>
-        </head>
+            <\/style>
+        <\/head>
         <body>
             <h2>Alhudha Haj Travel - Travelers List</h2>
             <p>Generated on: ${new Date().toLocaleString()}</p>
             ${table.outerHTML}
-        </body>
-        </html>
+        <\/body>
+        <\/html>
     `);
     printWindow.document.close();
     printWindow.print();
@@ -2690,7 +2690,6 @@ function exportTravelersToPDF() {
 // Continue with all other functions...
 // downloadTravelerPDF(), exportTravelersToExcel(), etc.
 
-</script>
 
     // ====== EXPORT FUNCTIONS ======
     function exportTravelersToExcel() {
@@ -2727,7 +2726,7 @@ function exportTravelersToPDF() {
 
     function downloadCSVTemplate() {
         const template = `first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
-Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,9876543210,ahmed@email.com,123456789012,ABCDE1234F,Yes,Fully Vaccinated,No,Mumbai,Mumbai,"123, Green Street, Mumbai",Abdullah Khan,Amina Khan,,1234,Brother,9876543211,No allergies,,,,,,{}`;
+John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,Active,Male,1990-01-01,9000000000,example@email.com,000000000000,AAAAA0000A,No,Not Vaccinated,No,City,City,"123 Sample Street, City",Father Name,Mother Name,,000000,Emergency Contact,9000000001,No notes,,,,,,{}`;
         
         const blob = new Blob([template], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -2819,41 +2818,8 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
 </script>
     </div> <!-- closing container div -->
     
-    <!-- All JavaScript functions should be here -->
-    <script>
-    // ====== PRINT FUNCTIONS ======
-    function printTravelerDetails() {
-        // ... existing code ...
-    }
 
-    function printTravelersTable() {
-        const table = document.getElementById('travelersTable');
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Travelers List</title>
-                <style>
-                    body { font-family: Arial; padding: 20px; }
-                    table { border-collapse: collapse; width: 100%; }
-                    th { background: #2c3e50; color: white; padding: 10px; }
-                    td { padding: 10px; border: 1px solid #ddd; }
-                </style>
-            </head>
-            <body>
-                <h2>Alhudha Haj Travel - Travelers List</h2>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
-                ${table.outerHTML}
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
 
-    // Add all other functions here...
-    </script>
-    
 
 <script>
 // Mobile menu toggle
