@@ -1212,9 +1212,7 @@
 
     <!-- Session Warning Banner -->
 
-    <div id="sessionWarning" onclick="SessionManager.extendSession()">
-
-    <div id="sessionWarning">
+    <div id="sessionWarning" onclick="extendSession()">
 
         <i class="fas fa-exclamation-triangle"></i> 
         <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
@@ -1231,10 +1229,10 @@
         const SessionManager = {
             initPage: async function(callback) {
                 try {
-                    const session = await this.SessionManager.checkSession();
+                    const session = await this.checkSession();
                     
                     if (!session.authenticated) {
-                        console.SessionManager.log('⚠️ Not logged in, redirecting to login...');
+                        console.log('⚠️ Not logged in, redirecting to login...');
                         window.location.href = '/admin.login.html';
                         return false;
                     }
@@ -1318,12 +1316,6 @@
         
         let intervals = [];
 
-        let sessionWarningTimeout = undefined;
-        let sessionLogoutTimeout = undefined;
-        let warningShown = false;
-        let notificationTimeout = undefined;
-
-        let eventListeners = [];
         let sessionWarningTimeout = null;
         let sessionLogoutTimeout = null;
         let warningShown = false;
@@ -1370,20 +1362,18 @@
                 await SessionManager.initPage(initializeDashboard);
             } catch (error) {
                 console.error('Failed to initialize dashboard:', error);
-                SessionManager.showNotification('Failed to load dashboard', 'error');
+                showNotification('Failed to load dashboard', 'error');
             }
         });
 
         // Dashboard initialization
         async function initializeDashboard() {
-            console.SessionManager.log('✅ User authenticated, loading dashboard...');
+            console.log('✅ User authenticated, loading dashboard...');
             
             updateUserInterface();
 
             
             // Initialize session management
-            SessionManager.resetSessionTimer();
-
             resetSessionTimer();
 
             
@@ -1470,17 +1460,17 @@
         }
 
         // ====== SESSION MANAGEMENT ======
-        function SessionManager.resetSessionTimer() {
+        function resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
             
-            SessionManager.hideSessionWarning();
+            hideSessionWarning();
             
             sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
             sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
         }
 
-        function SessionManager.showSessionWarning() {
+        function showSessionWarning() {
             if (warningShown) return;
             
             const warning = document.getElementById('sessionWarning');
@@ -1493,7 +1483,7 @@
             warningShown = true;
         }
 
-        function SessionManager.hideSessionWarning() {
+        function hideSessionWarning() {
             const warning = document.getElementById('sessionWarning');
             if (warning) {
                 warning.style.display = 'none';
@@ -1501,24 +1491,24 @@
             warningShown = false;
         }
 
-        function SessionManager.showSessionExpiredWarning() {
-            SessionManager.hideSessionWarning();
-            SessionManager.showNotification('Your session has expired. Redirecting to login...', 'warning');
+        function showSessionExpiredWarning() {
+            hideSessionWarning();
+            showNotification('Your session has expired. Redirecting to login...', 'warning');
             
             setTimeout(() => {
                 window.location.href = '/admin.login.html';
             }, 3000);
         }
 
-        async function SessionManager.extendSession() {
+        async function extendSession() {
             try {
-                await SessionManager.SessionManager.checkSession();
-                SessionManager.hideSessionWarning();
-                SessionManager.resetSessionTimer();
-                SessionManager.showNotification('Session extended successfully', 'success');
+                await SessionManager.checkSession();
+                hideSessionWarning();
+                resetSessionTimer();
+                showNotification('Session extended successfully', 'success');
             } catch (error) {
                 console.error('Session extension failed:', error);
-                SessionManager.showSessionExpiredWarning();
+                showSessionExpiredWarning();
             }
         }
 
@@ -1652,19 +1642,17 @@
                     });
                     
 
-                    console.SessionManager.log('✅ Dashboard stats loaded:', { 
+                    console.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,
                         payments: stats.paid_count
                     });
 
-                    console.log('✅ Dashboard stats loaded');
-
                 }
             } catch (error) {
                 console.error('❌ Error loading dashboard stats:', error);
-                SessionManager.showNotification('Error loading dashboard data', 'error');
+                showNotification('Error loading dashboard data', 'error');
             }
         }
 
@@ -1839,7 +1827,7 @@
         }
 
         // ====== NOTIFICATION ======
-        function SessionManager.showNotification(message, type = 'success') {
+        function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) return;
             
@@ -1885,7 +1873,7 @@
             if (paymentSelect) {
                 paymentSelect.addEventListener('change', (e) => {
 
-                    SessionManager.showNotification(`Updating payment chart for ${e.target.value}`, 'info');
+                    showNotification(`Updating payment chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
 
                     showNotification(`Updating payment chart for ${e.target.value}`, 'info');
@@ -1896,7 +1884,7 @@
             if (travelersSelect) {
                 travelersSelect.addEventListener('change', (e) => {
 
-                    SessionManager.showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
+                    showNotification(`Updating travelers chart for ${e.target.value}`, 'info');
                     // Here you would update the chart with real data
 
                     showNotification(`Updating travelers chart for ${e.target.value}`, 'info');

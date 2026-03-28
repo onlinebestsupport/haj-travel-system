@@ -76,3 +76,14 @@ railway
 .env.local
 *.pyc
 __pycache__/
+
+# Debug and cleanup reports
+CLEANUP_REPORT.txt
+DUPLICATE_FUNCTIONS_REPORT.txt
+FUNCTION_CLEANUP_GUIDE.txt
+structure.txt
+structure_report_*.txt
+result.txt
+debug_users.html
+.gitignore.bak
+*.bak.*

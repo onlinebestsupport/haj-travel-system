@@ -850,7 +850,7 @@
             <div class="email-list">
                 <div class="email-toolbar">
                     <div class="toolbar-left">
-                        <input type="checkbox" id="selectAll" onclick="SessionManager.toggleSelectAll()">
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
                         <button onclick="refreshEmails()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
                         <button onclick="archiveSelected()" title="Archive"><i class="fas fa-archive"></i></button>
                         <button onclick="deleteSelected()" title="Delete"><i class="fas fa-trash"></i></button>
@@ -926,31 +926,31 @@
     <!-- Template Selector -->
     <div class="template-selector" id="templateSelector">
         <h4><i class="fas fa-template"></i> Email Templates</h4>
-        <div class="template-item" onclick="SessionManager.useTemplate('payment')">
+        <div class="template-item" onclick="useTemplate('payment')">
             <strong>Payment Reminder</strong>
             <p>Remind travelers about pending payments</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('document')">
+        <div class="template-item" onclick="useTemplate('document')">
             <strong>Document Request</strong>
             <p>Request missing documents</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('visa')">
+        <div class="template-item" onclick="useTemplate('visa')">
             <strong>Visa Update</strong>
             <p>Send visa status updates</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('welcome')">
+        <div class="template-item" onclick="useTemplate('welcome')">
             <strong>Welcome Email</strong>
             <p>Welcome new travelers</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('thankyou')">
+        <div class="template-item" onclick="useTemplate('thankyou')">
             <strong>Thank You</strong>
             <p>Thank travelers for their payment</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('flight')">
+        <div class="template-item" onclick="useTemplate('flight')">
             <strong>Flight Details</strong>
             <p>Share flight schedules and updates</p>
         </div>
-        <div class="template-item" onclick="SessionManager.useTemplate('deadline')">
+        <div class="template-item" onclick="useTemplate('deadline')">
             <strong>Deadline Reminder</strong>
             <p>Remind about document submission deadlines</p>
         </div>
@@ -1020,7 +1020,7 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
 
     <!-- Notification -->
     <div id="notification" class="notification"></div>
@@ -1032,7 +1032,7 @@
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
 // Session check function
-async function SessionManager.checkAdminSession() {
+async function checkAdminSession() {
     try {
         const response = await fetch('/api/check-session', {
             credentials: 'include',
@@ -1041,7 +1041,7 @@ async function SessionManager.checkAdminSession() {
         const data = await response.json();
         
         if (!data.authenticated) {
-            console.SessionManager.log('⚠️ Session expired or not authenticated');
+            console.log('⚠️ Session expired or not authenticated');
             sessionStorage.clear();
             window.location.href = '/admin.login.html';
             return false;
@@ -1062,9 +1062,9 @@ async function SessionManager.checkAdminSession() {
 }
 
 // Wrapper for authenticated API calls
-async function SessionManager.authenticatedFetch(url, options = {}) {
+async function authenticatedFetch(url, options = {}) {
     // First check if we're still authenticated
-    const isAuthenticated = await SessionManager.checkAdminSession();
+    const isAuthenticated = await checkAdminSession();
     if (!isAuthenticated) return null;
     
     // Make the actual API call with credentials
@@ -1079,7 +1079,7 @@ async function SessionManager.authenticatedFetch(url, options = {}) {
     
     // Handle 401 specifically
     if (response.status === 401) {
-        console.SessionManager.log('🔒 Session expired during API call');
+        console.log('🔒 Session expired during API call');
         window.location.href = '/admin.login.html';
         return null;
     }
@@ -1111,25 +1111,25 @@ if (typeof showNotification !== 'function') {
 // ====== PAGE INITIALIZATION WITH SESSION CHECK ======
 // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
-    console.SessionManager.log('🚀 Loading email page...');
+    console.log('🚀 Loading email page...');
     await SessionManager.initPage(loadEmail || function(){});
 });
     
     // Check session first - this will redirect if not authenticated
-    const isValid = await SessionManager.checkAdminSession();
+    const isValid = await checkAdminSession();
     if (!isValid) return;
     
     // Load page-specific data
     if (typeof loadPageData === 'function') {
         loadPageData();
     } else if (typeof loadTravelers === 'function') {
-        SessionManager.loadTravelers();
+        loadTravelers();
     } else if (typeof loadBatches === 'function') {
-        SessionManager.loadBatches();
+        loadBatches();
     } else if (typeof loadPayments === 'function') {
         loadPayments();
     } else {
-        console.SessionManager.log('ℹ️ No data loading function found');
+        console.log('ℹ️ No data loading function found');
     }
 });
 
@@ -1171,7 +1171,7 @@ async function logout() {
         });
 
         // ====== AUTHENTICATION ======
-        function SessionManager.SessionManager.checkAuth() {
+        function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
             if (!isLoggedIn) {
                 window.location.href = '/admin.login.html';
@@ -1189,7 +1189,7 @@ async function logout() {
         }
 
         // ====== NOTIFICATION ======
-        function SessionManager.showNotification(message, type = 'success') {
+        function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
@@ -1253,7 +1253,7 @@ async function logout() {
                         localStorage.setItem('emailSubject', emailConfig.subjectPrefix);
                     }
                 })
-                .catch(err => console.SessionManager.log('Using localStorage email config'));
+                .catch(err => console.log('Using localStorage email config'));
         }
 
         function refreshEmailConfig() {
@@ -1434,7 +1434,7 @@ async function logout() {
             templateSelector.style.display = templateSelector.style.display === 'block' ? 'none' : 'block';
         }
 
-        function SessionManager.useTemplate(type) {
+        function useTemplate(type) {
             const subject = document.getElementById('composeSubject');
             const body = document.getElementById('composeBody');
             
@@ -1567,7 +1567,7 @@ async function logout() {
             }
         }
 
-        function SessionManager.toggleSelectAll() {
+        function toggleSelectAll() {
             const checkboxes = document.querySelectorAll('.email-checkbox');
             const selectAll = document.getElementById('selectAll');
             
@@ -1732,7 +1732,7 @@ async function logout() {
         }
 
         // ====== CLOSE ALL MODALS ======
-        function SessionManager.closeAllModals() {
+        function closeAllModals() {
             document.getElementById('composeModal').style.display = 'none';
             document.getElementById('templateSelector').style.display = 'none';
             document.getElementById('settingsModal').style.display = 'none';

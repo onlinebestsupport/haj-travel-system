@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup - Alhudha Haj Travel Admin</title>
+    <link rel="stylesheet" href="/admin/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-area i {
+            font-size: 2rem;
+            color: #f1c40f;
+        }
+
+        .logo-area h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .page-header {
+            margin: 30px 0 20px;
+        }
+
+        .page-header h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover { opacity: 0.85; }
+
+        .btn-primary { background: #3498db; color: white; }
+        .btn-danger  { background: #e74c3c; color: white; }
+        .btn-info    { background: #17a2b8; color: white; }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 0.9rem;
+        }
+
+        .data-table tr:hover { background: #f8f9fa; }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            max-width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .notification-success { background: #27ae60; }
+        .notification-error   { background: #e74c3c; }
+        .notification-info    { background: #3498db; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success  { background: #d5f5e3; color: #27ae60; }
+        .badge-warning  { background: #fef9e7; color: #f39c12; }
+        .badge-danger   { background: #fdedec; color: #e74c3c; }
+    </style>
+    <script src="/admin/js/session-manager.js"></script>
+    <script src="/admin/js/mobile-fix.js"></script>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-area">
+                    <i class="fas fa-kaaba"></i>
+                    <h1>Alhudha Haj Admin - Backup</h1>
+                    <span class="role-badge" id="roleBadge">Admin</span>
+                </div>
+                <div>
+                    <a href="dashboard.html" class="action-btn btn-info" style="margin-right: 10px;">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <button onclick="SessionManager.logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fas fa-database"></i> Database Backup</h2>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn btn-primary" onclick="createBackup()" id="createBackupBtn">
+                <i class="fas fa-plus"></i> Create Backup
+            </button>
+            <button class="action-btn btn-info" onclick="loadBackups()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Filename</th>
+                        <th>Created At</th>
+                        <th>Size</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="backupsTableBody">
+                    <tr>
+                        <td colspan="6" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading backups...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.style.display = 'flex';
+            setTimeout(() => { notification.style.display = 'none'; }, 3500);
+        }
+
+        async function loadBackups() {
+            const tableBody = document.getElementById('backupsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading backups...</td></tr>';
+            try {
+                const response = await fetch('/api/backup', { credentials: 'include' });
+                const data = await response.json();
+                if (data.success) {
+                    renderBackups(data.backups);
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="loading">Error: ${data.error}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error loading backups:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">Failed to load backups</td></tr>';
+            }
+        }
+
+        function renderBackups(backups) {
+            const tableBody = document.getElementById('backupsTableBody');
+            if (!backups || backups.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="loading">No backups found. Click "Create Backup" to create one.</td></tr>';
+                return;
+            }
+            tableBody.innerHTML = backups.map(b => {
+                const statusClass = b.status === 'completed' ? 'badge-success' : b.status === 'failed' ? 'badge-danger' : 'badge-warning';
+                const createdAt = b.created_at ? new Date(b.created_at).toLocaleString() : '-';
+                const size = b.size ? `${(b.size / 1024).toFixed(1)} KB` : '-';
+                return `
+                    <tr>
+                        <td>${b.id}</td>
+                        <td>${b.filename || '-'}</td>
+                        <td>${createdAt}</td>
+                        <td>${size}</td>
+                        <td><span class="badge ${statusClass}">${b.status || '-'}</span></td>
+                        <td>
+                            <button class="action-btn btn-danger" onclick="deleteBackup(${b.id})" style="padding: 5px 12px; font-size: 0.8rem;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        async function createBackup() {
+            const btn = document.getElementById('createBackupBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            showNotification('Creating backup...', 'info');
+            try {
+                const response = await fetch('/api/backup/create', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Backup created successfully!', 'success');
+                    await loadBackups();
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating backup:', error);
+                showNotification('Failed to create backup', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Create Backup';
+            }
+        }
+
+        async function deleteBackup(backupId) {
+            if (!confirm('Are you sure you want to delete this backup?')) return;
+            try {
+                const response = await fetch(`/api/backup/${backupId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Backup deleted successfully', 'success');
+                    await loadBackups();
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting backup:', error);
+                showNotification('Failed to delete backup', 'error');
+            }
+        }
+    </script>
+
+<script>
+    // Initialize page with session check
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await SessionManager.initPage(initializePage);
+        } catch (error) {
+            console.error('Failed to initialize page:', error);
+            showNotification('Failed to load page', 'error');
+        }
+    });
+
+    async function initializePage() {
+        console.log('✅ User authenticated, loading backup page...');
+        resetSessionTimer();
+
+        ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+
+        await loadBackups();
+    }
+
+    function resetSessionTimer() {
+        // This will be overridden by session-manager.js
+    }
+</script>
+
+<script>
+// Mobile menu toggle
+document.addEventListener('DOMContentLoaded', function() {
+    var mobileToggle = document.querySelector('.mobile-toggle');
+    var navLinks = document.querySelector('.nav-links');
+    if (mobileToggle && navLinks) {
+        mobileToggle.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+        });
+    }
+});
+</script>
+</body>
+</html>
