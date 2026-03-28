@@ -735,32 +735,32 @@
                 </button>
             </div>
             <div class="template-grid" id="templatesGrid">
-                <div class="template-card" onclick="SessionManager.useTemplate('payment')">
+                <div class="template-card" onclick="useTemplate('payment')">
                     <i class="fas fa-credit-card"></i>
                     <h4>Payment Reminder</h4>
                     <p>Send payment due reminders to travelers</p>
                 </div>
-                <div class="template-card" onclick="SessionManager.useTemplate('document')">
+                <div class="template-card" onclick="useTemplate('document')">
                     <i class="fas fa-file-alt"></i>
                     <h4>Document Request</h4>
                     <p>Request missing documents from travelers</p>
                 </div>
-                <div class="template-card" onclick="SessionManager.useTemplate('visa')">
+                <div class="template-card" onclick="useTemplate('visa')">
                     <i class="fas fa-passport"></i>
                     <h4>Visa Update</h4>
                     <p>Send visa status updates</p>
                 </div>
-                <div class="template-card" onclick="SessionManager.useTemplate('flight')">
+                <div class="template-card" onclick="useTemplate('flight')">
                     <i class="fas fa-plane"></i>
                     <h4>Flight Details</h4>
                     <p>Share flight schedules and updates</p>
                 </div>
-                <div class="template-card" onclick="SessionManager.useTemplate('welcome')">
+                <div class="template-card" onclick="useTemplate('welcome')">
                     <i class="fas fa-hand-peace"></i>
                     <h4>Welcome Message</h4>
                     <p>Welcome new travelers</p>
                 </div>
-                <div class="template-card" onclick="SessionManager.useTemplate('thankyou')">
+                <div class="template-card" onclick="useTemplate('thankyou')">
                     <i class="fas fa-heart"></i>
                     <h4>Thank You</h4>
                     <p>Thank travelers for their payment</p>
@@ -959,62 +959,6 @@
 // ====== SESSION MANAGEMENT & AUTHENTICATION ======
 // ADD THIS CODE RIGHT AFTER YOUR GLOBAL VARIABLES
 
-// Session check function
-async function SessionManager.checkAdminSession() {
-    try {
-        const response = await fetch('/api/check-session', {
-            credentials: 'include',
-            headers: { 'Cache-Control': 'no-cache' }
-        });
-        const data = await response.json();
-        
-        if (!data.authenticated) {
-            console.SessionManager.log('⚠️ Session expired or not authenticated');
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-            return false;
-        }
-        
-        // Update role badge if exists
-        const roleBadge = document.getElementById('roleBadge');
-        if (roleBadge && data.user) {
-            roleBadge.textContent = data.user.role.toUpperCase();
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Session check failed:', error);
-        window.location.href = '/admin.login.html';
-        return false;
-    }
-}
-
-// Wrapper for authenticated API calls
-async function SessionManager.authenticatedFetch(url, options = {}) {
-    // First check if we're still authenticated
-    const isAuthenticated = await SessionManager.checkAdminSession();
-    if (!isAuthenticated) return null;
-    
-    // Make the actual API call with credentials
-    const response = await fetch(url, {
-        ...options,
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-    
-    // Handle 401 specifically
-    if (response.status === 401) {
-        console.SessionManager.log('🔒 Session expired during API call');
-        window.location.href = '/admin.login.html';
-        return null;
-    }
-    
-    return response;
-}
-
 // Show notification function (if not exists)
 if (typeof showNotification !== 'function') {
     window.showNotification = function(message, type = 'success') {
@@ -1039,89 +983,18 @@ if (typeof showNotification !== 'function') {
 // ====== PAGE INITIALIZATION WITH SESSION CHECK ======
 // ====== INITIALIZATION ======
 document.addEventListener('DOMContentLoaded', async function() {
-    console.SessionManager.log('🚀 Loading whatsapp page...');
+    console.log('🚀 Loading whatsapp page...');
     await SessionManager.initPage(loadWhatsApp || function(){});
 });
-    
-    // Check session first - this will redirect if not authenticated
-    const isValid = await SessionManager.checkAdminSession();
-    if (!isValid) return;
-    
-    // Load page-specific data
-    if (typeof loadPageData === 'function') {
-        loadPageData();
-    } else if (typeof loadTravelers === 'function') {
-        SessionManager.loadTravelers();
-    } else if (typeof loadBatches === 'function') {
-        SessionManager.loadBatches();
-    } else if (typeof loadPayments === 'function') {
-        loadPayments();
-    } else {
-        console.SessionManager.log('ℹ️ No data loading function found');
-    }
-});
 
-// ====== LOGOUT FUNCTION ======
 // ====== LOGOUT ======
 async function logout() {
     await SessionManager.logout();
 }
-    try {
-        if (typeof showNotification === 'function') {
-            SessionManager.showNotification('Logging out...', 'info');
-        }
-        await fetch('/api/logout', { 
-            method: 'POST', 
-            credentials: 'include' 
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        sessionStorage.clear();
-        window.location.href = '/admin.login.html';
-    }
-}
+
         let currentContact = 'Ahmed Khan';
         let whatsappNumber = '';
         let customTemplates = [];
-
-        // ====== INITIALIZATION ======
-        document.addEventListener('DOMContentLoaded', function() {
-            SessionManager.SessionManager.checkAuth();
-            loadWhatsAppNumber();
-            loadContacts();
-            loadCustomTemplates();
-        });
-
-        // ====== AUTHENTICATION ======
-        function SessionManager.SessionManager.checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = '/admin.login.html';
-                return;
-            }
-            const userName = sessionStorage.getItem('adminName') || 'Admin';
-            userRole = sessionStorage.getItem('adminRole') || 'admin';
-            document.getElementById('roleBadge').textContent = userRole;
-        }
-
-        // ====== LOGOUT ======
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-        }
-
-        // ====== NOTIFICATION ======
-        function SessionManager.showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
 
         // ====== LOAD WHATSAPP NUMBER FROM FRONTPAGE ======
         function loadWhatsAppNumber() {
@@ -1141,7 +1014,7 @@ async function logout() {
                         localStorage.setItem('whatsappNumber', data.whatsappNumber);
                     }
                 })
-                .catch(err => console.SessionManager.log('Using localStorage WhatsApp number'));
+                .catch(err => console.log('Using localStorage WhatsApp number'));
         }
 
         function formatPhoneNumber(number) {
@@ -1397,7 +1270,7 @@ async function logout() {
         }
 
         // ====== MESSAGE TEMPLATES ======
-        function SessionManager.useTemplate(type) {
+        function useTemplate(type) {
             const input = document.getElementById('messageInput');
             
             const templates = {
