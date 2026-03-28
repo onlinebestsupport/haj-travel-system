@@ -67,7 +67,6 @@ if not SECRET_KEY:
         print(f"⚠️ WARNING: Using generated development SECRET_KEY. Set SECRET_KEY in production!")
 
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
@@ -109,7 +108,7 @@ CORS(
     app,
     supports_credentials=True,
     origins=[
-        'https://alhudhahajportal.up.railway.app',
+        'https://haj-web-app-production.up.railway.app',
         'http://localhost:8080',
         '*'
     ],
@@ -154,7 +153,7 @@ app.register_blueprint(backup.bp)
 
 # ====== 📝 SESSION DEBUGGING MIDDLEWARE ======
 @app.after_request
-def after_request(response):
+def log_session_after_request(response):
     """Log session info after each request for debugging"""
     try:
         if request.path.startswith('/api/'):
@@ -697,6 +696,10 @@ def check_required_files():
             print(f"❌ Required file missing: {file_path}")
             all_exist = False
     return all_exist
+
+# Check required files at startup
+if not check_required_files():
+    print("⚠️ WARNING: Some required files are missing. Check the file paths above.")
 
 # ====== 🚀 APPLICATION ENTRY POINT ======
 if __name__ == '__main__':
