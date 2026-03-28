@@ -1692,74 +1692,12 @@ async function logout() {
                             body { padding: 0; }
                         }
                     </style>
-                    <script src="/admin/js/mobile-fix.js"></script>
-</head>
+                </head>
                 <body>
-
-        <!-- Loading Overlay -->
-        <div id="reportLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
-            <div class="spinner" style="width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 20px; color: #2c3e50; font-size: 1.2rem;">Generating report...</p>
-        </div>
                     <h1 style="text-align: center; color: #2c3e50;">Alhudha Haj Travel - System Report</h1>
                     <p style="text-align: center; color: #7f8c8d;">Generated on: ${new Date().toLocaleString()}</p>
                     ${content}
-                
-        <!-- Save Report Modal -->
-        <div id="saveReportModal" class="modal" style="display: none;">
-            <div class="modal-header">
-                <h3><i class="fas fa-save"></i> Save Report Configuration</h3>
-                <button class="modal-close" onclick="closeSaveReportModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Report Name</label>
-                    <input type="text" id="savedReportName" placeholder="e.g., Monthly Payment Summary">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="savedReportDesc" rows="3" placeholder="What does this report show?"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Auto-generate Schedule</label>
-                    <select id="reportSchedule">
-                        <option value="none">No schedule</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="quarterly">Quarterly</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Email to</label>
-                    <input type="email" id="reportEmail" placeholder="recipient@example.com">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="action-btn btn-success" onclick="saveReportConfig()">
-                    <i class="fas fa-save"></i> Save Report
-                </button>
-                <button class="action-btn btn-secondary" onclick="closeSaveReportModal()">
-                    Cancel
-                </button>
-            </div>
-        </div>
-
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+                </body>
                 </html>
             `);
             printWindow.document.close();

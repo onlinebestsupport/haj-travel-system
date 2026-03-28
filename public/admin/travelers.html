@@ -2637,30 +2637,15 @@ function printTravelersTable() {
             <style>
                 /* styles here */
             </style>
-            <script src="/admin/js/mobile-fix.js"></script>
-</head>
+        </head>
         <body>
             <h2>Alhudha Haj Travel - Travelers List</h2>
             <p>Generated on: ${new Date().toLocaleString()}</p>
             ${table.outerHTML}
-        
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+        </body>
         </html>
     `);
+    printWindow.document.close();
     printWindow.print();
 }
 
@@ -2854,30 +2839,15 @@ Ahmed,Khan,Ahmed Khan,1,A1234567,2020-01-15,2030-01-14,Active,Male,1985-06-15,98
                     th { background: #2c3e50; color: white; padding: 10px; }
                     td { padding: 10px; border: 1px solid #ddd; }
                 </style>
-                <script src="/admin/js/mobile-fix.js"></script>
-</head>
+            </head>
             <body>
                 <h2>Alhudha Haj Travel - Travelers List</h2>
                 <p>Generated on: ${new Date().toLocaleString()}</p>
                 ${table.outerHTML}
-            
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-</script>
-
-</body>
+            </body>
             </html>
         `);
+        printWindow.document.close();
         printWindow.print();
     }
 
