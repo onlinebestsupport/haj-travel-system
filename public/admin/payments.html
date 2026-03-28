@@ -1102,34 +1102,6 @@
         let currentPage = 1;
         let itemsPerPage = 10;
 
-        // ====== INITIALIZATION ======
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadTravelers();
-            loadBatches();
-            loadPayments();
-            loadPaymentStats();
-            setTodayDate();
-        });
-
-        // ====== AUTHENTICATION ======
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = '/admin.login.html';
-                return;
-            }
-            const userName = sessionStorage.getItem('adminName') || 'Admin';
-            const userRole = sessionStorage.getItem('adminRole') || 'admin';
-            document.getElementById('roleBadge').textContent = userRole;
-        }
-
-        // ====== LOGOUT ======
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = '/admin.login.html';
-        }
-
         // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -1916,10 +1888,9 @@
             document.addEventListener(event, resetSessionTimer);
         });
         
-        // Load page-specific data
-        if (typeof loadPageData === 'function') {
-            await loadPageData();
-        }
+        // Load page data
+        setTodayDate();
+        await Promise.all([loadTravelers(), loadBatches(), loadPayments(), loadPaymentStats()]);
     }
 
     // Session timer functions (if not already defined)

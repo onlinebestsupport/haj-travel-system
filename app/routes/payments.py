@@ -402,3 +402,24 @@ def get_payment_receipt(payment_id):
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         release_db(conn, cursor)
+@bp.route('/<int:payment_id>', methods=['DELETE'])
+def delete_payment(payment_id):
+    """Delete a payment"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute('SELECT id FROM payments WHERE id = %s', (payment_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Payment not found'}), 404
+        cursor.execute('DELETE FROM payments WHERE id = %s', (payment_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': 'Payment deleted successfully'})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
