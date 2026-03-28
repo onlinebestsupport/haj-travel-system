@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Batches Debug</title>
+    <script>
+        async function checkSession() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Checking session...';
+            
+            try {
+                const response = await fetch('/api/check-session', {
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    result.innerHTML = `✅ Session OK! User: ${data.username || data.user?.username}<br>Role: ${data.role || data.user?.role}`;
+                    
+                    // Try to load batches
+                    const batchesRes = await fetch('/api/batches', { credentials: 'include' });
+                    const batchesData = await batchesRes.json();
+                    result.innerHTML += `<br><br>📊 Batches API: ${batchesData.success ? 'Working' : 'Failed'}`;
+                    if (batchesData.batches) {
+                        result.innerHTML += `<br>Found ${batchesData.batches.length} batches`;
+                    }
+                } else {
+                    result.innerHTML = '❌ NOT LOGGED IN<br>Redirecting to login...';
+                    setTimeout(() => {
+                        window.location.href = '/admin/login.html';
+                    }, 2000);
+                }
+            } catch(e) {
+                result.innerHTML = `❌ Error: ${e.message}`;
+                console.error(e);
+            }
+        }
+        
+        // Check cookies
+        console.log('Cookies:', document.cookie);
+        
+        // Run check
+        checkSession();
+    </script>
+</head>
+<body>
+    <h1>Batches Debug Page</h1>
+    <div id="result" style="padding:20px; background:#f0f0f0; border-radius:5px;"></div>
+    <button onclick="checkSession()">Re-check Session</button>
+    <button onclick="window.location.href='/admin/batches.html'">Go to Original Batches</button>
+</body>
+</html>
