@@ -18,19 +18,27 @@ const SessionManager = {
         }
     },
 
-    checkSession: async function() {
+checkSession: async function() {
+    try {
+        console.log('🔍 Checking session...');
         const response = await fetch('/api/check-session', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
         });
-        return await response.json();
-    },
-
-    logout: async function() {
-        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-        window.location.href = '/admin.login.html';
+        
+        if (!response.ok) {
+            console.log('❌ Session check failed with status:', response.status);
+            return { authenticated: false };
+        }
+        
+        const data = await response.json();
+        console.log('📡 Session check response:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Session check error:', error);
+        return { authenticated: false };
     }
-};
-
+}
 // Start timers function
 function startTimers() {
     console.log('Session timers started');

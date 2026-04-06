@@ -148,6 +148,8 @@ def logout():
 @bp.route('/check-session', methods=['GET'])
 def check_session():
     """Check if user is authenticated"""
+    print(f"🔍 Session check - Session contents: {dict(session)}")
+    
     if 'user_id' in session:
         return jsonify({
             'authenticated': True,
@@ -165,6 +167,7 @@ def check_session():
             'type': 'traveler'
         })
     else:
+        print(f"🔍 No session found - returning authenticated: false")
         return jsonify({'authenticated': False}), 200
 
 @bp.route('/change-password', methods=['POST'])
