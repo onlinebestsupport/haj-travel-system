@@ -775,5 +775,26 @@
 
         console.log('✅ Admin login page loaded');
     </script>
+<script>
+// Debug session after login
+setTimeout(async () => {
+    try {
+        const response = await fetch('/api/check-session', {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        console.log('Session check after login:', data);
+        
+        if (data.authenticated) {
+            console.log('✅ Session is valid! Redirecting to dashboard...');
+            window.location.href = '/admin/dashboard.html';
+        } else {
+            console.log('❌ Session invalid - staying on login page');
+        }
+    } catch(e) {
+        console.error('Session check error:', e);
+    }
+}, 1000);
+</script>
 </body>
 </html>
