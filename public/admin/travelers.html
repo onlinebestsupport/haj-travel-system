@@ -1530,7 +1530,7 @@
                     const session = await this.checkSession();
                     
                     if (!session.authenticated) {
-                        console.log('⚠️ Not logged in, redirecting to login...');
+                        // console.log('⚠️ Not logged in, redirecting to login...');
                         window.location.href = '/admin.login.html';
                         return false;
                     }
@@ -1624,7 +1624,7 @@
     });
 
     async function initializePage() {
-        console.log('✅ User authenticated, loading travelers page...');
+        // console.log('✅ User authenticated, loading travelers page...');
         
         // Initialize session management
         resetSessionTimer();
@@ -1810,7 +1810,7 @@
         // ✅ Use /uploads/ NOT /api/uploads/ - matches server.py routes
         const url = `/uploads/${subfolder}/${filename}`;
         
-        console.log(`📂 Opening uploaded document: ${url}`);
+        // console.log(`📂 Opening uploaded document: ${url}`);
         
         // Open in new tab
         window.open(url, '_blank');
@@ -1983,7 +1983,7 @@
             
             if (data.success && data.travelers) {
                 travelersData = data.travelers;
-                console.log(`✅ Loaded ${travelersData.length} travelers from database`);
+                // console.log(`✅ Loaded ${travelersData.length} travelers from database`);
                 
                 // Log document status for debugging
                 travelersData.forEach(t => {
@@ -1995,7 +1995,7 @@
                     if (t.photo) docs.push('photo');
                     
                     if (docs.length > 0) {
-                        console.log(`📄 Traveler ${t.id} (${t.first_name} ${t.last_name}) has documents: ${docs.join(', ')}`);
+                        // console.log(`📄 Traveler ${t.id} (${t.first_name} ${t.last_name}) has documents: ${docs.join(', ')}`);
                     }
                 });
             } else {
@@ -2284,7 +2284,7 @@
             const input = document.getElementById(item.id);
             if (input && input.files && input.files[0]) {
                 formData.append(item.field, input.files[0]);
-                console.log(`✅ Appending file: ${item.field} = ${input.files[0].name}`);
+                // console.log(`✅ Appending file: ${item.field} = ${input.files[0].name}`);
             }
         });
         
@@ -2300,7 +2300,7 @@
         }
         
         try {
-            console.log('📤 Sending create traveler request with files...');
+            // console.log('📤 Sending create traveler request with files...');
             const response = await fetch('/api/travelers', {
                 method: 'POST',
                 body: formData,
@@ -2308,7 +2308,7 @@
             });
             
             const data = await response.json();
-            console.log('📥 Create response:', data);
+            // console.log('📥 Create response:', data);
             
             if (data.success) {
                 showNotification('Traveler created successfully!', 'success');
@@ -2435,12 +2435,12 @@
             const input = document.getElementById(item.id);
             if (input && input.files && input.files[0]) {
                 formData.append(item.field, input.files[0]);
-                console.log(`✅ Appending file for update: ${item.field} = ${input.files[0].name}`);
+                // console.log(`✅ Appending file for update: ${item.field} = ${input.files[0].name}`);
             }
         });
         
         try {
-            console.log(`📤 Sending update request for traveler ${currentEditId}...`);
+            // console.log(`📤 Sending update request for traveler ${currentEditId}...`);
             const response = await fetch(`/api/travelers/${currentEditId}`, {
                 method: 'PUT',
                 body: formData,
@@ -2448,7 +2448,7 @@
             });
             
             const data = await response.json();
-            console.log('📥 Update response:', data);
+            // console.log('📥 Update response:', data);
             
             if (data.success) {
                 showNotification('Traveler updated successfully!', 'success');

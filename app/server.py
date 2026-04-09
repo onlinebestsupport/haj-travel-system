@@ -197,10 +197,15 @@ def serve_admin_login_correct():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/login.html')
-@app.route('/admin/login')
-def redirect_admin_login():
-    """Redirect incorrect admin login URLs"""
-    return redirect('/admin.login.html')
+def admin_login_page_direct():
+    """Serve admin login page directly (no redirect)"""
+    try:
+        login_path = os.path.join(ADMIN_DIR, 'login.html')
+        if os.path.exists(login_path):
+            return send_from_directory(ADMIN_DIR, 'login.html')
+        return redirect('/admin.login.html')
+    except Exception:
+        return redirect('/admin.login.html')
 
 # ====== 📊 ADMIN STATIC ROUTES ======
 @app.route('/admin/')
@@ -728,3 +733,14 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=port, debug=debug)
     except Exception as e:
         print(f"❌ Failed to start server: {e}")
+
+@app.route('/traveler_dashboard.html')
+def traveler_dashboard_page():
+    """Serve traveler dashboard"""
+    try:
+        dashboard_path = os.path.join(PUBLIC_DIR, 'traveler_dashboard.html')
+        if os.path.exists(dashboard_path):
+            return send_from_directory(PUBLIC_DIR, 'traveler_dashboard.html')
+        return jsonify({'success': False, 'error': 'Dashboard not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

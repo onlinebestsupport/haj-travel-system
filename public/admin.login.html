@@ -770,10 +770,10 @@
         // Forgot password handler
         function showForgotPassword(event) {
             event.preventDefault();
-            alert('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
+            console.warn('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
         }
 
-        console.log('✅ Admin login page loaded');
+        // console.log('✅ Admin login page loaded');
     </script>
 <script>
 // Debug session after login
@@ -783,13 +783,13 @@ setTimeout(async () => {
             credentials: 'include'
         });
         const data = await response.json();
-        console.log('Session check after login:', data);
+        // console.log('Session check after login:', data);
         
         if (data.authenticated) {
-            console.log('✅ Session is valid! Redirecting to dashboard...');
+            // console.log('✅ Session is valid! Redirecting to dashboard...');
             window.location.href = '/admin/dashboard.html';
         } else {
-            console.log('❌ Session invalid - staying on login page');
+            // console.log('❌ Session invalid - staying on login page');
         }
     } catch(e) {
         console.error('Session check error:', e);

@@ -1232,7 +1232,7 @@
                     const session = await this.checkSession();
                     
                     if (!session.authenticated) {
-                        console.log('⚠️ Not logged in, redirecting to login...');
+                        // console.log('⚠️ Not logged in, redirecting to login...');
                         window.location.href = '/admin.login.html';
                         return false;
                     }
@@ -1368,7 +1368,7 @@
 
         // Dashboard initialization
         async function initializeDashboard() {
-            console.log('✅ User authenticated, loading dashboard...');
+            // console.log('✅ User authenticated, loading dashboard...');
             
             updateUserInterface();
 
@@ -1642,7 +1642,7 @@
                     });
                     
 
-                    console.log('✅ Dashboard stats loaded:', { 
+                    // console.log('✅ Dashboard stats loaded:', { 
                         users: userCount,
                         travelers: stats.total_travelers,
                         batches: stats.total_batches,
@@ -1896,7 +1896,7 @@
     <script>
     // FORCE DASHBOARD DATA LOAD
     (async function() {
-        console.log('🚀 Force loading dashboard...');
+        // console.log('🚀 Force loading dashboard...');
         
         try {
             const response = await fetch('/api/admin/dashboard/stats', {
@@ -1907,7 +1907,7 @@
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
-            console.log('📊 Dashboard data:', data);
+            // console.log('📊 Dashboard data:', data);
             
             if (data.success && data.stats) {
                 const s = data.stats;
@@ -1945,7 +1945,7 @@
                     if (el) el.textContent = value;
                 }
                 
-                console.log('✅ Dashboard updated with live data');
+                // console.log('✅ Dashboard updated with live data');
             }
         } catch (error) {
             console.error('❌ Error loading dashboard:', error);
