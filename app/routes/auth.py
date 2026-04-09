@@ -143,17 +143,20 @@ def login():
 def logout():
     """Clear user session completely"""
     try:
-        # Clear all session data
+        # Force clear session
         session.clear()
-        # Also remove the session cookie
         session.permanent = False
-        # Mark session as modified to ensure changes take effect
         session.modified = True
         
-        print(f"✅ Session cleared successfully")
+        # Also delete specific keys
+        for key in ['user_id', 'username', 'role', 'name', 'login_time', '_permanent']:
+            session.pop(key, None)
+        
+        # Regenerate session ID to invalidate old session
+        session.regenerate()  # This creates a new session ID
+        
         return jsonify({'success': True, 'message': 'Logged out successfully'})
     except Exception as e:
-        print(f"❌ Logout error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @bp.route('/check-session', methods=['GET'])
