@@ -141,9 +141,20 @@ def login():
 
 @bp.route('/logout', methods=['POST'])
 def logout():
-    """Clear user session"""
-    session.clear()
-    return jsonify({'success': True, 'message': 'Logged out successfully'})
+    """Clear user session completely"""
+    try:
+        # Clear all session data
+        session.clear()
+        # Also remove the session cookie
+        session.permanent = False
+        # Mark session as modified to ensure changes take effect
+        session.modified = True
+        
+        print(f"✅ Session cleared successfully")
+        return jsonify({'success': True, 'message': 'Logged out successfully'})
+    except Exception as e:
+        print(f"❌ Logout error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @bp.route('/check-session', methods=['GET'])
 def check_session():
