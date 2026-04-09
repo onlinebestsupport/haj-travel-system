@@ -16,11 +16,11 @@ def update_invoice(invoice_id):
         if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Invoice not found'}), 404
 
-        # Build update query dynamically - only update existing columns
+        # Build update query dynamically - only update columns that exist
         updates = []
         values = []
         
-        # Map frontend fields to database columns
+        # Map frontend fields to database columns (using actual column names)
         field_mapping = {
             'amount': 'amount',
             'paid_amount': 'paid_amount',
