@@ -1,3 +1,113 @@
+from flask import Blueprint, request, jsonify, session
+from app.database import get_db, release_db
+from datetime import datetime
+import json
+
+bp = Blueprint('invoices', __name__, url_prefix='/api/invoices')
+
+@bp.route('', methods=['GET'])
+def get_invoices():
+    """Get all invoices"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM invoices ORDER BY created_at DESC")
+        invoices = cursor.fetchall()
+        return jsonify({
+            'success': True,
+            'invoices': [dict(inv) for inv in invoices]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/<int:invoice_id>', methods=['GET'])
+def get_invoice(invoice_id):
+    """Get single invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))
+        invoice = cursor.fetchone()
+        
+        if not invoice:
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+        
+        return jsonify({'success': True, 'invoice': dict(invoice)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('', methods=['POST'])
+def create_invoice():
+    """Create new invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.json
+
+    # Validate required fields
+    required = ['traveler_id', 'batch_id', 'amount']
+    for field in required:
+        if not data.get(field):
+            return jsonify({'success': False, 'error': f'{field} is required'}), 400
+
+    # Generate invoice number
+    timestamp = int(datetime.now().timestamp())
+    invoice_number = f"INV-{datetime.now().strftime('%Y%m%d')}-{data['traveler_id']}-{timestamp}"
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        
+        cursor.execute("""
+            INSERT INTO invoices (
+                invoice_number, traveler_id, batch_id, amount, due_date, status, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            invoice_number,
+            data['traveler_id'],
+            data['batch_id'],
+            data['amount'],
+            data.get('due_date'),
+            data.get('status', 'pending'),
+            datetime.now(),
+            datetime.now()
+        ))
+
+        result = cursor.fetchone()
+        invoice_id = result['id'] if result else None
+        conn.commit()
+
+        return jsonify({
+            'success': True,
+            'invoice_id': invoice_id,
+            'invoice_number': invoice_number,
+            'message': 'Invoice created successfully'
+        })
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
 @bp.route('/<int:invoice_id>', methods=['PUT'])
 def update_invoice(invoice_id):
     """Update invoice"""
@@ -20,7 +130,7 @@ def update_invoice(invoice_id):
         updates = []
         values = []
         
-        # Map frontend fields to database columns (using actual column names)
+        # Map frontend fields to database columns
         field_mapping = {
             'amount': 'amount',
             'paid_amount': 'paid_amount',
@@ -29,7 +139,7 @@ def update_invoice(invoice_id):
         }
         
         for frontend_field, db_field in field_mapping.items():
-            if frontend_field in data:
+            if frontend_field in data and data[frontend_field] is not None:
                 updates.append(f"{db_field} = %s")
                 values.append(data[frontend_field])
         
@@ -42,6 +152,210 @@ def update_invoice(invoice_id):
         
         return jsonify({'success': True, 'message': 'Invoice updated successfully'})
         
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice(invoice_id):
+    """Delete invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+
+        # Check if invoice has receipts
+        cursor.execute('SELECT COUNT(*) as count FROM receipts WHERE invoice_id = %s', (invoice_id,))
+        result = cursor.fetchone()
+
+        if result and result['count'] > 0:
+            return jsonify({
+                'success': False,
+                'error': 'Cannot delete invoice with associated receipts. Delete receipts first.'
+            }), 400
+
+        cursor.execute('DELETE FROM invoices WHERE id = %s', (invoice_id,))
+        conn.commit()
+
+        return jsonify({'success': True, 'message': 'Invoice deleted successfully'})
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/stats', methods=['GET'])
+def get_invoice_stats():
+    """Get invoice statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT
+                COUNT(*) as total_invoices,
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                COALESCE(SUM(amount), 0) as total_amount,
+                COALESCE(SUM(paid_amount), 0) as total_paid,
+                COALESCE(SUM(amount) - SUM(paid_amount), 0) as total_due
+            FROM invoices
+        """)
+
+        stats = cursor.fetchone()
+
+        # Convert Decimal to float for JSON serialization
+        if stats:
+            stats_dict = dict(stats)
+            for key in ['total_amount', 'total_paid', 'total_due']:
+                if key in stats_dict and stats_dict[key] is not None:
+                    stats_dict[key] = float(stats_dict[key])
+        else:
+            stats_dict = {}
+
+        return jsonify({
+            'success': True,
+            'stats': stats_dict
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/traveler/<int:traveler_id>', methods=['GET'])
+def get_traveler_invoices(traveler_id):
+    """Get invoices for a specific traveler"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT
+                i.*,
+                b.batch_name
+            FROM invoices i
+            LEFT JOIN batches b ON i.batch_id = b.id
+            WHERE i.traveler_id = %s
+            ORDER BY i.created_at DESC
+        """, (traveler_id,))
+
+        invoices = cursor.fetchall()
+
+        return jsonify({
+            'success': True,
+            'invoices': [dict(inv) for inv in invoices]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/number/<string:invoice_number>', methods=['GET'])
+def get_invoice_by_number(invoice_number):
+    """Get invoice by invoice number"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT
+                i.*,
+                t.first_name,
+                t.last_name,
+                t.passport_no,
+                t.mobile,
+                t.email,
+                b.batch_name
+            FROM invoices i
+            LEFT JOIN travelers t ON i.traveler_id = t.id
+            LEFT JOIN batches b ON i.batch_id = b.id
+            WHERE i.invoice_number = %s
+        """, (invoice_number,))
+
+        invoice = cursor.fetchone()
+
+        if not invoice:
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+
+        return jsonify({'success': True, 'invoice': dict(invoice)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/<int:invoice_id>/mark-paid', methods=['POST'])
+def mark_invoice_paid(invoice_id):
+    """Mark invoice as paid"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.json
+    amount = float(data.get('amount', 0))
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+
+        # Get current invoice
+        cursor.execute('SELECT amount, paid_amount, status FROM invoices WHERE id = %s', (invoice_id,))
+        invoice = cursor.fetchone()
+
+        if not invoice:
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+
+        total_amount = float(invoice['amount'])
+        current_paid = float(invoice['paid_amount']) if invoice['paid_amount'] else 0
+
+        new_paid = current_paid + amount
+        if new_paid > total_amount:
+            return jsonify({
+                'success': False,
+                'error': f'Payment amount exceeds remaining balance'
+            }), 400
+
+        # Update paid amount
+        new_status = 'paid' if abs(new_paid - total_amount) < 0.01 else 'partial'
+
+        cursor.execute("""
+            UPDATE invoices SET
+                paid_amount = %s,
+                status = %s,
+                updated_at = %s
+            WHERE id = %s
+        """, (new_paid, new_status, datetime.now(), invoice_id))
+
+        conn.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Invoice payment recorded',
+            'remaining': total_amount - new_paid,
+            'status': new_status
+        })
+
     except Exception as e:
         if conn:
             conn.rollback()
