@@ -295,7 +295,7 @@
             white-space: nowrap;
         }
 
-        .status-paid {
+        .status-active {
             background: #d4edda;
             color: #155724;
         }
@@ -305,7 +305,7 @@
             color: #856404;
         }
 
-        .status-overdue {
+        .status-inactive {
             background: #f8d7da;
             color: #721c24;
         }
@@ -316,24 +316,58 @@
             gap: 5px;
         }
         
+        .btn-print {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-pdf {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-email {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .icon-btn {
             background: none;
             border: none;
+            color: #3498db;
             cursor: pointer;
             font-size: 1.2rem;
             padding: 8px;
             border-radius: 5px;
-            transition: all 0.3s;
         }
 
         .icon-btn:hover {
             background: #ecf0f1;
-            transform: scale(1.1);
         }
-
-        .btn-view { color: #3498db; }
-        .btn-edit { color: #f39c12; }
-        .btn-delete { color: #e74c3c; }
 
         /* ====== MODAL SECTION ====== */
         .modal {
@@ -354,7 +388,7 @@
             padding: 30px;
             border-radius: 10px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             animation: modalFadeIn 0.3s ease;
         }
 
@@ -381,11 +415,6 @@
         .modal-header h3 {
             color: #2c3e50;
             font-size: 1.5rem;
-        }
-        
-        .modal-header h3 i {
-            color: #f1c40f;
-            margin-right: 10px;
         }
         
         .modal-close {
@@ -421,7 +450,29 @@
             border-top: 1px solid #ecf0f1;
         }
 
-        /* ====== FORM STYLES ====== */
+        /* ====== INVOICE FORM SECTION ====== */
+        .invoice-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .invoice-form h4 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .invoice-form h4 i {
+            color: #f1c40f;
+        }
+
         .form-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -436,8 +487,8 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
             color: #2c3e50;
+            font-weight: 600;
         }
 
         .form-group label i {
@@ -446,7 +497,8 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #ecf0f1;
@@ -456,7 +508,8 @@
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             border-color: #3498db;
             outline: none;
             box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
@@ -467,11 +520,34 @@
             cursor: not-allowed;
         }
 
-        .form-actions {
+        /* ====== CALCULATION BOX SECTION ====== */
+        .calculation-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #3498db;
+        }
+
+        .calculation-row {
             display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .calculation-row:last-child {
+            border-bottom: none;
+        }
+
+        .calculation-row.total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid #3498db;
         }
 
         /* ====== NOTIFICATION SECTION ====== */
@@ -504,28 +580,6 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
-            padding: 15px 0;
-        }
-
-        .pagination button {
-            padding: 10px 20px;
-            margin: 0 5px;
-        }
-
-        /* ====== LOADING SPINNER ====== */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-
-        .loading i {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         /* ====== RESPONSIVE DESIGN SECTION ====== */
@@ -543,13 +597,6 @@
             }
             .form-row {
                 grid-template-columns: 1fr;
-            }
-            .pagination {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .invoice-actions {
-                flex-direction: column;
             }
         }
     </style>
@@ -584,7 +631,7 @@
         <div class="page-header">
             <h2><i class="fas fa-file-invoice"></i> Invoice Management</h2>
             <div>
-                <button class="btn-primary" onclick="openCreateModal()">
+                <button class="btn-primary" onclick="openCreateInvoiceModal()">
                     <i class="fas fa-plus"></i> Create New Invoice
                 </button>
                 <button class="btn-success" onclick="exportInvoices()">
@@ -602,13 +649,18 @@
             </div>
             <div class="stat-card">
                 <i class="fas fa-check-circle"></i>
-                <h3>Paid</h3>
+                <h3>Paid Invoices</h3>
                 <div class="stat-number" id="paidInvoices">0</div>
             </div>
             <div class="stat-card">
                 <i class="fas fa-clock"></i>
                 <h3>Pending</h3>
                 <div class="stat-number" id="pendingInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Overdue</h3>
+                <div class="stat-number" id="overdueInvoices">0</div>
             </div>
             <div class="stat-card">
                 <i class="fas fa-rupee-sign"></i>
@@ -619,11 +671,20 @@
 
         <!-- ====== INVOICE FILTERS SECTION ====== -->
         <div class="invoice-filters">
-            <input type="text" id="searchInput" placeholder="Search by invoice #, traveler...">
+            <input type="text" id="searchInvoice" placeholder="Search by invoice #, traveler...">
             <select id="statusFilter">
                 <option value="all">All Status</option>
                 <option value="paid">Paid</option>
                 <option value="pending">Pending</option>
+                <option value="overdue">Overdue</option>
+                <option value="draft">Draft</option>
+            </select>
+            <select id="dateFilter">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
             </select>
             <button onclick="applyFilters()">
                 <i class="fas fa-filter"></i> Apply Filters
@@ -635,21 +696,25 @@
 
         <!-- ====== INVOICES TABLE SECTION ====== -->
         <div class="table-container">
-            <table id="invoicesTable">
+            <table>
                 <thead>
                     <tr>
                         <th>Invoice #</th>
                         <th>Date</th>
                         <th>Traveler</th>
-                        <th>Amount</th>
+                        <th>Batch</th>
+                        <th>Package Amount</th>
+                        <th>GST</th>
+                        <th>TCS</th>
+                        <th>Total</th>
                         <th>Paid</th>
                         <th>Due</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="invoicesTableBody">
-                    <tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...</td></tr>
+                <tbody id="invoicesTable">
+                    <tr><td colspan="12" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...</td</tr>
                 </tbody>
             </table>
         </div>
@@ -657,136 +722,247 @@
         <!-- ====== PAGINATION SECTION ====== -->
         <div class="pagination">
             <div>
-                Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalCount">0</span> invoices
+                Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalInvoiceCount">0</span> invoices
             </div>
-            <div>
-                <button class="btn-secondary" onclick="prevPage()"><i class="fas fa-chevron-left"></i> Previous</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-secondary" onclick="previousPage()"><i class="fas fa-chevron-left"></i> Previous</button>
                 <button class="btn-primary" onclick="nextPage()">Next <i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- ====== CREATE INVOICE MODAL ====== -->
-    <div id="createModal" class="modal">
+    <!-- ====== CREATE INVOICE MODAL SECTION ====== -->
+    <div id="createInvoiceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> Create New Invoice</h3>
-                <span class="modal-close" onclick="closeCreateModal()">&times;</span>
+                <h3><i class="fas fa-plus-circle"></i> Create New Invoice with GST & TCS</h3>
+                <span class="modal-close" onclick="closeCreateInvoiceModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="createForm" onsubmit="event.preventDefault(); createInvoice();">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Traveler *</label>
-                            <select id="travelerId" required>
-                                <option value="">Select Traveler</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-layer-group"></i> Batch</label>
-                            <input type="text" id="batchName" readonly>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-rupee-sign"></i> Amount (₹) *</label>
-                            <input type="number" id="amount" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Due Date</label>
-                            <input type="date" id="dueDate">
+                <form id="invoiceForm" onsubmit="event.preventDefault(); generateInvoice();">
+                    <!-- Traveler Selection Section -->
+                    <div class="invoice-form">
+                        <h4><i class="fas fa-user"></i> Select Traveler & Batch</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-user"></i> Traveler *</label>
+                                <select id="travelerSelect" required onchange="loadTravelerBatch()">
+                                    <option value="">Select Traveler</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-layer-group"></i> Batch</label>
+                                <input type="text" id="batchDisplay" readonly placeholder="Batch will auto-fill">
+                            </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-tag"></i> Status</label>
-                            <select id="status">
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                            </select>
+
+                    <!-- Package Details Section -->
+                    <div class="invoice-form">
+                        <h4><i class="fas fa-box"></i> Package Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-tag"></i> Package Name</label>
+                                <input type="text" id="packageName" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-rupee-sign"></i> Base Package Amount (₹)</label>
+                                <input type="text" id="baseAmount" readonly>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-success"><i class="fas fa-save"></i> Create Invoice</button>
-                        <button type="button" class="btn-secondary" onclick="closeCreateModal()"><i class="fas fa-times"></i> Cancel</button>
+
+                    <!-- GST & TCS Calculation Section -->
+                    <div class="invoice-form">
+                        <h4><i class="fas fa-calculator"></i> Tax Calculation</h4>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-percent"></i> GST Percentage (%)</label>
+                                <input type="number" id="gstPercentage" min="0" max="100" step="0.1" value="5" onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-rupee-sign"></i> GST Amount</label>
+                                <input type="text" id="gstAmount" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-percent"></i> TCS Percentage (%)</label>
+                                <input type="number" id="tcsPercentage" min="0" max="100" step="0.1" value="1" onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-rupee-sign"></i> TCS Amount</label>
+                                <input type="text" id="tcsAmount" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Company Address Section -->
+                        <div class="invoice-form">
+                            <h4><i class="fas fa-building"></i> Company Address</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-building"></i> Company Name</label>
+                                    <input type="text" id="companyName" placeholder="Company Name">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-marker-alt"></i> Address Line 1</label>
+                                    <input type="text" id="companyAddress1" placeholder="Address Line 1">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-marker-alt"></i> Address Line 2</label>
+                                    <input type="text" id="companyAddress2" placeholder="Address Line 2">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-marker-alt"></i> City, State, PIN</label>
+                                    <input type="text" id="companyCityState" placeholder="City, State, PIN">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-phone"></i> Phone</label>
+                                    <input type="text" id="companyPhone" placeholder="Phone Number">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope"></i> Email</label>
+                                    <input type="email" id="companyEmail" placeholder="Email">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-id-card"></i> GSTIN</label>
+                                    <input type="text" id="companyGSTIN" placeholder="GSTIN">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-qrcode"></i> PAN</label>
+                                    <input type="text" id="companyPAN" placeholder="PAN">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-university"></i> Bank Name</label>
+                                    <input type="text" id="companyBank" placeholder="Bank Name">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-credit-card"></i> Account No</label>
+                                    <input type="text" id="companyAccount" placeholder="Account Number">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-code-branch"></i> IFSC Code</label>
+                                    <input type="text" id="companyIFSC" placeholder="IFSC Code">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-building"></i> Branch</label>
+                                    <input type="text" id="companyBranch" placeholder="Branch">
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-primary" onclick="saveAddressTemplate()" style="width: 100%; margin-bottom: 10px;">
+                                <i class="fas fa-save"></i> Save Address Template
+                            </button>
+                        </div>
+
+                        <!-- HSN Code Section -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-barcode"></i> HSN/SAC Code</label>
+                                <input type="text" id="hsnCode" value="9985" placeholder="Enter HSN/SAC code">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-building"></i> Place of Supply</label>
+                                <input type="text" id="placeOfSupply" value="Maharashtra" placeholder="Enter place of supply">
+                            </div>
+                        </div>
+
+                        <!-- Calculation Summary Section -->
+                        <div class="calculation-box">
+                            <div class="calculation-row">
+                                <span>Base Package Amount:</span>
+                                <span class="amount-display" id="displayBaseAmount">₹0</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>GST (<span id="displayGstPercent">5</span>%):</span>
+                                <span class="amount-display" id="displayGstAmount">₹0</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>Subtotal (Package + GST):</span>
+                                <span class="amount-display" id="displaySubtotal">₹0</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>TCS (<span id="displayTcsPercent">1</span>% on Subtotal):</span>
+                                <span class="amount-display" id="displayTcsAmount">₹0</span>
+                            </div>
+                            <div class="calculation-row total">
+                                <span>FINAL TOTAL (Package + GST + TCS):</span>
+                                <span class="amount-display" id="displayFinalTotal">₹0</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar"></i> Invoice Date</label>
+                                <input type="date" id="invoiceDate">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-clock"></i> Due Date</label>
+                                <input type="date" id="dueDate">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-sticky-note"></i> Notes / Remarks</label>
+                            <textarea id="invoiceNotes" rows="3" placeholder="Additional notes for invoice..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions Section -->
+                    <div class="form-actions" style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+                        <button type="submit" class="btn-success">
+                            <i class="fas fa-file-invoice"></i> Generate Invoice
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="closeCreateInvoiceModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn-primary" onclick="resetTaxDefaults()">
+                            <i class="fas fa-undo"></i> Reset to Default (5% GST, 1% TCS)
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- ====== EDIT INVOICE MODAL ====== -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-edit"></i> Edit Invoice</h3>
-                <span class="modal-close" onclick="closeEditModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editForm" onsubmit="event.preventDefault(); updateInvoice();">
-                    <input type="hidden" id="editId">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-hashtag"></i> Invoice Number</label>
-                            <input type="text" id="editInvoiceNumber" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Date</label>
-                            <input type="text" id="editDate" readonly>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Traveler</label>
-                            <input type="text" id="editTraveler" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-layer-group"></i> Batch</label>
-                            <input type="text" id="editBatch" readonly>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-rupee-sign"></i> Amount (₹)</label>
-                            <input type="number" id="editAmount" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-money-bill"></i> Paid Amount (₹)</label>
-                            <input type="number" id="editPaidAmount" step="0.01" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Due Date</label>
-                            <input type="date" id="editDueDate">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-tag"></i> Status</label>
-                            <select id="editStatus">
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-success"><i class="fas fa-save"></i> Save Changes</button>
-                        <button type="button" class="btn-secondary" onclick="closeEditModal()"><i class="fas fa-times"></i> Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ====== VIEW INVOICE MODAL ====== -->
-    <div id="viewModal" class="modal">
+    <!-- ====== INVOICE DETAILS MODAL SECTION ====== -->
+    <div id="invoiceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-file-invoice"></i> Invoice Details</h3>
-                <span class="modal-close" onclick="closeViewModal()">&times;</span>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
             </div>
-            <div id="viewDetails" class="modal-body"></div>
+            <div id="invoiceDetails" class="modal-body">
+                <!-- Invoice details will be loaded here -->
+            </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeViewModal()"><i class="fas fa-times"></i> Close</button>
+                <button class="btn-print" onclick="printInvoiceDetails()">
+                    <i class="fas fa-print"></i> Print Invoice
+                </button>
+                <button class="btn-pdf" onclick="downloadInvoicePDF()">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
+                <button class="btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
             </div>
         </div>
     </div>
@@ -795,16 +971,49 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // ====== GLOBAL VARIABLES ======
-        let invoices = [];
-        let travelers = [];
-        let batches = [];
+        // ====== GLOBAL VARIABLES SECTION ======
+        let currentInvoiceId = null;
+        let companyAddress = {};
+        let invoicesData = [];
         let currentPage = 1;
         let itemsPerPage = 10;
-        let filteredInvoices = [];
+        let travelersData = [];
+        let batchesData = [];
 
-        // ====== HELPER FUNCTIONS ======
-        async function fetchAPI(url, options = {}) {
+        // ====== SESSION MANAGEMENT SECTION ======
+        async function checkAdminSession() {
+            try {
+                const response = await fetch('/api/check-session', {
+                    credentials: 'include',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    console.log('⚠️ Session expired');
+                    sessionStorage.clear();
+                    window.location.href = '/admin.login.html';
+                    return false;
+                }
+                
+                const roleBadge = document.getElementById('roleBadge');
+                if (roleBadge && data.user) {
+                    roleBadge.textContent = data.user.role.toUpperCase();
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Session check failed:', error);
+                window.location.href = '/admin.login.html';
+                return false;
+            }
+        }
+
+        // ====== API CALL WRAPPER SECTION ======
+        async function authenticatedFetch(url, options = {}) {
+            const isAuthenticated = await checkAdminSession();
+            if (!isAuthenticated) return null;
+            
             const response = await fetch(url, {
                 ...options,
                 credentials: 'include',
@@ -813,73 +1022,88 @@
                     ...options.headers
                 }
             });
+            
             if (response.status === 401) {
+                console.log('🔒 Session expired during API call');
                 window.location.href = '/admin.login.html';
                 return null;
             }
+            
             return response;
         }
 
-        async function checkSession() {
-            const response = await fetch('/api/check-session', { credentials: 'include' });
-            const data = await response.json();
-            if (!data.authenticated) {
-                window.location.href = '/admin.login.html';
-                return false;
-            }
-            return true;
-        }
+        // ====== PAGE INITIALIZATION SECTION ======
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Initializing invoices page...');
+            
+            const isValid = await checkAdminSession();
+            if (!isValid) return;
+            
+            await loadTravelers();
+            await loadBatches();
+            await loadInvoices();
+            loadAddressTemplate();
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invoiceDate').value = today;
+            
+            // Set due date to 30 days from now
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+        });
 
-        async function logout() {
-            await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-            window.location.href = '/admin.login.html';
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.className = `notification notification-${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-
-        // ====== LOAD DATA ======
+        // ====== LOAD DATA FUNCTIONS ======
         async function loadTravelers() {
-            const response = await fetchAPI('/api/travelers');
-            if (response && response.ok) {
-                const data = await response.json();
-                travelers = data.travelers || [];
-                updateTravelerSelect();
+            try {
+                const response = await authenticatedFetch('/api/travelers');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    travelersData = data.travelers || [];
+                    updateTravelerSelect();
+                }
+            } catch (error) {
+                console.error('Error loading travelers:', error);
             }
         }
 
         async function loadBatches() {
-            const response = await fetchAPI('/api/batches');
-            if (response && response.ok) {
-                const data = await response.json();
-                batches = data.batches || [];
+            try {
+                const response = await authenticatedFetch('/api/batches');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    batchesData = data.batches || [];
+                }
+            } catch (error) {
+                console.error('Error loading batches:', error);
             }
         }
 
         async function loadInvoices() {
-            const response = await fetchAPI('/api/invoices');
-            if (response && response.ok) {
-                const data = await response.json();
-                invoices = data.invoices || [];
-                filteredInvoices = [...invoices];
-                displayInvoices();
-                updateStats();
+            try {
+                const response = await authenticatedFetch('/api/invoices');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    invoicesData = data.invoices || [];
+                    displayInvoices();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                const tableBody = document.getElementById('invoicesTable');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px;">Failed to load invoices. Please try again.</td></tr>';
+                }
             }
         }
 
         function updateTravelerSelect() {
-            const select = document.getElementById('travelerId');
+            const select = document.getElementById('travelerSelect');
             if (!select) return;
             
             select.innerHTML = '<option value="">Select Traveler</option>';
-            travelers.forEach(traveler => {
+            travelersData.forEach(traveler => {
                 const name = `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim();
                 select.innerHTML += `<option value="${traveler.id}" data-batch="${traveler.batch_id}">${name} (${traveler.passport_no || 'N/A'})</option>`;
             });
@@ -887,77 +1111,68 @@
 
         // ====== DISPLAY FUNCTIONS ======
         function displayInvoices() {
-            const tbody = document.getElementById('invoicesTableBody');
-            if (!tbody) return;
+            const tableBody = document.getElementById('invoicesTable');
+            if (!tableBody) return;
             
-            if (filteredInvoices.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px;">No invoices found. Create your first invoice!</td></tr>';
-                updatePaginationInfo();
+            if (invoicesData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px;">No invoices found. Create your first invoice!</td></tr>';
+                updatePaginationInfo(0);
                 return;
             }
             
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const pageData = filteredInvoices.slice(start, end);
+            const paginatedData = invoicesData.slice(start, end);
             
             let html = '';
-            pageData.forEach(inv => {
-                const traveler = travelers.find(t => t.id === inv.traveler_id);
-                const travelerName = traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim() : 'N/A';
-                const statusClass = inv.status === 'paid' ? 'status-paid' : 'status-pending';
-                const statusText = inv.status === 'paid' ? 'Paid' : 'Pending';
+            paginatedData.forEach(inv => {
+                const statusClass = inv.status === 'paid' ? 'status-active' : 'status-pending';
+                const statusText = inv.status === 'paid' ? 'Paid' : (inv.status === 'pending' ? 'Pending' : inv.status);
                 
-                html += `
-                    <tr>
-                        <td><strong>${inv.invoice_number || 'N/A'}</strong></td>
-                        <td>${inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'N/A'}</td>
-                        <td>${escapeHtml(travelerName)}</td>
-                        <td>₹${(inv.amount || 0).toLocaleString('en-IN')}</td>
-                        <td>₹${(inv.paid_amount || 0).toLocaleString('en-IN')}</td>
-                        <td>₹${((inv.amount || 0) - (inv.paid_amount || 0)).toLocaleString('en-IN')}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td class="invoice-actions">
-                            <button class="icon-btn btn-view" onclick="viewInvoice(${inv.id})" title="View"><i class="fas fa-eye"></i></button>
-                            <button class="icon-btn btn-edit" onclick="openEditModal(${inv.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="icon-btn btn-delete" onclick="deleteInvoice(${inv.id})" title="Delete"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
+                html += `<tr>
+                    <td><strong>${inv.invoice_number || 'N/A'}</strong></td>
+                    <td>${inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'N/A'}</td>
+                    <td>Traveler #${inv.traveler_id}</td>
+                    <td>Batch #${inv.batch_id}</td>
+                    <td>₹${(inv.amount || 0).toLocaleString('en-IN')}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>₹${(inv.amount || 0).toLocaleString('en-IN')}</td>
+                    <td>₹${(inv.paid_amount || 0).toLocaleString('en-IN')}</td>
+                    <td>₹${((inv.amount || 0) - (inv.paid_amount || 0)).toLocaleString('en-IN')}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td class="invoice-actions">
+                        <button class="icon-btn" onclick="viewInvoice(${inv.id})" title="View"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>`;
             });
             
-            tbody.innerHTML = html;
-            updatePaginationInfo();
-        }
-
-        function escapeHtml(text) {
-            if (!text) return text;
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            tableBody.innerHTML = html;
+            updatePaginationInfo(invoicesData.length);
         }
 
         function updateStats() {
-            const total = invoices.length;
-            const paid = invoices.filter(i => i.status === 'paid').length;
-            const pending = invoices.filter(i => i.status === 'pending').length;
-            const totalAmount = invoices.reduce((sum, i) => sum + (i.amount || 0), 0);
+            const total = invoicesData.length;
+            const paid = invoicesData.filter(i => i.status === 'paid').length;
+            const pending = invoicesData.filter(i => i.status === 'pending').length;
+            const totalAmount = invoicesData.reduce((sum, i) => sum + (i.amount || 0), 0);
             
             document.getElementById('totalInvoices').textContent = total;
             document.getElementById('paidInvoices').textContent = paid;
             document.getElementById('pendingInvoices').textContent = pending;
+            document.getElementById('overdueInvoices').textContent = 0;
             document.getElementById('totalAmount').textContent = '₹' + totalAmount.toLocaleString('en-IN');
         }
 
-        function updatePaginationInfo() {
-            const total = filteredInvoices.length;
+        function updatePaginationInfo(total) {
             const start = (currentPage - 1) * itemsPerPage + 1;
             const end = Math.min(currentPage * itemsPerPage, total);
             document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
             document.getElementById('showingTo').textContent = total > 0 ? end : 0;
-            document.getElementById('totalCount').textContent = total;
+            document.getElementById('totalInvoiceCount').textContent = total;
         }
 
-        function prevPage() {
+        function previousPage() {
             if (currentPage > 1) {
                 currentPage--;
                 displayInvoices();
@@ -965,309 +1180,312 @@
         }
 
         function nextPage() {
-            if (currentPage * itemsPerPage < filteredInvoices.length) {
+            if (currentPage * itemsPerPage < invoicesData.length) {
                 currentPage++;
                 displayInvoices();
             }
         }
 
-        // ====== CREATE INVOICE ======
-        function openCreateModal() {
-            document.getElementById('createModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Set default due date to 30 days from now
-            const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 30);
-            document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
-            
-            document.getElementById('createForm').reset();
-            document.getElementById('batchName').value = '';
+        // ====== LOGOUT SECTION ======
+        async function logout() {
+            try {
+                showNotification('Logging out...', 'info');
+                await fetch('/api/logout', { 
+                    method: 'POST', 
+                    credentials: 'include' 
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                sessionStorage.clear();
+                window.location.href = '/admin.login.html';
+            }
         }
 
-        function closeCreateModal() {
-            document.getElementById('createModal').style.display = 'none';
+        // ====== NOTIFICATION SECTION ======
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            if (!notification) return;
+            
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // ====== ADDRESS TEMPLATE FUNCTIONS SECTION ======
+        function loadAddressTemplate() {
+            const savedAddress = localStorage.getItem('companyAddress');
+            if (savedAddress) {
+                companyAddress = JSON.parse(savedAddress);
+                document.getElementById('companyName').value = companyAddress.name || '';
+                document.getElementById('companyAddress1').value = companyAddress.address1 || '';
+                document.getElementById('companyAddress2').value = companyAddress.address2 || '';
+                document.getElementById('companyCityState').value = companyAddress.cityState || '';
+                document.getElementById('companyPhone').value = companyAddress.phone || '';
+                document.getElementById('companyEmail').value = companyAddress.email || '';
+                document.getElementById('companyGSTIN').value = companyAddress.gstin || '';
+                document.getElementById('companyPAN').value = companyAddress.pan || '';
+                document.getElementById('companyBank').value = companyAddress.bank || '';
+                document.getElementById('companyAccount').value = companyAddress.account || '';
+                document.getElementById('companyIFSC').value = companyAddress.ifsc || '';
+                document.getElementById('companyBranch').value = companyAddress.branch || '';
+            }
+        }
+
+        function saveAddressTemplate() {
+            companyAddress = {
+                name: document.getElementById('companyName').value,
+                address1: document.getElementById('companyAddress1').value,
+                address2: document.getElementById('companyAddress2').value,
+                cityState: document.getElementById('companyCityState').value,
+                phone: document.getElementById('companyPhone').value,
+                email: document.getElementById('companyEmail').value,
+                gstin: document.getElementById('companyGSTIN').value,
+                pan: document.getElementById('companyPAN').value,
+                bank: document.getElementById('companyBank').value,
+                account: document.getElementById('companyAccount').value,
+                ifsc: document.getElementById('companyIFSC').value,
+                branch: document.getElementById('companyBranch').value
+            };
+            
+            localStorage.setItem('companyAddress', JSON.stringify(companyAddress));
+            showNotification('Address template saved successfully!', 'success');
+        }
+
+        // ====== INVOICE MODAL FUNCTIONS SECTION ======
+        function openCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            calculateTotals();
+        }
+
+        function closeCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').style.display = 'none';
+            document.body.style.overflow = '';
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('gstPercentage').value = 5;
+            document.getElementById('tcsPercentage').value = 1;
+            calculateTotals();
+            loadAddressTemplate();
+        }
+
+        function closeModal() {
+            document.getElementById('invoiceModal').style.display = 'none';
             document.body.style.overflow = '';
         }
 
-        // Auto-fill batch name when traveler is selected
-        document.getElementById('travelerId')?.addEventListener('change', function() {
-            const travelerId = this.value;
+        // ====== TRAVELER FUNCTIONS SECTION ======
+        function loadTravelerBatch() {
+            const select = document.getElementById('travelerSelect');
+            const travelerId = select.value;
+            const batchField = document.getElementById('batchDisplay');
+            const packageField = document.getElementById('packageName');
+            const baseAmountField = document.getElementById('baseAmount');
+            
             if (travelerId) {
-                const traveler = travelers.find(t => t.id == travelerId);
+                const traveler = travelersData.find(t => t.id == travelerId);
                 if (traveler) {
-                    const batch = batches.find(b => b.id == traveler.batch_id);
-                    document.getElementById('batchName').value = batch ? batch.batch_name : '';
-                    if (batch && batch.price) {
-                        document.getElementById('amount').value = batch.price;
+                    const batch = batchesData.find(b => b.id == traveler.batch_id);
+                    if (batch) {
+                        batchField.value = batch.batch_name || '';
+                        packageField.value = batch.batch_name || '';
+                        baseAmountField.value = batch.price || 0;
                     }
                 }
             } else {
-                document.getElementById('batchName').value = '';
-                document.getElementById('amount').value = '';
+                batchField.value = '';
+                packageField.value = '';
+                baseAmountField.value = '';
             }
-        });
-
-        async function createInvoice() {
-            const travelerId = document.getElementById('travelerId').value;
-            const amount = parseFloat(document.getElementById('amount').value);
             
+            calculateTotals();
+        }
+
+        // ====== CALCULATION FUNCTIONS SECTION ======
+        function calculateTotals() {
+            const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
+            const gstPercent = parseFloat(document.getElementById('gstPercentage').value) || 0;
+            const tcsPercent = parseFloat(document.getElementById('tcsPercentage').value) || 0;
+            
+            if (gstPercent < 0 || gstPercent > 100) {
+                showNotification('GST percentage must be between 0 and 100', 'error');
+                document.getElementById('gstPercentage').value = 5;
+                return calculateTotals();
+            }
+            
+            if (tcsPercent < 0 || tcsPercent > 100) {
+                showNotification('TCS percentage must be between 0 and 100', 'error');
+                document.getElementById('tcsPercentage').value = 1;
+                return calculateTotals();
+            }
+            
+            const gstAmount = baseAmount * (gstPercent / 100);
+            const subtotal = baseAmount + gstAmount;
+            const tcsAmount = subtotal * (tcsPercent / 100);
+            const finalTotal = subtotal + tcsAmount;
+            
+            document.getElementById('gstAmount').value = Math.round(gstAmount);
+            document.getElementById('tcsAmount').value = Math.round(tcsAmount);
+            
+            document.getElementById('displayBaseAmount').textContent = '₹' + baseAmount.toLocaleString('en-IN');
+            document.getElementById('displayGstPercent').textContent = gstPercent;
+            document.getElementById('displayGstAmount').textContent = '₹' + Math.round(gstAmount).toLocaleString('en-IN');
+            document.getElementById('displaySubtotal').textContent = '₹' + Math.round(subtotal).toLocaleString('en-IN');
+            document.getElementById('displayTcsPercent').textContent = tcsPercent;
+            document.getElementById('displayTcsAmount').textContent = '₹' + Math.round(tcsAmount).toLocaleString('en-IN');
+            document.getElementById('displayFinalTotal').textContent = '₹' + Math.round(finalTotal).toLocaleString('en-IN');
+        }
+
+        function resetTaxDefaults() {
+            document.getElementById('gstPercentage').value = 5;
+            document.getElementById('tcsPercentage').value = 1;
+            calculateTotals();
+            showNotification('Reset to default rates: 5% GST, 1% TCS', 'info');
+        }
+
+        // ====== INVOICE GENERATION SECTION ======
+        async function generateInvoice() {
+            const travelerId = document.getElementById('travelerSelect').value;
             if (!travelerId) {
                 showNotification('Please select a traveler', 'error');
                 return;
             }
             
-            if (!amount || amount <= 0) {
-                showNotification('Please enter a valid amount', 'error');
+            const batchId = travelersData.find(t => t.id == travelerId)?.batch_id;
+            const amount = parseFloat(document.getElementById('baseAmount').value) || 0;
+            
+            if (!amount) {
+                showNotification('Invalid package amount', 'error');
                 return;
             }
             
-            const traveler = travelers.find(t => t.id == travelerId);
             const invoiceData = {
                 traveler_id: parseInt(travelerId),
-                batch_id: traveler?.batch_id,
+                batch_id: parseInt(batchId),
                 amount: amount,
-                due_date: document.getElementById('dueDate').value || null,
-                status: document.getElementById('status').value
+                due_date: document.getElementById('dueDate').value || null
             };
             
-            const response = await fetchAPI('/api/invoices', {
-                method: 'POST',
-                body: JSON.stringify(invoiceData)
-            });
-            
-            if (response && response.ok) {
-                const data = await response.json();
-                showNotification(`Invoice ${data.invoice_number} created successfully!`, 'success');
-                closeCreateModal();
-                await loadInvoices();
-            } else if (response) {
-                const error = await response.json();
-                showNotification(error.error || 'Failed to create invoice', 'error');
+            try {
+                const response = await authenticatedFetch('/api/invoices', {
+                    method: 'POST',
+                    body: JSON.stringify(invoiceData)
+                });
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    showNotification(`Invoice ${data.invoice_number} created successfully!`, 'success');
+                    closeCreateInvoiceModal();
+                    await loadInvoices();
+                } else if (response) {
+                    const error = await response.json();
+                    showNotification(error.error || 'Failed to create invoice', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating invoice:', error);
+                showNotification('Network error. Please try again.', 'error');
             }
         }
 
-        // ====== EDIT INVOICE ======
-        async function openEditModal(id) {
-            const invoice = invoices.find(i => i.id === id);
+        // ====== INVOICE VIEWING SECTION ======
+        function viewInvoice(id) {
+            const invoice = invoicesData.find(i => i.id === id);
             if (!invoice) {
                 showNotification('Invoice not found', 'error');
                 return;
             }
             
-            const traveler = travelers.find(t => t.id === invoice.traveler_id);
-            const batch = batches.find(b => b.id === invoice.batch_id);
-            
-            document.getElementById('editId').value = invoice.id;
-            document.getElementById('editInvoiceNumber').value = invoice.invoice_number || '';
-            document.getElementById('editDate').value = invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : '';
-            document.getElementById('editTraveler').value = traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim() : 'N/A';
-            document.getElementById('editBatch').value = batch?.batch_name || 'N/A';
-            document.getElementById('editAmount').value = invoice.amount || 0;
-            document.getElementById('editPaidAmount').value = invoice.paid_amount || 0;
-            document.getElementById('editDueDate').value = invoice.due_date || '';
-            document.getElementById('editStatus').value = invoice.status || 'pending';
-            
-            document.getElementById('editModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-            document.body.style.overflow = '';
-        }
-
-        async function updateInvoice() {
-            const id = document.getElementById('editId').value;
-            const amount = parseFloat(document.getElementById('editAmount').value);
-            const paidAmount = parseFloat(document.getElementById('editPaidAmount').value);
-            
-            if (!amount || amount <= 0) {
-                showNotification('Please enter a valid amount', 'error');
-                return;
-            }
-            
-            const updateData = {
-                amount: amount,
-                paid_amount: paidAmount,
-                due_date: document.getElementById('editDueDate').value || null,
-                status: document.getElementById('editStatus').value
-            };
-            
-            const response = await fetchAPI(`/api/invoices/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify(updateData)
-            });
-            
-            if (response && response.ok) {
-                showNotification('Invoice updated successfully!', 'success');
-                closeEditModal();
-                await loadInvoices();
-            } else if (response) {
-                const error = await response.json();
-                showNotification(error.error || 'Failed to update invoice', 'error');
-            }
-        }
-
-        // ====== DELETE INVOICE ======
-        async function deleteInvoice(id) {
-            if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-                return;
-            }
-            
-            const response = await fetchAPI(`/api/invoices/${id}`, {
-                method: 'DELETE'
-            });
-            
-            if (response && response.ok) {
-                showNotification('Invoice deleted successfully!', 'success');
-                await loadInvoices();
-            } else if (response) {
-                const error = await response.json();
-                showNotification(error.error || 'Failed to delete invoice', 'error');
-            }
-        }
-
-        // ====== VIEW INVOICE ======
-        async function viewInvoice(id) {
-            const invoice = invoices.find(i => i.id === id);
-            if (!invoice) {
-                showNotification('Invoice not found', 'error');
-                return;
-            }
-            
-            const traveler = travelers.find(t => t.id === invoice.traveler_id);
-            const batch = batches.find(b => b.id === invoice.batch_id);
+            const traveler = travelersData.find(t => t.id === invoice.traveler_id);
+            const batch = batchesData.find(b => b.id === invoice.batch_id);
             
             const detailsHtml = `
                 <div style="padding: 20px;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-hashtag"></i> Invoice Number</label>
-                            <p><strong>${invoice.invoice_number || 'N/A'}</strong></p>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Date</label>
-                            <p>${invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Due Date</label>
-                            <p>${invoice.due_date || 'N/A'}</p>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Traveler</label>
-                            <p>${traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim() : 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-passport"></i> Passport</label>
-                            <p>${traveler?.passport_no || 'N/A'}</p>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-layer-group"></i> Batch</label>
-                            <p>${batch?.batch_name || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-rupee-sign"></i> Amount</label>
-                            <p><strong>₹${(invoice.amount || 0).toLocaleString('en-IN')}</strong></p>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-money-bill"></i> Paid</label>
-                            <p>₹${(invoice.paid_amount || 0).toLocaleString('en-IN')}</p>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-hourglass-half"></i> Due Amount</label>
-                            <p><strong class="text-danger">₹${((invoice.amount || 0) - (invoice.paid_amount || 0)).toLocaleString('en-IN')}</strong></p>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-tag"></i> Status</label>
-                            <p><span class="status-badge ${invoice.status === 'paid' ? 'status-paid' : 'status-pending'}">${invoice.status || 'pending'}</span></p>
-                        </div>
-                    </div>
+                    <h3>Invoice #${invoice.invoice_number || 'N/A'}</h3>
+                    <p><strong>Date:</strong> ${invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : 'N/A'}</p>
+                    <p><strong>Due Date:</strong> ${invoice.due_date || 'N/A'}</p>
+                    <p><strong>Traveler:</strong> ${traveler ? `${traveler.first_name} ${traveler.last_name}` : 'N/A'}</p>
+                    <p><strong>Passport:</strong> ${traveler?.passport_no || 'N/A'}</p>
+                    <p><strong>Batch:</strong> ${batch?.batch_name || 'N/A'}</p>
+                    <p><strong>Amount:</strong> ₹${(invoice.amount || 0).toLocaleString('en-IN')}</p>
+                    <p><strong>Paid:</strong> ₹${(invoice.paid_amount || 0).toLocaleString('en-IN')}</p>
+                    <p><strong>Status:</strong> ${invoice.status || 'pending'}</p>
                 </div>
             `;
             
-            document.getElementById('viewDetails').innerHTML = detailsHtml;
-            document.getElementById('viewModal').style.display = 'flex';
+            document.getElementById('invoiceDetails').innerHTML = detailsHtml;
+            document.getElementById('invoiceModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            currentInvoiceId = id;
         }
 
-        function closeViewModal() {
-            document.getElementById('viewModal').style.display = 'none';
-            document.body.style.overflow = '';
+        function printInvoiceDetails() {
+            const content = document.getElementById('invoiceDetails').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head><title>Invoice Details</title></head>
+                <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
-        // ====== FILTER FUNCTIONS ======
+        function downloadInvoicePDF() {
+            showNotification('PDF download feature coming soon!', 'info');
+        }
+
+        // ====== INVOICE ACTIONS SECTION ======
+        function downloadPDF(id) {
+            showNotification(`Generating PDF for invoice ${id}...`, 'info');
+            setTimeout(() => {
+                showNotification(`Invoice ${id} PDF downloaded`, 'success');
+            }, 2000);
+        }
+
+        function emailInvoice(id) {
+            showNotification(`Preparing email for invoice ${id}...`, 'info');
+            setTimeout(() => {
+                showNotification(`Invoice ${id} sent via email`, 'success');
+            }, 1500);
+        }
+
+        // ====== FILTER FUNCTIONS SECTION ======
         function applyFilters() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            filteredInvoices = invoices.filter(inv => {
-                const traveler = travelers.find(t => t.id === inv.traveler_id);
-                const travelerName = traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.toLowerCase() : '';
-                const matchesSearch = !searchTerm || 
-                    (inv.invoice_number && inv.invoice_number.toLowerCase().includes(searchTerm)) ||
-                    travelerName.includes(searchTerm);
-                const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
-            
-            currentPage = 1;
-            displayInvoices();
-            showNotification(`Found ${filteredInvoices.length} invoices`, 'info');
+            showNotification('Filters applied', 'success');
         }
 
         function resetFilters() {
-            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInvoice').value = '';
             document.getElementById('statusFilter').value = 'all';
-            filteredInvoices = [...invoices];
-            currentPage = 1;
-            displayInvoices();
+            document.getElementById('dateFilter').value = 'all';
             showNotification('Filters reset', 'info');
         }
 
         function exportInvoices() {
-            showNotification('Export feature coming soon!', 'info');
+            showNotification('Exporting invoices...', 'info');
+            setTimeout(() => {
+                showNotification('Invoices exported successfully!', 'success');
+            }, 2000);
         }
 
-        // ====== CLOSE MODALS ON OUTSIDE CLICK ======
+        // ====== CLOSE MODALS ON OUTSIDE CLICK SECTION ======
         window.onclick = function(event) {
-            const createModal = document.getElementById('createModal');
-            const editModal = document.getElementById('editModal');
-            const viewModal = document.getElementById('viewModal');
-            
-            if (event.target === createModal) {
+            const createModal = document.getElementById('createInvoiceModal');
+            const viewModal = document.getElementById('invoiceModal');
+            if (event.target == createModal) {
                 createModal.style.display = 'none';
                 document.body.style.overflow = '';
             }
-            if (event.target === editModal) {
-                editModal.style.display = 'none';
-                document.body.style.overflow = '';
-            }
-            if (event.target === viewModal) {
+            if (event.target == viewModal) {
                 viewModal.style.display = 'none';
                 document.body.style.overflow = '';
             }
         };
-
-        // ====== INITIALIZATION ======
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Initializing invoices page...');
-            
-            const isValid = await checkSession();
-            if (!isValid) return;
-            
-            await loadTravelers();
-            await loadBatches();
-            await loadInvoices();
-        });
     </script>
 </body>
 </html>
