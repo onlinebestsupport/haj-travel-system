@@ -7,30 +7,12 @@
     <link rel="stylesheet" href="/admin/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f0f2f5; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         
-        .admin-header {
-            background: linear-gradient(135deg, #1a472a, #0d2818);
-            color: white;
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+        .admin-header { background: linear-gradient(135deg, #1a472a, #0d2818); color: white; padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo-area { display: flex; align-items: center; gap: 15px; }
         .logo-area i { font-size: 2rem; color: #d4af37; }
         .logo-area h1 { color: white; font-size: 1.5rem; }
@@ -38,261 +20,77 @@
         .logout-btn { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .logout-btn:hover { background: #a82313; }
         
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 30px 0 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 20px; flex-wrap: wrap; gap: 15px; }
         .page-header h2 { color: #1a472a; font-size: 1.8rem; }
         .page-header h2 i { color: #d4af37; margin-right: 10px; }
         
-        .btn-primary, .btn-success, .btn-secondary, .btn-danger {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
+        .btn-primary, .btn-success, .btn-secondary { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s; }
         .btn-primary { background: #2c7da0; color: white; }
         .btn-primary:hover { background: #1a5a7a; transform: translateY(-2px); }
         .btn-success { background: #27ae60; color: white; }
         .btn-success:hover { background: #219a52; transform: translateY(-2px); }
         .btn-secondary { background: #95a5a6; color: white; }
         .btn-secondary:hover { background: #7f8c8d; transform: translateY(-2px); }
-        .btn-danger { background: #e74c3c; color: white; }
-        .btn-info { background: #00bcd4; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; }
+        .btn-info { background: #00bcd4; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; }
         
-        .invoice-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            border-left: 4px solid #d4af37;
-        }
+        .invoice-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; border-left: 4px solid #d4af37; }
         .stat-card i { font-size: 2rem; color: #d4af37; margin-bottom: 10px; }
         .stat-card h3 { font-size: 0.9rem; color: #7f8c8d; }
         .stat-number { font-size: 1.8rem; font-weight: bold; color: #1a472a; }
         
-        .invoice-filters {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .invoice-filters input, .invoice-filters select {
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 1rem;
-            min-width: 200px;
-        }
-        .invoice-filters button {
-            padding: 12px 20px;
-            background: #2c7da0;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .invoice-filters { background: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .invoice-filters input, .invoice-filters select { padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 1rem; min-width: 200px; }
+        .invoice-filters button { padding: 12px 20px; background: #2c7da0; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow-x: auto;
-            margin-top: 20px;
-        }
+        .table-container { background: white; border-radius: 15px; overflow-x: auto; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th { background: #1a472a; color: white; padding: 15px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #ecf0f1; }
         tr:hover { background: #f8f9fa; }
         
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: inline-block;
-        }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
         .status-paid { background: #d4edda; color: #155724; }
         .status-pending { background: #fff3cd; color: #856404; }
         
         .invoice-actions { display: flex; gap: 8px; }
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 8px;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 8px; border-radius: 5px; transition: all 0.3s; }
         .icon-btn:hover { background: #ecf0f1; transform: scale(1.1); }
         .btn-view { color: #3498db; }
         .btn-edit { color: #f39c12; }
         .btn-delete { color: #e74c3c; }
         
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            overflow: auto;
-        }
-        .modal-content {
-            background: white;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 600px;
-            animation: modalFadeIn 0.3s ease;
-        }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #ecf0f1;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; overflow: auto; }
+        .modal-content { background: white; margin: 50px auto; padding: 30px; border-radius: 20px; width: 90%; max-width: 600px; animation: modalFadeIn 0.3s ease; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ecf0f1; }
         .modal-header h3 { color: #1a472a; }
         .modal-header h3 i { color: #d4af37; margin-right: 10px; }
-        .modal-close {
-            font-size: 2rem;
-            cursor: pointer;
-            color: #7f8c8d;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
+        .modal-close { font-size: 2rem; cursor: pointer; color: #7f8c8d; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
         .modal-close:hover { color: #e74c3c; background: #f8f9fa; }
         .modal-body { padding: 10px 0; max-height: 60vh; overflow-y: auto; }
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #ecf0f1;
-        }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; padding-top: 15px; border-top: 1px solid #ecf0f1; }
         
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
         .form-group label i { margin-right: 8px; color: #d4af37; }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: #2c7da0;
-            outline: none;
-        }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus, .form-group select:focus { border-color: #2c7da0; outline: none; }
         .form-group input[readonly] { background: #e9ecef; cursor: not-allowed; }
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            justify-content: flex-end;
-        }
+        .form-actions { display: flex; gap: 15px; margin-top: 20px; justify-content: flex-end; }
         
-        .calculation-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border: 2px solid #d4af37;
-        }
-        .calculation-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        .calculation-row.total {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #27ae60;
-            border-top: 2px solid #d4af37;
-            margin-top: 10px;
-            padding-top: 15px;
-        }
+        .calculation-box { background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid #d4af37; }
+        .calculation-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ecf0f1; }
+        .calculation-row.total { font-size: 1.2rem; font-weight: bold; color: #27ae60; border-top: 2px solid #d4af37; margin-top: 10px; padding-top: 15px; }
         
-        .notification {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            z-index: 99999;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        .notification { position: fixed; bottom: 25px; right: 25px; padding: 15px 25px; border-radius: 10px; color: white; z-index: 99999; display: none; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .notification-success { background: #27ae60; }
         .notification-error { background: #e74c3c; }
         .notification-info { background: #3498db; }
         
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding: 15px 0;
-        }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px 0; }
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
         .loading i { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -354,7 +152,7 @@
                 <option value="paid">Paid</option>
                 <option value="pending">Pending</option>
             </select>
-            <button onclick="loadInvoices()"><i class="fas fa-search"></i> Search</button>
+            <button onclick="applyFilters()"><i class="fas fa-search"></i> Search</button>
             <button onclick="resetFilters()" style="background: #95a5a6;"><i class="fas fa-undo"></i> Reset</button>
             <button onclick="loadInvoices()" style="background: #27ae60;"><i class="fas fa-sync-alt"></i> Refresh</button>
         </div>
@@ -368,14 +166,12 @@
                         <th>Traveler</th>
                         <th>Batch</th>
                         <th>Amount</th>
-                        <th>Paid</th>
-                        <th>Due</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="invoicesTableBody">
-                    <tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...<\/td><\/tr>
+                    <tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...<\/td><\/tr>
                 </tbody>
             </table>
         </div>
@@ -401,7 +197,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> Traveler *</label>
-                            <select id="travelerId" required onchange="loadTravelerDetails()">
+                            <select id="travelerId" required onchange="loadTravelerBatch()">
                                 <option value="">Select Traveler</option>
                             </select>
                         </div>
@@ -471,47 +267,19 @@
                 <form id="editForm" onsubmit="event.preventDefault(); updateInvoice();">
                     <input type="hidden" id="editId">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-hashtag"></i> Invoice Number</label>
-                            <input type="text" id="editInvoiceNumber" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Date</label>
-                            <input type="text" id="editDate" readonly>
-                        </div>
+                        <div class="form-group"><label>Invoice Number</label><input type="text" id="editInvoiceNumber" readonly></div>
+                        <div class="form-group"><label>Date</label><input type="text" id="editDate" readonly></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-user"></i> Traveler</label>
-                            <input type="text" id="editTraveler" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-layer-group"></i> Batch</label>
-                            <input type="text" id="editBatch" readonly>
-                        </div>
+                        <div class="form-group"><label>Traveler</label><input type="text" id="editTraveler" readonly></div>
+                        <div class="form-group"><label>Batch</label><input type="text" id="editBatch" readonly></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-rupee-sign"></i> Total Amount (₹)</label>
-                            <input type="number" id="editAmount" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-money-bill"></i> Paid Amount (₹)</label>
-                            <input type="number" id="editPaidAmount" step="0.01" required>
-                        </div>
+                        <div class="form-group"><label>Amount (₹)</label><input type="number" id="editAmount" step="0.01" required></div>
+                        <div class="form-group"><label>Status</label><select id="editStatus"><option value="pending">Pending</option><option value="paid">Paid</option></select></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Due Date</label>
-                            <input type="date" id="editDueDate">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-tag"></i> Status</label>
-                            <select id="editStatus">
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label>Due Date</label><input type="date" id="editDueDate"></div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-success"><i class="fas fa-save"></i> Save Changes</button>
@@ -561,10 +329,7 @@
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json', ...options.headers }
                 });
-                if (response.status === 401) {
-                    window.location.href = '/admin.login.html';
-                    return null;
-                }
+                if (response.status === 401) { window.location.href = '/admin.login.html'; return null; }
                 return response;
             } catch (error) {
                 console.error('API Error:', error);
@@ -576,10 +341,7 @@
         async function checkSession() {
             const response = await fetch('/api/check-session', { credentials: 'include' });
             const data = await response.json();
-            if (!data.authenticated) {
-                window.location.href = '/admin.login.html';
-                return false;
-            }
+            if (!data.authenticated) { window.location.href = '/admin.login.html'; return false; }
             document.getElementById('roleBadge').textContent = (data.user?.role || 'Admin').toUpperCase();
             return true;
         }
@@ -603,12 +365,13 @@
             if (response && response.ok) {
                 const data = await response.json();
                 batches = data.batches || [];
+                console.log('Batches loaded:', batches);
             }
         }
 
         async function loadInvoices() {
             const tbody = document.getElementById('invoicesTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...<\/td><\/tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...<\/td><\/tr>';
             
             const response = await fetchAPI('/api/invoices');
             if (response && response.ok) {
@@ -618,8 +381,7 @@
                     filteredInvoices = [...invoices];
                     displayInvoices();
                     updateStats();
-                } else {
-                    showNotification(data.error || 'Failed to load invoices', 'error');
+                    console.log('Invoices loaded:', invoices.length);
                 }
             }
         }
@@ -637,7 +399,7 @@
             });
         }
 
-        async function loadTravelerDetails() {
+        async function loadTravelerBatch() {
             const travelerId = document.getElementById('travelerId').value;
             const batchNameField = document.getElementById('batchName');
             const baseAmountField = document.getElementById('baseAmount');
@@ -645,13 +407,23 @@
             if (travelerId) {
                 const traveler = travelers.find(t => t.id == travelerId);
                 if (traveler && traveler.batch_id) {
-                    const batch = batches.find(b => b.id === traveler.batch_id);
-                    if (batch) {
-                        batchNameField.value = batch.batch_name || '';
-                        baseAmountField.value = batch.amount || 0;
+                    // Fetch batch details including amount
+                    const batchResponse = await fetchAPI(`/api/invoices/batch/${traveler.batch_id}`);
+                    if (batchResponse && batchResponse.ok) {
+                        const batchData = await batchResponse.json();
+                        if (batchData.success && batchData.batch) {
+                            batchNameField.value = batchData.batch.batch_name || '';
+                            baseAmountField.value = batchData.batch.amount || 0;
+                        } else {
+                            // Fallback to local batches array
+                            const batch = batches.find(b => b.id === traveler.batch_id);
+                            batchNameField.value = batch?.batch_name || 'Batch found';
+                            baseAmountField.value = batch?.amount || 0;
+                        }
                     } else {
-                        batchNameField.value = 'No batch assigned';
-                        baseAmountField.value = 0;
+                        const batch = batches.find(b => b.id === traveler.batch_id);
+                        batchNameField.value = batch?.batch_name || 'Batch found';
+                        baseAmountField.value = batch?.amount || 0;
                     }
                 } else {
                     batchNameField.value = 'No batch assigned';
@@ -688,7 +460,7 @@
             if (!tbody) return;
             
             if (filteredInvoices.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px;">No invoices found. Create your first invoice!<\/td><\/tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">No invoices found. Create your first invoice!<\/td><\/tr>';
                 updatePaginationInfo();
                 return;
             }
@@ -703,7 +475,6 @@
                 const batchName = inv.batch_name || '-';
                 const statusClass = inv.status === 'paid' ? 'status-paid' : 'status-pending';
                 const statusText = inv.status === 'paid' ? 'Paid' : 'Pending';
-                const dueAmount = (inv.amount || 0) - (inv.paid_amount || 0);
                 
                 html += `<tr>
                     <td><strong>${escapeHtml(inv.invoice_number || 'N/A')}</strong></td>
@@ -711,8 +482,6 @@
                     <td>${escapeHtml(travelerName)}</td>
                     <td>${escapeHtml(batchName)}</td>
                     <td>₹${(inv.amount || 0).toLocaleString('en-IN')}</td>
-                    <td>₹${(inv.paid_amount || 0).toLocaleString('en-IN')}</td>
-                    <td>₹${dueAmount.toLocaleString('en-IN')}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td class="invoice-actions">
                         <button class="icon-btn btn-view" onclick="viewInvoice(${inv.id})" title="View"><i class="fas fa-eye"></i></button>
@@ -822,11 +591,6 @@
                 return;
             }
             
-            const gstAmount = baseAmount * (gstPercent / 100);
-            const subtotal = baseAmount + gstAmount;
-            const tcsAmount = subtotal * (tcsPercent / 100);
-            const totalAmount = subtotal + tcsAmount;
-            
             const traveler = travelers.find(t => t.id == travelerId);
             
             const invoiceData = {
@@ -836,25 +600,18 @@
                 gst_percent: gstPercent,
                 tcs_percent: tcsPercent,
                 due_date: document.getElementById('dueDate').value || null,
-                status: document.getElementById('status').value
+                status: document.getElementById('status').value,
+                description: document.getElementById('batchName').value || 'Travel Package'
             };
-            
-            const createBtn = event.submitter;
-            const originalText = createBtn.innerHTML;
-            createBtn.disabled = true;
-            createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
             
             const response = await fetchAPI('/api/invoices', {
                 method: 'POST',
                 body: JSON.stringify(invoiceData)
             });
             
-            createBtn.disabled = false;
-            createBtn.innerHTML = originalText;
-            
             if (response && response.ok) {
                 const data = await response.json();
-                showNotification(`Invoice created successfully! Total: ₹${totalAmount.toLocaleString('en-IN')}`, 'success');
+                showNotification(`Invoice created successfully!`, 'success');
                 closeCreateModal();
                 await loadInvoices();
             } else if (response) {
@@ -871,15 +628,13 @@
             }
             
             const traveler = travelers.find(t => t.id === invoice.traveler_id);
-            const batch = batches.find(b => b.id === invoice.batch_id);
             
             document.getElementById('editId').value = invoice.id;
             document.getElementById('editInvoiceNumber').value = invoice.invoice_number || '';
             document.getElementById('editDate').value = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString() : (invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : '');
             document.getElementById('editTraveler').value = traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim() : 'N/A';
-            document.getElementById('editBatch').value = batch?.batch_name || invoice.batch_name || 'N/A';
+            document.getElementById('editBatch').value = invoice.batch_name || 'N/A';
             document.getElementById('editAmount').value = invoice.amount || 0;
-            document.getElementById('editPaidAmount').value = invoice.paid_amount || 0;
             document.getElementById('editDueDate').value = invoice.due_date || '';
             document.getElementById('editStatus').value = invoice.status || 'pending';
             
@@ -895,7 +650,6 @@
         async function updateInvoice() {
             const id = document.getElementById('editId').value;
             const amount = parseFloat(document.getElementById('editAmount').value);
-            const paidAmount = parseFloat(document.getElementById('editPaidAmount').value);
             
             if (!amount || amount <= 0) {
                 showNotification('Please enter a valid amount', 'error');
@@ -904,7 +658,6 @@
             
             const updateData = {
                 amount: amount,
-                paid_amount: paidAmount,
                 due_date: document.getElementById('editDueDate').value || null,
                 status: document.getElementById('editStatus').value
             };
@@ -925,9 +678,7 @@
         }
 
         async function deleteInvoice(id) {
-            if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to delete this invoice?')) return;
             
             const response = await fetchAPI(`/api/invoices/${id}`, { method: 'DELETE' });
             
@@ -948,9 +699,6 @@
             }
             
             const traveler = travelers.find(t => t.id === invoice.traveler_id);
-            const batch = batches.find(b => b.id === invoice.batch_id);
-            const dueAmount = (invoice.amount || 0) - (invoice.paid_amount || 0);
-            
             const detailsHtml = `
                 <div style="padding: 20px;">
                     <div class="form-row">
@@ -962,15 +710,10 @@
                         <div class="form-group"><label>Traveler</label><p>${traveler ? `${escapeHtml(traveler.first_name || '')} ${escapeHtml(traveler.last_name || '')}`.trim() : 'N/A'}</p></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Passport</label><p>${escapeHtml(traveler?.passport_no || 'N/A')}</p></div>
-                        <div class="form-group"><label>Batch</label><p>${escapeHtml(batch?.batch_name || invoice.batch_name || 'N/A')}</p></div>
+                        <div class="form-group"><label>Batch</label><p>${escapeHtml(invoice.batch_name || 'N/A')}</p></div>
+                        <div class="form-group"><label>Amount</label><p><strong>₹${(invoice.amount || 0).toLocaleString('en-IN')}</strong></p></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Total Amount</label><p><strong>₹${(invoice.amount || 0).toLocaleString('en-IN')}</strong></p></div>
-                        <div class="form-group"><label>Paid Amount</label><p>₹${(invoice.paid_amount || 0).toLocaleString('en-IN')}</p></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Due Amount</label><p><strong style="color:#e74c3c;">₹${dueAmount.toLocaleString('en-IN')}</strong></p></div>
                         <div class="form-group"><label>Status</label><p><span class="status-badge ${invoice.status === 'paid' ? 'status-paid' : 'status-pending'}">${invoice.status === 'paid' ? 'Paid' : 'Pending'}</span></p></div>
                     </div>
                 </div>
@@ -992,13 +735,11 @@
                 return;
             }
             
-            let csv = "Invoice #,Date,Traveler,Batch,Amount,Paid,Due,Status\n";
+            let csv = "Invoice #,Date,Traveler,Batch,Amount,Status\n";
             filteredInvoices.forEach(inv => {
                 const traveler = travelers.find(t => t.id === inv.traveler_id);
                 const travelerName = traveler ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim() : 'N/A';
-                const batchName = inv.batch_name || '-';
-                const dueAmount = (inv.amount || 0) - (inv.paid_amount || 0);
-                csv += `"${inv.invoice_number || ''}","${inv.invoice_date || ''}","${travelerName}","${batchName}",${inv.amount || 0},${inv.paid_amount || 0},${dueAmount},${inv.status || ''}\n`;
+                csv += `"${inv.invoice_number || ''}","${inv.invoice_date || ''}","${travelerName}","${inv.batch_name || ''}",${inv.amount || 0},${inv.status || ''}\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });
