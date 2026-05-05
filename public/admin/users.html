@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="/admin/admin-style.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* ==================================================================
-           SECTION 1: RESET AND BASE STYLES
+           MAIN SECTION 1: RESET AND BASE STYLES
            ================================================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f5f7fa; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         
         /* ==================================================================
-           SECTION 2: HEADER STYLES
+           MAIN SECTION 2: ADMIN HEADER
            ================================================================== */
         .admin-header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
@@ -54,7 +54,7 @@
         .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
         
         /* ==================================================================
-           SECTION 3: PAGE HEADER AND ACTION BUTTONS
+           MAIN SECTION 3: PAGE HEADER AND ACTION BUTTONS
            ================================================================== */
         .page-header {
             display: flex;
@@ -95,7 +95,7 @@
         .btn-info:hover { background: #00a5bb; }
         
         /* ==================================================================
-           SECTION 4: FORM CONTAINER (ADD USER)
+           MAIN SECTION 4: ADD USER FORM CONTAINER
            ================================================================== */
         .form-container {
             background: white;
@@ -152,7 +152,7 @@
         }
         
         /* ==================================================================
-           SECTION 5: PERMISSIONS SECTION
+           MAIN SECTION 5: PERMISSIONS SECTION
            ================================================================== */
         .permissions-section {
             margin-top: 20px;
@@ -225,7 +225,7 @@
         }
         
         /* ==================================================================
-           SECTION 6: ROLE TEMPLATES
+           MAIN SECTION 6: ROLE TEMPLATES
            ================================================================== */
         .role-templates {
             display: flex;
@@ -251,7 +251,7 @@
         .template-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
         
         /* ==================================================================
-           SECTION 7: FILTER SECTION
+           MAIN SECTION 7: FILTER SECTION
            ================================================================== */
         .filter-section {
             display: flex;
@@ -267,7 +267,7 @@
         .filter-section select { flex: 1; min-width: 150px; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; }
         
         /* ==================================================================
-           SECTION 8: TABLE STYLES
+           MAIN SECTION 8: TABLE STYLES
            ================================================================== */
         .table-container {
             background: white;
@@ -288,7 +288,7 @@
         tr:hover { background: #f8f9fa; }
         
         /* ==================================================================
-           SECTION 9: STATUS BADGES
+           MAIN SECTION 9: STATUS BADGES
            ================================================================== */
         .status-badge {
             padding: 5px 12px;
@@ -301,7 +301,7 @@
         .status-inactive { background: #f8d7da; color: #721c24; }
         
         /* ==================================================================
-           SECTION 10: ROLE BADGES
+           MAIN SECTION 10: ROLE BADGES
            ================================================================== */
         .role-badge {
             padding: 4px 12px;
@@ -318,7 +318,7 @@
         .role-viewer { background: #7f8c8d; }
         
         /* ==================================================================
-           SECTION 11: PERMISSION TAGS
+           MAIN SECTION 11: PERMISSION TAGS
            ================================================================== */
         .permission-tags { display: flex; flex-wrap: wrap; gap: 5px; }
         .permission-tag {
@@ -331,7 +331,7 @@
         }
         
         /* ==================================================================
-           SECTION 12: ICON BUTTONS
+           MAIN SECTION 12: ICON BUTTONS
            ================================================================== */
         .icon-btn {
             background: none;
@@ -347,7 +347,7 @@
         .icon-btn:hover { background: #ecf0f1; color: #2c3e50; }
         
         /* ==================================================================
-           SECTION 13: STATS CARDS
+           MAIN SECTION 13: STATS CARDS
            ================================================================== */
         .stats-grid {
             display: grid;
@@ -370,7 +370,7 @@
         .stat-purple p { color: #8e44ad; }
         
         /* ==================================================================
-           SECTION 14: MODAL STYLES
+           MAIN SECTION 14: MODAL STYLES
            ================================================================== */
         .modal {
             display: none;
@@ -417,7 +417,7 @@
         .modal-close:hover { color: #e74c3c; }
         
         /* ==================================================================
-           SECTION 15: NOTIFICATION STYLES
+           MAIN SECTION 15: NOTIFICATION STYLES
            ================================================================== */
         .notification {
             position: fixed;
@@ -440,24 +440,14 @@
         .notification-info { background: #3498db; }
         
         /* ==================================================================
-           SECTION 16: LOADING AND RETRY STYLES
+           MAIN SECTION 16: LOADING STYLES
            ================================================================== */
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
         .loading i { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .retry-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        
         /* ==================================================================
-           SECTION 17: RESPONSIVE DESIGN
+           MAIN SECTION 17: RESPONSIVE DESIGN
            ================================================================== */
         @media (max-width: 768px) {
             .action-buttons { flex-direction: column; }
@@ -465,11 +455,14 @@
             .permissions-grid { grid-template-columns: 1fr; }
         }
     </style>
+    
+    <script src="/admin/js/session-manager.js"></script>
+    <script src="/admin/js/mobile-fix.js"></script>
 </head>
 <body>
 
     <!-- ==================================================================
-    SECTION 18: HEADER HTML
+    MAIN SECTION 18: HEADER HTML
     ================================================================== -->
     <div class="admin-header">
         <div class="container">
@@ -488,11 +481,11 @@
     </div>
 
     <!-- ==================================================================
-    SECTION 19: MAIN CONTAINER
+    MAIN SECTION 19: MAIN CONTAINER
     ================================================================== -->
     <div class="container">
         <!-- ==================================================================
-        SECTION 20: PAGE HEADER
+        MAIN SECTION 20: PAGE HEADER
         ================================================================== -->
         <div class="page-header">
             <h2><i class="fas fa-users-cog"></i> User Management</h2>
@@ -503,7 +496,7 @@
         </div>
 
         <!-- ==================================================================
-        SECTION 21: ADD USER FORM
+        MAIN SECTION 21: ADD USER FORM
         ================================================================== -->
         <div class="form-container" id="addUserForm">
             <h3><i class="fas fa-user-plus"></i> Create New User</h3>
@@ -594,6 +587,7 @@
                                 <label>Reports Module</label>
                             </div>
                         </div>
+
                         <!-- Operations -->
                         <div class="permission-category">
                             <h5><i class="fas fa-tasks"></i> Operations</h5>
@@ -622,6 +616,7 @@
                                 <label>Print Records</label>
                             </div>
                         </div>
+
                         <!-- User Management -->
                         <div class="permission-category">
                             <h5><i class="fas fa-users-cog"></i> User Management</h5>
@@ -646,6 +641,7 @@
                                 <label>Assign Roles</label>
                             </div>
                         </div>
+
                         <!-- System Settings -->
                         <div class="permission-category">
                             <h5><i class="fas fa-cog"></i> System Settings</h5>
@@ -676,7 +672,7 @@
         </div>
 
         <!-- ==================================================================
-        SECTION 22: FILTERS
+        MAIN SECTION 22: FILTERS
         ================================================================== -->
         <div class="filter-section">
             <input type="text" id="searchUsers" placeholder="Search by username, name or email...">
@@ -698,7 +694,7 @@
         </div>
 
         <!-- ==================================================================
-        SECTION 23: STAT CARDS
+        MAIN SECTION 23: STAT CARDS
         ================================================================== -->
         <div class="stats-grid">
             <div class="stat-card stat-blue"><h4>Total Users</h4><p id="totalUsers">0</p></div>
@@ -708,7 +704,7 @@
         </div>
 
         <!-- ==================================================================
-        SECTION 24: USERS TABLE
+        MAIN SECTION 24: USERS TABLE
         ================================================================== -->
         <div class="table-container">
             <h3 style="margin: 20px 20px 0 20px; color: #2c3e50;">User List</h3>
@@ -749,7 +745,7 @@
     </div>
 
     <!-- ==================================================================
-    SECTION 25: EDIT USER MODAL
+    MAIN SECTION 25: EDIT USER MODAL
     ================================================================== -->
     <div id="editUserModal" class="modal modal-large">
         <div class="modal-header">
@@ -804,7 +800,7 @@
     </div>
 
     <!-- ==================================================================
-    SECTION 26: USER DETAILS MODAL
+    MAIN SECTION 26: USER DETAILS MODAL
     ================================================================== -->
     <div id="userDetailsModal" class="modal modal-large">
         <div class="modal-header">
@@ -819,22 +815,22 @@
     </div>
 
     <!-- ==================================================================
-    SECTION 27: MODAL OVERLAY
+    MAIN SECTION 27: MODAL OVERLAY
     ================================================================== -->
     <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
 
     <!-- ==================================================================
-    SECTION 28: NOTIFICATION
+    MAIN SECTION 28: NOTIFICATION
     ================================================================== -->
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    SECTION 29: JAVASCRIPT - GLOBAL VARIABLES AND UTILITIES
+    MAIN SECTION 29: JAVASCRIPT - GLOBAL VARIABLES AND UTILITIES
     ================================================================== -->
     <script>
         /**
          * ==================================================================
-         * SECTION 29.1: GLOBAL VARIABLES
+         * SUBSECTION 29.1: GLOBAL VARIABLES
          * ================================================================== */
         let allUsers = [];
         let currentPage = 1;
@@ -842,7 +838,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.2: SESSION MANAGEMENT
+         * SUBSECTION 29.2: SESSION MANAGEMENT
          * ================================================================== */
         async function checkSessionAndLoad() {
             try {
@@ -872,7 +868,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.3: ESCAPE HTML UTILITY
+         * SUBSECTION 29.3: ESCAPE HTML UTILITY
          * ================================================================== */
         function escapeHtml(text) {
             if (!text) return text;
@@ -883,7 +879,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.4: NOTIFICATION FUNCTION
+         * SUBSECTION 29.4: NOTIFICATION FUNCTION
          * ================================================================== */
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -895,7 +891,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.5: LOGOUT FUNCTION
+         * SUBSECTION 29.5: LOGOUT FUNCTION
          * ================================================================== */
         async function logout() {
             try {
@@ -911,7 +907,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.6: PERMISSIONS HELPERS
+         * SUBSECTION 29.6: PERMISSIONS HELPERS
          * ================================================================== */
         function updatePermissionsCount() {
             const checkboxes = document.querySelectorAll('#addUserForm .perm-checkbox');
@@ -939,7 +935,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.7: ROLE TEMPLATES
+         * SUBSECTION 29.7: ROLE TEMPLATES
          * ================================================================== */
         window.applyRoleTemplate = function(role) {
             const templates = {
@@ -978,7 +974,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.8: ADD USER FORM
+         * SUBSECTION 29.8: ADD USER FORM
          * ================================================================== */
         window.showAddUserForm = function() {
             document.getElementById('addUserForm').style.display = 'block';
@@ -991,7 +987,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.9: FILTER FUNCTIONS
+         * SUBSECTION 29.9: FILTER FUNCTIONS
          * ================================================================== */
         window.filterUsers = function() {
             const search = document.getElementById('searchUsers').value.toLowerCase();
@@ -1019,7 +1015,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.10: LOAD USERS
+         * SUBSECTION 29.10: LOAD USERS
          * ================================================================== */
         async function loadUsers() {
             console.log('📡 Loading users...');
@@ -1070,7 +1066,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.11: DISPLAY USERS
+         * SUBSECTION 29.11: DISPLAY USERS
          * ================================================================== */
         function displayUsers() {
             const tbody = document.getElementById('usersTableBody');
@@ -1118,7 +1114,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.12: UPDATE STATS
+         * SUBSECTION 29.12: UPDATE STATS
          * ================================================================== */
         function updateStats() {
             document.getElementById('totalUsers').textContent = allUsers.length;
@@ -1129,7 +1125,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.13: PAGINATION
+         * SUBSECTION 29.13: PAGINATION
          * ================================================================== */
         function updatePaginationInfo() {
             const total = allUsers.length;
@@ -1153,7 +1149,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.14: TOGGLE USER STATUS
+         * SUBSECTION 29.14: TOGGLE USER STATUS
          * ================================================================== */
         window.toggleUserStatus = async function(userId) {
             const user = allUsers.find(u => u.id === userId);
@@ -1183,7 +1179,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.15: EDIT USER
+         * SUBSECTION 29.15: EDIT USER
          * ================================================================== */
         window.editUser = async function(userId) {
             const modal = document.getElementById('editUserModal');
@@ -1264,7 +1260,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.16: VIEW USER DETAILS
+         * SUBSECTION 29.16: VIEW USER DETAILS
          * ================================================================== */
         window.viewUserDetails = function(userId) {
             const user = allUsers.find(u => u.id === userId);
@@ -1311,7 +1307,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.17: PRINT USER DETAILS
+         * SUBSECTION 29.17: PRINT USER DETAILS
          * ================================================================== */
         window.printUserDetails = function() {
             const content = document.getElementById('userDetailsContent')?.innerHTML;
@@ -1333,7 +1329,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.18: EXPORT USERS TO CSV
+         * SUBSECTION 29.18: EXPORT USERS TO CSV
          * ================================================================== */
         window.exportUsersToCSV = function() {
             if (!allUsers || allUsers.length === 0) {
@@ -1356,7 +1352,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.19: CREATE USER SUBMISSION
+         * SUBSECTION 29.19: CREATE USER SUBMISSION
          * ================================================================== */
         document.getElementById('userCreateForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1413,7 +1409,7 @@
 
         /**
          * ==================================================================
-         * SECTION 29.20: PAGE INITIALIZATION
+         * SUBSECTION 29.20: PAGE INITIALIZATION
          * ================================================================== */
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Initializing users page...');
