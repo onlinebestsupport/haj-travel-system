@@ -399,16 +399,6 @@
         .loading i { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .retry-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        
         @media (max-width: 768px) {
             .action-buttons { flex-direction: column; }
             .filter-section { flex-direction: column; }
@@ -759,8 +749,6 @@
         let allUsers = [];
         let currentPage = 1;
         let itemsPerPage = 10;
-        let sessionCheckInProgress = false; // FIXED: Declared once
-        let sessionValid = false;
 
         // ==================== SESSION MANAGEMENT ====================
         async function checkSessionAndLoad() {
@@ -1124,7 +1112,6 @@
         window.hideAddUserForm = function() {
             document.getElementById('addUserForm').style.display = 'none';
             document.getElementById('userCreateForm').reset();
-            updatePermissionsCount();
         };
 
         // ==================== PERMISSIONS ====================
