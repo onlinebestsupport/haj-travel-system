@@ -198,9 +198,9 @@ def update_user(user_id):
                 update_fields.append("email = %s")
                 values.append(data['email'])
             
-            if 'full_name' in data:
-                update_fields.append("full_name = %s")
-                values.append(data['full_name'])
+            if 'name' in data:
+                update_fields.append("name = %s")
+                values.append(data['name'])
             
             if 'phone' in data:
                 update_fields.append("phone = %s")
