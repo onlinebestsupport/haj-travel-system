@@ -27,13 +27,33 @@ def get_users():
         conn, cursor = get_db()
         try:
             print("🔵 Executing SQL query...", file=sys.stderr)
-            cursor.execute('SELECT id, username, name, email, role, is_active, last_login, created_at FROM users ORDER BY created_at DESC')
+            # Use the correct column names from your database
+            cursor.execute('''
+                SELECT id, username, name, email, role, is_active, last_login, created_at 
+                FROM users ORDER BY created_at DESC
+            ''')
             users = cursor.fetchall()
             print(f"🔵 Found {len(users)} users", file=sys.stderr)
             
-            result = {'success': True, 'users': [dict(u) for u in users]}
-            print(f"🔵 Returning result: {result}", file=sys.stderr)
+            # Convert rows to dictionaries
+            user_list = []
+            for user in users:
+                user_dict = {
+                    'id': user[0],
+                    'username': user[1],
+                    'full_name': user[2],  # 'name' column maps to 'full_name' in API
+                    'email': user[3],
+                    'role': user[4],
+                    'is_active': user[5],
+                    'last_login': user[6],
+                    'created_at': user[7]
+                }
+                user_list.append(user_dict)
+            
+            result = {'success': True, 'users': user_list}
+            print(f"🔵 Returning {len(user_list)} users", file=sys.stderr)
             return jsonify(result)
+            
         except Exception as e:
             print(f"🔴 Database error: {str(e)}", file=sys.stderr)
             print(f"🔴 Traceback: {traceback.format_exc()}", file=sys.stderr)
