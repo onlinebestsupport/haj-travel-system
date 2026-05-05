@@ -1,5 +1,8 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db, release_db
+import psycopg2
+import os
+from dotenv import load_dotenv
+import traceback
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -13,55 +16,53 @@ def login():
         return jsonify({'success': False, 'error': 'Username and password required'}), 400
     
     try:
-        conn, cursor = get_db()
-        cursor.execute("SELECT id, username, password, role, name, email, is_active FROM users WHERE username = %s", (username,))
+        # Direct PostgreSQL connection
+        load_dotenv()
+        conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+        cursor = conn.cursor()
+        
+        # Simple query - no column aliases
+        cursor.execute("SELECT id, username, password, name, role, is_active FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
-        release_db(conn, cursor)
+        
+        cursor.close()
+        conn.close()
         
         if user:
-            # Convert to dictionary
-            user_dict = {
-                'id': user[0],
-                'username': user[1],
-                'password': user[2],
-                'role': user[3],
-                'name': user[4],
-                'email': user[5],
-                'is_active': user[6]
-            }
+            user_id, user_username, user_password, user_name, user_role, is_active = user
             
-            if user_dict['password'] == password and user_dict['is_active']:
+            if user_password == password and is_active:
                 session.clear()
                 session.permanent = True
-                session['user_id'] = user_dict['id']
-                session['username'] = user_dict['username']
-                session['role'] = user_dict['role']
-                session['name'] = user_dict['name']
+                session['user_id'] = user_id
+                session['username'] = user_username
+                session['name'] = user_name
+                session['role'] = user_role
+                
                 return jsonify({
                     'success': True,
                     'authenticated': True,
                     'user': {
-                        'id': user_dict['id'],
-                        'username': user_dict['username'],
-                        'name': user_dict['name'],
-                        'email': user_dict['email'],
-                        'role': user_dict['role']
+                        'id': user_id,
+                        'username': user_username,
+                        'name': user_name,
+                        'role': user_role
                     }
                 })
-        
-        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+            else:
+                return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+        else:
+            return jsonify({'success': False, 'error': 'User not found'}), 401
         
     except Exception as e:
         print(f"❌ Login error: {e}")
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @bp.route('/logout', methods=['POST'])
 def logout():
-    try:
-        session.clear()
-        return jsonify({'success': True, 'message': 'Logged out successfully'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+    session.clear()
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
 
 @bp.route('/check-session', methods=['GET'])
 def check_session():
