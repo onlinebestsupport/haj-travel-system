@@ -22,8 +22,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Import database
 from app.database import get_db, init_db, release_db
 
-# Import route blueprints
-from app.routes import auth, admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users, backup
+# Import route blueprints - USE SIMPLIFIED AUTH
+from app.routes import auth_fixed as auth
+from app.routes import admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users, backup
 
 # ====== FLASK APP INITIALIZATION ======
 app = Flask(__name__)
@@ -74,7 +75,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['SESSION_COOKIE_NAME'] = 'alhudha_session'
 app.config['SESSION_COOKIE_DOMAIN'] = None
 app.config['SESSION_COOKIE_PATH'] = '/'
-app.config['SESSION_COOKIE_SECURE'] = os.getenv('RAILWAY_ENVIRONMENT') == 'production'  # ✅ FIXED: Set to True for HTTPS
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_PERMANENT'] = True

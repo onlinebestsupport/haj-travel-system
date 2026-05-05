@@ -87,3 +87,15 @@ result.txt
 debug_users.html
 .gitignore.bak
 *.bak.*
+# Test and debug scripts
+check_*.py
+test_*.py
+verify_*.py
+debug_*.py
+reinit_db.py
+fix_password.py
+notepad
+
+# Test output files
+cookies.txt
+new-cookies.txt
