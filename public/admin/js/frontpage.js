@@ -1,0 +1,364 @@
+/**
+ * frontpage.js - Front Page Editor for Alhudha Haj Travel Admin
+ * Depends on: common.js, session-manager.js
+ * API base: /api/company/settings  (frontpage settings stored in company_settings)
+ */
+
+'use strict';
+
+// ── State ────────────────────────────────────────────────────
+let frontpageSettings = {};
+let packages = [];
+let features = [];
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    SessionManager.initPage(async () => {
+        await loadFrontpageSettings();
+        initPreviewListeners();
+    });
+});
+
+function initPreviewListeners() {
+    // Auto-update preview on input changes
+    const inputs = document.querySelectorAll('.frontpage-input, .preview-trigger');
+    inputs.forEach((el) => {
+        el.addEventListener('input', debounce(updatePreview, 500));
+        el.addEventListener('change', debounce(updatePreview, 500));
+    });
+}
+
+// ── Load & Save ───────────────────────────────────────────────
+
+/**
+ * Load frontpage settings from the API
+ */
+async function loadFrontpageSettings() {
+    showLoading('Loading settings…');
+    try {
+        const data = await makeAPICall('GET', '/api/company/settings');
+        hideLoading();
+        if (data.success && data.settings) {
+            frontpageSettings = data.settings;
+            populateFrontpageForm(data.settings);
+            updatePreview();
+        } else {
+            throw new Error(data.error || 'Failed to load settings');
+        }
+    } catch (error) {
+        hideLoading();
+        handleError(error, 'loadFrontpageSettings');
+    }
+}
+
+/**
+ * Populate the form fields with loaded settings
+ * @param {Object} settings
+ */
+function populateFrontpageForm(settings) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+    set('company_name',    settings.company_name);
+    set('company_address', settings.address);
+    set('company_phone',   settings.phone);
+    set('company_email',   settings.email);
+    set('company_website', settings.website);
+    set('footer_text',     settings.footer_text);
+    set('terms_conditions', settings.terms_conditions);
+
+    // Parse packages/features if stored as JSON
+    try {
+        packages = JSON.parse(settings.packages || '[]');
+    } catch (e) { packages = []; }
+    try {
+        features = JSON.parse(settings.features || '[]');
+    } catch (e) { features = []; }
+
+    renderPackagesList();
+    renderFeaturesList();
+}
+
+/**
+ * Save frontpage settings to the API
+ */
+async function saveFrontpageSettings() {
+    const getData = (id) => (document.getElementById(id)?.value || '').trim();
+
+    const settingsData = {
+        company_name:      getData('company_name'),
+        address:           getData('company_address'),
+        phone:             getData('company_phone'),
+        email:             getData('company_email'),
+        website:           getData('company_website'),
+        footer_text:       getData('footer_text'),
+        terms_conditions:  getData('terms_conditions'),
+        packages:          JSON.stringify(packages),
+        features:          JSON.stringify(features)
+    };
+
+    const btn  = document.getElementById('saveSettingsBtn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; btn.disabled = true; }
+
+    try {
+        const data = await makeAPICall('POST', '/api/company/settings', settingsData);
+        if (data.success) {
+            showNotification('Settings saved successfully!', 'success');
+            frontpageSettings = { ...frontpageSettings, ...settingsData };
+        } else {
+            throw new Error(data.error || 'Could not save settings');
+        }
+    } catch (error) {
+        handleError(error, 'saveFrontpageSettings');
+    } finally {
+        if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+    }
+}
+
+/**
+ * Publish changes to the live site
+ */
+async function publishChanges() {
+    if (!confirmAction('Publish these changes to the live site?')) return;
+
+    const btn  = document.getElementById('publishBtn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing…'; btn.disabled = true; }
+
+    try {
+        // Save first, then mark as published
+        await saveFrontpageSettings();
+        showNotification('Changes published to live site!', 'success');
+    } catch (error) {
+        handleError(error, 'publishChanges');
+    } finally {
+        if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+    }
+}
+
+/**
+ * Reload settings from the database (discard unsaved changes)
+ */
+async function loadSavedSettings() {
+    if (!confirmAction('Reload saved settings? Any unsaved changes will be lost.')) return;
+    await loadFrontpageSettings();
+    showNotification('Settings reloaded from database', 'info');
+}
+
+// ── Preview ───────────────────────────────────────────────────
+
+/**
+ * Update the preview iframe or preview panel
+ */
+function updatePreview() {
+    const previewFrame = document.getElementById('previewFrame');
+    if (previewFrame) {
+        // Reload the iframe to show latest saved state
+        try {
+            previewFrame.src = previewFrame.src;
+        } catch (e) { /* cross-origin */ }
+        return;
+    }
+
+    // Inline preview panel
+    const previewPanel = document.getElementById('previewPanel');
+    if (!previewPanel) return;
+
+    const name    = document.getElementById('company_name')?.value || 'Alhudha Haj Travel';
+    const address = document.getElementById('company_address')?.value || '';
+    const phone   = document.getElementById('company_phone')?.value || '';
+    const email   = document.getElementById('company_email')?.value || '';
+    const footer  = document.getElementById('footer_text')?.value || '';
+
+    previewPanel.innerHTML = `
+        <div style="font-family:'Segoe UI',sans-serif; padding:20px; background:#f5f7fa; border-radius:8px;">
+            <div style="background:linear-gradient(135deg,#2c3e50,#34495e); color:white; padding:20px; border-radius:8px; margin-bottom:15px;">
+                <h2 style="margin:0;">${escapeHtml(name)}</h2>
+                ${address ? `<p style="margin:5px 0; opacity:0.8;">${escapeHtml(address)}</p>` : ''}
+                <div style="display:flex; gap:20px; margin-top:10px; font-size:0.9rem;">
+                    ${phone ? `<span><i class="fas fa-phone"></i> ${escapeHtml(phone)}</span>` : ''}
+                    ${email ? `<span><i class="fas fa-envelope"></i> ${escapeHtml(email)}</span>` : ''}
+                </div>
+            </div>
+            ${packages.length > 0 ? `
+                <h3 style="color:#2c3e50; margin-bottom:10px;">Packages</h3>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:15px;">
+                    ${packages.map((p) => `<div style="background:white; padding:15px; border-radius:8px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                        <strong>${escapeHtml(p.name || '')}</strong>
+                        ${p.price ? `<p style="color:#27ae60; font-weight:bold;">${formatCurrency(p.price)}</p>` : ''}
+                    </div>`).join('')}
+                </div>` : ''}
+            ${footer ? `<div style="text-align:center; color:#7f8c8d; font-size:0.9rem; margin-top:15px;">${escapeHtml(footer)}</div>` : ''}
+        </div>`;
+}
+
+// ── Packages ──────────────────────────────────────────────────
+
+/**
+ * Add a new package item
+ */
+function addPackage() {
+    packages.push({ name: '', price: '', description: '', duration: '' });
+    renderPackagesList();
+}
+
+/**
+ * Remove a package by index
+ * @param {number} index
+ */
+function removePackage(index) {
+    packages.splice(index, 1);
+    renderPackagesList();
+    updatePreview();
+}
+
+function renderPackagesList() {
+    const container = document.getElementById('packagesList');
+    if (!container) return;
+
+    if (packages.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d; text-align:center; padding:20px;">No packages added yet. Click "Add Package" to start.</p>';
+        return;
+    }
+
+    container.innerHTML = packages.map((pkg, i) => `
+        <div style="background:white; padding:20px; border-radius:8px; margin-bottom:15px; border:1px solid #ecf0f1; position:relative;">
+            <button onclick="removePackage(${i})" style="position:absolute; top:10px; right:10px; background:#e74c3c; color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:1rem;" title="Remove">×</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Package Name</label>
+                    <input type="text" value="${escapeHtml(pkg.name || '')}" onchange="packages[${i}].name=this.value; updatePreview();"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="e.g. Haj Gold">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Price (₹)</label>
+                    <input type="number" value="${pkg.price || ''}" onchange="packages[${i}].price=this.value; updatePreview();"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="e.g. 250000">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Duration</label>
+                    <input type="text" value="${escapeHtml(pkg.duration || '')}" onchange="packages[${i}].duration=this.value;"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="e.g. 30 days">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Description</label>
+                    <input type="text" value="${escapeHtml(pkg.description || '')}" onchange="packages[${i}].description=this.value;"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="Short description">
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+// ── Features ──────────────────────────────────────────────────
+
+/**
+ * Add a new feature item
+ */
+function addFeature() {
+    features.push({ title: '', description: '', icon: 'fa-star' });
+    renderFeaturesList();
+}
+
+/**
+ * Remove a feature by index
+ * @param {number} index
+ */
+function removeFeature(index) {
+    features.splice(index, 1);
+    renderFeaturesList();
+}
+
+function renderFeaturesList() {
+    const container = document.getElementById('featuresList');
+    if (!container) return;
+
+    if (features.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d; text-align:center; padding:20px;">No features added yet. Click "Add Feature" to start.</p>';
+        return;
+    }
+
+    container.innerHTML = features.map((feat, i) => `
+        <div style="background:white; padding:15px; border-radius:8px; margin-bottom:10px; border:1px solid #ecf0f1; display:flex; gap:15px; align-items:flex-start;">
+            <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <label style="display:block; margin-bottom:4px; font-weight:600; font-size:0.9rem;">Title</label>
+                    <input type="text" value="${escapeHtml(feat.title || '')}" onchange="features[${i}].title=this.value;"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="Feature title">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:4px; font-weight:600; font-size:0.9rem;">Icon (FA class)</label>
+                    <input type="text" value="${escapeHtml(feat.icon || 'fa-star')}" onchange="features[${i}].icon=this.value;"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="fa-star">
+                </div>
+                <div style="grid-column:1/-1;">
+                    <label style="display:block; margin-bottom:4px; font-weight:600; font-size:0.9rem;">Description</label>
+                    <input type="text" value="${escapeHtml(feat.description || '')}" onchange="features[${i}].description=this.value;"
+                        style="width:100%; padding:8px; border:2px solid #ecf0f1; border-radius:5px;" placeholder="Short description">
+                </div>
+            </div>
+            <button onclick="removeFeature(${i})" style="background:#e74c3c; color:white; border:none; border-radius:5px; padding:8px 12px; cursor:pointer;" title="Remove">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>`).join('');
+}
+
+// ── Logo Upload ───────────────────────────────────────────────
+
+/**
+ * Handle logo file upload
+ */
+async function uploadLogo() {
+    const fileInput = document.getElementById('logoFile') || document.getElementById('logo_upload');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        showNotification('Please select a logo file first', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+        showNotification('Invalid file type. Allowed: PNG, JPG, SVG, GIF', 'error');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    const btn  = document.getElementById('uploadLogoBtn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading…'; btn.disabled = true; }
+
+    try {
+        const response = await fetch('/api/company/logo', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Logo uploaded successfully!', 'success');
+            const preview = document.getElementById('logoPreview');
+            if (preview) { preview.src = data.logo_url; preview.style.display = 'block'; }
+        } else {
+            throw new Error(data.error || 'Could not upload logo');
+        }
+    } catch (error) {
+        handleError(error, 'uploadLogo');
+    } finally {
+        if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+    }
+}
+
+// Expose globals
+window.loadFrontpageSettings = loadFrontpageSettings;
+window.saveFrontpageSettings = saveFrontpageSettings;
+window.publishChanges        = publishChanges;
+window.loadSavedSettings     = loadSavedSettings;
+window.updatePreview         = updatePreview;
+window.addPackage            = addPackage;
+window.removePackage         = removePackage;
+window.addFeature            = addFeature;
+window.removeFeature         = removeFeature;
+window.uploadLogo            = uploadLogo;
+
+console.log('✅ frontpage.js loaded');
