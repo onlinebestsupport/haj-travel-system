@@ -571,7 +571,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 26: ADD PAYMENT FORM
+        MAIN SECTION 26: ADD PAYMENT FORM - SEARCH SECTION
         ================================================================== -->
         <div class="form-container" id="addPaymentForm">
             <h3><i class="fas fa-credit-card"></i> Record New Payment</h3>
@@ -646,6 +646,9 @@
                     </div>
                 </div>
 
+                <!-- ======================================================
+                SUBSECTION 26.2.2: PAYMENT FORM FIELDS
+                ====================================================== -->
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="installment"><i class="fas fa-tag"></i> Installment Type *</label>
@@ -702,7 +705,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 26.2.2: PAYMENT SUMMARY
+                SUBSECTION 26.2.3: PAYMENT SUMMARY
                 ====================================================== -->
                 <div class="payment-summary">
                     <h4 style="margin-bottom: 15px;">Payment Summary</h4>
@@ -1072,6 +1075,10 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 34.9.1: LOAD TRAVELER DETAILS (FIXED VERSION)
+         * ================================================================== */
         async function loadTravelerDetails(traveler) {
             const batch = batchesData.find(b => b.id == traveler.batch_id);
             let payments = [];
@@ -1083,13 +1090,25 @@
                 console.error('Error loading payments:', error);
             }
 
+            // FIX: Convert strings to numbers before adding
             const totalPaid = payments
                 .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + p.amount, 0);
-            const packagePrice = batch ? (batch.price || 0) : 0;
+                .reduce((sum, p) => {
+                    const amount = parseFloat(p.amount) || 0;
+                    return sum + amount;
+                }, 0);
+
+            const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
             const balance = packagePrice - totalPaid;
 
-            currentTravelerData = { ...traveler, batch: batch, payments: payments, totalPaid: totalPaid, packagePrice: packagePrice, balance: balance };
+            currentTravelerData = {
+                ...traveler,
+                batch: batch,
+                payments: payments,
+                totalPaid: totalPaid,
+                packagePrice: packagePrice,
+                balance: balance
+            };
 
             document.getElementById('payment_traveler_id').value = traveler.id;
             document.getElementById('payment_traveler_name').value = `${traveler.first_name} ${traveler.last_name}`;
@@ -1097,13 +1116,13 @@
             document.getElementById('display_traveler_name').textContent = `${traveler.first_name} ${traveler.last_name}`;
             document.getElementById('display_passport').textContent = traveler.passport_no || '-';
             document.getElementById('display_batch_name').textContent = batch ? batch.batch_name : 'Not Assigned';
-            document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString();
-            document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString()}`;
-            document.getElementById('display_balance').innerHTML = `₹${Math.max(0, balance).toLocaleString()}`;
+            document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('display_balance').innerHTML = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
             document.getElementById('display_balance').className = balance <= 0 ? 'value positive' : 'value negative';
 
-            document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString()}`;
-            document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString()}`;
+            document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
             updateSummary();
 
             document.getElementById('paymentSearchSection').style.display = 'none';
@@ -1112,18 +1131,30 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 34.10: PAYMENT SUMMARY UPDATE
+         * SUBSECTION 34.10: PAYMENT SUMMARY UPDATE (FIXED VERSION)
          * ================================================================== */
         function updateSummary() {
             const amountText = document.getElementById('amount').value.replace(/,/g, '');
             const amount = parseFloat(amountText) || 0;
-            const totalPaid = currentTravelerData?.totalPaid || 0;
-            const packagePrice = currentTravelerData?.packagePrice || 0;
+            const totalPaid = parseFloat(currentTravelerData?.totalPaid || 0);
+            const packagePrice = parseFloat(currentTravelerData?.packagePrice || 0);
 
-            document.getElementById('summary_new').innerHTML = `₹${amount.toLocaleString()}`;
+            document.getElementById('summary_new').innerHTML = `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
             const newBalance = packagePrice - (totalPaid + amount);
-            document.getElementById('summary_balance').innerHTML = `₹${Math.max(0, newBalance).toLocaleString()}`;
-            document.getElementById('summary_balance').style.color = newBalance < 0 ? '#e74c3c' : (newBalance === 0 ? '#27ae60' : '#f39c12');
+            document.getElementById('summary_balance').innerHTML = `₹${newBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+            // Color code the balance
+            const balanceElement = document.getElementById('summary_balance');
+            if (newBalance < 0) {
+                balanceElement.style.color = '#e74c3c';
+                balanceElement.innerHTML = `₹${Math.abs(newBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} (Overpaid)`;
+            } else if (newBalance === 0) {
+                balanceElement.style.color = '#27ae60';
+                balanceElement.innerHTML = '₹0.00 (Paid in Full)';
+            } else {
+                balanceElement.style.color = '#f39c12';
+            }
         }
 
         /**
