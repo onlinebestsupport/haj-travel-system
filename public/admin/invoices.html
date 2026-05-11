@@ -531,46 +531,49 @@
             });
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 27.10: LOAD TRAVELER BATCH (FIXED VERSION)
-         * ================================================================== */
-        async function loadTravelerBatch() {
-            const travelerId = document.getElementById('travelerId').value;
-            const batchNameField = document.getElementById('batchName');
-            const baseAmountField = document.getElementById('baseAmount');
+      /**
+ * ==================================================================
+ * SUBSECTION 27.10: LOAD TRAVELER BATCH (FIXED VERSION)
+ * ================================================================== */
+async function loadTravelerBatch() {
+    const travelerId = document.getElementById('travelerId').value;
+    const batchNameField = document.getElementById('batchName');
+    const baseAmountField = document.getElementById('baseAmount');
 
-            if (travelerId) {
-                const traveler = travelers.find(t => t.id == travelerId);
-                if (traveler && traveler.batch_id) {
-                    // Fetch batch details including amount
-                    const batchResponse = await fetchAPI(`/api/invoices/batch/${traveler.batch_id}`);
-                    if (batchResponse && batchResponse.ok) {
-                        const batchData = await batchResponse.json();
-                        if (batchData.success && batchData.batch) {
-                            batchNameField.value = batchData.batch.batch_name || '';
-                            baseAmountField.value = batchData.batch.amount || 0;
-                        } else {
-                            // Fallback to local batches array
-                            const batch = batches.find(b => b.id === traveler.batch_id);
-                            batchNameField.value = batch?.batch_name || 'Batch found';
-                            baseAmountField.value = batch?.amount || 0;
-                        }
-                    } else {
-                        const batch = batches.find(b => b.id === traveler.batch_id);
-                        batchNameField.value = batch?.batch_name || 'Batch found';
-                        baseAmountField.value = batch?.amount || 0;
-                    }
+    if (travelerId) {
+        const traveler = travelers.find(t => t.id == travelerId);
+        if (traveler && traveler.batch_id) {
+            // Fetch batch details including amount
+            const batchResponse = await fetchAPI(`/api/batches/${traveler.batch_id}`);
+            if (batchResponse && batchResponse.ok) {
+                const batchData = await batchResponse.json();
+                if (batchData.success && batchData.batch) {
+                    batchNameField.value = batchData.batch.batch_name || '';
+                    // Use 'price' instead of 'amount'
+                    baseAmountField.value = batchData.batch.price || 0;
                 } else {
-                    batchNameField.value = 'No batch assigned';
-                    baseAmountField.value = 0;
+                    // Fallback to local batches array
+                    const batch = batches.find(b => b.id === traveler.batch_id);
+                    batchNameField.value = batch?.batch_name || 'Batch found';
+                    // Use 'price' instead of 'amount'
+                    baseAmountField.value = batch?.price || 0;
                 }
             } else {
-                batchNameField.value = '';
-                baseAmountField.value = 0;
+                const batch = batches.find(b => b.id === traveler.batch_id);
+                batchNameField.value = batch?.batch_name || 'Batch found';
+                // Use 'price' instead of 'amount'
+                baseAmountField.value = batch?.price || 0;
             }
-            calculateTotal();
+        } else {
+            batchNameField.value = 'No batch assigned';
+            baseAmountField.value = 0;
         }
+    } else {
+        batchNameField.value = '';
+        baseAmountField.value = 0;
+    }
+    calculateTotal();
+}
 
         /**
          * ==================================================================
