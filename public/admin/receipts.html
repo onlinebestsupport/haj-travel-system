@@ -505,77 +505,83 @@
             }
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 23.11: LOAD TRAVELER RECEIPT DETAILS
-         * ================================================================== */
-        async function loadTravelerReceiptDetails() {
-            const select = document.getElementById('receiptTravelerSelect');
-            const opt = select.options[select.selectedIndex];
-            
-            if (opt.value) {
-                // Load traveler details
-                document.getElementById('receiptPassport').value = opt.getAttribute('data-passport') || '';
-                document.getElementById('receiptBatch').value = opt.getAttribute('data-batch') || '';
+       /**
+ * ==================================================================
+ * SUBSECTION 23.11: LOAD TRAVELER RECEIPT DETAILS (FIXED VERSION)
+ * ================================================================== */
+async function loadTravelerReceiptDetails() {
+    const select = document.getElementById('receiptTravelerSelect');
+    const opt = select.options[select.selectedIndex];
+    
+    if (opt.value) {
+        // Load traveler details
+        document.getElementById('receiptPassport').value = opt.getAttribute('data-passport') || '';
+        document.getElementById('receiptBatch').value = opt.getAttribute('data-batch') || '';
+        
+        // Load payments for this traveler
+        const travelerId = opt.value;
+        try {
+            const res = await fetch(`/api/payments/traveler/${travelerId}`, { credentials: 'include' });
+            const data = await res.json();
+            if (data.success && data.payments) {
+                // FIX: Convert strings to numbers before adding
+                const totalPaid = data.payments
+                    .filter(p => p.status === 'completed')
+                    .reduce((sum, p) => {
+                        const amount = parseFloat(p.amount) || 0;
+                        return sum + amount;
+                    }, 0);
                 
-                // Load payments for this traveler
-                const travelerId = opt.value;
-                try {
-                    const res = await fetch(`/api/payments/traveler/${travelerId}`, { credentials: 'include' });
-                    const data = await res.json();
-                    if (data.success && data.payments) {
-                        // Show the total amount paid by this traveler
-                        const totalPaid = data.payments
-                            .filter(p => p.status === 'completed')
-                            .reduce((sum, p) => sum + (p.amount || 0), 0);
-                        
-                        // Update the amount field with the total paid
-                        const amountField = document.getElementById('receiptAmount');
-                        amountField.value = totalPaid;
-                        
-                        // Also show the payments in a dropdown for selection
-                        // You can add a dropdown here if you want to select specific payment
-                        showNotification(`Traveler has paid ₹${totalPaid.toLocaleString('en-IN')}`, 'info');
-                    }
-                } catch (error) {
-                    console.error('Error loading payments:', error);
-                }
-            } else {
-                document.getElementById('receiptPassport').value = '';
-                document.getElementById('receiptBatch').value = '';
-                document.getElementById('receiptAmount').value = '';
+                // Update the amount field with the total paid
+                const amountField = document.getElementById('receiptAmount');
+                amountField.value = totalPaid;
+                
+                // Also show the payments in a dropdown for selection
+                showNotification(`Traveler has paid ₹${totalPaid.toLocaleString('en-IN')}`, 'info');
             }
+        } catch (error) {
+            console.error('Error loading payments:', error);
         }
+    } else {
+        document.getElementById('receiptPassport').value = '';
+        document.getElementById('receiptBatch').value = '';
+        document.getElementById('receiptAmount').value = '';
+    }
+}
 
-        /**
-         * ==================================================================
-         * SUBSECTION 23.12: AUTO-FILL AMOUNT FROM PAYMENTS
-         * ================================================================== */
-        async function autoFillPaymentAmount() {
-            const select = document.getElementById('receiptTravelerSelect');
-            const opt = select.options[select.selectedIndex];
+       /**
+ * ==================================================================
+ * SUBSECTION 23.12: AUTO-FILL AMOUNT FROM PAYMENTS (FIXED VERSION)
+ * ================================================================== */
+async function autoFillPaymentAmount() {
+    const select = document.getElementById('receiptTravelerSelect');
+    const opt = select.options[select.selectedIndex];
+    
+    if (!opt.value) {
+        showNotification('Please select a traveler first', 'error');
+        return;
+    }
+    
+    const travelerId = opt.value;
+    try {
+        const res = await fetch(`/api/payments/traveler/${travelerId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.success && data.payments) {
+            // FIX: Convert strings to numbers before adding
+            const totalPaid = data.payments
+                .filter(p => p.status === 'completed')
+                .reduce((sum, p) => {
+                    const amount = parseFloat(p.amount) || 0;
+                    return sum + amount;
+                }, 0);
             
-            if (!opt.value) {
-                showNotification('Please select a traveler first', 'error');
-                return;
-            }
-            
-            const travelerId = opt.value;
-            try {
-                const res = await fetch(`/api/payments/traveler/${travelerId}`, { credentials: 'include' });
-                const data = await res.json();
-                if (data.success && data.payments) {
-                    const totalPaid = data.payments
-                        .filter(p => p.status === 'completed')
-                        .reduce((sum, p) => sum + (p.amount || 0), 0);
-                    
-                    document.getElementById('receiptAmount').value = totalPaid;
-                    showNotification(`Auto-filled ₹${totalPaid.toLocaleString('en-IN')}`, 'success');
-                }
-            } catch (error) {
-                showNotification('Error loading payments', 'error');
-            }
+            document.getElementById('receiptAmount').value = totalPaid;
+            showNotification(`Auto-filled ₹${totalPaid.toLocaleString('en-IN')}`, 'success');
         }
+    } catch (error) {
+        showNotification('Error loading payments', 'error');
+    }
+}
 
         /**
          * ==================================================================
