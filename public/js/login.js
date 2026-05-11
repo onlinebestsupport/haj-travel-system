@@ -1,80 +1,137 @@
 /**
- * Login Handler - DEBUG VERSION
- * Console logs will confirm execution
+ * Login Handler - Production Version
+ * Secure authentication with proper error handling
  */
-
-console.log('🔥🔥🔥 LOGIN.JS IS EXECUTING! 🔥🔥🔥');
-
-// Immediate execution test
-window.loginJSLoaded = true;
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ DOM loaded - login.js running');
-    
-    // Make function globally available
-    window.testLoginFunction = function() {
-        console.log('✅ testLoginFunction called');
-        return true;
-    };
-    
     initLoginForm();
     checkExistingSession();
 });
 
 function initLoginForm() {
-    console.log('🔧 initLoginForm called');
-    
     const loginForm = document.getElementById('loginForm');
-    console.log('📋 Login form element:', loginForm);
     
     if (!loginForm) {
-        console.error('❌ Login form not found!');
+        console.error('Login form element not found');
         return;
     }
     
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('📤 Form submitted');
         
-        const username = document.getElementById('username')?.value;
+        const username = document.getElementById('username')?.value?.trim();
         const password = document.getElementById('password')?.value;
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
         
-        console.log('👤 Username:', username);
-        console.log('🔑 Password length:', password?.length);
-        
+        // Validate inputs
         if (!username || !password) {
-            alert('Please enter username and password');
+            showError('Please enter username and password');
             return;
         }
         
+        if (password.length < 3) {
+            showError('Invalid password');
+            return;
+        }
+        
+        // Disable button and show loading state
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        }
+        
         try {
-            console.log('📡 Sending login request...');
-            
             const response = await fetch('/api/login', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password})
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({username, password}),
+                credentials: 'include' // Include cookies for session
             });
             
-            console.log('📡 Response status:', response.status);
             const data = await response.json();
-            console.log('📡 Response data:', data);
             
-            if (data.success) {
-                alert('Login successful! Redirecting...');
-                window.location.href = '/admin/';
+            if (data.success && response.ok) {
+                showSuccess('Login successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/admin/';
+                }, 1000);
             } else {
-                alert('Login failed: ' + (data.error || 'Invalid credentials'));
+                const errorMsg = data.error || 'Invalid credentials';
+                showError('Login failed: ' + errorMsg);
+                
+                // Reset form
+                loginForm.reset();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Login';
+                }
             }
         } catch (error) {
-            console.error('❌ Error:', error);
-            alert('Error: ' + error.message);
+            showError('Network error: ' + error.message);
+            console.error('Login error:', error);
+            
+            // Reset form
+            loginForm.reset();
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Login';
+            }
         }
     });
 }
 
 function checkExistingSession() {
-    console.log('🔍 checkExistingSession called');
-    // Simplified for debugging
+    // Check if user is already logged in
+    fetch('/api/check-session', {
+        method: 'GET',
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.authenticated) {
+            // User already logged in, redirect to admin
+            window.location.href = '/admin/';
+        }
+    })
+    .catch(error => console.error('Session check error:', error));
+}
+
+function showError(message) {
+    const alertDiv = document.getElementById('loginAlert') || createAlert();
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.innerHTML = `
+        <strong>Error!</strong> ${escapeHtml(message)}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertDiv.style.display = 'block';
+}
+
+function showSuccess(message) {
+    const alertDiv = document.getElementById('loginAlert') || createAlert();
+    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+    alertDiv.innerHTML = `
+        <strong>Success!</strong> ${escapeHtml(message)}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertDiv.style.display = 'block';
+}
+
+function createAlert() {
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'loginAlert';
+    alertDiv.style.marginBottom = '20px';
+    const loginContainer = document.querySelector('.login-container');
+    if (loginContainer) {
+        loginContainer.insertBefore(alertDiv, loginContainer.firstChild);
+    }
+    return alertDiv;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

@@ -3,37 +3,28 @@ from app.database import get_db, release_db
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 import traceback
-import sys
+import logging
 
-print("🔵 LOADING users.py BLUEPRINT...", file=sys.stderr)
+# Setup logger - better than print statements
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('users', __name__, url_prefix='/api/users')
 
-print(f"🔵 Blueprint 'users' created with url_prefix: /api/users", file=sys.stderr)
-
 @bp.route('', methods=['GET'])
 def get_users():
-    """Get all users"""
-    print("🔵 get_users() called", file=sys.stderr)
-    print(f"🔵 Session: {dict(session)}", file=sys.stderr)
-    
+    """Get all users - Admin only"""
     try:
         if 'user_id' not in session:
-            print("🔴 Unauthorized - no user_id in session", file=sys.stderr)
             return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-        print(f"🔵 User authenticated: {session['user_id']}", file=sys.stderr)
-        
         conn, cursor = get_db()
         try:
-            print("🔵 Executing SQL query...", file=sys.stderr)
             # Use the correct column names from your database
             cursor.execute('''
                 SELECT id, username, name, email, role, is_active, last_login, created_at 
                 FROM users ORDER BY created_at DESC
             ''')
             users = cursor.fetchall()
-            print(f"🔵 Found {len(users)} users", file=sys.stderr)
             
             # Convert rows to dictionaries
             user_list = []
@@ -41,29 +32,86 @@ def get_users():
                 user_dict = {
                     'id': user[0],
                     'username': user[1],
-                    'full_name': user[2],  # 'name' column maps to 'full_name' in API
+                    'full_name': user[2],
                     'email': user[3],
                     'role': user[4],
                     'is_active': user[5],
                     'last_login': user[6],
-                    'created_at': user[7]
+                    'created_at': str(user[7]) if user[7] else None
                 }
                 user_list.append(user_dict)
             
             result = {'success': True, 'users': user_list}
-            print(f"🔵 Returning {len(user_list)} users", file=sys.stderr)
             return jsonify(result)
             
         except Exception as e:
-            print(f"🔴 Database error: {str(e)}", file=sys.stderr)
-            print(f"🔴 Traceback: {traceback.format_exc()}", file=sys.stderr)
-            return jsonify({'success': False, 'error': str(e)}), 500
+            logger.error(f"Database error: {str(e)}")
+            logger.error(traceback.format_exc())
+            return jsonify({'success': False, 'error': 'Database error'}), 500
         finally:
             release_db(conn, cursor)
             
     except Exception as e:
-        print(f"🔴 Unexpected error: {str(e)}", file=sys.stderr)
-        print(f"🔴 Traceback: {traceback.format_exc()}", file=sys.stderr)
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"Unexpected error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'success': False, 'error': 'Server error'}), 500
 
-print("🔵 users.py blueprint loaded successfully!", file=sys.stderr)
+
+@bp.route('', methods=['POST'])
+def create_user():
+    """Create a new user with hashed password"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    
+    # Validate required fields
+    required_fields = ['username', 'password', 'name', 'email', 'role']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'success': False, 'error': f'{field} is required'}), 400
+    
+    try:
+        conn, cursor = get_db()
+        
+        # Check if user already exists
+        cursor.execute('SELECT id FROM users WHERE username = %s', (data['username'],))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Username already exists'}), 400
+        
+        # Hash the password
+        password_hash = generate_password_hash(data['password'])
+        
+        # Insert new user
+        cursor.execute('''
+            INSERT INTO users (username, password, name, email, role, is_active, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        ''', (
+            data['username'],
+            password_hash,
+            data['name'],
+            data['email'],
+            data['role'],
+            True,
+            datetime.now()
+        ))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        
+        logger.info(f"User {data['username']} created by {session.get('username')}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'User created successfully',
+            'user_id': result[0] if result else None
+        })
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        logger.error(f"Error creating user: {str(e)}")
+        return jsonify({'success': False, 'error': 'Error creating user'}), 500
+    finally:
+        release_db(conn, cursor)
