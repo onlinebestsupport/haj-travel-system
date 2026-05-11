@@ -855,8 +855,9 @@
                 }
 
                 const roleBadge = document.getElementById('roleBadge');
-                if (roleBadge && data.user) {
-                    roleBadge.textContent = data.user.role.toUpperCase();
+                if (roleBadge) {
+                    const role = (data.user && data.user.role) || data.role;
+                    if (role) roleBadge.textContent = role.toUpperCase();
                 }
                 return true;
             } catch (error) {
@@ -995,7 +996,7 @@
             const statusFilter = document.getElementById('statusFilter').value;
             const filtered = allUsers.filter(user => {
                 const matchesSearch = user.username.toLowerCase().includes(search) ||
-                    (user.full_name && user.full_name.toLowerCase().includes(search)) ||
+                    (user.name && user.name.toLowerCase().includes(search)) ||
                     user.email.toLowerCase().includes(search);
                 const matchesRole = roleFilter === 'all' || user.role === roleFilter;
                 const matchesStatus = statusFilter === 'all' ||
@@ -1085,7 +1086,7 @@
                 html += `<tr>
                     <td>${user.id}</td>
                     <td><strong>${escapeHtml(user.username)}</strong></td>
-                    <td>${escapeHtml(user.full_name || '-')}</td>
+                    <td>${escapeHtml(user.name || '-')}</td>
                     <td>${escapeHtml(user.email)}</td>
                     <td><span class="role-badge role-${user.role}">${escapeHtml(user.role)}</span></td>
                     <td>${permCount}</td>
@@ -1199,7 +1200,7 @@
                     document.getElementById('edit_user_id').value = user.id;
                     document.getElementById('edit_username').value = user.username || '';
                     document.getElementById('edit_email').value = user.email || '';
-                    document.getElementById('edit_fullname').value = user.full_name || '';
+                    document.getElementById('edit_fullname').value = user.name || '';
                     document.getElementById('edit_phone').value = user.phone || '';
                     document.getElementById('edit_department').value = user.department || '';
                     document.getElementById('edit_role').value = user.role || 'viewer';
@@ -1221,7 +1222,7 @@
             const userId = document.getElementById('edit_user_id').value;
             const userData = {
                 email: document.getElementById('edit_email').value.trim(),
-                full_name: document.getElementById('edit_fullname').value.trim() || null,
+                name: document.getElementById('edit_fullname').value.trim() || null,
                 phone: document.getElementById('edit_phone').value.trim() || null,
                 department: document.getElementById('edit_department').value.trim() || null,
                 role: document.getElementById('edit_role').value
@@ -1278,7 +1279,7 @@
             const details = `
                 <h3 style="margin-bottom: 20px;">${escapeHtml(user.username)}</h3>
                 <p><strong>Email:</strong> ${escapeHtml(user.email)}</p>
-                <p><strong>Full Name:</strong> ${escapeHtml(user.full_name || '-')}</p>
+                <p><strong>Full Name:</strong> ${escapeHtml(user.name || '-')}</p>
                 <p><strong>Role:</strong> ${escapeHtml(user.role)}</p>
                 <p><strong>Department:</strong> ${escapeHtml(user.department || '-')}</p>
                 <p><strong>Status:</strong> ${user.is_active ? 'Active' : 'Inactive'}</p>
@@ -1338,7 +1339,7 @@
             }
             let csv = ['"ID","Username","Full Name","Email","Role","Department","Status","Last Login","Created"'];
             allUsers.forEach(user => {
-                csv.push(`"${user.id}","${user.username}","${user.full_name || ''}","${user.email}","${user.role}","${user.department || ''}","${user.is_active ? 'Active' : 'Inactive'}","${user.last_login || ''}","${user.created_at || ''}"`);
+                csv.push(`"${user.id}","${user.username}","${user.name || ''}","${user.email}","${user.role}","${user.department || ''}","${user.is_active ? 'Active' : 'Inactive'}","${user.last_login || ''}","${user.created_at || ''}"`);
             });
             const csvContent = csv.join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -1364,7 +1365,7 @@
                 username: document.getElementById('username').value.trim(),
                 password: document.getElementById('password').value,
                 email: document.getElementById('email').value.trim(),
-                full_name: document.getElementById('fullname').value.trim() || null,
+                name: document.getElementById('fullname').value.trim() || null,
                 phone: document.getElementById('phone').value.trim() || null,
                 department: document.getElementById('department').value.trim() || null,
                 role: document.getElementById('role').value,
