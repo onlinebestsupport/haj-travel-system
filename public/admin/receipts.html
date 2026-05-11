@@ -7,15 +7,16 @@
     <link rel="stylesheet" href="/admin/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* [Keep all your existing styles - they are fine] */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        /* ==================================================================
+           MAIN SECTION 1: RESET AND BASE STYLES
+           ================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f5f7fa; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+        /* ==================================================================
+           MAIN SECTION 2: ADMIN HEADER STYLES
+           ================================================================== */
         .admin-header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
@@ -32,9 +33,17 @@
         .role-badge { background: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
         .logout-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
+
+        /* ==================================================================
+           MAIN SECTION 3: PAGE HEADER STYLES
+           ================================================================== */
         .page-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 20px; }
         .page-header h2 { color: #2c3e50; font-size: 1.8rem; }
         .page-header h2 i { color: #f1c40f; margin-right: 10px; }
+
+        /* ==================================================================
+           MAIN SECTION 4: ACTION BUTTON STYLES
+           ================================================================== */
         .action-btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s; text-decoration: none; }
         .btn-primary { background: #3498db; color: white; }
         .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
@@ -42,13 +51,29 @@
         .btn-success:hover { background: #219a52; transform: translateY(-2px); }
         .btn-secondary { background: #95a5a6; color: white; }
         .btn-secondary:hover { background: #7f8c8d; }
+        .btn-info { background: #00bcd4; color: white; }
+        .btn-info:hover { background: #00a5bb; transform: translateY(-2px); }
+
+        /* ==================================================================
+           MAIN SECTION 5: STATS GRID STYLES
+           ================================================================== */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; border-left: 4px solid #3498db; }
         .stat-card i { font-size: 2rem; color: #f1c40f; margin-bottom: 10px; }
         .stat-card h3 { font-size: 1rem; color: #7f8c8d; margin-bottom: 5px; }
         .stat-number { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
+
+        /* ==================================================================
+           MAIN SECTION 6: SEARCH AND FILTER STYLES
+           ================================================================== */
         .receipt-search { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .receipt-search input, .receipt-search select { padding: 10px; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 1rem; flex: 1; min-width: 200px; }
+        .date-range { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .date-range input { width: auto; min-width: 150px; }
+
+        /* ==================================================================
+           MAIN SECTION 7: RECEIPT CARD STYLES
+           ================================================================== */
         .receipt-card { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; border-left: 4px solid #3498db; }
         .receipt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .receipt-number { font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
@@ -56,6 +81,10 @@
         .receipt-actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ecf0f1; flex-wrap: wrap; }
         .btn-view { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .btn-print-receipt { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        /* ==================================================================
+           MAIN SECTION 8: CREATE RECEIPT FORM STYLES
+           ================================================================== */
         .create-receipt-form { background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 30px; display: none; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
@@ -63,6 +92,11 @@
         .form-group label i { margin-right: 8px; color: #f1c40f; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #ecf0f1; border-radius: 5px; font-size: 1rem; }
         .form-group input:focus, .form-group select:focus { border-color: #3498db; outline: none; }
+        .form-group input[readonly] { background: #e9ecef; cursor: not-allowed; }
+
+        /* ==================================================================
+           MAIN SECTION 9: MODAL STYLES
+           ================================================================== */
         .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; }
         .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1; }
@@ -70,14 +104,25 @@
         .close { font-size: 2rem; cursor: pointer; color: #7f8c8d; }
         .close:hover { color: #e74c3c; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
+
+        /* ==================================================================
+           MAIN SECTION 10: NOTIFICATION STYLES
+           ================================================================== */
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; z-index: 9999; display: none; animation: slideIn 0.3s ease; }
         .notification-success { background: #27ae60; }
         .notification-error { background: #e74c3c; }
         .notification-info { background: #3498db; }
+
+        /* ==================================================================
+           MAIN SECTION 11: PAGINATION STYLES
+           ================================================================== */
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 20px; }
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
         .loading i { animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ==================================================================
+           MAIN SECTION 12: RESPONSIVE DESIGN STYLES
+           ================================================================== */
         @media (max-width: 768px) { .receipt-search { flex-direction: column; } .receipt-header { flex-direction: column; align-items: flex-start; } .receipt-actions { flex-wrap: wrap; } }
     </style>
     <script src="/admin/js/session-manager.js"></script>
@@ -86,6 +131,10 @@
     <script src="/admin/js/receipts.js"></script>
 </head>
 <body>
+
+    <!-- ==================================================================
+    MAIN SECTION 13: HEADER HTML
+    ================================================================== -->
     <div class="admin-header">
         <div class="container">
             <div class="header-content">
@@ -106,7 +155,14 @@
         </div>
     </div>
 
+    <!-- ==================================================================
+    MAIN SECTION 14: MAIN CONTAINER
+    ================================================================== -->
     <div class="container">
+
+        <!-- ==================================================================
+        MAIN SECTION 15: PAGE HEADER
+        ================================================================== -->
         <div class="page-header">
             <h2><i class="fas fa-receipt"></i> Receipt Management</h2>
             <div>
@@ -119,10 +175,15 @@
             </div>
         </div>
 
-        <!-- Create New Receipt Form -->
+        <!-- ==================================================================
+        MAIN SECTION 16: CREATE RECEIPT FORM
+        ================================================================== -->
         <div id="createReceiptForm" class="create-receipt-form">
             <h3><i class="fas fa-plus-circle"></i> Create New Payment Receipt</h3>
             <form id="receiptCreateForm" onsubmit="event.preventDefault(); generateReceipt();">
+                <!-- ======================================================
+                SUBSECTION 16.1: TRAVELER SELECTION
+                ====================================================== -->
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Select Traveler *</label>
@@ -135,6 +196,10 @@
                         <input type="text" id="receiptPassport" readonly>
                     </div>
                 </div>
+
+                <!-- ======================================================
+                SUBSECTION 16.2: BATCH AND DATE
+                ====================================================== -->
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-layer-group"></i> Batch</label>
@@ -145,6 +210,10 @@
                         <input type="date" id="receiptDate" required>
                     </div>
                 </div>
+
+                <!-- ======================================================
+                SUBSECTION 16.3: PAYMENT DETAILS
+                ====================================================== -->
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-money-bill"></i> Payment Method *</label>
@@ -161,6 +230,10 @@
                         <input type="number" id="receiptAmount" required min="1" step="100">
                     </div>
                 </div>
+
+                <!-- ======================================================
+                SUBSECTION 16.4: TRANSACTION AND NOTES
+                ====================================================== -->
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-hashtag"></i> Transaction ID / Reference</label>
@@ -171,6 +244,7 @@
                         <textarea id="receiptRemarks" rows="2" placeholder="Any additional notes..."></textarea>
                     </div>
                 </div>
+
                 <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
                     <button type="submit" class="action-btn btn-success">
                         <i class="fas fa-save"></i> Generate Receipt
@@ -182,13 +256,17 @@
             </form>
         </div>
 
-        <!-- Receipt Statistics -->
+        <!-- ==================================================================
+        MAIN SECTION 17: RECEIPT STATISTICS
+        ================================================================== -->
         <div class="stats-grid">
             <div class="stat-card"><i class="fas fa-receipt"></i><h3>Total Receipts</h3><div class="stat-number" id="totalReceipts">0</div></div>
             <div class="stat-card"><i class="fas fa-rupee-sign"></i><h3>Total Amount</h3><div class="stat-number" id="totalReceiptAmount">₹0</div></div>
         </div>
 
-        <!-- Search and Filters -->
+        <!-- ==================================================================
+        MAIN SECTION 18: SEARCH AND FILTERS
+        ================================================================== -->
         <div class="receipt-search">
             <input type="text" id="searchReceipt" placeholder="Search by receipt #, traveler name, passport...">
             <div class="date-range">
@@ -200,17 +278,23 @@
             <button class="action-btn btn-secondary" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
         </div>
 
-        <!-- Receipts List Container -->
+        <!-- ==================================================================
+        MAIN SECTION 19: RECEIPTS LIST CONTAINER
+        ================================================================== -->
         <div id="receiptsListContainer"><div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading receipts...</div></div>
 
-        <!-- Pagination -->
+        <!-- ==================================================================
+        MAIN SECTION 20: PAGINATION
+        ================================================================== -->
         <div class="pagination">
             <div>Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalCount">0</span> receipts</div>
             <div><button class="action-btn btn-secondary" onclick="previousPage()">Previous</button><button class="action-btn btn-primary" onclick="nextPage()">Next</button></div>
         </div>
     </div>
 
-    <!-- Receipt View Modal -->
+    <!-- ==================================================================
+    MAIN SECTION 21: RECEIPT VIEW MODAL
+    ================================================================== -->
     <div id="receiptModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Receipt Details</h3><span class="close" onclick="closeModal()">&times;</span></div>
@@ -221,11 +305,29 @@
         </div>
     </div>
 
+    <!-- ==================================================================
+    MAIN SECTION 22: NOTIFICATION
+    ================================================================== -->
     <div id="notification" class="notification"></div>
 
+    <!-- ==================================================================
+    MAIN SECTION 23: JAVASCRIPT - GLOBAL VARIABLES AND UTILITIES
+    ================================================================== -->
     <script>
-        let allReceipts = [], filteredReceipts = [], currentPage = 1, itemsPerPage = 10;
+        /**
+         * ==================================================================
+         * SUBSECTION 23.1: GLOBAL VARIABLES
+         * ================================================================== */
+        let allReceipts = [];
+        let filteredReceipts = [];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let allTravelers = [];
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.2: SESSION MANAGEMENT
+         * ================================================================== */
         async function checkSession() {
             const res = await fetch('/api/check-session', { credentials: 'include' });
             const data = await res.json();
@@ -238,6 +340,10 @@
             window.location.href = '/admin.login.html';
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.3: NOTIFICATION FUNCTION
+         * ================================================================== */
         function showNotification(msg, type) {
             const n = document.getElementById('notification');
             n.className = `notification notification-${type}`;
@@ -246,6 +352,10 @@
             setTimeout(() => n.style.display = 'none', 3000);
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.4: LOAD RECEIPTS
+         * ================================================================== */
         async function loadReceipts() {
             const res = await fetch('/api/receipts', { credentials: 'include' });
             if (res.status === 401) { window.location.href = '/admin.login.html'; return; }
@@ -259,6 +369,10 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.5: LOAD RECEIPT STATS
+         * ================================================================== */
         async function loadReceiptStats() {
             const res = await fetch('/api/receipts/stats', { credentials: 'include' });
             const data = await res.json();
@@ -268,11 +382,21 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.6: DISPLAY RECEIPTS
+         * ================================================================== */
         function displayReceipts() {
             const container = document.getElementById('receiptsListContainer');
-            if (!filteredReceipts.length) { container.innerHTML = '<div style="text-align:center;padding:40px;">No receipts found</div>'; updatePaginationInfo(); return; }
+            if (!filteredReceipts.length) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;">No receipts found</div>';
+                updatePaginationInfo();
+                return;
+            }
+
             const start = (currentPage - 1) * itemsPerPage;
             const pageData = filteredReceipts.slice(start, start + itemsPerPage);
+
             let html = '';
             pageData.forEach(r => {
                 const date = r.receipt_date ? new Date(r.receipt_date).toLocaleDateString() : '-';
@@ -287,10 +411,15 @@
                     </div>
                 </div>`;
             });
+
             container.innerHTML = html;
             updatePaginationInfo();
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.7: UPDATE PAGINATION INFO
+         * ================================================================== */
         function updatePaginationInfo() {
             const total = filteredReceipts.length;
             const start = (currentPage - 1) * itemsPerPage + 1;
@@ -303,17 +432,30 @@
         function previousPage() { if (currentPage > 1) { currentPage--; displayReceipts(); } }
         function nextPage() { if (currentPage * itemsPerPage < filteredReceipts.length) { currentPage++; displayReceipts(); } }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.8: APPLY FILTERS
+         * ================================================================== */
         function applyFilters() {
             const search = document.getElementById('searchReceipt').value.toLowerCase();
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
+
             filteredReceipts = allReceipts.filter(r => {
                 let match = true;
-                if (search) match = match && ((r.receipt_number && r.receipt_number.toLowerCase().includes(search)) || (r.traveler_name && r.traveler_name.toLowerCase().includes(search)));
-                if (fromDate && r.receipt_date) match = match && new Date(r.receipt_date) >= new Date(fromDate);
-                if (toDate && r.receipt_date) match = match && new Date(r.receipt_date) <= new Date(toDate);
+                if (search) {
+                    match = match && ((r.receipt_number && r.receipt_number.toLowerCase().includes(search)) ||
+                        (r.traveler_name && r.traveler_name.toLowerCase().includes(search)));
+                }
+                if (fromDate && r.receipt_date) {
+                    match = match && new Date(r.receipt_date) >= new Date(fromDate);
+                }
+                if (toDate && r.receipt_date) {
+                    match = match && new Date(r.receipt_date) <= new Date(toDate);
+                }
                 return match;
             });
+
             currentPage = 1;
             displayReceipts();
             showNotification('Filters applied', 'success');
@@ -331,16 +473,25 @@
 
         function exportReceipts() { showNotification('Export feature coming soon', 'info'); }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.9: TOGGLE CREATE RECEIPT FORM
+         * ================================================================== */
         function toggleCreateReceiptForm() {
             const form = document.getElementById('createReceiptForm');
             form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
             if (form.style.display === 'block') loadTravelersForForm();
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.10: LOAD TRAVELERS FOR FORM
+         * ================================================================== */
         async function loadTravelersForForm() {
             const res = await fetch('/api/travelers', { credentials: 'include' });
             const data = await res.json();
             if (data.success && data.travelers) {
+                allTravelers = data.travelers;
                 const select = document.getElementById('receiptTravelerSelect');
                 select.innerHTML = '<option value="">-- Select Traveler --</option>';
                 data.travelers.forEach(t => {
@@ -351,6 +502,10 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.11: LOAD TRAVELER RECEIPT DETAILS
+         * ================================================================== */
         function loadTravelerReceiptDetails() {
             const select = document.getElementById('receiptTravelerSelect');
             const opt = select.options[select.selectedIndex];
@@ -363,12 +518,17 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.12: GENERATE RECEIPT
+         * ================================================================== */
         async function generateReceipt() {
             const travelerId = document.getElementById('receiptTravelerSelect').value;
             if (!travelerId) { showNotification('Please select a traveler', 'error'); return; }
+
             const amount = parseFloat(document.getElementById('receiptAmount').value);
             if (!amount || amount <= 0) { showNotification('Please enter a valid amount', 'error'); return; }
-            
+
             const receiptData = {
                 traveler_id: parseInt(travelerId),
                 amount: amount,
@@ -377,7 +537,7 @@
                 transaction_id: document.getElementById('receiptTransactionId').value || null,
                 notes: document.getElementById('receiptRemarks').value || null
             };
-            
+
             try {
                 const res = await fetch('/api/receipts', {
                     method: 'POST',
@@ -399,9 +559,14 @@
             }
         }
 
+        /**
+         * ==================================================================
+         * SUBSECTION 23.13: VIEW RECEIPT
+         * ================================================================== */
         async function viewReceipt(id) {
             const receipt = allReceipts.find(r => r.id === id);
             if (!receipt) { showNotification('Receipt not found', 'error'); return; }
+
             document.getElementById('receiptDetails').innerHTML = `
                 <div style="padding:20px">
                     <p><strong>Receipt #:</strong> ${receipt.receipt_number || 'REC-' + receipt.id}</p>
@@ -418,8 +583,19 @@
         function printReceipt(id) { showNotification(`Print receipt ${id}`, 'info'); }
         function closeModal() { document.getElementById('receiptModal').style.display = 'none'; }
 
-        document.addEventListener('DOMContentLoaded', async () => { if (await checkSession()) await loadReceipts(); });
+        /**
+         * ==================================================================
+         * SUBSECTION 23.14: CLOSE MODAL ON OVERLAY CLICK
+         * ================================================================== */
         window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+        /**
+         * ==================================================================
+         * SUBSECTION 23.15: PAGE INITIALIZATION
+         * ================================================================== */
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (await checkSession()) await loadReceipts();
+        });
     </script>
 </body>
 </html>
