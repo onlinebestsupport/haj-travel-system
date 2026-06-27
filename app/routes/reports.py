@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, session
-from app.database import get_db, release_db  # ✅ FIXED: Add release_db import
+from app.database import get_db, release_db
 from datetime import datetime, timedelta
 import json
 import logging
 
-# ✅ FIXED: Add logger
+# Setup logger
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('reports', __name__, url_prefix='/api/reports')
@@ -94,7 +94,6 @@ def generate_report():
     
     data = request.json
     report_type = data.get('type', 'travelers')
-    format_type = data.get('format', 'json')
     filters = data.get('filters', {})
     
     conn = None
@@ -102,8 +101,8 @@ def generate_report():
     try:
         conn, cursor = get_db()
         
+        # Build the query based on report type
         if report_type == 'travelers':
-            # Build traveler report query
             query = '''
                 SELECT 
                     t.*,
@@ -116,17 +115,21 @@ def generate_report():
             '''
             params = []
             
-            if filters.get('batch_id'):
+            if filters.get('batch_id') and filters['batch_id'] != 'all':
                 query += ' AND t.batch_id = %s'
                 params.append(filters['batch_id'])
             
-            if filters.get('status'):
+            if filters.get('status') and filters['status'] != 'all':
                 query += ' AND t.passport_status = %s'
                 params.append(filters['status'])
             
-            if filters.get('vaccine_status'):
-                query += ' AND t.vaccine_status = %s'
-                params.append(filters['vaccine_status'])
+            if filters.get('start_date'):
+                query += ' AND t.created_at >= %s'
+                params.append(filters['start_date'])
+            
+            if filters.get('end_date'):
+                query += ' AND t.created_at <= %s'
+                params.append(filters['end_date'])
             
             query += ' ORDER BY t.created_at DESC'
             
@@ -134,7 +137,6 @@ def generate_report():
             results = cursor.fetchall()
             
         elif report_type == 'payments':
-            # Build payment report query
             query = '''
                 SELECT 
                     p.*,
@@ -149,7 +151,7 @@ def generate_report():
             '''
             params = []
             
-            if filters.get('status'):
+            if filters.get('status') and filters['status'] != 'all':
                 query += ' AND p.status = %s'
                 params.append(filters['status'])
             
@@ -166,9 +168,28 @@ def generate_report():
             cursor.execute(query, params)
             results = cursor.fetchall()
             
+        elif report_type == 'batches':
+            query = '''
+                SELECT 
+                    b.*,
+                    COUNT(t.id) as travelers_count,
+                    COALESCE(SUM(p.amount), 0) as total_collected
+                FROM batches b
+                LEFT JOIN travelers t ON b.id = t.batch_id
+                LEFT JOIN payments p ON p.batch_id = b.id AND p.status = 'completed'
+                GROUP BY b.id
+            '''
+            params = []
+            
+            if filters.get('status') and filters['status'] != 'all':
+                query += ' HAVING b.status = %s'
+                params.append(filters['status'])
+            
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            
         elif report_type == 'financial':
-            # Financial summary
-            cursor.execute('''
+            query = '''
                 SELECT 
                     DATE_TRUNC('month', payment_date) as month,
                     COUNT(*) as transaction_count,
@@ -178,11 +199,17 @@ def generate_report():
                 WHERE status = 'completed'
                 GROUP BY DATE_TRUNC('month', payment_date)
                 ORDER BY month DESC
-            ''')
+            '''
+            cursor.execute(query)
             results = cursor.fetchall()
             
         else:
             return jsonify({'success': False, 'error': 'Invalid report type'}), 400
+        
+        # Convert rows to dictionaries
+        data_list = []
+        for row in results:
+            data_list.append(dict(row))
         
         return jsonify({
             'success': True,
@@ -190,8 +217,8 @@ def generate_report():
                 'type': report_type,
                 'generated_at': datetime.now().isoformat(),
                 'filters': filters,
-                'count': len(results),
-                'data': results
+                'count': len(data_list),
+                'data': data_list
             }
         })
         
