@@ -1,72 +1,83 @@
-/**
- * reports.js - Reports Management for Alhudha Haj Travel Admin
- * Depends on: common.js, session-manager.js
- */
-
 'use strict';
 
-// ── State ────────────────────────────────────────────────────
 let currentReportData = null;
 let currentReportType = 'travelers';
 
-// ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     console.log("✅ reports.js loaded");
+    loadReports();
 });
 
-// ── Load Reports ─────────────────────────────────────────────
-
+// ====== LOAD REPORTS ======
 async function loadReports() {
     try {
         const response = await fetch('/api/reports/summary', {
             credentials: 'include'
         });
         const data = await response.json();
+        console.log("📊 LoadReports data:", data);
+        
         if (data.success && data.report) {
             displayReportSummary(data.report);
+        } else {
+            console.error('Failed to load reports:', data.error);
         }
     } catch (error) {
         console.error('Error loading reports:', error);
     }
 }
 
+// ====== DISPLAY REPORT SUMMARY ======
 function displayReportSummary(report) {
-    // Handle both possible shapes
-    const totalTravelers = report.total_travelers ?? report.summary?.totalTravelers ?? 0;
-    const totalPayments = report.payments?.total ?? report.summary?.totalPayments ?? 0;
-    const paymentCount = report.payments?.count ?? report.summary?.paymentCount ?? 0;
-    const period = report.period ?? report.summary?.period ?? '';
+    console.log("📊 displayReportSummary called with:", report);
+    
+    if (!report) {
+        console.error("❌ No report data provided");
+        return;
+    }
 
-    const setEl = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-    };
-    setEl('reportTotalTravelers', totalTravelers);
-    setEl('reportTotalPayments', formatCurrency(totalPayments));
-    setEl('reportPaymentCount', paymentCount);
-    setEl('reportPeriod', period);
+    // Update stat cards
+    const totalTravelers = report.total_travelers || 0;
+    const totalPayments = report.payments?.total || 0;
+    const paymentCount = report.payments?.count || 0;
+    const totalBatches = report.total_batches || 0;
+    const activeBatches = report.active_batches || 0;
+    const collectionRate = report.collection_rate || 0;
+
+    document.getElementById('reportTotalTravelers').textContent = totalTravelers;
+    document.getElementById('reportTotalPayments').textContent = formatCurrency(totalPayments);
+    document.getElementById('reportPaymentCount').textContent = paymentCount;
+    document.getElementById('reportTotalBatches').textContent = totalBatches;
+    document.getElementById('reportActiveBatches').textContent = activeBatches;
+    document.getElementById('reportCollectionRate').textContent = collectionRate + '%';
 
     // Travelers by batch
-    const travelersByBatch = report.travelers_by_batch ?? report.travelersByBatch ?? [];
+    const travelersByBatch = report.travelers_by_batch || [];
     const batchTbody = document.getElementById('travelersByBatchBody');
     if (batchTbody) {
         batchTbody.innerHTML = travelersByBatch.map(b => `
-            <tr><td>${escapeHtml(b.batch_name || '-')}</td><td>${b.traveler_count || 0}</td></tr>
+            <tr>
+                <td>${escapeHtml(b.batch_name || '-')}</td>
+                <td>${b.traveler_count || 0}</td>
+            </tr>
         `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
     }
 
     // Payments by method
-    const paymentsByMethod = report.payments_by_method ?? report.paymentsByMethod ?? {};
+    const paymentsByMethod = report.payments_by_method || {};
     const methodTbody = document.getElementById('paymentsByMethodBody');
     if (methodTbody) {
         const methodEntries = Object.entries(paymentsByMethod);
         methodTbody.innerHTML = methodEntries.map(([method, total]) => `
-            <tr><td>${escapeHtml(method || 'Unknown')}</td><td>${formatCurrency(total)}</td></tr>
+            <tr>
+                <td>${escapeHtml(method || 'Unknown')}</td>
+                <td>${formatCurrency(total)}</td>
+            </tr>
         `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
     }
 
     // Recent activity
-    const activity = report.recent_activity ?? report.recentActivity ?? [];
+    const activity = report.recent_activity || [];
     const activityEl = document.getElementById('reportRecentActivity');
     if (activityEl) {
         activityEl.innerHTML = activity.slice(0, 10).map(a => `
@@ -76,10 +87,11 @@ function displayReportSummary(report) {
             </div>
         `).join('') || '<p style="text-align:center; color:#7f8c8d;">No recent activity</p>';
     }
+
+    showNotification(`Loaded ${totalTravelers} travelers from database`, 'success');
 }
 
-// ── Generate Report ──────────────────────────────────────────
-
+// ====== GENERATE REPORT ======
 async function generateReport() {
     showLoading('Generating report...');
 
@@ -132,6 +144,7 @@ async function generateReport() {
     }
 }
 
+// ====== DISPLAY GENERATED REPORT ======
 function displayGeneratedReport(report) {
     document.getElementById('reportTitle').innerHTML = `<i class="fas fa-chart-pie"></i> Report Results (${report.count} records)`;
 
@@ -160,8 +173,117 @@ function displayGeneratedReport(report) {
     `;
 }
 
-// ── Export Functions ────────────────────────────────────────
+// ====== UTILITY FUNCTIONS ======
+function showLoading(message = 'Loading...') {
+    const overlay = document.getElementById('reportLoadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
 
+function hideLoading() {
+    const overlay = document.getElementById('reportLoadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    notification.style.display = 'block';
+    setTimeout(() => notification.style.display = 'none', 3000);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatCurrency(amount) {
+    if (amount === null || amount === undefined) return '₹0';
+    const num = parseFloat(amount);
+    if (isNaN(num)) return '₹0';
+    return '₹' + num.toLocaleString('en-IN', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatDate(date, includeTime = false) {
+    if (!date) return '-';
+    try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return String(date);
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        if (includeTime) {
+            options.hour = '2-digit';
+            options.minute = '2-digit';
+        }
+        return d.toLocaleDateString('en-IN', options);
+    } catch (e) {
+        return String(date);
+    }
+}
+
+function getDateRange(range) {
+    const today = new Date();
+    const end = new Date(today);
+    const start = new Date(today);
+
+    switch(range) {
+        case 'today':
+            start.setHours(0,0,0,0);
+            end.setHours(23,59,59,999);
+            break;
+        case 'yesterday':
+            start.setDate(today.getDate() - 1);
+            start.setHours(0,0,0,0);
+            end.setDate(today.getDate() - 1);
+            end.setHours(23,59,59,999);
+            break;
+        case 'thisweek':
+            start.setDate(today.getDate() - today.getDay());
+            start.setHours(0,0,0,0);
+            break;
+        case 'lastweek':
+            start.setDate(today.getDate() - today.getDay() - 7);
+            end.setDate(today.getDate() - today.getDay() - 1);
+            end.setHours(23,59,59,999);
+            break;
+        case 'thismonth':
+            start.setDate(1);
+            start.setHours(0,0,0,0);
+            break;
+        case 'lastmonth':
+            start.setMonth(today.getMonth() - 1, 1);
+            start.setHours(0,0,0,0);
+            end.setMonth(today.getMonth(), 0);
+            end.setHours(23,59,59,999);
+            break;
+        case 'thisyear':
+            start.setMonth(0, 1);
+            start.setHours(0,0,0,0);
+            break;
+        case 'lastyear':
+            start.setFullYear(today.getFullYear() - 1, 0, 1);
+            start.setHours(0,0,0,0);
+            end.setFullYear(today.getFullYear() - 1, 11, 31);
+            end.setHours(23,59,59,999);
+            break;
+        case 'alltime':
+            start.setFullYear(2000, 0, 1);
+            end.setFullYear(2100, 0, 1);
+            break;
+    }
+
+    return {
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0]
+    };
+}
+
+// ====== EXPORT FUNCTIONS ======
 function exportToPDF() {
     if (!currentReportData || !currentReportData.data || currentReportData.data.length === 0) {
         showNotification('No report data to export. Generate a report first.', 'warning');
@@ -243,8 +365,7 @@ function exportToExcel() {
     XLSX.writeFile(wb, `report_${currentReportType}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// ── Modal Functions ──────────────────────────────────────────
-
+// ====== MODAL FUNCTIONS ======
 function showReportModal(type) {
     currentReportType = type;
     document.getElementById('reportModal').style.display = 'block';
@@ -289,8 +410,7 @@ function printReport() {
     window.print();
 }
 
-// ── Filter Functions ─────────────────────────────────────────
-
+// ====== FILTER FUNCTIONS ======
 function resetFilters() {
     document.getElementById('dateRange').value = 'today';
     document.getElementById('reportBatch').value = 'all';
@@ -314,143 +434,29 @@ function toggleDateInputs() {
     }
 }
 
-// ── Date Range Helper ──────────────────────────────────────
-
-function getDateRange(range) {
-    const today = new Date();
-    const end = new Date(today);
-    const start = new Date(today);
-
-    switch(range) {
-        case 'today':
-            start.setHours(0,0,0,0);
-            end.setHours(23,59,59,999);
-            break;
-        case 'yesterday':
-            start.setDate(today.getDate() - 1);
-            start.setHours(0,0,0,0);
-            end.setDate(today.getDate() - 1);
-            end.setHours(23,59,59,999);
-            break;
-        case 'thisweek':
-            start.setDate(today.getDate() - today.getDay());
-            start.setHours(0,0,0,0);
-            break;
-        case 'lastweek':
-            start.setDate(today.getDate() - today.getDay() - 7);
-            end.setDate(today.getDate() - today.getDay() - 1);
-            end.setHours(23,59,59,999);
-            break;
-        case 'thismonth':
-            start.setDate(1);
-            start.setHours(0,0,0,0);
-            break;
-        case 'lastmonth':
-            start.setMonth(today.getMonth() - 1, 1);
-            start.setHours(0,0,0,0);
-            end.setMonth(today.getMonth(), 0);
-            end.setHours(23,59,59,999);
-            break;
-        case 'thisyear':
-            start.setMonth(0, 1);
-            start.setHours(0,0,0,0);
-            break;
-        case 'lastyear':
-            start.setFullYear(today.getFullYear() - 1, 0, 1);
-            start.setHours(0,0,0,0);
-            end.setFullYear(today.getFullYear() - 1, 11, 31);
-            end.setHours(23,59,59,999);
-            break;
-        case 'alltime':
-            start.setFullYear(2000, 0, 1);
-            end.setFullYear(2100, 0, 1);
-            break;
-    }
-
-    return {
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0]
-    };
-}
-
-// ── Utility Functions ───────────────────────────────────────
-
-function showLoading(message = 'Loading...') {
-    const overlay = document.getElementById('reportLoadingOverlay');
-    if (overlay) overlay.style.display = 'flex';
-}
-
-function hideLoading() {
-    const overlay = document.getElementById('reportLoadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-    notification.style.display = 'block';
-    setTimeout(() => notification.style.display = 'none', 3000);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatCurrency(amount) {
-    if (amount === null || amount === undefined) return '₹0';
-    const num = parseFloat(amount);
-    if (isNaN(num)) return '₹0';
-    return '₹' + num.toLocaleString('en-IN', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-    });
-}
-
-function formatDate(date, includeTime = false) {
-    if (!date) return '-';
-    try {
-        const d = new Date(date);
-        if (isNaN(d.getTime())) return String(date);
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        if (includeTime) {
-            options.hour = '2-digit';
-            options.minute = '2-digit';
-        }
-        return d.toLocaleDateString('en-IN', options);
-    } catch (e) {
-        return String(date);
-    }
-}
-
-// ── Logout ──────────────────────────────────────────────────
-
+// ====== LOGOUT ======
 async function logout() {
     if (confirm('Are you sure you want to logout?')) {
         await SessionManager.logout();
     }
 }
 
-// ── Expose globals ──────────────────────────────────────────
-
-window.loadReports          = loadReports;
-window.generateReport       = generateReport;
-window.exportToPDF          = exportToPDF;
-window.exportToCSV          = exportToCSV;
-window.exportToExcel        = exportToExcel;
-window.printReport          = printReport;
-window.showReportModal      = showReportModal;
-window.closeReportModal     = closeReportModal;
+// ====== EXPOSE GLOBALS ======
+window.loadReports = loadReports;
+window.generateReport = generateReport;
+window.displayReportSummary = displayReportSummary;
+window.exportToPDF = exportToPDF;
+window.exportToCSV = exportToCSV;
+window.exportToExcel = exportToExcel;
+window.printReport = printReport;
+window.showReportModal = showReportModal;
+window.closeReportModal = closeReportModal;
 window.generateCustomReport = generateCustomReport;
-window.showSaveReportModal  = showSaveReportModal;
+window.showSaveReportModal = showSaveReportModal;
 window.closeSaveReportModal = closeSaveReportModal;
-window.saveReportConfig     = saveReportConfig;
-window.resetFilters         = resetFilters;
-window.toggleDateInputs     = toggleDateInputs;
-window.logout               = logout;
+window.saveReportConfig = saveReportConfig;
+window.resetFilters = resetFilters;
+window.toggleDateInputs = toggleDateInputs;
+window.logout = logout;
 
 console.log('✅ reports.js loaded');
