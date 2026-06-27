@@ -172,19 +172,22 @@ def generate_report():
         # Build query based on report type
         if report_type == 'travelers':
             # ✅ Build SELECT clause dynamically based on selected columns
+            # FIX: Use b.batch_name from batches table, not t.batch_name
             if selected_columns and len(selected_columns) > 0:
                 # Always include id for record identification
-                select_cols = ['id']
+                select_cols = ['t.id']
                 for col in selected_columns:
-                    if col != 'id':
-                        select_cols.append(col)
-                select_clause = ', '.join([f't.{col}' for col in select_cols])
+                    if col != 'id' and col != 'batch_name':
+                        select_cols.append(f't.{col}')
+                # Always add batch_name from batches table
+                select_cols.append('b.batch_name')
+                select_clause = ', '.join(select_cols)
             else:
                 # If no columns selected, return all columns
-                select_clause = 't.*'
+                select_clause = 't.*, b.batch_name'
 
             query = f"""
-                SELECT {select_clause}, b.batch_name
+                SELECT {select_clause}
                 FROM travelers t
                 LEFT JOIN batches b ON t.batch_id = b.id
                 WHERE 1=1
