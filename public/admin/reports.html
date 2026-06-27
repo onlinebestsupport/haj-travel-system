@@ -874,8 +874,7 @@
         // ====== GLOBAL VARIABLES ======
         let paymentsChart = undefined;
         let travelersChart = undefined;
-        // ✅ REMOVED: let currentReportData = undefined; (duplicate)
-        let currentReportType = 'custom';
+        // ✅ REMOVED: let currentReportType = 'custom'; (duplicate in reports.js)
         let allColumns = [];
         let selectedColumns = [];
         let isGeneratingReport = false;
@@ -1054,7 +1053,9 @@
 
         // ====== REPORT MODAL FUNCTIONS ======
         function showReportModal(type) {
-            currentReportType = type;
+            // ✅ Use the global from reports.js
+            window.currentReportType = type;
+            
             const modal = document.getElementById('reportModal');
             const title = document.getElementById('modalTitle');
             const content = document.getElementById('modalContent');
@@ -1292,13 +1293,16 @@
             initializeColumnSelector('travelers');
 
             try {
-                // ✅ FIXED: Correct request body format
+                // ✅ FIXED: Use window.currentReportType from reports.js
+                const reportType = window.currentReportType || 'travelers';
+                console.log("📤 Sending report type:", reportType);
+
                 const response = await fetch('/api/reports/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({
-                        type: currentReportType,
+                        type: reportType,
                         filters: {
                             startDate: startDate,
                             endDate: endDate,
@@ -1812,7 +1816,7 @@
                 description: desc,
                 schedule: schedule,
                 email: email,
-                type: currentReportType,
+                type: window.currentReportType,
                 filters: {
                     dateRange: document.getElementById('dateRange').value,
                     startDate: document.getElementById('startDate').value,
