@@ -93,12 +93,15 @@ def summary_report():
         collection_rate = round((total_collected / total_expected) * 100, 1) if total_expected > 0 else 0
 
         # 10. Recent Activity (Last 5)
-        cursor.execute("""
-            SELECT * FROM activity_log
-            ORDER BY created_at DESC
-            LIMIT 5
-        """)
-        recent_activity = cursor.fetchall()
+        try:
+            cursor.execute("""
+                SELECT * FROM activity_log
+                ORDER BY created_at DESC
+                LIMIT 5
+            """)
+            recent_activity = cursor.fetchall()
+        except:
+            recent_activity = []
 
         # ✅ Helper to convert datetime objects to ISO strings
         def serialize_row(row):
