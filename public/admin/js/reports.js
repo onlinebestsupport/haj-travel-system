@@ -1,88 +1,76 @@
 'use strict';
 
+// ====== STATE ======
 let currentReportData = null;
 let currentReportType = 'travelers';
-let allColumns = [];
-let selectedColumns = [];
+const TRAVELERS_COLUMNS = [
+    { name: 'id', label: 'ID', type: 'number' },
+    { name: 'first_name', label: 'First Name', type: 'text' },
+    { name: 'last_name', label: 'Last Name', type: 'text' },
+    { name: 'passport_name', label: 'Passport Name', type: 'text' },
+    { name: 'batch_id', label: 'Batch ID', type: 'number' },
+    { name: 'batch_name', label: 'Batch Name', type: 'text' },
+    { name: 'passport_no', label: 'Passport Number', type: 'text' },
+    { name: 'passport_issue_date', label: 'Passport Issue Date', type: 'date' },
+    { name: 'passport_expiry_date', label: 'Passport Expiry Date', type: 'date' },
+    { name: 'passport_status', label: 'Passport Status', type: 'text' },
+    { name: 'gender', label: 'Gender', type: 'text' },
+    { name: 'dob', label: 'Date of Birth', type: 'date' },
+    { name: 'mobile', label: 'Mobile Number', type: 'text' },
+    { name: 'email', label: 'Email', type: 'text' },
+    { name: 'aadhaar', label: 'Aadhaar Number', type: 'text' },
+    { name: 'pan', label: 'PAN Number', type: 'text' },
+    { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text' },
+    { name: 'vaccine_status', label: 'Vaccine Status', type: 'text' },
+    { name: 'wheelchair', label: 'Wheelchair Required', type: 'text' },
+    { name: 'place_of_birth', label: 'Place of Birth', type: 'text' },
+    { name: 'place_of_issue', label: 'Place of Issue', type: 'text' },
+    { name: 'passport_address', label: 'Passport Address', type: 'text' },
+    { name: 'father_name', label: "Father's Name", type: 'text' },
+    { name: 'mother_name', label: "Mother's Name", type: 'text' },
+    { name: 'spouse_name', label: "Spouse's Name", type: 'text' },
+    { name: 'pin', label: 'PIN', type: 'text' },
+    { name: 'emergency_contact', label: 'Emergency Contact', type: 'text' },
+    { name: 'emergency_phone', label: 'Emergency Phone', type: 'text' },
+    { name: 'medical_notes', label: 'Medical Notes', type: 'text' },
+    { name: 'created_at', label: 'Created At', type: 'datetime' },
+    { name: 'updated_at', label: 'Updated At', type: 'datetime' }
+];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("✅ reports.js loaded");
     loadReports();
-    
-    // Initialize column selector with 33 traveler fields
-    initializeColumnSelector('travelers');
 });
 
-// ====== 33 TRAVELER FIELD DEFINITIONS ======
-const columnDefinitions = {
-    travelers: [
-        // Personal Information (10 fields)
-        { id: 'id', name: 'ID', category: 'System' },
-        { id: 'first_name', name: 'First Name', category: 'Personal' },
-        { id: 'last_name', name: 'Last Name', category: 'Personal' },
-        { id: 'passport_name', name: 'Passport Name', category: 'Personal' },
-        { id: 'batch_id', name: 'Batch ID', category: 'Batch' },
-        { id: 'passport_no', name: 'Passport Number', category: 'Passport' },
-        { id: 'passport_issue_date', name: 'Passport Issue Date', category: 'Passport' },
-        { id: 'passport_expiry_date', name: 'Passport Expiry Date', category: 'Passport' },
-        { id: 'passport_status', name: 'Passport Status', category: 'Passport' },
-        { id: 'gender', name: 'Gender', category: 'Personal' },
-        { id: 'dob', name: 'Date of Birth', category: 'Personal' },
+function initializeReports() {
+    populateColumnSelector();
+    loadBatchesForFilters();
+}
 
-        // Contact Information (7 fields)
-        { id: 'mobile', name: 'Mobile Number', category: 'Contact' },
-        { id: 'email', name: 'Email Address', category: 'Contact' },
-        { id: 'aadhaar', name: 'Aadhaar Number', category: 'ID' },
-        { id: 'pan', name: 'PAN Number', category: 'ID' },
-        { id: 'aadhaar_pan_linked', name: 'Aadhaar-PAN Linked', category: 'ID' },
-        { id: 'vaccine_status', name: 'Vaccine Status', category: 'Medical' },
-        { id: 'wheelchair', name: 'Wheelchair Required', category: 'Medical' },
-
-        // Address & Family (7 fields)
-        { id: 'place_of_birth', name: 'Place of Birth', category: 'Address' },
-        { id: 'place_of_issue', name: 'Place of Issue', category: 'Address' },
-        { id: 'passport_address', name: 'Passport Address', category: 'Address' },
-        { id: 'father_name', name: 'Father\'s Name', category: 'Family' },
-        { id: 'mother_name', name: 'Mother\'s Name', category: 'Family' },
-        { id: 'spouse_name', name: 'Spouse\'s Name', category: 'Family' },
-
-        // Document Uploads (5 fields)
-        { id: 'passport_scan', name: 'Passport Scan', category: 'Documents' },
-        { id: 'aadhaar_scan', name: 'Aadhaar Scan', category: 'Documents' },
-        { id: 'pan_scan', name: 'PAN Scan', category: 'Documents' },
-        { id: 'vaccine_scan', name: 'Vaccine Scan', category: 'Documents' },
-        { id: 'photo', name: 'Photo', category: 'Documents' },
-
-        // Additional Information (4 fields)
-        { id: 'pin', name: 'PIN', category: 'Security' },
-        { id: 'emergency_contact', name: 'Emergency Contact', category: 'Emergency' },
-        { id: 'emergency_phone', name: 'Emergency Phone', category: 'Emergency' },
-        { id: 'medical_notes', name: 'Medical Notes', category: 'Medical' },
-
-        // Metadata
-        { id: 'created_at', name: 'Created Date', category: 'System' }
-    ]
-};
-
-// ====== COLUMN SELECTOR FUNCTIONS ======
-function initializeColumnSelector(module) {
+// ====== POPULATE COLUMN SELECTOR ======
+function populateColumnSelector() {
     const columnGrid = document.getElementById('columnGrid');
-    const columns = columnDefinitions[module] || columnDefinitions.travelers;
-    allColumns = columns;
+    if (!columnGrid) return;
     
-    let html = '';
-    columns.forEach(col => {
-        html += `
-            <div class="column-item">
-                <input type="checkbox" class="column-checkbox" value="${col.id}" data-category="${col.category}" checked onchange="updateSelectedCount()">
-                <label>${col.name} <small style="color: #7f8c8d;">(${col.category})</small></label>
-            </div>
-        `;
+    columnGrid.innerHTML = TRAVELERS_COLUMNS.map(col => `
+        <div class="column-item">
+            <input type="checkbox" class="column-checkbox" value="${col.name}" checked>
+            <label>${col.label}</label>
+        </div>
+    `).join('');
+    
+    // Add event listener to update count
+    document.querySelectorAll('.column-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateSelectedCount);
     });
     
-    columnGrid.innerHTML = html;
-    document.getElementById('columnSelector').style.display = 'block';
     updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const count = document.querySelectorAll('.column-checkbox:checked').length;
+    const el = document.getElementById('selectedCount');
+    if (el) el.textContent = count + ' columns selected';
 }
 
 function toggleAllColumns() {
@@ -93,40 +81,23 @@ function toggleAllColumns() {
     updateSelectedCount();
 }
 
-function updateSelectedCount() {
-    const checkboxes = document.querySelectorAll('.column-checkbox:checked');
-    document.getElementById('selectedCount').textContent = checkboxes.length + ' columns selected';
-    
-    selectedColumns = [];
-    checkboxes.forEach(cb => {
-        const colId = cb.value;
-        const column = allColumns.find(c => c.id === colId);
-        if (column) {
-            selectedColumns.push(column);
-        }
-    });
-}
-
-function getSelectedColumns() {
-    return selectedColumns;
-}
-
 // ====== LOAD REPORTS ======
 async function loadReports() {
     try {
-        const response = await fetch('/api/reports/summary', {
-            credentials: 'include'
-        });
+        const response = await fetch('/api/reports/summary', { credentials: 'include' });
         const data = await response.json();
         console.log("📊 LoadReports data:", data);
         
         if (data.success && data.report) {
             displayReportSummary(data.report);
+            initializeReports();
         } else {
             console.error('Failed to load reports:', data.error);
+            initializeReports();
         }
     } catch (error) {
         console.error('Error loading reports:', error);
+        initializeReports();
     }
 }
 
@@ -139,59 +110,59 @@ function displayReportSummary(report) {
         return;
     }
 
-    // Update stat cards
     const totalTravelers = report.total_travelers || 0;
     const totalPayments = report.payments?.total || 0;
-    const paymentCount = report.payments?.count || 0;
     const totalBatches = report.total_batches || 0;
-    const activeBatches = report.active_batches || 0;
     const collectionRate = report.collection_rate || 0;
 
     document.getElementById('reportTotalTravelers').textContent = totalTravelers;
     document.getElementById('reportTotalPayments').textContent = formatCurrency(totalPayments);
-    document.getElementById('reportPaymentCount').textContent = paymentCount;
     document.getElementById('reportTotalBatches').textContent = totalBatches;
-    document.getElementById('reportActiveBatches').textContent = activeBatches;
     document.getElementById('reportCollectionRate').textContent = collectionRate + '%';
+}
 
-    // Travelers by batch
-    const travelersByBatch = report.travelers_by_batch || [];
-    const batchTbody = document.getElementById('travelersByBatchBody');
-    if (batchTbody) {
-        batchTbody.innerHTML = travelersByBatch.map(b => `
-            <tr>
-                <td>${escapeHtml(b.batch_name || '-')}</td>
-                <td>${b.traveler_count || 0}</td>
-            </tr>
-        `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
+// ====== LOAD BATCHES FOR FILTERS ======
+async function loadBatchesForFilters() {
+    try {
+        const response = await fetch('/api/batches', { credentials: 'include' });
+        const data = await response.json();
+        if (data.success && Array.isArray(data.batches)) {
+            const batchSelect = document.getElementById('reportBatch');
+            if (batchSelect) {
+                data.batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch.id;
+                    option.textContent = batch.batch_name || `Batch ${batch.id}`;
+                    batchSelect.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.warn('Could not load batches:', error.message);
     }
+}
 
-    // Payments by method
-    const paymentsByMethod = report.payments_by_method || {};
-    const methodTbody = document.getElementById('paymentsByMethodBody');
-    if (methodTbody) {
-        const methodEntries = Object.entries(paymentsByMethod);
-        methodTbody.innerHTML = methodEntries.map(([method, total]) => `
-            <tr>
-                <td>${escapeHtml(method || 'Unknown')}</td>
-                <td>${formatCurrency(total)}</td>
-            </tr>
-        `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
-    }
+// ====== SET REPORT TYPE ======
+function setReportType(type) {
+    currentReportType = type;
+}
 
-    // Recent activity
-    const activity = report.recent_activity || [];
-    const activityEl = document.getElementById('reportRecentActivity');
-    if (activityEl) {
-        activityEl.innerHTML = activity.slice(0, 10).map(a => `
-            <div style="padding:10px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between;">
-                <span>${escapeHtml(a.description || a.action || '-')}</span>
-                <small style="color:#7f8c8d;">${a.created_at ? formatDate(a.created_at, true) : '-'}</small>
-            </div>
-        `).join('') || '<p style="text-align:center; color:#7f8c8d;">No recent activity</p>';
-    }
+// ====== SHOW REPORT MODAL ======
+function showReportModal() {
+    document.getElementById('reportModal').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'block';
+    document.getElementById('columnSelector').style.display = currentReportType === 'travelers' ? 'block' : 'none';
+}
 
-    showNotification(`Loaded ${totalTravelers} travelers from database`, 'success');
+function closeReportModal() {
+    document.getElementById('reportModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// ====== GENERATE CUSTOM REPORT ======
+function generateCustomReport() {
+    closeReportModal();
+    generateReport();
 }
 
 // ====== GENERATE REPORT ======
@@ -212,9 +183,17 @@ async function generateReport() {
         endDate = dates.end;
     }
 
-    // Get selected columns
-    const selectedCols = getSelectedColumns();
-    const columnIds = selectedCols.map(col => col.id);
+    // Get selected columns for travelers report
+    let selectedColumns = [];
+    if (currentReportType === 'travelers') {
+        selectedColumns = Array.from(document.querySelectorAll('.column-checkbox:checked'))
+            .map(cb => cb.value);
+        if (selectedColumns.length === 0) {
+            showNotification('Please select at least one column', 'warning');
+            hideLoading();
+            return;
+        }
+    }
 
     document.getElementById('reportResults').style.display = 'block';
     document.getElementById('reportTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
@@ -225,61 +204,53 @@ async function generateReport() {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
-                type: currentReportType || 'travelers',
+                type: currentReportType,
                 filters: {
                     startDate: startDate,
                     endDate: endDate,
                     batchId: batch,
                     status: status
                 },
-                columns: columnIds  // ✅ Send selected columns to backend
+                columns: selectedColumns
             })
         });
 
         const data = await response.json();
         if (data.success && data.report) {
             currentReportData = data.report;
-            displayGeneratedReport(data.report, selectedCols);
+            displayGeneratedReport(data.report);
             showNotification(`Report generated: ${data.report.count} records`, 'success');
         } else {
             showNotification(data.error || 'Failed to generate report', 'error');
+            document.getElementById('reportResults').style.display = 'none';
         }
     } catch (error) {
         console.error('Error generating report:', error);
         showNotification('Network error. Please try again.', 'error');
+        document.getElementById('reportResults').style.display = 'none';
     } finally {
         hideLoading();
     }
 }
 
-// ====== DISPLAY GENERATED REPORT WITH SELECTED COLUMNS ======
-function displayGeneratedReport(report, columns) {
+// ====== DISPLAY GENERATED REPORT ======
+function displayGeneratedReport(report) {
     document.getElementById('reportTitle').innerHTML = `<i class="fas fa-chart-pie"></i> Report Results (${report.count} records)`;
-
-    const container = document.getElementById('reportTableContainer');
-    if (!container) return;
 
     const rows = report.data || [];
     if (rows.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#7f8c8d; padding:30px;">No data found</p>';
+        document.getElementById('reportTableBody').innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">No data found</td></tr>';
         return;
     }
 
-    // Use selected columns, or all columns if none selected
-    const cols = columns && columns.length > 0 
-        ? columns.map(col => col.id)
-        : Object.keys(rows[0]);
+    const cols = Object.keys(rows[0]);
+    const headerRow = document.getElementById('reportHeaderRow');
+    headerRow.innerHTML = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
 
-    const headers = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
-    const tableRows = rows.map(row =>
+    const tableBody = document.getElementById('reportTableBody');
+    tableBody.innerHTML = rows.map(row =>
         `<tr>${cols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
     ).join('');
-
-    const headerRow = document.getElementById('reportHeaderRow');
-    const tableBody = document.getElementById('reportTableBody');
-    
-    if (headerRow) headerRow.innerHTML = headers;
-    if (tableBody) tableBody.innerHTML = tableRows;
 }
 
 // ====== UTILITY FUNCTIONS ======
@@ -395,11 +366,11 @@ function getDateRange(range) {
 // ====== EXPORT FUNCTIONS ======
 function exportToPDF() {
     if (!currentReportData || !currentReportData.data || currentReportData.data.length === 0) {
-        showNotification('No report data to export. Generate a report first.', 'warning');
+        showNotification('No report data to export', 'warning');
         return;
     }
 
-    const rows = currentReportData.data.slice(0, 200);
+    const rows = currentReportData.data.slice(0, 500);
     const cols = Object.keys(rows[0]);
     const headers = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
     const tableRows = rows.map(row =>
@@ -408,26 +379,25 @@ function exportToPDF() {
 
     const printWin = window.open('', '_blank');
     printWin.document.write(`
-        <html><head><title>Report - ${currentReportType}</title>
+        <html><head><title>Report</title>
         <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
             th { background: #2c3e50; color: white; padding: 8px; text-align: left; }
             td { padding: 8px; border-bottom: 1px solid #ddd; }
-            @media print { button { display: none; } }
         </style></head>
         <body>
-        <h2>Report: ${escapeHtml(currentReportType)} — ${new Date().toLocaleDateString()}</h2>
+        <h2>Report: ${currentReportType} — ${new Date().toLocaleDateString()}</h2>
         <p>Total records: ${currentReportData.count}</p>
         <table><thead><tr>${headers}</tr></thead><tbody>${tableRows}</tbody></table>
-        <button onclick="window.print()" style="margin-top:20px; padding:10px 20px; background:#3498db; color:white; border:none; border-radius:5px; cursor:pointer;">Print</button>
         </body></html>`);
     printWin.document.close();
+    printWin.print();
 }
 
 function exportToCSV() {
     if (!currentReportData || !currentReportData.data || currentReportData.data.length === 0) {
-        showNotification('No report data to export. Generate a report first.', 'warning');
+        showNotification('No report data to export', 'warning');
         return;
     }
 
@@ -454,11 +424,12 @@ function exportToCSV() {
     a.download = `report_${currentReportType}_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    showNotification(`Exported ${rows.length} records to CSV`, 'success');
 }
 
 function exportToExcel() {
     if (!currentReportData || !currentReportData.data || currentReportData.data.length === 0) {
-        showNotification('No report data to export. Generate a report first.', 'warning');
+        showNotification('No report data to export', 'warning');
         return;
     }
 
@@ -472,43 +443,7 @@ function exportToExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Report');
     XLSX.writeFile(wb, `report_${currentReportType}_${new Date().toISOString().slice(0,10)}.xlsx`);
-}
-
-// ====== MODAL FUNCTIONS ======
-function showReportModal(type) {
-    currentReportType = type;
-    document.getElementById('reportModal').style.display = 'block';
-    document.getElementById('modalOverlay').style.display = 'block';
-}
-
-function closeReportModal() {
-    document.getElementById('reportModal').style.display = 'none';
-    document.getElementById('modalOverlay').style.display = 'none';
-}
-
-function generateCustomReport() {
-    closeReportModal();
-    generateReport();
-}
-
-function showSaveReportModal() {
-    document.getElementById('saveReportModal').style.display = 'block';
-    document.getElementById('modalOverlay').style.display = 'block';
-}
-
-function closeSaveReportModal() {
-    document.getElementById('saveReportModal').style.display = 'none';
-    document.getElementById('modalOverlay').style.display = 'none';
-}
-
-function saveReportConfig() {
-    const name = document.getElementById('savedReportName')?.value;
-    if (!name) {
-        showNotification('Please enter a report name', 'error');
-        return;
-    }
-    showNotification(`Report "${name}" saved successfully!`, 'success');
-    closeSaveReportModal();
+    showNotification(`Exported ${rows.length} records to Excel`, 'success');
 }
 
 function printReport() {
@@ -546,7 +481,11 @@ function toggleDateInputs() {
 // ====== LOGOUT ======
 async function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        await SessionManager.logout();
+        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+            await SessionManager.logout();
+        } else {
+            window.location.href = '/logout';
+        }
     }
 }
 
@@ -561,11 +500,11 @@ window.printReport = printReport;
 window.showReportModal = showReportModal;
 window.closeReportModal = closeReportModal;
 window.generateCustomReport = generateCustomReport;
-window.showSaveReportModal = showSaveReportModal;
-window.closeSaveReportModal = closeSaveReportModal;
-window.saveReportConfig = saveReportConfig;
 window.resetFilters = resetFilters;
 window.toggleDateInputs = toggleDateInputs;
 window.logout = logout;
+window.setReportType = setReportType;
+window.toggleAllColumns = toggleAllColumns;
+window.updateSelectedCount = updateSelectedCount;
 
-console.log('✅ reports.js loaded with 33 traveler fields support');
+console.log('✅ reports.js loaded');

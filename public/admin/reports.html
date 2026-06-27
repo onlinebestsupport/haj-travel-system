@@ -96,24 +96,6 @@
             transform: translateY(-2px);
         }
 
-        /* Back to Dashboard */
-        .back-link {
-            margin: 20px 0;
-        }
-
-        .back-link a {
-            color: #3498db;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .back-link a:hover {
-            color: #2980b9;
-        }
-
         /* Page Header */
         .page-header {
             display: flex;
@@ -154,74 +136,26 @@
             text-decoration: none;
         }
 
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
 
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #219a52; transform: translateY(-2px); }
 
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-warning:hover { background: #e67e22; transform: translateY(-2px); }
 
-        .btn-success:hover {
-            background: #219a52;
-            transform: translateY(-2px);
-        }
+        .btn-info { background: #00bcd4; color: white; }
+        .btn-info:hover { background: #00a5bb; transform: translateY(-2px); }
 
-        .btn-warning {
-            background: #f39c12;
-            color: white;
-        }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
 
-        .btn-warning:hover {
-            background: #e67e22;
-            transform: translateY(-2px);
-        }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-secondary:hover { background: #7f8c8d; }
 
-        .btn-info {
-            background: #00bcd4;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: #00a5bb;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .btn-purple {
-            background: #9b59b6;
-            color: white;
-        }
-
-        .btn-purple:hover {
-            background: #8e44ad;
-            transform: translateY(-2px);
-        }
+        .btn-purple { background: #9b59b6; color: white; }
+        .btn-purple:hover { background: #8e44ad; transform: translateY(-2px); }
 
         /* Dashboard Card */
         .dashboard-card {
@@ -313,13 +247,6 @@
             color: #2c3e50;
         }
 
-        .stat-card small {
-            display: block;
-            color: #7f8c8d;
-            font-size: 0.85rem;
-            margin-top: 5px;
-        }
-
         /* Column Selector */
         .column-selector {
             background: #f8f9fa;
@@ -343,13 +270,14 @@
 
         .column-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
             max-height: 300px;
             overflow-y: auto;
             padding: 10px;
             background: white;
             border-radius: 5px;
+            border: 1px solid #ecf0f1;
         }
 
         .column-item {
@@ -377,6 +305,7 @@
             cursor: pointer;
             flex: 1;
             color: #2c3e50;
+            margin: 0;
         }
 
         .select-all-bar {
@@ -387,6 +316,7 @@
             background: white;
             border-radius: 5px;
             margin-bottom: 10px;
+            border: 1px solid #ecf0f1;
         }
 
         /* Table Container */
@@ -433,30 +363,11 @@
             white-space: nowrap;
         }
 
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-success { background: #d4edda; color: #155724; }
 
         /* Charts Container */
         .charts-container {
@@ -513,6 +424,7 @@
 
         .modal-header h3 {
             color: #2c3e50;
+            margin: 0;
         }
 
         .modal-close {
@@ -555,21 +467,10 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        .notification-success {
-            background: #27ae60;
-        }
-
-        .notification-error {
-            background: #e74c3c;
-        }
-
-        .notification-info {
-            background: #3498db;
-        }
-
-        .notification-warning {
-            background: #f39c12;
-        }
+        .notification-success { background: #27ae60; }
+        .notification-error { background: #e74c3c; }
+        .notification-info { background: #3498db; }
+        .notification-warning { background: #f39c12; }
 
         /* Report Options */
         .report-options {
@@ -622,7 +523,7 @@
 <body>
 
     <!-- Loading Overlay -->
-    <div id="reportLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+    <div id="reportLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center;">
         <div class="spinner" style="width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
         <p style="margin-top: 20px; color: #2c3e50; font-size: 1.2rem;">Generating report...</p>
     </div>
@@ -657,23 +558,17 @@
 
         <!-- Quick Report Buttons -->
         <div class="action-buttons">
-            <button class="action-btn btn-primary" onclick="showReportModal('daily')">
-                <i class="fas fa-calendar-day"></i> Daily Report
+            <button class="action-btn btn-primary" onclick="setReportType('travelers'); showReportModal()">
+                <i class="fas fa-users"></i> Travelers Report
             </button>
-            <button class="action-btn btn-success" onclick="showReportModal('monthly')">
-                <i class="fas fa-calendar-alt"></i> Monthly Report
+            <button class="action-btn btn-success" onclick="setReportType('batches'); showReportModal()">
+                <i class="fas fa-layer-group"></i> Batches Report
             </button>
-            <button class="action-btn btn-warning" onclick="showReportModal('batch')">
-                <i class="fas fa-layer-group"></i> Batch Report
+            <button class="action-btn btn-warning" onclick="setReportType('financial'); showReportModal()">
+                <i class="fas fa-chart-pie"></i> Financial Report
             </button>
-            <button class="action-btn btn-info" onclick="showReportModal('traveler')">
-                <i class="fas fa-users"></i> Traveler Report
-            </button>
-            <button class="action-btn btn-danger" onclick="showReportModal('payment')">
-                <i class="fas fa-credit-card"></i> Payment Report
-            </button>
-            <button class="action-btn btn-purple" onclick="showReportModal('custom')">
-                <i class="fas fa-sliders-h"></i> Custom Report
+            <button class="action-btn btn-info" onclick="generateReport()">
+                <i class="fas fa-chart-line"></i> Generate Custom Report
             </button>
         </div>
 
@@ -692,7 +587,6 @@
                             <option value="thismonth">This Month</option>
                             <option value="lastmonth">Last Month</option>
                             <option value="thisyear">This Year</option>
-                            <option value="lastyear">Last Year</option>
                             <option value="alltime">All Time</option>
                             <option value="custom">Custom Range</option>
                         </select>
@@ -723,13 +617,10 @@
                         <label><i class="fas fa-info-circle"></i> Status</label>
                         <select id="reportStatus">
                             <option value="all">All Status</option>
-                            <option value="Open">Open</option>
-                            <option value="Closing Soon">Closing Soon</option>
-                            <option value="Full">Full</option>
-                            <option value="Closed">Closed</option>
-                            <option value="Paid">Paid</option>
-                            <option value="Pending">Pending</option>
                             <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Processing">Processing</option>
                         </select>
                     </div>
                 </div>
@@ -744,15 +635,15 @@
             </div>
         </div>
 
-        <!-- Column Selector -->
+        <!-- Column Selector for Custom Reports -->
         <div id="columnSelector" class="column-selector" style="display: none;">
-            <h4><i class="fas fa-columns"></i> Select Columns to Display</h4>
+            <h4><i class="fas fa-columns"></i> Select Columns to Display (33 Traveler Fields Available)</h4>
             <div class="select-all-bar">
-                <label style="display: flex; align-items: center; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 10px; margin: 0;">
                     <input type="checkbox" id="selectAllColumns" checked onchange="toggleAllColumns()">
                     <strong>Select All Columns</strong>
                 </label>
-                <span id="selectedCount">0 columns selected</span>
+                <span id="selectedCount" style="margin-left: auto;">0 columns selected</span>
             </div>
             <div id="columnGrid" class="column-grid">
                 <!-- Columns will be populated dynamically -->
@@ -774,9 +665,6 @@
                         <button class="action-btn btn-warning" onclick="exportToCSV()">
                             <i class="fas fa-file-csv"></i> Export CSV
                         </button>
-                        <button class="action-btn btn-warning" onclick="showSaveReportModal()" id="saveReportBtn">
-                            <i class="fas fa-save"></i> Save Report
-                        </button>
                         <button class="action-btn btn-secondary" onclick="printReport()">
                             <i class="fas fa-print"></i> Print
                         </button>
@@ -789,75 +677,21 @@
                         <i class="fas fa-users"></i>
                         <h3>Total Travelers</h3>
                         <div class="stat-number" id="reportTotalTravelers">0</div>
-                        <small>New this period: <span id="reportNewTravelers">0</span></small>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-rupee-sign"></i>
                         <h3>Total Collections</h3>
                         <div class="stat-number" id="reportTotalPayments">₹0</div>
-                        <small>Pending: <span id="reportPendingPayments">₹0</span></small>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-layer-group"></i>
                         <h3>Batches</h3>
                         <div class="stat-number" id="reportTotalBatches">0</div>
-                        <small>Active: <span id="reportActiveBatches">0</span></small>
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-percent"></i>
                         <h3>Collection Rate</h3>
                         <div class="stat-number" id="reportCollectionRate">0%</div>
-                        <small>of expected</small>
-                    </div>
-                </div>
-                
-                <!-- Charts -->
-                <div class="charts-container" id="chartsContainer">
-                    <div class="chart-card">
-                        <canvas id="paymentsChart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <canvas id="travelersChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Travelers by Batch Table -->
-                <div class="table-container" style="margin-top: 20px;">
-                    <h3 style="padding: 15px; color: #2c3e50;">Travelers by Batch</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Batch Name</th>
-                                <th>Travelers</th>
-                            </tr>
-                        </thead>
-                        <tbody id="travelersByBatchBody">
-                            <tr><td colspan="2" style="text-align:center;">No data</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Payments by Method Table -->
-                <div class="table-container" style="margin-top: 20px;">
-                    <h3 style="padding: 15px; color: #2c3e50;">Payments by Method</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Payment Method</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsByMethodBody">
-                            <tr><td colspan="2" style="text-align:center;">No data</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="table-container" style="margin-top: 20px;">
-                    <h3 style="padding: 15px; color: #2c3e50;">Recent Activity</h3>
-                    <div id="reportRecentActivity">
-                        <p style="text-align:center; color:#7f8c8d; padding:20px;">No recent activity</p>
                     </div>
                 </div>
                 
@@ -878,53 +712,13 @@
     <!-- Report Modal -->
     <div id="reportModal" class="modal">
         <div class="modal-header">
-            <h3 id="modalTitle"><i class="fas fa-chart-bar"></i> Report Options</h3>
+            <h3 id="modalTitle"><i class="fas fa-chart-bar"></i> Generate Report</h3>
             <button class="modal-close" onclick="closeReportModal()">&times;</button>
         </div>
         <div id="modalContent" class="modal-body"></div>
         <div class="modal-footer">
             <button class="action-btn btn-primary" onclick="generateCustomReport()">Generate</button>
             <button class="action-btn btn-secondary" onclick="closeReportModal()">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Save Report Modal -->
-    <div id="saveReportModal" class="modal" style="display: none;">
-        <div class="modal-header">
-            <h3><i class="fas fa-save"></i> Save Report Configuration</h3>
-            <button class="modal-close" onclick="closeSaveReportModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label>Report Name</label>
-                <input type="text" id="savedReportName" placeholder="e.g., Monthly Payment Summary">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="savedReportDesc" rows="3" placeholder="What does this report show?"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Auto-generate Schedule</label>
-                <select id="reportSchedule">
-                    <option value="none">No schedule</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Email to</label>
-                <input type="email" id="reportEmail" placeholder="recipient@example.com">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="action-btn btn-success" onclick="saveReportConfig()">
-                <i class="fas fa-save"></i> Save Report
-            </button>
-            <button class="action-btn btn-secondary" onclick="closeSaveReportModal()">
-                Cancel
-            </button>
         </div>
     </div>
 
@@ -941,11 +735,13 @@
             if (typeof loadReports === 'function') {
                 loadReports();
             }
+            if (typeof initializeReports === 'function') {
+                initializeReports();
+            }
         });
 
         function closeAllModals() {
             document.getElementById('reportModal').style.display = 'none';
-            document.getElementById('saveReportModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
         }
 
@@ -954,6 +750,13 @@
             document.querySelectorAll('.column-checkbox').forEach(cb => {
                 cb.checked = selectAll;
             });
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.column-checkbox:checked').length;
+            const el = document.getElementById('selectedCount');
+            if (el) el.textContent = count + ' columns selected';
         }
     </script>
 </body>

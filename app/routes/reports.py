@@ -175,7 +175,7 @@ def generate_report():
                 for col in selected_columns:
                     if col != 'id':
                         select_cols.append(col)
-                select_clause = ', '.join(select_cols)
+                select_clause = ', '.join([f't.{col}' for col in select_cols])
             else:
                 # If no columns selected, return all columns
                 select_clause = 't.*'
@@ -194,15 +194,14 @@ def generate_report():
                 query += ' AND t.passport_status = %s'
                 params.append(status)
             if start_date:
-                query += ' AND t.created_at >= %s'
+                query += ' AND DATE(t.created_at) >= %s'
                 params.append(start_date)
             if end_date:
-                query += ' AND t.created_at <= %s'
+                query += ' AND DATE(t.created_at) <= %s'
                 params.append(end_date)
-            query += ' ORDER BY t.created_at DESC'
+            query += ' ORDER BY t.created_at DESC LIMIT 500'
             cursor.execute(query, params)
             results = cursor.fetchall()
-
 
         elif report_type == 'batches':
             query = """
@@ -219,7 +218,7 @@ def generate_report():
             if status and status != 'all':
                 query += ' AND b.status = %s'
                 params.append(status)
-            query += ' GROUP BY b.id'
+            query += ' GROUP BY b.id ORDER BY b.created_at DESC LIMIT 500'
             cursor.execute(query, params)
             results = cursor.fetchall()
 
@@ -232,10 +231,16 @@ def generate_report():
                     AVG(amount) as average_amount
                 FROM payments
                 WHERE status = 'completed'
-                GROUP BY DATE_TRUNC('month', payment_date)
-                ORDER BY month DESC
             """
-            cursor.execute(query)
+            params = []
+            if start_date:
+                query += ' AND DATE(payment_date) >= %s'
+                params.append(start_date)
+            if end_date:
+                query += ' AND DATE(payment_date) <= %s'
+                params.append(end_date)
+            query += ' GROUP BY DATE_TRUNC(\'month\', payment_date) ORDER BY month DESC LIMIT 500'
+            cursor.execute(query, params)
             results = cursor.fetchall()
 
         else:
