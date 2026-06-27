@@ -144,6 +144,7 @@ def generate_report():
     try:
         conn, cursor = get_db()
 
+        # ✅ Build query based on report type
         if report_type == 'travelers':
             query = """
                 SELECT 
@@ -156,18 +157,18 @@ def generate_report():
                 WHERE 1=1
             """
             params = []
-            if filters.get('batch_id') and filters['batch_id'] != 'all':
+            if filters.get('batchId') and filters['batchId'] != 'all':
                 query += ' AND t.batch_id = %s'
-                params.append(filters['batch_id'])
+                params.append(filters['batchId'])
             if filters.get('status') and filters['status'] != 'all':
                 query += ' AND t.passport_status = %s'
                 params.append(filters['status'])
-            if filters.get('start_date'):
+            if filters.get('startDate'):
                 query += ' AND t.created_at >= %s'
-                params.append(filters['start_date'])
-            if filters.get('end_date'):
+                params.append(filters['startDate'])
+            if filters.get('endDate'):
                 query += ' AND t.created_at <= %s'
-                params.append(filters['end_date'])
+                params.append(filters['endDate'])
             query += ' ORDER BY t.created_at DESC'
             cursor.execute(query, params)
             results = cursor.fetchall()
@@ -189,12 +190,12 @@ def generate_report():
             if filters.get('status') and filters['status'] != 'all':
                 query += ' AND p.status = %s'
                 params.append(filters['status'])
-            if filters.get('start_date'):
+            if filters.get('startDate'):
                 query += ' AND p.payment_date >= %s'
-                params.append(filters['start_date'])
-            if filters.get('end_date'):
+                params.append(filters['startDate'])
+            if filters.get('endDate'):
                 query += ' AND p.payment_date <= %s'
-                params.append(filters['end_date'])
+                params.append(filters['endDate'])
             query += ' ORDER BY p.payment_date DESC'
             cursor.execute(query, params)
             results = cursor.fetchall()
@@ -235,6 +236,7 @@ def generate_report():
         else:
             return jsonify({'success': False, 'error': 'Invalid report type'}), 400
 
+        # ✅ Convert to list of dicts
         data_list = [dict(row) for row in results]
 
         return jsonify({
