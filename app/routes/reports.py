@@ -75,8 +75,8 @@ def summary_report():
         travelers_by_batch = []
         for row in travelers_by_batch_rows:
             travelers_by_batch.append({
-                'batch': row['batch_name'] or 'Unassigned',
-                'count': row['count']
+                'batch_name': row['batch_name'] or 'Unassigned',
+                'traveler_count': row['count']
             })
 
         # 8. Occupancy rate
@@ -100,27 +100,36 @@ def summary_report():
         """)
         recent_activity = cursor.fetchall()
 
-        return jsonify({
-            'success': True,
-            'report': {
-                'period': f'Last {days} days',
-                'start_date': start_date.isoformat(),
-                'end_date': datetime.now().isoformat(),
-                'summary': {
-                    'totalTravelers': total_travelers,
-                    'newTravelers': new_travelers,
-                    'totalPayments': total_collected,
-                    'pendingPayments': pending_payments,
-                    'totalBatches': total_batches,
-                    'activeBatches': active_batches,
-                    'occupancyRate': occupancy_rate,
-                    'collectionRate': collection_rate
-                },
-                'paymentsByMethod': payments_by_method,
-                'travelersByBatch': travelers_by_batch,
-                'recentActivity': recent_activity
-            }
-        })
+        # ✅ Helper to convert datetime objects to ISO strings
+        def serialize_row(row):
+            d = dict(row)
+            for k, v in list(d.items()):
+                if isinstance(v, datetime):
+                    d[k] = v.isoformat()
+            return d
+
+        # ✅ Normalize response to snake_case expected by frontend
+        report_out = {
+            'period': f'Last {days} days',
+            'start_date': start_date.isoformat(),
+            'end_date': datetime.now().isoformat(),
+            'total_travelers': int(total_travelers),
+            'new_travelers': int(new_travelers),
+            'payments': {
+                'total': total_collected,
+                'count': int(total_payments_data['count'])
+            },
+            'pending_payments': pending_payments,
+            'total_batches': int(total_batches),
+            'active_batches': int(active_batches),
+            'occupancy_rate': occupancy_rate,
+            'collection_rate': collection_rate,
+            'payments_by_method': payments_by_method,
+            'travelers_by_batch': travelers_by_batch,
+            'recent_activity': [serialize_row(r) for r in recent_activity]
+        }
+
+        return jsonify({'success': True, 'report': report_out})
 
     except Exception as e:
         logger.error(f"Summary report error: {e}")
@@ -137,14 +146,26 @@ def generate_report():
 
     data = request.json
     report_type = data.get('type', 'travelers')
-    filters = data.get('filters', {})
+    filters_in = data.get('filters', {})
+
+    # ✅ Normalize filters (accept both camelCase and snake_case)
+    def get_filter(*keys):
+        for k in keys:
+            if k in filters_in and filters_in[k] not in (None, ''):
+                return filters_in[k]
+        return None
+
+    batch_id = get_filter('batchId', 'batch_id')
+    status = get_filter('status', 'status')
+    start_date = get_filter('startDate', 'start_date')
+    end_date = get_filter('endDate', 'end_date')
 
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
 
-        # ✅ Build query based on report type
+        # Build query based on report type
         if report_type == 'travelers':
             query = """
                 SELECT 
@@ -157,18 +178,18 @@ def generate_report():
                 WHERE 1=1
             """
             params = []
-            if filters.get('batchId') and filters['batchId'] != 'all':
+            if batch_id and batch_id != 'all':
                 query += ' AND t.batch_id = %s'
-                params.append(filters['batchId'])
-            if filters.get('status') and filters['status'] != 'all':
+                params.append(batch_id)
+            if status and status != 'all':
                 query += ' AND t.passport_status = %s'
-                params.append(filters['status'])
-            if filters.get('startDate'):
+                params.append(status)
+            if start_date:
                 query += ' AND t.created_at >= %s'
-                params.append(filters['startDate'])
-            if filters.get('endDate'):
+                params.append(start_date)
+            if end_date:
                 query += ' AND t.created_at <= %s'
-                params.append(filters['endDate'])
+                params.append(end_date)
             query += ' ORDER BY t.created_at DESC'
             cursor.execute(query, params)
             results = cursor.fetchall()
@@ -187,15 +208,15 @@ def generate_report():
                 WHERE 1=1
             """
             params = []
-            if filters.get('status') and filters['status'] != 'all':
+            if status and status != 'all':
                 query += ' AND p.status = %s'
-                params.append(filters['status'])
-            if filters.get('startDate'):
+                params.append(status)
+            if start_date:
                 query += ' AND p.payment_date >= %s'
-                params.append(filters['startDate'])
-            if filters.get('endDate'):
+                params.append(start_date)
+            if end_date:
                 query += ' AND p.payment_date <= %s'
-                params.append(filters['endDate'])
+                params.append(end_date)
             query += ' ORDER BY p.payment_date DESC'
             cursor.execute(query, params)
             results = cursor.fetchall()
@@ -209,12 +230,13 @@ def generate_report():
                 FROM batches b
                 LEFT JOIN travelers t ON b.id = t.batch_id
                 LEFT JOIN payments p ON p.batch_id = b.id AND p.status = 'completed'
-                GROUP BY b.id
+                WHERE 1=1
             """
             params = []
-            if filters.get('status') and filters['status'] != 'all':
-                query += ' HAVING b.status = %s'
-                params.append(filters['status'])
+            if status and status != 'all':
+                query += ' AND b.status = %s'
+                params.append(status)
+            query += ' GROUP BY b.id'
             cursor.execute(query, params)
             results = cursor.fetchall()
 
@@ -236,15 +258,22 @@ def generate_report():
         else:
             return jsonify({'success': False, 'error': 'Invalid report type'}), 400
 
-        # ✅ Convert to list of dicts
-        data_list = [dict(row) for row in results]
+        # ✅ Convert rows to dict and serialize datetime objects
+        def serialize_row(row):
+            d = dict(row)
+            for k, v in list(d.items()):
+                if isinstance(v, datetime):
+                    d[k] = v.isoformat()
+            return d
+
+        data_list = [serialize_row(r) for r in results]
 
         return jsonify({
             'success': True,
             'report': {
                 'type': report_type,
                 'generated_at': datetime.now().isoformat(),
-                'filters': filters,
+                'filters': filters_in,
                 'count': len(data_list),
                 'data': data_list
             }
