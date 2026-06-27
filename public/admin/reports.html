@@ -874,7 +874,6 @@
         // ====== GLOBAL VARIABLES ======
         let paymentsChart = undefined;
         let travelersChart = undefined;
-        // ✅ REMOVED: let currentReportType = 'custom'; (duplicate in reports.js)
         let allColumns = [];
         let selectedColumns = [];
         let isGeneratingReport = false;
@@ -1053,7 +1052,6 @@
 
         // ====== REPORT MODAL FUNCTIONS ======
         function showReportModal(type) {
-            // ✅ Use the global from reports.js
             window.currentReportType = type;
             
             const modal = document.getElementById('reportModal');
@@ -1293,7 +1291,6 @@
             initializeColumnSelector('travelers');
 
             try {
-                // ✅ FIXED: Use window.currentReportType from reports.js
                 const reportType = window.currentReportType || 'travelers';
                 console.log("📤 Sending report type:", reportType);
 
@@ -1594,7 +1591,7 @@
             });
         }
 
-        // ====== EXPORT FUNCTIONS ======
+        // ====== ✅ FIXED: EXPORT FUNCTIONS ======
         function exportToPDF() {
             if (!window.currentReportData) {
                 showNotification('No report data to export', 'error');
