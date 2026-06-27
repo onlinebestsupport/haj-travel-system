@@ -1507,44 +1507,58 @@
             displayReport(reportData);
         }
 
-        function displayReport(data) {
-            currentReportData = data;
+       function displayReport(data) {
+    currentReportData = data;
+    
+    document.getElementById('reportTitle').innerHTML = '<i class="fas fa-chart-pie"></i> Report Results';
 
-            document.getElementById('reportTitle').innerHTML = '<i class="fas fa-chart-pie"></i> Report Results';
+    // ✅ If there's a summary object, use it; otherwise, fallback to demo/empty
+    const summary = data.summary || {
+        totalTravelers: 0,
+        newTravelers: 0,
+        totalPayments: 0,
+        pendingPayments: 0,
+        totalBatches: 0,
+        activeBatches: 0,
+        occupancyRate: 0,
+        collectionRate: 0
+    };
 
-            const summaryHtml = `
-                <div class="stat-card">
-                    <i class="fas fa-users"></i>
-                    <h3>Total Travelers</h3>
-                    <div class="stat-number">${data.summary.totalTravelers}</div>
-                    <small>+${data.summary.newTravelers} this period</small>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-rupee-sign"></i>
-                    <h3>Total Collections</h3>
-                    <div class="stat-number">₹${(data.summary.totalPayments / 100000).toFixed(2)}L</div>
-                    <small>₹${(data.summary.pendingPayments / 100000).toFixed(2)}L pending</small>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-layer-group"></i>
-                    <h3>Active Batches</h3>
-                    <div class="stat-number">${data.summary.activeBatches}</div>
-                    <small>${data.summary.occupancyRate}% occupancy</small>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-percent"></i>
-                    <h3>Collection Rate</h3>
-                    <div class="stat-number">${data.summary.collectionRate || 80}%</div>
-                    <small>of total expected</small>
-                </div>
-            `;
-            document.getElementById('reportSummary').innerHTML = summaryHtml;
+    const summaryHtml = `
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <h3>Total Travelers</h3>
+            <div class="stat-number">${summary.totalTravelers}</div>
+            <small>+${summary.newTravelers} this period</small>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-rupee-sign"></i>
+            <h3>Total Collections</h3>
+            <div class="stat-number">₹${(summary.totalPayments / 100000).toFixed(2)}L</div>
+            <small>₹${(summary.pendingPayments / 100000).toFixed(2)}L pending</small>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-layer-group"></i>
+            <h3>Active Batches</h3>
+            <div class="stat-number">${summary.activeBatches}</div>
+            <small>${summary.occupancyRate}% occupancy</small>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-percent"></i>
+            <h3>Collection Rate</h3>
+            <div class="stat-number">${summary.collectionRate || 0}%</div>
+            <small>of total expected</small>
+        </div>
+    `;
+    document.getElementById('reportSummary').innerHTML = summaryHtml;
 
-            createPaymentsChart(data.paymentsByMethod);
-            createTravelersChart(data.travelersByBatch);
+    // Charts
+    createPaymentsChart(data.paymentsByMethod || {});
+    createTravelersChart(data.travelersByBatch || []);
 
-            displayReportTable(data);
-        }
+    // Table
+    displayReportTable(data);
+}
 
         function displayReportTable(data) {
             const tableHeader = document.getElementById('reportHeaderRow');

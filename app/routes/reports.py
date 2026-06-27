@@ -1,10 +1,8 @@
 from flask import Blueprint, request, jsonify, session
 from app.database import get_db, release_db
 from datetime import datetime, timedelta
-import json
 import logging
 
-# Setup logger
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('reports', __name__, url_prefix='/api/reports')
@@ -14,96 +12,124 @@ def summary_report():
     """Generate summary report with key metrics"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
-        
-        # Get date range from query params (default: last 30 days)
         days = request.args.get('days', 30, type=int)
         start_date = datetime.now() - timedelta(days=days)
-        
-        # Total travelers
+
+        # 1. Total travelers
         cursor.execute('SELECT COUNT(*) as count FROM travelers')
         total_travelers = cursor.fetchone()['count']
-        
-        # Travelers by batch
-        cursor.execute('''
-            SELECT b.id, b.batch_name, COUNT(t.id) as traveler_count
+
+        # 2. New travelers in period
+        cursor.execute('SELECT COUNT(*) as count FROM travelers WHERE created_at >= %s', (start_date,))
+        new_travelers = cursor.fetchone()['count']
+
+        # 3. Batches stats
+        cursor.execute('SELECT COUNT(*) as count FROM batches')
+        total_batches = cursor.fetchone()['count']
+
+        cursor.execute("SELECT COUNT(*) as count FROM batches WHERE status = 'Open'")
+        active_batches = cursor.fetchone()['count']
+
+        # 4. Payments stats
+        cursor.execute("""
+            SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count
+            FROM payments
+            WHERE status = 'completed'
+        """)
+        total_payments_data = cursor.fetchone()
+        total_collected = float(total_payments_data['total'])
+
+        cursor.execute("""
+            SELECT COALESCE(SUM(amount), 0) as total
+            FROM payments
+            WHERE status = 'pending'
+        """)
+        pending_payments = float(cursor.fetchone()['total'])
+
+        # 5. Payments by method
+        cursor.execute("""
+            SELECT payment_method, COUNT(*) as count, COALESCE(SUM(amount), 0) as total
+            FROM payments
+            WHERE status = 'completed'
+            GROUP BY payment_method
+        """)
+        payments_by_method = cursor.fetchall()
+
+        # 6. Travelers by batch (for chart)
+        cursor.execute("""
+            SELECT b.batch_name, COUNT(t.id) as count
             FROM batches b
             LEFT JOIN travelers t ON b.id = t.batch_id
             GROUP BY b.id, b.batch_name
-        ''')
+        """)
         travelers_by_batch = cursor.fetchall()
-        
-        # Total payments
-        cursor.execute('''
-            SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count
-            FROM payments
-            WHERE payment_date >= %s AND status = 'completed'
-        ''', (start_date,))
-        payments_data = cursor.fetchone()
-        
-        # Payments by method
-        cursor.execute('''
-            SELECT payment_method, COUNT(*) as count, COALESCE(SUM(amount), 0) as total
-            FROM payments
-            WHERE payment_date >= %s
-            GROUP BY payment_method
-        ''', (start_date,))
-        payments_by_method = cursor.fetchall()
-        
-        # Recent activity
-        cursor.execute('''
-            SELECT * FROM activity_log
-            WHERE created_at >= %s
-            ORDER BY created_at DESC
-            LIMIT 20
-        ''', (start_date,))
-        recent_activity = cursor.fetchall()
-        
+
+        # 7. Occupancy rate
+        cursor.execute("SELECT COALESCE(SUM(total_seats), 0) as total_seats FROM batches")
+        total_seats = float(cursor.fetchone()['total_seats'])
+
+        cursor.execute("SELECT COALESCE(SUM(booked_seats), 0) as booked_seats FROM batches")
+        booked_seats = float(cursor.fetchone()['booked_seats'])
+
+        occupancy_rate = round((booked_seats / total_seats) * 100, 1) if total_seats > 0 else 0
+
+        # 8. Collection rate (assuming total expected = total_collected + pending_payments)
+        total_expected = total_collected + pending_payments
+        collection_rate = round((total_collected / total_expected) * 100, 1) if total_expected > 0 else 0
+
         return jsonify({
             'success': True,
             'report': {
                 'period': f'Last {days} days',
                 'start_date': start_date.isoformat(),
                 'end_date': datetime.now().isoformat(),
-                'total_travelers': total_travelers,
-                'travelers_by_batch': travelers_by_batch,
-                'payments': {
-                    'total': float(payments_data['total']),
-                    'count': payments_data['count']
+                'summary': {
+                    'totalTravelers': total_travelers,
+                    'newTravelers': new_travelers,
+                    'totalPayments': total_collected,
+                    'pendingPayments': pending_payments,
+                    'totalBatches': total_batches,
+                    'activeBatches': active_batches,
+                    'occupancyRate': occupancy_rate,
+                    'collectionRate': collection_rate
                 },
-                'payments_by_method': payments_by_method,
-                'recent_activity': recent_activity
+                'paymentsByMethod': {row['payment_method']: float(row['total']) for row in payments_by_method},
+                'travelersByBatch': [{'batch': row['batch_name'], 'count': row['count']} for row in travelers_by_batch],
+                'travelers': [],      # Placeholder for detailed list (omitted for summary)
+                'batches': [],       # Placeholder
+                'payments': []       # Placeholder
             }
         })
-        
+
     except Exception as e:
         logger.error(f"Summary report error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         release_db(conn, cursor)
 
+
 @bp.route('/generate', methods=['POST'])
 def generate_report():
     """Generate custom report based on parameters"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+
     data = request.json
     report_type = data.get('type', 'travelers')
     filters = data.get('filters', {})
-    
+
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
-        
-        # Build the query based on report type
+
         if report_type == 'travelers':
-            query = '''
+            query = """
                 SELECT 
                     t.*,
                     b.batch_name,
@@ -112,32 +138,26 @@ def generate_report():
                 FROM travelers t
                 LEFT JOIN batches b ON t.batch_id = b.id
                 WHERE 1=1
-            '''
+            """
             params = []
-            
             if filters.get('batch_id') and filters['batch_id'] != 'all':
                 query += ' AND t.batch_id = %s'
                 params.append(filters['batch_id'])
-            
             if filters.get('status') and filters['status'] != 'all':
                 query += ' AND t.passport_status = %s'
                 params.append(filters['status'])
-            
             if filters.get('start_date'):
                 query += ' AND t.created_at >= %s'
                 params.append(filters['start_date'])
-            
             if filters.get('end_date'):
                 query += ' AND t.created_at <= %s'
                 params.append(filters['end_date'])
-            
             query += ' ORDER BY t.created_at DESC'
-            
             cursor.execute(query, params)
             results = cursor.fetchall()
-            
+
         elif report_type == 'payments':
-            query = '''
+            query = """
                 SELECT 
                     p.*,
                     t.first_name,
@@ -148,28 +168,23 @@ def generate_report():
                 JOIN travelers t ON p.traveler_id = t.id
                 LEFT JOIN batches b ON p.batch_id = b.id
                 WHERE 1=1
-            '''
+            """
             params = []
-            
             if filters.get('status') and filters['status'] != 'all':
                 query += ' AND p.status = %s'
                 params.append(filters['status'])
-            
             if filters.get('start_date'):
                 query += ' AND p.payment_date >= %s'
                 params.append(filters['start_date'])
-            
             if filters.get('end_date'):
                 query += ' AND p.payment_date <= %s'
                 params.append(filters['end_date'])
-            
             query += ' ORDER BY p.payment_date DESC'
-            
             cursor.execute(query, params)
             results = cursor.fetchall()
-            
+
         elif report_type == 'batches':
-            query = '''
+            query = """
                 SELECT 
                     b.*,
                     COUNT(t.id) as travelers_count,
@@ -178,18 +193,16 @@ def generate_report():
                 LEFT JOIN travelers t ON b.id = t.batch_id
                 LEFT JOIN payments p ON p.batch_id = b.id AND p.status = 'completed'
                 GROUP BY b.id
-            '''
+            """
             params = []
-            
             if filters.get('status') and filters['status'] != 'all':
                 query += ' HAVING b.status = %s'
                 params.append(filters['status'])
-            
             cursor.execute(query, params)
             results = cursor.fetchall()
-            
+
         elif report_type == 'financial':
-            query = '''
+            query = """
                 SELECT 
                     DATE_TRUNC('month', payment_date) as month,
                     COUNT(*) as transaction_count,
@@ -199,18 +212,15 @@ def generate_report():
                 WHERE status = 'completed'
                 GROUP BY DATE_TRUNC('month', payment_date)
                 ORDER BY month DESC
-            '''
+            """
             cursor.execute(query)
             results = cursor.fetchall()
-            
+
         else:
             return jsonify({'success': False, 'error': 'Invalid report type'}), 400
-        
-        # Convert rows to dictionaries
-        data_list = []
-        for row in results:
-            data_list.append(dict(row))
-        
+
+        data_list = [dict(row) for row in results]
+
         return jsonify({
             'success': True,
             'report': {
@@ -221,7 +231,7 @@ def generate_report():
                 'data': data_list
             }
         })
-        
+
     except Exception as e:
         logger.error(f"Generate report error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
