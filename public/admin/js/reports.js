@@ -2,11 +2,114 @@
 
 let currentReportData = null;
 let currentReportType = 'travelers';
+let allColumns = [];
+let selectedColumns = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("✅ reports.js loaded");
     loadReports();
+    
+    // Initialize column selector with 33 traveler fields
+    initializeColumnSelector('travelers');
 });
+
+// ====== 33 TRAVELER FIELD DEFINITIONS ======
+const columnDefinitions = {
+    travelers: [
+        // Personal Information (10 fields)
+        { id: 'id', name: 'ID', category: 'System' },
+        { id: 'first_name', name: 'First Name', category: 'Personal' },
+        { id: 'last_name', name: 'Last Name', category: 'Personal' },
+        { id: 'passport_name', name: 'Passport Name', category: 'Personal' },
+        { id: 'batch_id', name: 'Batch ID', category: 'Batch' },
+        { id: 'passport_no', name: 'Passport Number', category: 'Passport' },
+        { id: 'passport_issue_date', name: 'Passport Issue Date', category: 'Passport' },
+        { id: 'passport_expiry_date', name: 'Passport Expiry Date', category: 'Passport' },
+        { id: 'passport_status', name: 'Passport Status', category: 'Passport' },
+        { id: 'gender', name: 'Gender', category: 'Personal' },
+        { id: 'dob', name: 'Date of Birth', category: 'Personal' },
+
+        // Contact Information (7 fields)
+        { id: 'mobile', name: 'Mobile Number', category: 'Contact' },
+        { id: 'email', name: 'Email Address', category: 'Contact' },
+        { id: 'aadhaar', name: 'Aadhaar Number', category: 'ID' },
+        { id: 'pan', name: 'PAN Number', category: 'ID' },
+        { id: 'aadhaar_pan_linked', name: 'Aadhaar-PAN Linked', category: 'ID' },
+        { id: 'vaccine_status', name: 'Vaccine Status', category: 'Medical' },
+        { id: 'wheelchair', name: 'Wheelchair Required', category: 'Medical' },
+
+        // Address & Family (7 fields)
+        { id: 'place_of_birth', name: 'Place of Birth', category: 'Address' },
+        { id: 'place_of_issue', name: 'Place of Issue', category: 'Address' },
+        { id: 'passport_address', name: 'Passport Address', category: 'Address' },
+        { id: 'father_name', name: 'Father\'s Name', category: 'Family' },
+        { id: 'mother_name', name: 'Mother\'s Name', category: 'Family' },
+        { id: 'spouse_name', name: 'Spouse\'s Name', category: 'Family' },
+
+        // Document Uploads (5 fields)
+        { id: 'passport_scan', name: 'Passport Scan', category: 'Documents' },
+        { id: 'aadhaar_scan', name: 'Aadhaar Scan', category: 'Documents' },
+        { id: 'pan_scan', name: 'PAN Scan', category: 'Documents' },
+        { id: 'vaccine_scan', name: 'Vaccine Scan', category: 'Documents' },
+        { id: 'photo', name: 'Photo', category: 'Documents' },
+
+        // Additional Information (4 fields)
+        { id: 'pin', name: 'PIN', category: 'Security' },
+        { id: 'emergency_contact', name: 'Emergency Contact', category: 'Emergency' },
+        { id: 'emergency_phone', name: 'Emergency Phone', category: 'Emergency' },
+        { id: 'medical_notes', name: 'Medical Notes', category: 'Medical' },
+
+        // Metadata
+        { id: 'created_at', name: 'Created Date', category: 'System' }
+    ]
+};
+
+// ====== COLUMN SELECTOR FUNCTIONS ======
+function initializeColumnSelector(module) {
+    const columnGrid = document.getElementById('columnGrid');
+    const columns = columnDefinitions[module] || columnDefinitions.travelers;
+    allColumns = columns;
+    
+    let html = '';
+    columns.forEach(col => {
+        html += `
+            <div class="column-item">
+                <input type="checkbox" class="column-checkbox" value="${col.id}" data-category="${col.category}" checked onchange="updateSelectedCount()">
+                <label>${col.name} <small style="color: #7f8c8d;">(${col.category})</small></label>
+            </div>
+        `;
+    });
+    
+    columnGrid.innerHTML = html;
+    document.getElementById('columnSelector').style.display = 'block';
+    updateSelectedCount();
+}
+
+function toggleAllColumns() {
+    const selectAll = document.getElementById('selectAllColumns').checked;
+    document.querySelectorAll('.column-checkbox').forEach(cb => {
+        cb.checked = selectAll;
+    });
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.column-checkbox:checked');
+    document.getElementById('selectedCount').textContent = checkboxes.length + ' columns selected';
+    
+    selectedColumns = [];
+    checkboxes.forEach(cb => {
+        const colId = cb.value;
+        const column = allColumns.find(c => c.id === colId);
+        if (column) {
+            selectedColumns.push(column);
+        }
+    });
+}
+
+function getSelectedColumns() {
+    return selectedColumns;
+}
 
 // ====== LOAD REPORTS ======
 async function loadReports() {
@@ -109,6 +212,10 @@ async function generateReport() {
         endDate = dates.end;
     }
 
+    // Get selected columns
+    const selectedCols = getSelectedColumns();
+    const columnIds = selectedCols.map(col => col.id);
+
     document.getElementById('reportResults').style.display = 'block';
     document.getElementById('reportTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
 
@@ -118,20 +225,21 @@ async function generateReport() {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
-                type: currentReportType,
+                type: currentReportType || 'travelers',
                 filters: {
                     startDate: startDate,
                     endDate: endDate,
                     batchId: batch,
                     status: status
-                }
+                },
+                columns: columnIds  // ✅ Send selected columns to backend
             })
         });
 
         const data = await response.json();
         if (data.success && data.report) {
             currentReportData = data.report;
-            displayGeneratedReport(data.report);
+            displayGeneratedReport(data.report, selectedCols);
             showNotification(`Report generated: ${data.report.count} records`, 'success');
         } else {
             showNotification(data.error || 'Failed to generate report', 'error');
@@ -144,11 +252,11 @@ async function generateReport() {
     }
 }
 
-// ====== DISPLAY GENERATED REPORT ======
-function displayGeneratedReport(report) {
+// ====== DISPLAY GENERATED REPORT WITH SELECTED COLUMNS ======
+function displayGeneratedReport(report, columns) {
     document.getElementById('reportTitle').innerHTML = `<i class="fas fa-chart-pie"></i> Report Results (${report.count} records)`;
 
-    const container = document.getElementById('generatedReportContainer') || document.getElementById('reportResults');
+    const container = document.getElementById('reportTableContainer');
     if (!container) return;
 
     const rows = report.data || [];
@@ -157,20 +265,21 @@ function displayGeneratedReport(report) {
         return;
     }
 
-    const cols = Object.keys(rows[0]);
+    // Use selected columns, or all columns if none selected
+    const cols = columns && columns.length > 0 
+        ? columns.map(col => col.id)
+        : Object.keys(rows[0]);
+
     const headers = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
     const tableRows = rows.map(row =>
         `<tr>${cols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
     ).join('');
 
-    container.innerHTML = `
-        <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse;">
-                <thead><tr>${headers}</tr></thead>
-                <tbody>${tableRows}</tbody>
-            </table>
-        </div>
-    `;
+    const headerRow = document.getElementById('reportHeaderRow');
+    const tableBody = document.getElementById('reportTableBody');
+    
+    if (headerRow) headerRow.innerHTML = headers;
+    if (tableBody) tableBody.innerHTML = tableRows;
 }
 
 // ====== UTILITY FUNCTIONS ======
@@ -459,4 +568,4 @@ window.resetFilters = resetFilters;
 window.toggleDateInputs = toggleDateInputs;
 window.logout = logout;
 
-console.log('✅ reports.js loaded');
+console.log('✅ reports.js loaded with 33 traveler fields support');

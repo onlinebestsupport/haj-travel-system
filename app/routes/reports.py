@@ -147,8 +147,9 @@ def generate_report():
     data = request.json
     report_type = data.get('type', 'travelers')
     filters_in = data.get('filters', {})
+    selected_columns = data.get('columns', [])  # ✅ Get selected columns
 
-    # ✅ Normalize filters (accept both camelCase and snake_case)
+    # ✅ Normalize filters
     def get_filter(*keys):
         for k in keys:
             if k in filters_in and filters_in[k] not in (None, ''):
@@ -167,12 +168,20 @@ def generate_report():
 
         # Build query based on report type
         if report_type == 'travelers':
-            query = """
-                SELECT 
-                    t.*,
-                    b.batch_name,
-                    (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id) as payment_count,
-                    (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE traveler_id = t.id) as total_paid
+            # ✅ Build SELECT clause dynamically based on selected columns
+            if selected_columns and len(selected_columns) > 0:
+                # Always include id for record identification
+                select_cols = ['id']
+                for col in selected_columns:
+                    if col != 'id':
+                        select_cols.append(col)
+                select_clause = ', '.join(select_cols)
+            else:
+                # If no columns selected, return all columns
+                select_clause = 't.*'
+
+            query = f"""
+                SELECT {select_clause}, b.batch_name
                 FROM travelers t
                 LEFT JOIN batches b ON t.batch_id = b.id
                 WHERE 1=1
@@ -194,32 +203,6 @@ def generate_report():
             cursor.execute(query, params)
             results = cursor.fetchall()
 
-        elif report_type == 'payments':
-            query = """
-                SELECT 
-                    p.*,
-                    t.first_name,
-                    t.last_name,
-                    t.passport_no,
-                    b.batch_name
-                FROM payments p
-                JOIN travelers t ON p.traveler_id = t.id
-                LEFT JOIN batches b ON p.batch_id = b.id
-                WHERE 1=1
-            """
-            params = []
-            if status and status != 'all':
-                query += ' AND p.status = %s'
-                params.append(status)
-            if start_date:
-                query += ' AND p.payment_date >= %s'
-                params.append(start_date)
-            if end_date:
-                query += ' AND p.payment_date <= %s'
-                params.append(end_date)
-            query += ' ORDER BY p.payment_date DESC'
-            cursor.execute(query, params)
-            results = cursor.fetchall()
 
         elif report_type == 'batches':
             query = """
