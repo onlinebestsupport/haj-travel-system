@@ -1399,63 +1399,74 @@
          * SUBSECTION 12.10: REPORT GENERATION
          * ================================================================== */
         async function generateReport() {
-            if (isGeneratingReport) {
-                showNotification('Report already generating. Please wait.', 'warning');
-                return;
-            }
+    if (isGeneratingReport) {
+        showNotification('Report already generating. Please wait.', 'warning');
+        return;
+    }
 
-            isGeneratingReport = true;
-            showReportLoading();
+    isGeneratingReport = true;
+    showReportLoading();
 
-            const range = document.getElementById('dateRange').value;
-            const batch = document.getElementById('reportBatch').value;
-            const status = document.getElementById('reportStatus').value;
+    const range = document.getElementById('dateRange').value;
+    const batch = document.getElementById('reportBatch').value;
+    const status = document.getElementById('reportStatus').value;
 
-            let startDate, endDate;
+    let startDate, endDate;
 
-            if (range === 'custom') {
-                startDate = document.getElementById('startDate').value;
-                endDate = document.getElementById('endDate').value;
+    if (range === 'custom') {
+        startDate = document.getElementById('startDate').value;
+        endDate = document.getElementById('endDate').value;
+    } else {
+        const dates = getDateRange(range);
+        startDate = dates.start;
+        endDate = dates.end;
+    }
+
+    document.getElementById('reportResults').style.display = 'block';
+    document.getElementById('reportTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
+
+    initializeColumnSelector('travelers');
+
+    try {
+        const response = await fetch('/api/reports/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                type: currentReportType,
+                filters: { startDate, endDate, batchId: batch, status }
+            })
+        });
+
+        // ✅ DEBUG: Check response status
+        console.log("📡 Response Status:", response.status);
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("📦 Backend Data:", data); // ✅ See what backend sent
+            
+            if (data.success) {
+                displayReport(data.report);
             } else {
-                const dates = getDateRange(range);
-                startDate = dates.start;
-                endDate = dates.end;
+                // ❌ Backend returned success:false
+                showNotification('Backend error: ' + (data.error || 'Unknown error'), 'error');
+                showDemoReport(); // Fallback
             }
-
-            document.getElementById('reportResults').style.display = 'block';
-            document.getElementById('reportTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
-
-            initializeColumnSelector('travelers');
-
-            try {
-                const response = await fetch('/api/reports/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        type: currentReportType,
-                        filters: { startDate, endDate, batchId: batch, status }
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        displayReport(data.report);
-                    } else {
-                        showDemoReport();
-                    }
-                } else {
-                    showDemoReport();
-                }
-            } catch (error) {
-                console.error('Error generating report:', error);
-                showDemoReport();
-            } finally {
-                hideReportLoading();
-                isGeneratingReport = false;
-            }
+        } else {
+            // ❌ HTTP error (500, 404, etc)
+            console.error("❌ HTTP Error:", response.status, response.statusText);
+            showNotification('Server error: ' + response.status, 'error');
+            showDemoReport(); // Fallback
         }
+    } catch (error) {
+        console.error('❌ Network Error:', error);
+        showNotification('Network error. Please try again.', 'error');
+        showDemoReport(); // Fallback
+    } finally {
+        hideReportLoading();
+        isGeneratingReport = false;
+    }
+}
 
         function showDemoReport() {
             const reportData = {

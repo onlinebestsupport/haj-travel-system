@@ -35,7 +35,7 @@ def summary_report():
         cursor.execute("SELECT COUNT(*) as count FROM batches WHERE status = 'Open'")
         active_batches = cursor.fetchone()['count']
 
-        # 4. Payments stats
+        # 4. Payments stats (Completed)
         cursor.execute("""
             SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count
             FROM payments
@@ -44,6 +44,7 @@ def summary_report():
         total_payments_data = cursor.fetchone()
         total_collected = float(total_payments_data['total'])
 
+        # 5. Payments stats (Pending)
         cursor.execute("""
             SELECT COALESCE(SUM(amount), 0) as total
             FROM payments
@@ -51,25 +52,34 @@ def summary_report():
         """)
         pending_payments = float(cursor.fetchone()['total'])
 
-        # 5. Payments by method
+        # 6. Payments by method (Grouped)
         cursor.execute("""
-            SELECT payment_method, COUNT(*) as count, COALESCE(SUM(amount), 0) as total
+            SELECT payment_method, COALESCE(SUM(amount), 0) as total
             FROM payments
             WHERE status = 'completed'
             GROUP BY payment_method
         """)
-        payments_by_method = cursor.fetchall()
+        payments_by_method_rows = cursor.fetchall()
+        payments_by_method = {}
+        for row in payments_by_method_rows:
+            payments_by_method[row['payment_method']] = float(row['total'])
 
-        # 6. Travelers by batch (for chart)
+        # 7. Travelers by batch (for chart)
         cursor.execute("""
             SELECT b.batch_name, COUNT(t.id) as count
             FROM batches b
             LEFT JOIN travelers t ON b.id = t.batch_id
             GROUP BY b.id, b.batch_name
         """)
-        travelers_by_batch = cursor.fetchall()
+        travelers_by_batch_rows = cursor.fetchall()
+        travelers_by_batch = []
+        for row in travelers_by_batch_rows:
+            travelers_by_batch.append({
+                'batch': row['batch_name'] or 'Unassigned',
+                'count': row['count']
+            })
 
-        # 7. Occupancy rate
+        # 8. Occupancy rate
         cursor.execute("SELECT COALESCE(SUM(total_seats), 0) as total_seats FROM batches")
         total_seats = float(cursor.fetchone()['total_seats'])
 
@@ -78,9 +88,17 @@ def summary_report():
 
         occupancy_rate = round((booked_seats / total_seats) * 100, 1) if total_seats > 0 else 0
 
-        # 8. Collection rate (assuming total expected = total_collected + pending_payments)
+        # 9. Collection rate
         total_expected = total_collected + pending_payments
         collection_rate = round((total_collected / total_expected) * 100, 1) if total_expected > 0 else 0
+
+        # 10. Recent Activity (Last 5)
+        cursor.execute("""
+            SELECT * FROM activity_log
+            ORDER BY created_at DESC
+            LIMIT 5
+        """)
+        recent_activity = cursor.fetchall()
 
         return jsonify({
             'success': True,
@@ -98,11 +116,9 @@ def summary_report():
                     'occupancyRate': occupancy_rate,
                     'collectionRate': collection_rate
                 },
-                'paymentsByMethod': {row['payment_method']: float(row['total']) for row in payments_by_method},
-                'travelersByBatch': [{'batch': row['batch_name'], 'count': row['count']} for row in travelers_by_batch],
-                'travelers': [],      # Placeholder for detailed list (omitted for summary)
-                'batches': [],       # Placeholder
-                'payments': []       # Placeholder
+                'paymentsByMethod': payments_by_method,
+                'travelersByBatch': travelers_by_batch,
+                'recentActivity': recent_activity
             }
         })
 
