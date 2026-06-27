@@ -3,6 +3,8 @@
 // ====== STATE ======
 let currentReportData = null;
 let currentReportType = 'travelers';
+
+// 33 TRAVELER FIELDS IN EXACT ORDER AS TRAVELERS.HTML MODULE
 const TRAVELERS_COLUMNS = [
     { name: 'id', label: 'ID', type: 'number' },
     { name: 'first_name', label: 'First Name', type: 'text' },
@@ -16,13 +18,13 @@ const TRAVELERS_COLUMNS = [
     { name: 'passport_status', label: 'Passport Status', type: 'text' },
     { name: 'gender', label: 'Gender', type: 'text' },
     { name: 'dob', label: 'Date of Birth', type: 'date' },
-    { name: 'mobile', label: 'Mobile Number', type: 'text' },
+    { name: 'mobile', label: 'Mobile', type: 'text' },
     { name: 'email', label: 'Email', type: 'text' },
-    { name: 'aadhaar', label: 'Aadhaar Number', type: 'text' },
-    { name: 'pan', label: 'PAN Number', type: 'text' },
+    { name: 'aadhaar', label: 'Aadhaar', type: 'text' },
+    { name: 'pan', label: 'PAN', type: 'text' },
     { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text' },
     { name: 'vaccine_status', label: 'Vaccine Status', type: 'text' },
-    { name: 'wheelchair', label: 'Wheelchair Required', type: 'text' },
+    { name: 'wheelchair', label: 'Wheelchair', type: 'text' },
     { name: 'place_of_birth', label: 'Place of Birth', type: 'text' },
     { name: 'place_of_issue', label: 'Place of Issue', type: 'text' },
     { name: 'passport_address', label: 'Passport Address', type: 'text' },
@@ -33,12 +35,24 @@ const TRAVELERS_COLUMNS = [
     { name: 'emergency_contact', label: 'Emergency Contact', type: 'text' },
     { name: 'emergency_phone', label: 'Emergency Phone', type: 'text' },
     { name: 'medical_notes', label: 'Medical Notes', type: 'text' },
-    { name: 'created_at', label: 'Created At', type: 'datetime' },
-    { name: 'updated_at', label: 'Updated At', type: 'datetime' }
+    { name: 'passport_scan', label: 'Passport Scan', type: 'text' },
+    { name: 'aadhaar_scan', label: 'Aadhaar Scan', type: 'text' },
+    { name: 'pan_scan', label: 'PAN Scan', type: 'text' },
+    { name: 'vaccine_scan', label: 'Vaccine Scan', type: 'text' },
+    { name: 'photo', label: 'Photo', type: 'text' },
+    { name: 'created_at', label: 'Created At', type: 'datetime' }
 ];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("✅ reports.js loaded");
+    // Verify XLSX is available
+    setTimeout(() => {
+        if (typeof XLSX !== 'undefined') {
+            console.log("✅ XLSX library confirmed loaded");
+        } else {
+            console.error("❌ XLSX library not loaded");
+        }
+    }, 500);
     loadReports();
 });
 
@@ -218,7 +232,7 @@ async function generateReport() {
         const data = await response.json();
         if (data.success && data.report) {
             currentReportData = data.report;
-            displayGeneratedReport(data.report);
+            displayGeneratedReport(data.report, selectedColumns);
             showNotification(`Report generated: ${data.report.count} records`, 'success');
         } else {
             showNotification(data.error || 'Failed to generate report', 'error');
@@ -234,7 +248,7 @@ async function generateReport() {
 }
 
 // ====== DISPLAY GENERATED REPORT ======
-function displayGeneratedReport(report) {
+function displayGeneratedReport(report, selectedColumns) {
     document.getElementById('reportTitle').innerHTML = `<i class="fas fa-chart-pie"></i> Report Results (${report.count} records)`;
 
     const rows = report.data || [];
@@ -243,13 +257,22 @@ function displayGeneratedReport(report) {
         return;
     }
 
-    const cols = Object.keys(rows[0]);
+    // ✅ MAINTAIN COLUMN ORDER FROM TRAVELERS_COLUMNS
+    // Only include selected columns in the original order
+    const orderedCols = TRAVELERS_COLUMNS
+        .filter(col => selectedColumns.includes(col.name))
+        .map(col => col.name);
+
     const headerRow = document.getElementById('reportHeaderRow');
-    headerRow.innerHTML = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
+    headerRow.innerHTML = orderedCols.map(c => {
+        const colDef = TRAVELERS_COLUMNS.find(col => col.name === c);
+        const label = colDef ? colDef.label : c.replace(/_/g, ' ');
+        return `<th>${escapeHtml(label)}</th>`;
+    }).join('');
 
     const tableBody = document.getElementById('reportTableBody');
     tableBody.innerHTML = rows.map(row =>
-        `<tr>${cols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
+        `<tr>${orderedCols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
     ).join('');
 }
 
@@ -371,10 +394,19 @@ function exportToPDF() {
     }
 
     const rows = currentReportData.data.slice(0, 500);
-    const cols = Object.keys(rows[0]);
-    const headers = cols.map(c => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('');
+    const selectedColumns = Array.from(document.querySelectorAll('.column-checkbox:checked'))
+        .map(cb => cb.value);
+    const orderedCols = TRAVELERS_COLUMNS
+        .filter(col => selectedColumns.includes(col.name))
+        .map(col => col.name);
+    
+    const headers = orderedCols.map(c => {
+        const colDef = TRAVELERS_COLUMNS.find(col => col.name === c);
+        return `<th>${escapeHtml(colDef ? colDef.label : c.replace(/_/g, ' '))}</th>`;
+    }).join('');
+    
     const tableRows = rows.map(row =>
-        `<tr>${cols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
+        `<tr>${orderedCols.map(c => `<td>${escapeHtml(String(row[c] ?? '-'))}</td>`).join('')}</tr>`
     ).join('');
 
     const printWin = window.open('', '_blank');
@@ -402,12 +434,20 @@ function exportToCSV() {
     }
 
     const rows = currentReportData.data;
-    const cols = Object.keys(rows[0]);
-    const headers = cols.map(c => c.replace(/_/g, ' '));
+    const selectedColumns = Array.from(document.querySelectorAll('.column-checkbox:checked'))
+        .map(cb => cb.value);
+    const orderedCols = TRAVELERS_COLUMNS
+        .filter(col => selectedColumns.includes(col.name))
+        .map(col => col.name);
+    
+    const headers = orderedCols.map(c => {
+        const colDef = TRAVELERS_COLUMNS.find(col => col.name === c);
+        return colDef ? colDef.label : c.replace(/_/g, ' ');
+    });
 
     let csv = headers.join(',') + '\n';
     rows.forEach(row => {
-        const rowData = cols.map(col => {
+        const rowData = orderedCols.map(col => {
             let val = row[col] || '';
             if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
                 val = `"${val.replace(/"/g, '""')}"`;
@@ -433,17 +473,48 @@ function exportToExcel() {
         return;
     }
 
+    // Verify XLSX library is available
     if (typeof XLSX === 'undefined') {
-        showNotification('Excel export library not loaded', 'error');
+        console.error('XLSX not loaded. Attempting fallback to CSV...');
+        showNotification('Excel library loading... trying CSV export', 'warning');
+        setTimeout(() => exportToCSV(), 500);
         return;
     }
 
-    const rows = currentReportData.data;
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Report');
-    XLSX.writeFile(wb, `report_${currentReportType}_${new Date().toISOString().slice(0,10)}.xlsx`);
-    showNotification(`Exported ${rows.length} records to Excel`, 'success');
+    try {
+        const rows = currentReportData.data;
+        const selectedColumns = Array.from(document.querySelectorAll('.column-checkbox:checked'))
+            .map(cb => cb.value);
+        const orderedCols = TRAVELERS_COLUMNS
+            .filter(col => selectedColumns.includes(col.name))
+            .map(col => col.name);
+        
+        // Reorder data rows to match column order
+        const reorderedRows = rows.map(row => {
+            const newRow = {};
+            orderedCols.forEach(col => {
+                const colDef = TRAVELERS_COLUMNS.find(c => c.name === col);
+                const label = colDef ? colDef.label : col.replace(/_/g, ' ');
+                newRow[label] = row[col];
+            });
+            return newRow;
+        });
+        
+        const ws = XLSX.utils.json_to_sheet(reorderedRows);
+        const colWidths = orderedCols.map(key => ({
+            wch: Math.min(25, Math.max(key.length, 12))
+        }));
+        ws['!cols'] = colWidths;
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Report');
+        XLSX.writeFile(wb, `report_${currentReportType}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        showNotification(`Exported ${rows.length} records to Excel`, 'success');
+    } catch (error) {
+        console.error('Excel export error:', error);
+        showNotification('Excel export failed. Using CSV instead.', 'warning');
+        exportToCSV();
+    }
 }
 
 function printReport() {
