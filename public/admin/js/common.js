@@ -1,32 +1,10 @@
 /**
  * common.js - Shared utility functions for all admin pages
  * Alhudha Haj Travel Admin Panel
- * Alhudha Haj Travel Management System
- * common.js - Shared utilities for all Alhudha Haj Travel admin pages
- * Provides: notifications, modals, loading states, API wrapper, formatters, error handling
  */
 
 'use strict';
 
-// ====== NOTIFICATION ======
-/**
- * Show a toast notification
- * @param {string} message - Message to display
- * @param {string} type - 'success' | 'error' | 'warning' | 'info'
- * @param {number} duration - Duration in ms (default 3500)
- */
-function showNotification(message, type = 'success', duration = 3500) {
-    let notification = document.getElementById('notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'notification';
-        notification.className = 'notification';
-        document.body.appendChild(notification);
-    }
- * @param {string} message - The message to display
- * @param {string} type - 'success' | 'error' | 'warning' | 'info'
- */
-function showNotification(message, type = 'info') {
 // ============================================================
 // NOTIFICATION SYSTEM
 // ============================================================
@@ -51,21 +29,6 @@ function showNotification(message, type = 'success', duration = 3500) {
 
     const cfg = colors[type] || colors.info;
 
-    const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
-
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${escapeHtml(message)}`;
-    notification.style.display = 'block';
-
-    if (window._notificationTimeout) clearTimeout(window._notificationTimeout);
-    window._notificationTimeout = setTimeout(() => {
-        notification.style.display = 'none';
-    }, duration);
     const notification = document.createElement('div');
     notification.id = 'adminNotification';
     notification.style.cssText = `
@@ -104,40 +67,6 @@ function showNotification(message, type = 'success', duration = 3500) {
             @keyframes slideInRight {
                 from { opacity: 0; transform: translateX(100px); }
                 to   { opacity: 1; transform: translateX(0); }
-        padding: 15px 25px;
-        border-radius: 8px;
-        color: white;
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1rem;
-        font-weight: 500;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-        animation: slideInRight 0.3s ease;
-        max-width: 400px;
-        word-break: break-word;
-    `;
-
-    const colors = {
-        success: '#27ae60',
-        error: '#e74c3c',
-        warning: '#f39c12',
-        info: '#3498db'
-    };
-    notification.style.background = colors[type] || colors.info;
-
-    const icon = icons[type] || 'info-circle';
-    notification.innerHTML = `<i class="fas fa-${icon}"></i> ${escapeHtml(message)}`;
-
-    // Inject keyframe if not already present
-    if (!document.getElementById('notifKeyframes')) {
-        const style = document.createElement('style');
-        style.id = 'notifKeyframes';
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(120%); opacity: 0; }
-                to   { transform: translateX(0);    opacity: 1; }
             }
         `;
         document.head.appendChild(style);
@@ -145,72 +74,13 @@ function showNotification(message, type = 'success', duration = 3500) {
 
     document.body.appendChild(notification);
 
-    // Auto-remove after 4 seconds
+    // Auto-remove after duration
     setTimeout(() => {
         if (notification.parentElement) {
             notification.style.opacity = '0';
             notification.style.transition = 'opacity 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }
-    }, 4000);
-}
-
-// ====== MODAL ======
-/**
- * Show a generic modal dialog
- * @param {string} title - Modal title
- * @param {string} content - HTML content for modal body
- * @param {string} [footerHtml] - Optional footer HTML
- */
-function showModal(title, content, footerHtml = '') {
-    let overlay = document.getElementById('modalOverlay');
-    let modal = document.getElementById('genericModal');
-
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modalOverlay';
-        overlay.className = 'modal-overlay';
-        overlay.onclick = closeModal;
-        document.body.appendChild(overlay);
-    }
-
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'genericModal';
-        modal.className = 'modal';
-        document.body.appendChild(modal);
-    }
-
-    modal.innerHTML = `
-        <div class="modal-header">
-            <h3>${title}</h3>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <div class="modal-body">${content}</div>
-        ${footerHtml ? `<div class="modal-footer">${footerHtml}</div>` : ''}
-    `;
-
-    modal.style.display = 'block';
-    overlay.style.display = 'block';
-}
-
-/**
- * Close the active modal
- */
-function closeModal() {
-    const overlay = document.getElementById('modalOverlay');
-    const modal = document.getElementById('genericModal');
-    if (modal) modal.style.display = 'none';
-    if (overlay) overlay.style.display = 'none';
- * @param {string} content - HTML content for the modal body
- * @param {Array}  buttons - Array of { label, class, onClick } objects
- */
-function showModal(title, content, buttons = []) {
-    closeModal();
-    setTimeout(() => {
-        notification.style.transition = 'opacity 0.4s ease';
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 400);
     }, duration);
 }
 
@@ -236,45 +106,6 @@ function showModal(title, content, footerHtml = '') {
         animation: fadeIn 0.2s ease;
     `;
 
-    const buttonsHtml = buttons.map(btn =>
-        `<button class="action-btn ${btn.class || 'btn-secondary'}" onclick="${btn.onClick}">${btn.label}</button>`
-    ).join('');
-
-    overlay.innerHTML = `
-        <div id="commonModal" style="
-            background: white; border-radius: 15px; padding: 30px;
-            width: 90%; max-width: 600px; max-height: 85vh;
-            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease;
-        ">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #ecf0f1;">
-                <h3 style="color:#2c3e50;font-size:1.3rem;">${title}</h3>
-                <button onclick="closeModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:#95a5a6;line-height:1;">&times;</button>
-            </div>
-            <div style="margin-bottom:20px;">${content}</div>
-            ${buttonsHtml ? `<div style="display:flex;gap:10px;justify-content:flex-end;padding-top:15px;border-top:1px solid #ecf0f1;">${buttonsHtml}</div>` : ''}
-        </div>
-    `;
-
-    if (!document.getElementById('commonModalStyles')) {
-        const style = document.createElement('style');
-        style.id = 'commonModalStyles';
-        style.textContent = `
-            @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-            .action-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-            .btn-primary   { background: #3498db; color: white; }
-            .btn-success   { background: #27ae60; color: white; }
-            .btn-danger    { background: #e74c3c; color: white; }
-            .btn-warning   { background: #f39c12; color: white; }
-            .btn-secondary { background: #95a5a6; color: white; }
-        background: rgba(0,0,0,0.5); z-index: 9000;
-        display: flex; align-items: center; justify-content: center;
-    `;
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closeModal();
-    });
-
     const modal = document.createElement('div');
     modal.id = 'commonModal';
     modal.style.cssText = `
@@ -288,6 +119,10 @@ function showModal(title, content, footerHtml = '') {
         const style = document.createElement('style');
         style.id = 'modalKeyframes';
         style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to   { opacity: 1; }
+            }
             @keyframes modalFadeIn {
                 from { opacity: 0; transform: translateY(-20px); }
                 to   { opacity: 1; transform: translateY(0); }
@@ -300,11 +135,6 @@ function showModal(title, content, footerHtml = '') {
         if (e.target === overlay) closeModal();
     });
 
-    document.body.appendChild(overlay);
-}
-
-/**
- * Close the currently open common modal
     modal.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center;
                     margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #ecf0f1;">
@@ -332,9 +162,6 @@ function closeModal() {
     if (overlay) overlay.remove();
 }
 
-// ====== HTML SANITIZATION ======
-/**
- * Escape HTML special characters to prevent XSS
 // ============================================================
 // LOADING SPINNER
 // ============================================================
@@ -382,55 +209,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = String(text);
     return div.innerHTML;
-    return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-// ====== DATE FORMATTING ======
-/**
- * Format a date string or Date object for display
- * @param {string|Date} date
- * @param {string} [locale='en-IN']
- * @returns {string}
- */
-function formatDate(date, locale = 'en-IN') {
-    if (!date) return '-';
-    try {
-        const d = new Date(date);
-        if (isNaN(d.getTime())) return String(date);
-        return d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch (e) {
-        return String(date);
-    }
-}
-
-/**
- * Format a date string to YYYY-MM-DD for input[type=date]
- * @param {string} dateStr
- * @returns {string}
- */
-function formatDateForInput(dateStr) {
-    if (!dateStr) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-    try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return '';
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    } catch (e) {
-        return '';
- * @returns {string}
- */
-function formatDate(date) {
-    const str = String(text);
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return str.replace(/[&<>"']/g, (m) => map[m]);
 }
 
 // ============================================================
@@ -448,11 +226,6 @@ function formatDate(date, includeTime = false) {
     try {
         const d = new Date(date);
         if (isNaN(d.getTime())) return String(date);
-        return d.toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         if (includeTime) {
             options.hour = '2-digit';
@@ -464,64 +237,12 @@ function formatDate(date, includeTime = false) {
     }
 }
 
-// ====== CURRENCY FORMATTING ======
 /**
  * Format a number as Indian Rupee currency
  * @param {number|string} amount
  * @returns {string}
  */
 function formatCurrency(amount) {
-    const num = parseFloat(amount);
-    if (isNaN(num)) return '₹0';
-    return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-}
-
-// ====== PHONE FORMATTING ======
-/**
- * Format a phone number for display
- * @param {string} phone
- * @returns {string}
- */
-function formatPhoneNumber(phone) {
-    if (!phone) return '-';
-    const cleaned = String(phone).replace(/\D/g, '');
-    if (cleaned.length === 10) {
-        return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
-    }
-    if (cleaned.length === 12 && cleaned.startsWith('91')) {
-        return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 7)} ${cleaned.slice(7)}`;
-    }
-    return phone;
-}
-
-// ====== VALIDATION ======
-/**
- * Validate an email address
- * @param {string} email
- * @returns {boolean}
- */
-function validateEmail(email) {
-    if (!email) return false;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
-}
-
-/**
- * Validate a phone number (Indian format)
- * @param {string} phone
- * @returns {boolean}
- */
-function validatePhone(phone) {
-    if (!phone) return false;
-    const cleaned = String(phone).replace(/\D/g, '');
-    return cleaned.length >= 10 && cleaned.length <= 13;
-}
-
-// ====== API CALL WRAPPER ======
-/**
- * Make an authenticated API call
- * @param {string} method - HTTP method
- * @param {string} endpoint - API endpoint URL
- * @param {Object|FormData|null} data - Request body
     if (amount === null || amount === undefined || amount === '') return '₹0';
     const num = parseFloat(amount);
     if (isNaN(num)) return '₹0';
@@ -531,14 +252,16 @@ function validatePhone(phone) {
     });
 }
 
-// ====== CONFIRMATION DIALOG ======
+// ============================================================
+// CONFIRMATION DIALOG
+// ============================================================
+
 /**
  * Show a confirmation dialog before a destructive action
  * @param {string}   message   - Confirmation message
  * @param {Function} onConfirm - Callback if user confirms
  */
 function showConfirmation(message, onConfirm) {
-    // Store callback globally so inline onclick can reach it
     window._confirmCallback = onConfirm;
 
     showModal(
@@ -557,45 +280,6 @@ function showConfirmation(message, onConfirm) {
             }
         ]
     );
-}
-
-// ====== API CALL WRAPPER ======
-/**
- * Wrapper around fetch for API calls with session credentials
- * @param {string} method   - HTTP method (GET, POST, PUT, DELETE)
- * @param {string} endpoint - API endpoint path
- * @param {Object} data     - Request body (for POST/PUT)
- * @returns {Promise<Object>}
- */
-async function makeApiCall(method, endpoint, data = null) {
-    const options = {
-        method: method.toUpperCase(),
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-    return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-}
-
-// ============================================================
-// ERROR HANDLER
-// ============================================================
-
-/**
- * Centralised error handler
- * @param {Error|string} error
- * @param {string} [context] - Optional context label
- */
-function handleError(error, context = '') {
-    const msg = error instanceof Error ? error.message : String(error);
-    const label = context ? `[${context}] ` : '';
-    console.error(`❌ ${label}${msg}`, error);
-
-    if (error && error.status === 401) {
-        showNotification('Session expired. Redirecting to login…', 'warning');
-        setTimeout(() => { window.location.href = '/admin.login.html'; }, 2000);
-        return;
-    }
-
-    showNotification(`${label}${msg}`, 'error');
 }
 
 // ============================================================
@@ -618,7 +302,6 @@ async function makeAPICall(method, endpoint, data = null) {
 
     if (data !== null) {
         if (data instanceof FormData) {
-            // Let browser set Content-Type with boundary for FormData
             options.body = data;
         } else {
             options.headers['Content-Type'] = 'application/json';
@@ -650,7 +333,10 @@ async function makeAPICall(method, endpoint, data = null) {
     return json;
 }
 
-// ====== ERROR HANDLING ======
+// ============================================================
+// ERROR HANDLING
+// ============================================================
+
 /**
  * Handle API errors gracefully
  * @param {Error} error
@@ -662,154 +348,6 @@ function handleAPIError(error, context = '') {
     if (msg !== 'Unauthorized') {
         showNotification(msg, 'error');
     }
-}
-
-// ====== LOADING STATE ======
-/**
- * Show a loading spinner inside an element
- * @param {HTMLElement|string} element - Element or element ID
- * @param {string} [message='Loading...']
- */
-function showLoading(element, message = 'Loading...') {
-    const el = typeof element === 'string' ? document.getElementById(element) : element;
-    if (!el) return;
-    el.dataset.originalContent = el.innerHTML;
-    el.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${escapeHtml(message)}`;
-    if (el.tagName === 'BUTTON') el.disabled = true;
-}
-
-/**
- * Hide loading state and restore original content
- * @param {HTMLElement|string} element - Element or element ID
- */
-function hideLoading(element) {
-    const el = typeof element === 'string' ? document.getElementById(element) : element;
-    if (!el) return;
-    if (el.dataset.originalContent !== undefined) {
-        el.innerHTML = el.dataset.originalContent;
-        delete el.dataset.originalContent;
-    }
-    if (el.tagName === 'BUTTON') el.disabled = false;
-}
-
-// ====== CSV EXPORT HELPER ======
-/**
- * Download data as a CSV file
- * @param {string[][]} rows - Array of rows (each row is an array of values)
- * @param {string} filename - Output filename
- */
-function downloadCSV(rows, filename) {
-    const csvContent = rows.map(row =>
-        row.map(cell => {
-            const val = cell === null || cell === undefined ? '' : String(cell);
-            return '"' + val.replace(/"/g, '""') + '"';
-        }).join(',')
-    ).join('\n');
-
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-        }
-    };
-
-    if (data && ['POST', 'PUT', 'PATCH'].includes(options.method)) {
-        options.body = JSON.stringify(data);
-    }
-
-    const response = await fetch(endpoint, options);
-
-    if (!response.ok) {
-        const errorText = await response.text().catch(() => response.statusText);
-        let errorMsg;
-        try {
-            const errorJson = JSON.parse(errorText);
-            errorMsg = errorJson.error || errorJson.message || `HTTP ${response.status}`;
-        } catch {
-            errorMsg = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMsg);
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
-}
-
-// ====== API ERROR HANDLER ======
-/**
- * Handle API errors with user notification and console logging
- * @param {Error}  error   - The caught error
- * @param {string} context - Description of what was being attempted
- */
-function handleApiError(error, context = 'Operation') {
-    console.error(`❌ ${context} failed:`, error);
-    const message = error.message || 'An unexpected error occurred';
-    showNotification(`${context} failed: ${message}`, 'error');
-}
-
-// ====== LOADING SPINNER ======
-/**
- * Show or hide a full-page loading spinner
- * @param {boolean} show
- */
-function showLoading(show) {
-    let spinner = document.getElementById('globalLoadingSpinner');
-
-    if (show) {
-        if (!spinner) {
-            spinner = document.createElement('div');
-            spinner.id = 'globalLoadingSpinner';
-            spinner.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(255,255,255,0.7); z-index: 99998;
-                display: flex; align-items: center; justify-content: center;
-                flex-direction: column; gap: 15px;
-            `;
-            spinner.innerHTML = `
-                <div style="
-                    width: 50px; height: 50px;
-                    border: 5px solid #ecf0f1;
-                    border-top-color: #3498db;
-                    border-radius: 50%;
-                    animation: spin 0.8s linear infinite;
-                "></div>
-                <p style="color:#2c3e50;font-weight:600;font-size:0.95rem;">Loading...</p>
-            `;
-
-            if (!document.getElementById('spinnerStyles')) {
-                const style = document.createElement('style');
-                style.id = 'spinnerStyles';
-                style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
-                document.head.appendChild(style);
-            }
-
-            document.body.appendChild(spinner);
-        }
-    } else {
-        if (spinner) spinner.remove();
-    }
-}
-    if (response.status === 401) {
-        const err = new Error('Unauthorized – session expired');
-        err.status = 401;
-        throw err;
-    }
-
-    let json;
-    try {
-        json = await response.json();
-    } catch (e) {
-        throw new Error(`Invalid JSON response from ${endpoint}`);
-    }
-
-    if (!response.ok) {
-        throw new Error(json.error || json.message || `HTTP ${response.status}`);
-    }
-
-    return json;
 }
 
 // ============================================================
@@ -849,73 +387,6 @@ function downloadCSV(rows, columns, headers, filename) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-}
-
-// ====== PAGINATION HELPER ======
-/**
- * Update pagination display elements
- * @param {number} total - Total number of items
- * @param {number} currentPage - Current page (1-based)
- * @param {number} itemsPerPage - Items per page
- */
-function updatePaginationDisplay(total, currentPage, itemsPerPage) {
-    const start = total > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
-    const end = Math.min(currentPage * itemsPerPage, total);
-
-    const fromEl = document.getElementById('showingFrom');
-    const toEl = document.getElementById('showingTo');
-    const totalEl = document.getElementById('totalCount');
-    const prevBtn = document.getElementById('prevPageBtn');
-    const nextBtn = document.getElementById('nextPageBtn');
-
-    if (fromEl) fromEl.textContent = start;
-    if (toEl) toEl.textContent = end;
-    if (totalEl) totalEl.textContent = total;
-    if (prevBtn) prevBtn.disabled = currentPage <= 1;
-    if (nextBtn) nextBtn.disabled = end >= total;
-}
-
-// ====== STATUS BADGE HELPER ======
-/**
- * Get CSS class for a status badge
- * @param {string} status
- * @returns {string}
- */
-function getStatusClass(status) {
-    const map = {
-        'active': 'status-active',
-        'open': 'status-active',
-        'paid': 'status-success',
-        'completed': 'status-success',
-        'success': 'status-success',
-        'pending': 'status-pending',
-        'processing': 'status-warning',
-        'warning': 'status-warning',
-        'closing soon': 'status-warning',
-        'inactive': 'status-inactive',
-        'expired': 'status-inactive',
-        'closed': 'status-inactive',
-        'full': 'status-inactive',
-        'cancelled': 'status-inactive',
-        'reversed': 'status-inactive',
-        'overdue': 'status-inactive'
-    };
-    return map[(status || '').toLowerCase()] || 'status-pending';
-
-    showNotification(`Exported ${rows.length} records to ${filename}`, 'success');
-}
-
-// ============================================================
-// CONFIRM DIALOG HELPER
-// ============================================================
-
-/**
- * Show a styled confirmation dialog
- * @param {string} message
- * @returns {boolean}
- */
-function confirmAction(message) {
-    return window.confirm(message);
 }
 
 // ============================================================
