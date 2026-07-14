@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Reports - Alhudha Haj Travel Admin</title>
+    <title>Customized Reports - Alhudha Haj Travel Admin</title>
     <link rel="stylesheet" href="/admin/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Libraries for export -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SheetJS for Excel export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- jsPDF for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
@@ -26,12 +30,12 @@
         }
 
         .container {
-            max-width: 1500px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
-        /* Header Styles */
+        /* Header */
         .admin-header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
@@ -46,7 +50,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
         }
 
         .logo-area {
@@ -56,20 +59,19 @@
         }
 
         .logo-area i {
-            font-size: 2.5rem;
+            font-size: 2rem;
             color: #f1c40f;
         }
 
         .logo-area h1 {
             color: white;
-            font-size: 1.6rem;
-            margin: 0;
+            font-size: 1.5rem;
         }
 
         .role-badge {
             background: #f1c40f;
             color: #2c3e50;
-            padding: 6px 16px;
+            padding: 5px 15px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.9rem;
@@ -91,114 +93,96 @@
 
         .logout-btn:hover {
             background: #c0392b;
-            transform: translateY(-2px);
         }
 
         /* Page Header */
         .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin: 30px 0 20px;
         }
 
         .page-header h2 {
             color: #2c3e50;
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            font-size: 1.8rem;
         }
 
         .page-header h2 i {
             color: #f1c40f;
-            font-size: 2.2rem;
+            margin-right: 10px;
         }
 
-        .page-subtitle {
-            color: #7f8c8d;
-            font-size: 1rem;
-            margin-top: 5px;
-        }
-
-        /* Tabs */
-        .report-tabs {
-            display: flex;
-            gap: 10px;
-            margin: 25px 0;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .tab-button {
-            padding: 12px 24px;
-            background: none;
+        /* Buttons */
+        .action-btn {
+            padding: 12px 25px;
             border: none;
-            color: #7f8c8d;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
-            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
+            text-decoration: none;
         }
 
-        .tab-button.active {
-            color: #3498db;
-            border-bottom-color: #3498db;
-        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
 
-        .tab-button:hover {
-            color: #2c3e50;
-        }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #219a52; }
 
-        /* Cards */
-        .card {
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-warning:hover { background: #e67e22; }
+
+        .btn-info { background: #00bcd4; color: white; }
+        .btn-info:hover { background: #00a5bb; }
+
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-secondary:hover { background: #7f8c8d; }
+
+        /* Dashboard Card */
+        .dashboard-card {
             background: white;
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
-        .card h3 {
+        .dashboard-card h3 {
+            margin-bottom: 20px;
             color: #2c3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.3rem;
         }
 
-        .card h3 i {
+        .dashboard-card h3 i {
             color: #f1c40f;
+            margin-right: 10px;
         }
 
-        /* Forms */
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
+        /* Form Elements */
         .form-group {
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 15px;
         }
 
         .form-group label {
-            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
             color: #2c3e50;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600;
         }
 
         .form-group label i {
+            margin-right: 8px;
             color: #f1c40f;
         }
 
         .form-group input,
         .form-group select {
-            padding: 10px 12px;
+            width: 100%;
+            padding: 10px;
             border: 2px solid #ecf0f1;
             border-radius: 5px;
             font-size: 1rem;
@@ -212,75 +196,51 @@
             box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
         }
 
-        /* Category Selector */
-        .category-selector {
+        /* Filter Section */
+        .filter-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .category-card {
-            padding: 15px 20px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        .category-card:hover {
-            border-color: #3498db;
-            background: #f8f9fa;
-        }
-
-        .category-card.active {
-            border-color: #3498db;
-            background: #e8f4f8;
-            color: #3498db;
-            font-weight: bold;
-        }
-
-        .category-card i {
-            font-size: 1.5rem;
-            display: block;
-            margin-bottom: 8px;
-            color: #f1c40f;
-        }
-
-        .category-card.active i {
-            color: #3498db;
-        }
-
-        /* Field Selector */
-        .field-selector-container {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #3498db;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
         }
 
-        .select-all-container {
+        /* Field Selector */
+        .field-selector {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #3498db;
+        }
+
+        .field-selector h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px;
+            gap: 10px;
+        }
+
+        .field-selector h4 i {
+            color: #f1c40f;
+        }
+
+        .select-all-container {
+            padding: 10px;
             background: white;
             border-radius: 5px;
             margin-bottom: 15px;
-            border: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .select-all-container label {
+            margin: 0;
             display: flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            margin: 0;
-            font-weight: 600;
-            color: #2c3e50;
         }
 
         .select-all-container input[type="checkbox"] {
@@ -291,13 +251,14 @@
 
         .field-count {
             font-weight: bold;
-            color: #3498db;
+            color: #2c3e50;
+            font-size: 0.9rem;
         }
 
         .field-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
+            gap: 10px;
             max-height: 400px;
             overflow-y: auto;
             padding: 10px;
@@ -310,12 +271,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 10px;
+            padding: 8px;
             background: #f8f9fa;
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.2s;
-            margin: 0;
         }
 
         .field-checkbox-label:hover {
@@ -323,160 +283,111 @@
         }
 
         .field-checkbox-label input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
         }
 
         .field-checkbox-label span {
             color: #2c3e50;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
-        /* Buttons */
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 25px 0;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #219a52;
-            transform: translateY(-2px);
-        }
-
-        .btn-warning {
-            background: #f39c12;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #e67e22;
-            transform: translateY(-2px);
-        }
-
-        .btn-info {
-            background: #00bcd4;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background: #00a5bb;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        /* Statistics */
-        .statistics-grid {
+        /* Stats Grid */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
+            background: white;
             padding: 20px;
             border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
         }
 
         .stat-card i {
             font-size: 2rem;
+            color: #f1c40f;
             margin-bottom: 10px;
-            opacity: 0.8;
         }
 
         .stat-card h4 {
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
         }
 
         .stat-value {
             font-size: 1.8rem;
             font-weight: bold;
+            color: #2c3e50;
         }
 
-        /* Table */
+        /* Table Container */
         .table-wrapper {
             overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid #ecf0f1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-
-        .report-table thead {
-            background: #2c3e50;
-            color: white;
+            min-width: 800px;
+            font-size: 0.9rem;
         }
 
         .report-table th {
+            background: #2c3e50;
+            color: white;
             padding: 12px;
             text-align: left;
             font-weight: 600;
             white-space: nowrap;
-            border-right: 1px solid #1a252f;
+            font-size: 0.85rem;
         }
 
         .report-table td {
             padding: 12px;
             border-bottom: 1px solid #ecf0f1;
-            border-right: 1px solid #ecf0f1;
+            max-width: 200px;
             word-break: break-word;
         }
 
-        .report-table tbody tr:hover {
+        .report-table tr:hover {
             background: #f8f9fa;
         }
 
-        .report-table tbody tr:nth-child(even) {
-            background: #f8f9fa;
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #2c3e50;
+        }
+
+        .loader i {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Alert */
@@ -486,27 +397,27 @@
             margin-bottom: 20px;
             display: none;
             align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            animation: slideIn 0.3s ease;
+            gap: 10px;
         }
 
         .alert-success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
+            display: block;
         }
 
         .alert-error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+            display: block;
         }
 
         .alert-warning {
             background: #fff3cd;
             color: #856404;
-            border: 1px solid #ffeaa7;
+            border: 1px solid #ffeeba;
         }
 
         .alert-info {
@@ -515,87 +426,26 @@
             border: 1px solid #bee5eb;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Loading */
-        .loading-indicator {
-            text-align: center;
-            padding: 40px 20px;
+        /* Results Section */
+        #advancedReportResults {
             display: none;
         }
 
-        .loading-indicator i {
-            font-size: 2rem;
-            color: #3498db;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-indicator p {
-            color: #7f8c8d;
-            margin-top: 15px;
-            font-size: 1.1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-            }
-
-            .logo-area h1 {
-                font-size: 1.2rem;
-            }
-
-            .form-row {
+            .filter-section {
                 grid-template-columns: 1fr;
             }
-
-            .report-table {
-                font-size: 0.85rem;
-            }
-
-            .report-table th,
-            .report-table td {
-                padding: 8px 6px;
-            }
-
-            .btn-group {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .page-header h2 {
-                font-size: 1.5rem;
-            }
-
-            .statistics-grid {
+            .field-grid {
                 grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .export-buttons {
+                flex-direction: column;
             }
         }
     </style>
-
-    <script defer src="/admin/js/session-manager.js"></script>
-    <script defer src="/admin/js/mobile-fix.js"></script>
-    <script defer src="/admin/js/common.js"></script>
-    <script defer src="/admin/js/advanced-reports.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -604,16 +454,14 @@
             <div class="header-content">
                 <div class="logo-area">
                     <i class="fas fa-kaaba"></i>
-                    <div>
-                        <h1>Alhudha Haj Admin</h1>
-                        <span class="role-badge" id="roleBadge">Admin</span>
-                    </div>
+                    <h1>Alhudha Haj Admin - Reports</h1>
+                    <span class="role-badge" id="roleBadge">Admin</span>
                 </div>
-                <div style="display: flex; gap: 15px;">
-                    <a href="dashboard.html" class="btn btn-info">
+                <div>
+                    <a href="dashboard.html" class="action-btn btn-info" style="margin-right: 10px;">
                         <i class="fas fa-tachometer-alt"></i> Dashboard
                     </a>
-                    <button onclick="logout()" class="btn btn-secondary">
+                    <button onclick="logout()" class="action-btn logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
@@ -625,184 +473,141 @@
     <div class="container">
         <!-- Page Header -->
         <div class="page-header">
-            <h2>
-                <i class="fas fa-chart-bar"></i>
-                Advanced Reports & Analytics
-            </h2>
-            <p class="page-subtitle">Generate customized reports with selectable fields across Travelers, Batches, and Payments</p>
+            <h2><i class="fas fa-chart-bar"></i> Customized Reports & Analytics</h2>
         </div>
 
         <!-- Alert -->
         <div id="advancedReportAlert" class="alert"></div>
 
-        <!-- Category Selection -->
-        <div class="card">
-            <h3>
-                <i class="fas fa-layer-group"></i>
-                Select Report Type
-            </h3>
-            <div class="category-selector">
-                <div class="category-card active" onclick="document.getElementById('reportCategory').value = 'travelers'; ADVANCED_REPORTS.switchReportCategory('travelers');">
-                    <i class="fas fa-users"></i>
-                    <div>Travelers</div>
-                </div>
-                <div class="category-card" onclick="document.getElementById('reportCategory').value = 'batches'; ADVANCED_REPORTS.switchReportCategory('batches');">
-                    <i class="fas fa-layer-group"></i>
-                    <div>Batches</div>
-                </div>
-                <div class="category-card" onclick="document.getElementById('reportCategory').value = 'payments'; ADVANCED_REPORTS.switchReportCategory('payments');">
-                    <i class="fas fa-credit-card"></i>
-                    <div>Payments</div>
-                </div>
+        <!-- Report Configuration -->
+        <div class="dashboard-card">
+            <h3><i class="fas fa-cog"></i> Report Configuration</h3>
+            
+            <!-- Category Selection -->
+            <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Select Report Category</label>
+                <select id="reportCategory" onchange="ADVANCED_REPORTS.switchReportCategory(this.value)">
+                    <option value="travelers">Travelers Report</option>
+                    <option value="batches">Batches Report</option>
+                    <option value="payments">Payments Report</option>
+                </select>
             </div>
-            <input type="hidden" id="reportCategory" value="travelers">
-        </div>
 
-        <!-- Field Selection -->
-        <div class="card">
-            <h3>
-                <i class="fas fa-columns"></i>
-                Customize Report Fields
-            </h3>
-            <div class="field-selector-container" id="advancedFieldSelector">
-                <!-- Dynamically populated -->
-            </div>
-        </div>
-
-        <!-- Filters -->
-        <div class="card">
-            <h3>
-                <i class="fas fa-filter"></i>
-                Apply Filters
-            </h3>
-            <div class="form-row">
+            <!-- Filter Section -->
+            <h4 style="margin-top: 30px; margin-bottom: 15px; color: #2c3e50;">
+                <i class="fas fa-filter" style="color: #f1c40f; margin-right: 10px;"></i> Filters
+            </h4>
+            <div class="filter-section">
                 <div class="form-group">
                     <label><i class="fas fa-calendar"></i> Date Range</label>
                     <select id="dateRange" onchange="ADVANCED_REPORTS.toggleCustomDateInputs()">
+                        <option value="alltime">All Time</option>
                         <option value="today">Today</option>
                         <option value="yesterday">Yesterday</option>
                         <option value="thisweek">This Week</option>
                         <option value="thismonth">This Month</option>
                         <option value="lastmonth">Last Month</option>
                         <option value="thisyear">This Year</option>
-                        <option value="alltime">All Time</option>
                         <option value="custom">Custom Range</option>
                     </select>
                 </div>
+
+                <div id="customDateRange" style="display: none; display: contents;">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-plus"></i> Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-check"></i> End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-layer-group"></i> Batch</label>
                     <select id="filterBatch">
                         <option value="all">All Batches</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label><i class="fas fa-info-circle"></i> Status</label>
                     <select id="filterStatus">
                         <option value="all">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Pending">Pending</option>
-                        <option value="Processing">Processing</option>
                         <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
                     </select>
                 </div>
-            </div>
 
-            <!-- Custom Date Range -->
-            <div id="customDateRange" style="display: none; gap: 20px; margin-bottom: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label><i class="fas fa-calendar-plus"></i> Start Date</label>
-                    <input type="date" id="startDate">
+                <div class="form-group">
+                    <label><i class="fas fa-search"></i> Search</label>
+                    <input type="text" id="filterSearch" placeholder="Search travelers, batch names...">
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label><i class="fas fa-calendar-check"></i> End Date</label>
-                    <input type="date" id="endDate">
-                </div>
-            </div>
-
-            <!-- Search Field -->
-            <div class="form-group">
-                <label><i class="fas fa-search"></i> Search</label>
-                <input type="text" id="filterSearch" placeholder="Search in results...">
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="btn-group">
-            <button class="btn btn-primary generate-report-btn" onclick="ADVANCED_REPORTS.generateAdvancedReport()">
-                <i class="fas fa-chart-bar"></i> Generate Report
+        <!-- Field Selector -->
+        <div class="field-selector">
+            <h4><i class="fas fa-columns"></i> Select Fields to Display</h4>
+            <div class="select-all-container">
+                <label>
+                    <input type="checkbox" id="selectAllFields" checked onchange="ADVANCED_REPORTS.toggleAllFields(this.checked)">
+                    <strong>Select All Fields</strong>
+                </label>
+                <span class="field-count">0 fields selected</span>
+            </div>
+            <div id="fieldCheckboxContainer" class="field-grid">
+                <!-- Dynamically populated by advanced-reports.js -->
+            </div>
+        </div>
+
+        <!-- Generate Report Button -->
+        <div style="margin-bottom: 30px;">
+            <button class="action-btn btn-primary generate-report-btn" onclick="ADVANCED_REPORTS.generateAdvancedReport()">
+                <i class="fas fa-play"></i> Generate Report
             </button>
-            <button class="btn btn-secondary" onclick="ADVANCED_REPORTS.resetFieldSelection()">
+            <button class="action-btn btn-secondary" onclick="ADVANCED_REPORTS.resetFieldSelection()">
                 <i class="fas fa-undo"></i> Reset Fields
             </button>
         </div>
 
-        <!-- Loading Indicator -->
-        <div class="loading-indicator" id="advancedReportLoader">
-            <i class="fas fa-spinner"></i>
-            <p>Generating report...</p>
-        </div>
+        <!-- Loader -->
+        <div id="advancedReportLoader" class="loader"></div>
 
-        <!-- Report Results Section -->
-        <div id="advancedReportResults" style="display: none;">
+        <!-- Report Results -->
+        <div id="advancedReportResults">
             <!-- Statistics -->
-            <div class="card">
-                <h3>
-                    <i class="fas fa-chart-pie"></i>
-                    Report Summary
-                </h3>
-                <div class="statistics-grid" id="reportStatistics">
-                    <!-- Dynamically populated -->
-                </div>
-            </div>
+            <div id="reportStatistics" class="stats-grid"></div>
 
             <!-- Export Buttons -->
-            <div class="card">
-                <h3>
-                    <i class="fas fa-download"></i>
-                    Export Report
-                </h3>
-                <div class="btn-group">
-                    <button class="btn btn-success export-btn" data-format="csv">
-                        <i class="fas fa-file-csv"></i> Download CSV
-                    </button>
-                    <button class="btn btn-info export-btn" data-format="excel">
-                        <i class="fas fa-file-excel"></i> Download Excel
-                    </button>
-                    <button class="btn btn-warning export-btn" data-format="pdf">
-                        <i class="fas fa-file-pdf"></i> Download PDF
-                    </button>
-                    <button class="btn btn-primary" onclick="window.print()">
-                        <i class="fas fa-print"></i> Print Report
-                    </button>
-                </div>
+            <div class="export-buttons">
+                <button class="action-btn btn-success export-btn" data-format="csv">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button class="action-btn btn-info export-btn" data-format="excel">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button class="action-btn btn-warning export-btn" data-format="pdf">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="action-btn btn-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
+                </button>
             </div>
 
-            <!-- Data Table -->
-            <div class="card">
-                <h3>
-                    <i class="fas fa-table"></i>
-                    Report Data
-                </h3>
-                <div id="reportTableContainer">
-                    <!-- Dynamically populated -->
-                </div>
-            </div>
+            <!-- Table -->
+            <div id="reportTableContainer" class="dashboard-card"></div>
         </div>
     </div>
 
-    <script>
-        // Handle category card selection UI
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.category-card')) {
-                document.querySelectorAll('.category-card').forEach(card => {
-                    card.classList.remove('active');
-                });
-                e.target.closest('.category-card').classList.add('active');
-            }
-        });
+    <!-- Scripts -->
+    <script defer src="/admin/js/session-manager.js"></script>
+    <script defer src="/admin/js/mobile-fix.js"></script>
+    <script defer src="/admin/js/common.js"></script>
+    <script defer src="/admin/js/advanced-reports.js"></script>
 
-        // Logout function
+    <script>
         async function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
@@ -812,17 +617,6 @@
                 }
             }
         }
-
-        // Custom date range display
-        document.getElementById('dateRange').addEventListener('change', function() {
-            const customRange = document.getElementById('customDateRange');
-            customRange.style.display = this.value === 'custom' ? 'flex' : 'none';
-        });
-
-        // Expose logout globally
-        window.logout = logout;
-
-        console.log('✅ Advanced Reports Page Loaded');
     </script>
 </body>
 </html>
