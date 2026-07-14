@@ -7,60 +7,60 @@ const ADVANCED_REPORTS = {
     // Field definitions for each report type
     FIELD_DEFINITIONS: {
         travelers: [
-        { name: 'id', label: 'ID', type: 'number', default: true },
-        { name: 'first_name', label: 'First Name', type: 'text', default: true },
-        { name: 'last_name', label: 'Last Name', type: 'text', default: true },
-        { name: 'passport_name', label: 'Passport Name', type: 'text', default: false },
-        { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
-        { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-        { name: 'passport_no', label: 'Passport Number', type: 'text', default: true },
-        { name: 'passport_issue_date', label: 'Passport Issue Date', type: 'date', default: false },
-        { name: 'passport_expiry_date', label: 'Passport Expiry Date', type: 'date', default: true },
-        { name: 'passport_status', label: 'Passport Status', type: 'text', default: false },
-        { name: 'gender', label: 'Gender', type: 'text', default: false },
-        { name: 'dob', label: 'Date of Birth', type: 'date', default: false },
-        { name: 'mobile', label: 'Mobile', type: 'text', default: true },
-        { name: 'email', label: 'Email', type: 'text', default: true },
-        { name: 'aadhaar', label: 'Aadhaar', type: 'text', default: false },
-        { name: 'pan', label: 'PAN', type: 'text', default: false },
-        { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text', default: false },
-        { name: 'vaccine_status', label: 'Vaccine Status', type: 'text', default: true },
-        { name: 'wheelchair', label: 'Wheelchair Required', type: 'text', default: false },
-        { name: 'place_of_birth', label: 'Place of Birth', type: 'text', default: false },
-        { name: 'place_of_issue', label: 'Place of Issue', type: 'text', default: false },
-        { name: 'passport_address', label: 'Passport Address', type: 'text', default: false },
-        { name: 'father_name', label: "Father's Name", type: 'text', default: false },
-        { name: 'mother_name', label: "Mother's Name", type: 'text', default: false },
-        { name: 'spouse_name', label: "Spouse's Name", type: 'text', default: false },
-        { name: 'pin', label: 'PIN Code', type: 'text', default: false },
-        { name: 'emergency_contact', label: 'Emergency Contact', type: 'text', default: false },
-        { name: 'emergency_phone', label: 'Emergency Phone', type: 'text', default: false },
-        { name: 'medical_notes', label: 'Medical Notes', type: 'text', default: false },
-        { name: 'created_at', label: 'Created At', type: 'datetime', default: true }
-    ],
+            { name: 'id', label: 'ID', type: 'number', default: true },
+            { name: 'first_name', label: 'First Name', type: 'text', default: true },
+            { name: 'last_name', label: 'Last Name', type: 'text', default: true },
+            { name: 'passport_name', label: 'Passport Name', type: 'text', default: false },
+            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
+            { name: 'passport_no', label: 'Passport Number', type: 'text', default: true },
+            { name: 'passport_issue_date', label: 'Passport Issue Date', type: 'date', default: false },
+            { name: 'passport_expiry_date', label: 'Passport Expiry Date', type: 'date', default: true },
+            { name: 'passport_status', label: 'Passport Status', type: 'text', default: false },
+            { name: 'gender', label: 'Gender', type: 'text', default: false },
+            { name: 'dob', label: 'Date of Birth', type: 'date', default: false },
+            { name: 'mobile', label: 'Mobile', type: 'text', default: true },
+            { name: 'email', label: 'Email', type: 'text', default: true },
+            { name: 'aadhaar', label: 'Aadhaar', type: 'text', default: false },
+            { name: 'pan', label: 'PAN', type: 'text', default: false },
+            { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text', default: false },
+            { name: 'vaccine_status', label: 'Vaccine Status', type: 'text', default: true },
+            { name: 'wheelchair', label: 'Wheelchair Required', type: 'text', default: false },
+            { name: 'place_of_birth', label: 'Place of Birth', type: 'text', default: false },
+            { name: 'place_of_issue', label: 'Place of Issue', type: 'text', default: false },
+            { name: 'passport_address', label: 'Passport Address', type: 'text', default: false },
+            { name: 'father_name', label: "Father's Name", type: 'text', default: false },
+            { name: 'mother_name', label: "Mother's Name", type: 'text', default: false },
+            { name: 'spouse_name', label: "Spouse's Name", type: 'text', default: false },
+            { name: 'pin', label: 'PIN Code', type: 'text', default: false },
+            { name: 'emergency_contact', label: 'Emergency Contact', type: 'text', default: false },
+            { name: 'emergency_phone', label: 'Emergency Phone', type: 'text', default: false },
+            { name: 'medical_notes', label: 'Medical Notes', type: 'text', default: false },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: true }
+        ],
         batches: [
-        { name: 'id', label: 'Batch ID', type: 'number', default: true },
-        { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-        { name: 'status', label: 'Status', type: 'text', default: true },
-        { name: 'total_travelers', label: 'Total Travelers', type: 'number', default: true },
-        { name: 'start_date', label: 'Start Date', type: 'date', default: true },
-        { name: 'end_date', label: 'End Date', type: 'date', default: true },
-        { name: 'description', label: 'Description', type: 'text', default: false },
-        { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
-    ],
-        payments:[
-        { name: 'id', label: 'Payment ID', type: 'number', default: true },
-        { name: 'traveler_id', label: 'Traveler ID', type: 'number', default: false },
-        { name: 'traveler_name', label: 'Traveler Name', type: 'text', default: true },
-        { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
-        { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-        { name: 'amount', label: 'Amount (₹)', type: 'currency', default: true },
-        { name: 'payment_method', label: 'Payment Method', type: 'text', default: true },
-        { name: 'status', label: 'Payment Status', type: 'text', default: true },
-        { name: 'transaction_id', label: 'Transaction ID', type: 'text', default: false },
-        { name: 'payment_date', label: 'Payment Date', type: 'date', default: true },
-        { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
-    ],
+            { name: 'id', label: 'Batch ID', type: 'number', default: true },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
+            { name: 'status', label: 'Status', type: 'text', default: true },
+            { name: 'total_travelers', label: 'Total Travelers', type: 'number', default: true },
+            { name: 'start_date', label: 'Start Date', type: 'date', default: true },
+            { name: 'end_date', label: 'End Date', type: 'date', default: true },
+            { name: 'description', label: 'Description', type: 'text', default: false },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
+        ],
+        payments: [
+            { name: 'id', label: 'Payment ID', type: 'number', default: true },
+            { name: 'traveler_id', label: 'Traveler ID', type: 'number', default: false },
+            { name: 'traveler_name', label: 'Traveler Name', type: 'text', default: true },
+            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
+            { name: 'amount', label: 'Amount (₹)', type: 'currency', default: true },
+            { name: 'payment_method', label: 'Payment Method', type: 'text', default: true },
+            { name: 'status', label: 'Payment Status', type: 'text', default: true },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'text', default: false },
+            { name: 'payment_date', label: 'Payment Date', type: 'date', default: true },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
+        ],
     },
 
     init() {
@@ -68,12 +68,49 @@ const ADVANCED_REPORTS = {
         this.populateFieldSelector();
         this.setupExportButtons();
         this.setupBatchFilter();
+        // Add event listeners for payment report
+        this.setupPaymentReportSupport();
         document.addEventListener('DOMContentLoaded', () => this.onReady());
     },
 
     onReady() {
         console.log('✅ DOM Ready - Reports page fully loaded');
         this.populateFieldSelector();
+        // Check if PDF libraries are loaded
+        this.checkPDFLibraries();
+    },
+
+    // New method to check PDF libraries
+    checkPDFLibraries() {
+        if (typeof jsPDF === 'undefined') {
+            console.warn('⚠️ jsPDF library not loaded. PDF export will be disabled.');
+            const pdfBtn = document.querySelector('[data-format="pdf"]');
+            if (pdfBtn) {
+                pdfBtn.style.opacity = '0.5';
+                pdfBtn.title = 'PDF export requires jsPDF library';
+            }
+        } else if (typeof jsPDF.autoTable === 'undefined') {
+            console.warn('⚠️ jsPDF autoTable plugin not loaded. PDF export will be limited.');
+        }
+    },
+
+    // New method to support payment reports
+    setupPaymentReportSupport() {
+        // Add event listeners for payment-specific filters if needed
+        const statusFilter = document.getElementById('filterStatus');
+        if (statusFilter) {
+            // Add payment-specific status options
+            const paymentStatuses = ['all', 'paid', 'pending', 'failed', 'refunded'];
+            const currentOptions = Array.from(statusFilter.options).map(opt => opt.value);
+            paymentStatuses.forEach(status => {
+                if (!currentOptions.includes(status)) {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                    statusFilter.appendChild(option);
+                }
+            });
+        }
     },
 
     populateFieldSelector() {
@@ -87,11 +124,29 @@ const ADVANCED_REPORTS = {
 
         container.innerHTML = '';
 
+        // Add a search input for fields if there are many fields
+        if (fields.length > 20) {
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = '🔍 Search fields...';
+            searchInput.className = 'field-search-input';
+            searchInput.style.cssText = 'width: 100%; padding: 5px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;';
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                document.querySelectorAll('.field-checkbox-label').forEach(label => {
+                    const text = label.textContent.toLowerCase();
+                    label.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+                });
+            });
+            container.appendChild(searchInput);
+        }
+
         fields.forEach(field => {
             const label = document.createElement('label');
             label.className = 'field-checkbox-label';
+            const defaultChecked = field.default ? 'checked' : '';
             label.innerHTML = `
-                <input type="checkbox" class="field-checkbox" value="${field.name}" checked onchange="ADVANCED_REPORTS.updateFieldCount()">
+                <input type="checkbox" class="field-checkbox" value="${field.name}" ${defaultChecked} onchange="ADVANCED_REPORTS.updateFieldCount()">
                 <span>${field.label}</span>
             `;
             container.appendChild(label);
@@ -119,7 +174,24 @@ const ADVANCED_REPORTS = {
     switchReportCategory(reportType) {
         this.currentReportType = reportType;
         this.populateFieldSelector();
+        // Clear previous results when switching
+        this.clearReportResults();
         console.log(`✅ Switched to ${reportType} report`);
+    },
+
+    clearReportResults() {
+        const resultsDiv = document.getElementById('advancedReportResults');
+        if (resultsDiv) {
+            resultsDiv.style.display = 'none';
+        }
+        const tableContainer = document.getElementById('reportTableContainer');
+        if (tableContainer) {
+            tableContainer.innerHTML = '';
+        }
+        const statsDiv = document.getElementById('reportStatistics');
+        if (statsDiv) {
+            statsDiv.innerHTML = '';
+        }
     },
 
     toggleCustomDateInputs() {
@@ -174,7 +246,6 @@ const ADVANCED_REPORTS = {
             startDate = dates.start;
             endDate = dates.end;
         }
-        // For alltime, leave startDate and endDate as null
 
         this.showLoader(true);
 
@@ -208,7 +279,12 @@ const ADVANCED_REPORTS = {
                 this.displayReport(data.report, selectedFields);
                 this.showAlert(`Report generated: ${data.report.count} records`, 'success');
             } else {
-                this.showAlert(data.error || 'Failed to generate report', 'error');
+                // Check if error is about unsupported report type
+                if (data.error && data.error.includes('unsupported')) {
+                    this.showAlert(`Payment reports are not yet supported by the backend. Please contact administrator.`, 'error');
+                } else {
+                    this.showAlert(data.error || 'Failed to generate report', 'error');
+                }
             }
         } catch (error) {
             console.error('❌ Report generation error:', error);
@@ -249,7 +325,7 @@ const ADVANCED_REPORTS = {
             `;
         }
 
-        // Display table
+        // Display table with improved styling for many columns
         if (tableContainer && report.data && report.data.length > 0) {
             const headers = selectedFields.map(f => {
                 const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
@@ -265,10 +341,11 @@ const ADVANCED_REPORTS = {
                 return `<tr>${cells}</tr>`;
             }).join('');
 
+            // Enhanced table wrapper with fixed height and horizontal scrolling
             tableContainer.innerHTML = `
-                <div class="table-wrapper">
-                    <table class="report-table">
-                        <thead>
+                <div class="table-wrapper" style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 4px;">
+                    <table class="report-table" style="width: 100%; border-collapse: collapse; min-width: max-content;">
+                        <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 10;">
                             <tr>${headerRow}</tr>
                         </thead>
                         <tbody>
@@ -276,10 +353,104 @@ const ADVANCED_REPORTS = {
                         </tbody>
                     </table>
                 </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 5px 10px; background: #f8f9fa; border-radius: 4px;">
+                    <span style="font-size: 12px; color: #666;">
+                        <i class="fas fa-info-circle"></i> 
+                        Scroll horizontally to see all ${selectedFields.length} columns
+                    </span>
+                    <span style="font-size: 12px; color: #666;">
+                        ${report.data.length} records displayed
+                    </span>
+                </div>
             `;
         }
     },
 
+    // Enhanced PDF export with better error handling
+    exportToPDF(selectedFields) {
+        // Check if jsPDF is available
+        if (typeof jsPDF === 'undefined') {
+            this.showAlert('PDF library (jsPDF) not loaded. Please include jsPDF library.', 'error');
+            return;
+        }
+
+        try {
+            const data = this.currentReportData.data;
+            const headers = selectedFields.map(f => {
+                const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
+                return field ? field.label : f.replace(/_/g, ' ');
+            });
+
+            const body = data.map(row => 
+                selectedFields.map(f => this.formatValue(row[f]))
+            );
+
+            // Create PDF with landscape orientation for many columns
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+            
+            // Check if autoTable plugin is available
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable({
+                    head: [headers],
+                    body: body,
+                    margin: 10,
+                    styles: { fontSize: 8 },
+                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 8 },
+                    didDrawPage: (data) => {
+                        doc.setFontSize(10);
+                        doc.text(`Report: ${this.currentReportType.toUpperCase()}`, 14, 10);
+                        doc.setFontSize(8);
+                        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 15);
+                    },
+                    // Handle many columns
+                    pageBreak: 'auto',
+                    tableWidth: 'auto',
+                });
+            } else {
+                // Fallback without autoTable
+                this.showAlert('PDF autoTable plugin not loaded. Using basic PDF export.', 'warning');
+                
+                // Simple text-based PDF
+                doc.setFontSize(12);
+                let y = 20;
+                doc.text(`Report: ${this.currentReportType.toUpperCase()}`, 14, y);
+                y += 10;
+                
+                // Add headers
+                doc.setFontSize(10);
+                let headerStr = headers.join(' | ');
+                doc.text(headerStr, 14, y);
+                y += 7;
+                
+                // Add data rows (limited for readability)
+                const maxRows = Math.min(20, body.length);
+                for (let i = 0; i < maxRows; i++) {
+                    const rowStr = body[i].join(' | ');
+                    const lines = doc.splitTextToSize(rowStr, 180);
+                    lines.forEach(line => {
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        doc.text(line, 14, y);
+                        y += 5;
+                    });
+                }
+                
+                if (body.length > maxRows) {
+                    doc.text(`... and ${body.length - maxRows} more records`, 14, y + 5);
+                }
+            }
+
+            doc.save(`report_${this.currentReportType}_${new Date().toISOString().slice(0,10)}.pdf`);
+            this.showAlert(`Exported ${data.length} records to PDF`, 'success');
+        } catch (error) {
+            console.error('PDF export error:', error);
+            this.showAlert('PDF export failed: ' + error.message, 'error');
+        }
+    },
+
+    // ... (rest of the methods remain the same)
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -313,10 +484,12 @@ const ADVANCED_REPORTS = {
             case 'thisweek':
                 start.setDate(today.getDate() - today.getDay());
                 start.setHours(0,0,0,0);
+                end.setHours(23,59,59,999);
                 break;
             case 'thismonth':
                 start.setDate(1);
                 start.setHours(0,0,0,0);
+                end.setHours(23,59,59,999);
                 break;
             case 'lastmonth':
                 start.setMonth(today.getMonth() - 1, 1);
@@ -327,6 +500,7 @@ const ADVANCED_REPORTS = {
             case 'thisyear':
                 start.setMonth(0, 1);
                 start.setHours(0,0,0,0);
+                end.setHours(23,59,59,999);
                 break;
         }
 
@@ -418,42 +592,6 @@ const ADVANCED_REPORTS = {
         } catch (error) {
             console.error('Excel export error:', error);
             this.showAlert('Excel export failed: ' + error.message, 'error');
-        }
-    },
-
-    exportToPDF(selectedFields) {
-        if (typeof jsPDF === 'undefined') {
-            this.showAlert('PDF library not loaded', 'error');
-            return;
-        }
-
-        try {
-            const data = this.currentReportData.data;
-            const headers = selectedFields.map(f => {
-                const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
-                return field ? field.label : f.replace(/_/g, ' ');
-            });
-
-            const body = data.map(row => 
-                selectedFields.map(f => this.formatValue(row[f]))
-            );
-
-            const doc = new jsPDF();
-            doc.autoTable({
-                head: [headers],
-                body: body,
-                margin: 10,
-                didDrawPage: (data) => {
-                    doc.setFontSize(10);
-                    doc.text(`Report: ${this.currentReportType}`, 14, 10);
-                }
-            });
-
-            doc.save(`report_${this.currentReportType}_${new Date().toISOString().slice(0,10)}.pdf`);
-            this.showAlert(`Exported ${data.length} records to PDF`, 'success');
-        } catch (error) {
-            console.error('PDF export error:', error);
-            this.showAlert('PDF export failed: ' + error.message, 'error');
         }
     },
 
