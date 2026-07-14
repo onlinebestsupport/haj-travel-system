@@ -228,6 +228,35 @@ def generate_report():
             cursor.execute(query, params)
             results = cursor.fetchall()
 
+        elif report_type == 'payments':
+            query = """
+                SELECT 
+                    p.*,
+                    t.first_name,
+                    t.last_name,
+                    b.batch_name
+                FROM payments p
+                LEFT JOIN travelers t ON p.traveler_id = t.id
+                LEFT JOIN batches b ON p.batch_id = b.id
+                WHERE 1=1
+            """
+            params = []
+            if batch_id and batch_id != 'all':
+                query += ' AND p.batch_id = %s'
+                params.append(batch_id)
+            if status and status != 'all':
+                query += ' AND p.status = %s'
+                params.append(status)
+            if start_date:
+                query += ' AND DATE(p.payment_date) >= %s'
+                params.append(start_date)
+            if end_date:
+                query += ' AND DATE(p.payment_date) <= %s'
+                params.append(end_date)
+            query += ' ORDER BY p.payment_date DESC LIMIT 500'
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+
         elif report_type == 'financial':
             query = """
                 SELECT 
@@ -258,6 +287,8 @@ def generate_report():
             for k, v in list(d.items()):
                 if isinstance(v, datetime):
                     d[k] = v.isoformat()
+                elif isinstance(v, (int, float)):
+                    d[k] = v
             return d
 
         data_list = [serialize_row(r) for r in results]
@@ -274,7 +305,195 @@ def generate_report():
         })
 
     except Exception as e:
-        logger.error(f"Generate report error: {e}")
+        logger.error(f"Generate report error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        release_db(conn, cursor)
+
+
+@bp.route('/advanced', methods=['POST'])
+def advanced_report():
+    """Generate advanced customizable report with field selection"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.json
+    category = data.get('category', 'travelers')
+    fields = data.get('fields', [])
+    filters_data = data.get('filters', {})
+
+    # Normalize filters
+    def get_filter(*keys):
+        for k in keys:
+            if k in filters_data and filters_data[k] not in (None, ''):
+                return filters_data[k]
+        return None
+
+    batch_id = get_filter('batchId', 'batch_id')
+    status = get_filter('status', 'status')
+    start_date = get_filter('startDate', 'start_date')
+    end_date = get_filter('endDate', 'end_date')
+    search_text = get_filter('searchText', 'search_text')
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+
+        if category == 'travelers':
+            if not fields:
+                fields = ['id', 'first_name', 'last_name', 'email', 'mobile', 'batch_name']
+
+            # Build SELECT clause with field safety
+            safe_fields = ['id', 'first_name', 'last_name', 'passport_name', 'batch_id', 
+                          'passport_no', 'passport_expiry_date', 'passport_status', 'gender', 
+                          'dob', 'mobile', 'email', 'vaccine_status', 'created_at']
+            
+            select_cols = []
+            for field in fields:
+                if field == 'batch_name':
+                    select_cols.append('b.batch_name')
+                elif field in safe_fields:
+                    select_cols.append(f't.{field}')
+
+            if not select_cols:
+                select_cols = ['t.id', 't.first_name', 't.last_name', 't.email', 'b.batch_name']
+
+            select_clause = ', '.join(select_cols)
+
+            query = f"""
+                SELECT {select_clause}
+                FROM travelers t
+                LEFT JOIN batches b ON t.batch_id = b.id
+                WHERE 1=1
+            """
+            params = []
+
+            if batch_id and batch_id != 'all':
+                query += ' AND t.batch_id = %s'
+                params.append(int(batch_id))
+            if status and status != 'all':
+                query += ' AND t.passport_status = %s'
+                params.append(status)
+            if start_date:
+                query += ' AND DATE(t.created_at) >= %s'
+                params.append(start_date)
+            if end_date:
+                query += ' AND DATE(t.created_at) <= %s'
+                params.append(end_date)
+            if search_text:
+                query += ' AND (t.first_name ILIKE %s OR t.last_name ILIKE %s OR t.email ILIKE %s OR t.mobile ILIKE %s)'
+                search_pattern = f'%{search_text}%'
+                params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
+
+            query += ' ORDER BY t.created_at DESC LIMIT 1000'
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+
+        elif category == 'batches':
+            if not fields:
+                fields = ['id', 'batch_name', 'status', 'total_travelers', 'start_date', 'end_date']
+
+            safe_fields = ['id', 'batch_name', 'status', 'start_date', 'end_date', 'description', 'created_at']
+            
+            select_cols = ['b.id', 'b.batch_name', 'b.status']
+            for field in fields:
+                if field == 'total_travelers':
+                    select_cols.append('COUNT(DISTINCT t.id) as total_travelers')
+                elif field == 'total_collected':
+                    select_cols.append('COALESCE(SUM(p.amount), 0) as total_collected')
+                elif field in safe_fields and field not in ['id', 'batch_name', 'status']:
+                    select_cols.append(f'b.{field}')
+
+            select_clause = ', '.join(select_cols)
+
+            query = f"""
+                SELECT {select_clause}
+                FROM batches b
+                LEFT JOIN travelers t ON b.id = t.batch_id
+                LEFT JOIN payments p ON p.batch_id = b.id AND p.status = 'completed'
+                WHERE 1=1
+            """
+            params = []
+
+            if status and status != 'all':
+                query += ' AND b.status = %s'
+                params.append(status)
+            if start_date:
+                query += ' AND DATE(b.start_date) >= %s'
+                params.append(start_date)
+            if end_date:
+                query += ' AND DATE(b.end_date) <= %s'
+                params.append(end_date)
+
+            query += ' GROUP BY b.id ORDER BY b.created_at DESC LIMIT 1000'
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+
+        elif category == 'payments':
+            if not fields:
+                fields = ['id', 'traveler_name', 'batch_name', 'amount', 'status', 'payment_date']
+
+            select_cols = ['p.id', 'p.amount', 'p.status', 'p.payment_date']
+            for field in fields:
+                if field == 'traveler_name':
+                    select_cols.append('CONCAT(t.first_name, \' \', t.last_name) as traveler_name')
+                elif field == 'batch_name':
+                    select_cols.append('b.batch_name')
+
+            select_clause = ', '.join(set(select_cols))
+
+            query = f"""
+                SELECT {select_clause}
+                FROM payments p
+                LEFT JOIN travelers t ON p.traveler_id = t.id
+                LEFT JOIN batches b ON p.batch_id = b.id
+                WHERE 1=1
+            """
+            params = []
+
+            if batch_id and batch_id != 'all':
+                query += ' AND p.batch_id = %s'
+                params.append(int(batch_id))
+            if status and status != 'all':
+                query += ' AND p.status = %s'
+                params.append(status)
+            if start_date:
+                query += ' AND DATE(p.payment_date) >= %s'
+                params.append(start_date)
+            if end_date:
+                query += ' AND DATE(p.payment_date) <= %s'
+                params.append(end_date)
+
+            query += ' ORDER BY p.payment_date DESC LIMIT 1000'
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+
+        else:
+            return jsonify({'success': False, 'error': 'Invalid category'}), 400
+
+        # Serialize results
+        def serialize_row(row):
+            d = dict(row)
+            for k, v in list(d.items()):
+                if isinstance(v, datetime):
+                    d[k] = v.isoformat()
+                elif v is None:
+                    d[k] = '-'
+            return d
+
+        data_list = [serialize_row(r) for r in results]
+
+        return jsonify({
+            'success': True,
+            'data': data_list,
+            'count': len(data_list),
+            'category': category,
+            'generated_at': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Advanced report error: {e}", exc_info=True)
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         release_db(conn, cursor)
