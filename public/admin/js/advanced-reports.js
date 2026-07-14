@@ -1,4 +1,4 @@
-// ====== ADVANCED REPORTS MODULE ======
+// ====== ADVANCED REPORTS MODULE WITH CUSTOM REPORTS ======
 const ADVANCED_REPORTS = {
     currentReportType: 'travelers',
     currentReportData: null,
@@ -7,68 +7,68 @@ const ADVANCED_REPORTS = {
     // Field definitions for each report type
     FIELD_DEFINITIONS: {
         travelers: [
-            { name: 'id', label: 'ID', type: 'number', default: true },
-            { name: 'first_name', label: 'First Name', type: 'text', default: true },
-            { name: 'last_name', label: 'Last Name', type: 'text', default: true },
-            { name: 'passport_name', label: 'Passport Name', type: 'text', default: false },
-            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
-            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-            { name: 'passport_no', label: 'Passport Number', type: 'text', default: true },
-            { name: 'passport_issue_date', label: 'Passport Issue Date', type: 'date', default: false },
-            { name: 'passport_expiry_date', label: 'Passport Expiry Date', type: 'date', default: true },
-            { name: 'passport_status', label: 'Passport Status', type: 'text', default: false },
-            { name: 'gender', label: 'Gender', type: 'text', default: false },
-            { name: 'dob', label: 'Date of Birth', type: 'date', default: false },
-            { name: 'mobile', label: 'Mobile', type: 'text', default: true },
-            { name: 'email', label: 'Email', type: 'text', default: true },
-            { name: 'aadhaar', label: 'Aadhaar', type: 'text', default: false },
-            { name: 'pan', label: 'PAN', type: 'text', default: false },
-            { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text', default: false },
-            { name: 'vaccine_status', label: 'Vaccine Status', type: 'text', default: true },
-            { name: 'wheelchair', label: 'Wheelchair Required', type: 'text', default: false },
-            { name: 'place_of_birth', label: 'Place of Birth', type: 'text', default: false },
-            { name: 'place_of_issue', label: 'Place of Issue', type: 'text', default: false },
-            { name: 'passport_address', label: 'Passport Address', type: 'text', default: false },
-            { name: 'father_name', label: "Father's Name", type: 'text', default: false },
-            { name: 'mother_name', label: "Mother's Name", type: 'text', default: false },
-            { name: 'spouse_name', label: "Spouse's Name", type: 'text', default: false },
-            { name: 'pin', label: 'PIN Code', type: 'text', default: false },
-            { name: 'emergency_contact', label: 'Emergency Contact', type: 'text', default: false },
-            { name: 'emergency_phone', label: 'Emergency Phone', type: 'text', default: false },
-            { name: 'medical_notes', label: 'Medical Notes', type: 'text', default: false },
-            { name: 'created_at', label: 'Created At', type: 'datetime', default: true }
+            { name: 'id', label: 'ID', type: 'number', default: true, category: 'Traveler Info' },
+            { name: 'first_name', label: 'First Name', type: 'text', default: true, category: 'Personal Info' },
+            { name: 'last_name', label: 'Last Name', type: 'text', default: true, category: 'Personal Info' },
+            { name: 'passport_name', label: 'Passport Name', type: 'text', default: false, category: 'Passport Info' },
+            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true, category: 'Batch Info' },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true, category: 'Batch Info' },
+            { name: 'passport_no', label: 'Passport Number', type: 'text', default: true, category: 'Passport Info' },
+            { name: 'passport_issue_date', label: 'Passport Issue Date', type: 'date', default: false, category: 'Passport Info' },
+            { name: 'passport_expiry_date', label: 'Passport Expiry Date', type: 'date', default: true, category: 'Passport Info' },
+            { name: 'passport_status', label: 'Passport Status', type: 'text', default: false, category: 'Passport Info' },
+            { name: 'gender', label: 'Gender', type: 'text', default: false, category: 'Personal Info' },
+            { name: 'dob', label: 'Date of Birth', type: 'date', default: false, category: 'Personal Info' },
+            { name: 'mobile', label: 'Mobile', type: 'text', default: true, category: 'Contact Info' },
+            { name: 'email', label: 'Email', type: 'text', default: true, category: 'Contact Info' },
+            { name: 'aadhaar', label: 'Aadhaar', type: 'text', default: false, category: 'ID Documents' },
+            { name: 'pan', label: 'PAN', type: 'text', default: false, category: 'ID Documents' },
+            { name: 'aadhaar_pan_linked', label: 'Aadhaar-PAN Linked', type: 'text', default: false, category: 'ID Documents' },
+            { name: 'vaccine_status', label: 'Vaccine Status', type: 'text', default: true, category: 'Health Info' },
+            { name: 'wheelchair', label: 'Wheelchair Required', type: 'text', default: false, category: 'Health Info' },
+            { name: 'place_of_birth', label: 'Place of Birth', type: 'text', default: false, category: 'Personal Info' },
+            { name: 'place_of_issue', label: 'Place of Issue', type: 'text', default: false, category: 'Passport Info' },
+            { name: 'passport_address', label: 'Passport Address', type: 'text', default: false, category: 'Passport Info' },
+            { name: 'father_name', label: "Father's Name", type: 'text', default: false, category: 'Family Info' },
+            { name: 'mother_name', label: "Mother's Name", type: 'text', default: false, category: 'Family Info' },
+            { name: 'spouse_name', label: "Spouse's Name", type: 'text', default: false, category: 'Family Info' },
+            { name: 'pin', label: 'PIN Code', type: 'text', default: false, category: 'Address Info' },
+            { name: 'emergency_contact', label: 'Emergency Contact', type: 'text', default: false, category: 'Emergency Info' },
+            { name: 'emergency_phone', label: 'Emergency Phone', type: 'text', default: false, category: 'Emergency Info' },
+            { name: 'medical_notes', label: 'Medical Notes', type: 'text', default: false, category: 'Health Info' },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: true, category: 'System Info' }
         ],
         batches: [
-            { name: 'id', label: 'Batch ID', type: 'number', default: true },
-            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-            { name: 'status', label: 'Status', type: 'text', default: true },
-            { name: 'total_travelers', label: 'Total Travelers', type: 'number', default: true },
-            { name: 'start_date', label: 'Start Date', type: 'date', default: true },
-            { name: 'end_date', label: 'End Date', type: 'date', default: true },
-            { name: 'description', label: 'Description', type: 'text', default: false },
-            { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
+            { name: 'id', label: 'Batch ID', type: 'number', default: true, category: 'Batch Info' },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true, category: 'Batch Info' },
+            { name: 'status', label: 'Status', type: 'text', default: true, category: 'Batch Info' },
+            { name: 'total_travelers', label: 'Total Travelers', type: 'number', default: true, category: 'Batch Statistics' },
+            { name: 'start_date', label: 'Start Date', type: 'date', default: true, category: 'Batch Dates' },
+            { name: 'end_date', label: 'End Date', type: 'date', default: true, category: 'Batch Dates' },
+            { name: 'description', label: 'Description', type: 'text', default: false, category: 'Batch Info' },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: false, category: 'System Info' }
         ],
         payments: [
-            { name: 'id', label: 'Payment ID', type: 'number', default: true },
-            { name: 'traveler_id', label: 'Traveler ID', type: 'number', default: false },
-            { name: 'traveler_name', label: 'Traveler Name', type: 'text', default: true },
-            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true },
-            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true },
-            { name: 'amount', label: 'Amount (₹)', type: 'currency', default: true },
-            { name: 'payment_method', label: 'Payment Method', type: 'text', default: true },
-            { name: 'status', label: 'Payment Status', type: 'text', default: true },
-            { name: 'transaction_id', label: 'Transaction ID', type: 'text', default: false },
-            { name: 'payment_date', label: 'Payment Date', type: 'date', default: true },
-            { name: 'created_at', label: 'Created At', type: 'datetime', default: false }
+            { name: 'id', label: 'Payment ID', type: 'number', default: true, category: 'Payment Details' },
+            { name: 'traveler_id', label: 'Traveler ID', type: 'number', default: false, category: 'Payment Details' },
+            { name: 'traveler_name', label: 'Traveler Name', type: 'text', default: true, category: 'Traveler Info' },
+            { name: 'batch_id', label: 'Batch ID', type: 'number', default: true, category: 'Batch Info' },
+            { name: 'batch_name', label: 'Batch Name', type: 'text', default: true, category: 'Batch Info' },
+            { name: 'amount', label: 'Amount (₹)', type: 'currency', default: true, category: 'Payment Details' },
+            { name: 'payment_method', label: 'Payment Method', type: 'text', default: true, category: 'Payment Details' },
+            { name: 'status', label: 'Payment Status', type: 'text', default: true, category: 'Payment Details' },
+            { name: 'transaction_id', label: 'Transaction ID', type: 'text', default: false, category: 'Payment Details' },
+            { name: 'payment_date', label: 'Payment Date', type: 'date', default: true, category: 'Payment Details' },
+            { name: 'created_at', label: 'Created At', type: 'datetime', default: false, category: 'System Info' }
         ],
     },
 
     init() {
         console.log('🚀 ADVANCED_REPORTS module initializing...');
+        this.setupCustomReportUI();
         this.populateFieldSelector();
         this.setupExportButtons();
         this.setupBatchFilter();
-        // Add event listeners for payment report
         this.setupPaymentReportSupport();
         document.addEventListener('DOMContentLoaded', () => this.onReady());
     },
@@ -76,11 +76,85 @@ const ADVANCED_REPORTS = {
     onReady() {
         console.log('✅ DOM Ready - Reports page fully loaded');
         this.populateFieldSelector();
-        // Check if PDF libraries are loaded
         this.checkPDFLibraries();
     },
 
-    // New method to check PDF libraries
+    // Setup Custom Report UI
+    setupCustomReportUI() {
+        // Add custom report tab if not exists
+        const reportTabs = document.querySelector('.report-tabs');
+        if (reportTabs) {
+            if (!document.querySelector('[data-report="custom"]')) {
+                const customTab = document.createElement('button');
+                customTab.className = 'report-tab';
+                customTab.dataset.report = 'custom';
+                customTab.innerHTML = '<i class="fas fa-layer-group"></i> Custom Report';
+                customTab.onclick = () => this.switchReportCategory('custom');
+                reportTabs.appendChild(customTab);
+            }
+        }
+
+        // Add category filter for custom reports
+        const fieldContainer = document.getElementById('fieldCheckboxContainer');
+        if (fieldContainer && !document.getElementById('categoryFilter')) {
+            const filterDiv = document.createElement('div');
+            filterDiv.id = 'categoryFilter';
+            filterDiv.style.cssText = 'margin-bottom: 10px; display: none;';
+            filterDiv.innerHTML = `
+                <select id="fieldCategoryFilter" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="all">All Categories</option>
+                    <option value="Traveler Info">Traveler Info</option>
+                    <option value="Personal Info">Personal Info</option>
+                    <option value="Passport Info">Passport Info</option>
+                    <option value="Contact Info">Contact Info</option>
+                    <option value="Batch Info">Batch Info</option>
+                    <option value="Payment Details">Payment Details</option>
+                    <option value="Health Info">Health Info</option>
+                    <option value="Family Info">Family Info</option>
+                    <option value="Emergency Info">Emergency Info</option>
+                    <option value="ID Documents">ID Documents</option>
+                    <option value="Batch Statistics">Batch Statistics</option>
+                    <option value="Batch Dates">Batch Dates</option>
+                    <option value="System Info">System Info</option>
+                    <option value="Address Info">Address Info</option>
+                </select>
+            `;
+            fieldContainer.parentNode.insertBefore(filterDiv, fieldContainer);
+            
+            document.getElementById('fieldCategoryFilter')?.addEventListener('change', (e) => {
+                this.filterFieldsByCategory(e.target.value);
+            });
+        }
+    },
+
+    // Filter fields by category
+    filterFieldsByCategory(category) {
+        const labels = document.querySelectorAll('.field-checkbox-label');
+        labels.forEach(label => {
+            const checkbox = label.querySelector('input[type="checkbox"]');
+            if (!checkbox) return;
+            
+            // Check if this field belongs to the selected category
+            const fieldName = checkbox.value;
+            let fieldCategory = '';
+            
+            // Search in all field definitions
+            for (const type in this.FIELD_DEFINITIONS) {
+                const found = this.FIELD_DEFINITIONS[type].find(f => f.name === fieldName);
+                if (found) {
+                    fieldCategory = found.category || '';
+                    break;
+                }
+            }
+            
+            if (category === 'all' || fieldCategory === category) {
+                label.style.display = 'flex';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    },
+
     checkPDFLibraries() {
         if (typeof jsPDF === 'undefined') {
             console.warn('⚠️ jsPDF library not loaded. PDF export will be disabled.');
@@ -94,12 +168,9 @@ const ADVANCED_REPORTS = {
         }
     },
 
-    // New method to support payment reports
     setupPaymentReportSupport() {
-        // Add event listeners for payment-specific filters if needed
         const statusFilter = document.getElementById('filterStatus');
         if (statusFilter) {
-            // Add payment-specific status options
             const paymentStatuses = ['all', 'paid', 'pending', 'failed', 'refunded'];
             const currentOptions = Array.from(statusFilter.options).map(opt => opt.value);
             paymentStatuses.forEach(status => {
@@ -115,8 +186,6 @@ const ADVANCED_REPORTS = {
 
     populateFieldSelector() {
         const container = document.getElementById('fieldCheckboxContainer');
-        const fields = this.FIELD_DEFINITIONS[this.currentReportType] || [];
-        
         if (!container) {
             console.error('❌ fieldCheckboxContainer not found!');
             return;
@@ -124,36 +193,110 @@ const ADVANCED_REPORTS = {
 
         container.innerHTML = '';
 
-        // Add a search input for fields if there are many fields
-        if (fields.length > 20) {
-            const searchInput = document.createElement('input');
-            searchInput.type = 'text';
-            searchInput.placeholder = '🔍 Search fields...';
-            searchInput.className = 'field-search-input';
-            searchInput.style.cssText = 'width: 100%; padding: 5px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;';
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                document.querySelectorAll('.field-checkbox-label').forEach(label => {
-                    const text = label.textContent.toLowerCase();
-                    label.style.display = text.includes(searchTerm) ? 'flex' : 'none';
-                });
-            });
-            container.appendChild(searchInput);
+        // Show/hide category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.style.display = this.currentReportType === 'custom' ? 'block' : 'none';
         }
 
-        fields.forEach(field => {
-            const label = document.createElement('label');
-            label.className = 'field-checkbox-label';
-            const defaultChecked = field.default ? 'checked' : '';
-            label.innerHTML = `
-                <input type="checkbox" class="field-checkbox" value="${field.name}" ${defaultChecked} onchange="ADVANCED_REPORTS.updateFieldCount()">
-                <span>${field.label}</span>
-            `;
-            container.appendChild(label);
-        });
+        let fields = [];
+        
+        if (this.currentReportType === 'custom') {
+            // For custom reports, combine all fields with source info
+            const allFields = [];
+            for (const type in this.FIELD_DEFINITIONS) {
+                const typeFields = this.FIELD_DEFINITIONS[type].map(f => ({
+                    ...f,
+                    source: type,
+                    uniqueName: `${type}_${f.name}` // Unique name to avoid conflicts
+                }));
+                allFields.push(...typeFields);
+            }
+            
+            // Group fields by category
+            const categories = {};
+            allFields.forEach(field => {
+                const cat = field.category || 'Other';
+                if (!categories[cat]) {
+                    categories[cat] = [];
+                }
+                categories[cat].push(field);
+            });
+            
+            // Add category headers and fields
+            for (const category in categories) {
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.style.cssText = 'font-weight: bold; padding: 8px; background: #e9ecef; margin: 5px 0; border-radius: 4px; grid-column: 1 / -1;';
+                header.textContent = `📁 ${category}`;
+                container.appendChild(header);
+                
+                categories[category].forEach(field => {
+                    const label = this.createFieldLabel(field);
+                    container.appendChild(label);
+                });
+            }
+            
+            fields = allFields;
+        } else {
+            // Regular reports
+            fields = this.FIELD_DEFINITIONS[this.currentReportType] || [];
+            
+            // Add search input if many fields
+            if (fields.length > 15) {
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = '🔍 Search fields...';
+                searchInput.className = 'field-search-input';
+                searchInput.style.cssText = 'width: 100%; padding: 5px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; grid-column: 1 / -1;';
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    document.querySelectorAll('.field-checkbox-label').forEach(label => {
+                        const text = label.textContent.toLowerCase();
+                        label.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+                    });
+                });
+                container.appendChild(searchInput);
+            }
+            
+            fields.forEach(field => {
+                const label = this.createFieldLabel(field);
+                container.appendChild(label);
+            });
+        }
 
         this.updateFieldCount();
         console.log(`✅ Populated ${fields.length} fields for ${this.currentReportType}`);
+    },
+
+    createFieldLabel(field) {
+        const label = document.createElement('label');
+        label.className = 'field-checkbox-label';
+        label.style.cssText = 'display: flex; align-items: center; padding: 4px 8px; cursor: pointer; border-radius: 4px;';
+        
+        const defaultChecked = field.default ? 'checked' : '';
+        const fieldValue = this.currentReportType === 'custom' ? field.uniqueName : field.name;
+        
+        let displayLabel = field.label;
+        if (this.currentReportType === 'custom' && field.source) {
+            const sourceIcons = {
+                'travelers': '👤',
+                'batches': '📦',
+                'payments': '💳'
+            };
+            displayLabel = `${field.label} <span style="font-size: 10px; color: #666;">(${sourceIcons[field.source] || field.source})</span>`;
+        }
+        
+        label.innerHTML = `
+            <input type="checkbox" class="field-checkbox" value="${fieldValue}" ${defaultChecked} 
+                   data-source="${field.source || ''}" 
+                   data-original-name="${field.name}"
+                   data-category="${field.category || ''}"
+                   onchange="ADVANCED_REPORTS.updateFieldCount()">
+            <span style="font-size: 13px;">${displayLabel}</span>
+        `;
+        
+        return label;
     },
 
     updateFieldCount() {
@@ -174,7 +317,6 @@ const ADVANCED_REPORTS = {
     switchReportCategory(reportType) {
         this.currentReportType = reportType;
         this.populateFieldSelector();
-        // Clear previous results when switching
         this.clearReportResults();
         console.log(`✅ Switched to ${reportType} report`);
     },
@@ -217,12 +359,38 @@ const ADVANCED_REPORTS = {
         console.log('📊 Generating report...');
 
         // Get selected fields
-        const selectedFields = Array.from(document.querySelectorAll('.field-checkbox:checked'))
-            .map(cb => cb.value);
+        const selectedCheckboxes = document.querySelectorAll('.field-checkbox:checked');
+        const selectedFields = Array.from(selectedCheckboxes).map(cb => cb.value);
 
         if (selectedFields.length === 0) {
             this.showAlert('Please select at least one field', 'error');
             return;
+        }
+
+        // For custom reports, map fields to their sources
+        let customFieldMapping = null;
+        let reportType = this.currentReportType;
+
+        if (this.currentReportType === 'custom') {
+            customFieldMapping = {};
+            selectedCheckboxes.forEach(cb => {
+                const source = cb.dataset.source;
+                const originalName = cb.dataset.originalName;
+                if (source && originalName) {
+                    if (!customFieldMapping[source]) {
+                        customFieldMapping[source] = [];
+                    }
+                    customFieldMapping[source].push(originalName);
+                }
+            });
+            
+            const neededTypes = Object.keys(customFieldMapping);
+            if (neededTypes.length === 0) {
+                this.showAlert('No valid fields selected', 'error');
+                return;
+            }
+            
+            reportType = 'custom';
         }
 
         // Get filters
@@ -233,7 +401,6 @@ const ADVANCED_REPORTS = {
 
         let startDate = null, endDate = null;
 
-        // Calculate date range
         if (dateRange === 'custom') {
             startDate = document.getElementById('startDate')?.value;
             endDate = document.getElementById('endDate')?.value;
@@ -251,7 +418,7 @@ const ADVANCED_REPORTS = {
 
         try {
             const payload = {
-                type: this.currentReportType,
+                type: reportType,
                 filters: {
                     startDate: startDate,
                     endDate: endDate,
@@ -261,6 +428,11 @@ const ADVANCED_REPORTS = {
                 },
                 columns: selectedFields
             };
+
+            // Add custom field mapping for custom reports
+            if (this.currentReportType === 'custom' && customFieldMapping) {
+                payload.customMapping = customFieldMapping;
+            }
 
             console.log('📤 Sending payload:', payload);
 
@@ -279,7 +451,6 @@ const ADVANCED_REPORTS = {
                 this.displayReport(data.report, selectedFields);
                 this.showAlert(`Report generated: ${data.report.count} records`, 'success');
             } else {
-                // Check if error is about unsupported report type
                 if (data.error && data.error.includes('unsupported')) {
                     this.showAlert(`Payment reports are not yet supported by the backend. Please contact administrator.`, 'error');
                 } else {
@@ -301,10 +472,8 @@ const ADVANCED_REPORTS = {
 
         if (!resultsDiv) return;
 
-        // Show results section
         resultsDiv.style.display = 'block';
 
-        // Display statistics
         if (statsDiv) {
             statsDiv.innerHTML = `
                 <div class="stat-card">
@@ -325,27 +494,46 @@ const ADVANCED_REPORTS = {
             `;
         }
 
-        // Display table with improved styling for many columns
         if (tableContainer && report.data && report.data.length > 0) {
             const headers = selectedFields.map(f => {
-                const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
-                return field ? field.label : f.replace(/_/g, ' ');
+                let fieldDef = null;
+                
+                // For custom reports, try to find field definition
+                if (this.currentReportType === 'custom') {
+                    for (const type in this.FIELD_DEFINITIONS) {
+                        const found = this.FIELD_DEFINITIONS[type].find(d => f === `${type}_${d.name}`);
+                        if (found) {
+                            fieldDef = found;
+                            break;
+                        }
+                    }
+                } else {
+                    fieldDef = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
+                }
+                
+                return fieldDef ? fieldDef.label : f.replace(/_/g, ' ');
             });
 
             const headerRow = headers.map(h => `<th>${this.escapeHtml(h)}</th>`).join('');
             const bodyRows = report.data.map(row => {
                 const cells = selectedFields.map(f => {
-                    const value = row[f];
+                    let value = row[f];
+                    // For custom reports, try without prefix
+                    if (value === undefined && this.currentReportType === 'custom') {
+                        const cleanName = f.split('_').slice(1).join('_');
+                        value = row[cleanName];
+                    }
                     return `<td>${this.escapeHtml(this.formatValue(value))}</td>`;
                 }).join('');
                 return `<tr>${cells}</tr>`;
             }).join('');
 
-            // Enhanced table wrapper with fixed height and horizontal scrolling
+            const needsScrolling = selectedFields.length > 10;
+
             tableContainer.innerHTML = `
                 <div class="table-wrapper" style="max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #ddd; border-radius: 4px;">
-                    <table class="report-table" style="width: 100%; border-collapse: collapse; min-width: max-content;">
-                        <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 10;">
+                    <table class="report-table" style="width: 100%; border-collapse: collapse; min-width: ${needsScrolling ? 'max-content' : '100%'};">
+                        <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1);">
                             <tr>${headerRow}</tr>
                         </thead>
                         <tbody>
@@ -356,7 +544,7 @@ const ADVANCED_REPORTS = {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 5px 10px; background: #f8f9fa; border-radius: 4px;">
                     <span style="font-size: 12px; color: #666;">
                         <i class="fas fa-info-circle"></i> 
-                        Scroll horizontally to see all ${selectedFields.length} columns
+                        ${needsScrolling ? `Scroll horizontally to see all ${selectedFields.length} columns` : `${selectedFields.length} columns displayed`}
                     </span>
                     <span style="font-size: 12px; color: #666;">
                         ${report.data.length} records displayed
@@ -366,9 +554,7 @@ const ADVANCED_REPORTS = {
         }
     },
 
-    // Enhanced PDF export with better error handling
     exportToPDF(selectedFields) {
-        // Check if jsPDF is available
         if (typeof jsPDF === 'undefined') {
             this.showAlert('PDF library (jsPDF) not loaded. Please include jsPDF library.', 'error');
             return;
@@ -377,18 +563,34 @@ const ADVANCED_REPORTS = {
         try {
             const data = this.currentReportData.data;
             const headers = selectedFields.map(f => {
-                const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
-                return field ? field.label : f.replace(/_/g, ' ');
+                let fieldDef = null;
+                if (this.currentReportType === 'custom') {
+                    for (const type in this.FIELD_DEFINITIONS) {
+                        const found = this.FIELD_DEFINITIONS[type].find(d => f === `${type}_${d.name}`);
+                        if (found) {
+                            fieldDef = found;
+                            break;
+                        }
+                    }
+                } else {
+                    fieldDef = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
+                }
+                return fieldDef ? fieldDef.label : f.replace(/_/g, ' ');
             });
 
             const body = data.map(row => 
-                selectedFields.map(f => this.formatValue(row[f]))
+                selectedFields.map(f => {
+                    let value = row[f];
+                    if (value === undefined && this.currentReportType === 'custom') {
+                        const cleanName = f.split('_').slice(1).join('_');
+                        value = row[cleanName];
+                    }
+                    return this.formatValue(value);
+                })
             );
 
-            // Create PDF with landscape orientation for many columns
             const doc = new jsPDF('landscape', 'mm', 'a4');
             
-            // Check if autoTable plugin is available
             if (typeof doc.autoTable === 'function') {
                 doc.autoTable({
                     head: [headers],
@@ -402,7 +604,6 @@ const ADVANCED_REPORTS = {
                         doc.setFontSize(8);
                         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 15);
                     },
-                    // Handle many columns
                     pageBreak: 'auto',
                     tableWidth: 'auto',
                 });
@@ -410,19 +611,16 @@ const ADVANCED_REPORTS = {
                 // Fallback without autoTable
                 this.showAlert('PDF autoTable plugin not loaded. Using basic PDF export.', 'warning');
                 
-                // Simple text-based PDF
                 doc.setFontSize(12);
                 let y = 20;
                 doc.text(`Report: ${this.currentReportType.toUpperCase()}`, 14, y);
                 y += 10;
                 
-                // Add headers
                 doc.setFontSize(10);
                 let headerStr = headers.join(' | ');
                 doc.text(headerStr, 14, y);
                 y += 7;
                 
-                // Add data rows (limited for readability)
                 const maxRows = Math.min(20, body.length);
                 for (let i = 0; i < maxRows; i++) {
                     const rowStr = body[i].join(' | ');
@@ -450,7 +648,6 @@ const ADVANCED_REPORTS = {
         }
     },
 
-    // ... (rest of the methods remain the same)
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -540,8 +737,19 @@ const ADVANCED_REPORTS = {
     exportToCSV(selectedFields) {
         const data = this.currentReportData.data;
         const headers = selectedFields.map(f => {
-            const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
-            return field ? field.label : f.replace(/_/g, ' ');
+            let fieldDef = null;
+            if (this.currentReportType === 'custom') {
+                for (const type in this.FIELD_DEFINITIONS) {
+                    const found = this.FIELD_DEFINITIONS[type].find(d => f === `${type}_${d.name}`);
+                    if (found) {
+                        fieldDef = found;
+                        break;
+                    }
+                }
+            } else {
+                fieldDef = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
+            }
+            return fieldDef ? fieldDef.label : f.replace(/_/g, ' ');
         });
 
         let csv = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',') + '\n';
@@ -549,6 +757,10 @@ const ADVANCED_REPORTS = {
         data.forEach(row => {
             const cells = selectedFields.map(f => {
                 let value = row[f] || '';
+                if (value === undefined && this.currentReportType === 'custom') {
+                    const cleanName = f.split('_').slice(1).join('_');
+                    value = row[cleanName] || '';
+                }
                 if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
                     value = `"${value.replace(/"/g, '""')}"`;
                 }
@@ -572,14 +784,30 @@ const ADVANCED_REPORTS = {
         try {
             const data = this.currentReportData.data;
             const headers = selectedFields.map(f => {
-                const field = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
-                return field ? field.label : f.replace(/_/g, ' ');
+                let fieldDef = null;
+                if (this.currentReportType === 'custom') {
+                    for (const type in this.FIELD_DEFINITIONS) {
+                        const found = this.FIELD_DEFINITIONS[type].find(d => f === `${type}_${d.name}`);
+                        if (found) {
+                            fieldDef = found;
+                            break;
+                        }
+                    }
+                } else {
+                    fieldDef = this.FIELD_DEFINITIONS[this.currentReportType].find(d => d.name === f);
+                }
+                return fieldDef ? fieldDef.label : f.replace(/_/g, ' ');
             });
 
             const excelData = data.map(row => {
                 const obj = {};
                 selectedFields.forEach((f, i) => {
-                    obj[headers[i]] = row[f];
+                    let value = row[f];
+                    if (value === undefined && this.currentReportType === 'custom') {
+                        const cleanName = f.split('_').slice(1).join('_');
+                        value = row[cleanName];
+                    }
+                    obj[headers[i]] = value;
                 });
                 return obj;
             });
@@ -658,4 +886,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for use
 window.ADVANCED_REPORTS = ADVANCED_REPORTS;
-console.log('✅ Advanced Reports Module Loaded');
+console.log('✅ Advanced Reports Module with Custom Reports Loaded');
