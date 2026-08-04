@@ -4,66 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travelers - Alhudha Haj Travel Admin</title>
-    <link rel="stylesheet" href="/admin/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        /* ==================================================================
-           MAIN SECTION 1: RESET AND BASE STYLES
-           ================================================================== */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f5f7fa; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-
-        /* ==================================================================
-           MAIN SECTION 2: ADMIN HEADER STYLES
-           ================================================================== */
         .admin-header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            color: white; padding: 15px 0; position: sticky; top: 0; z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo-area { display: flex; align-items: center; gap: 15px; }
         .logo-area i { font-size: 2rem; color: #f1c40f; }
         .logo-area h1 { color: white; font-size: 1.5rem; }
         .role-badge { background: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
-        .logout-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .logout-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
         .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
-
-        /* ==================================================================
-           MAIN SECTION 3: PAGE HEADER STYLES
-           ================================================================== */
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 20px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 20px; flex-wrap: wrap; gap: 15px; }
         .page-header h2 { color: #2c3e50; font-size: 1.8rem; }
         .page-header h2 i { color: #f1c40f; margin-right: 10px; }
-
-        /* ==================================================================
-           MAIN SECTION 4: ACTION BUTTON STYLES
-           ================================================================== */
-        .action-btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; }
-        .btn-primary { background: #3498db; color: white; }
+        .action-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .action-btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s; text-decoration: none; color: white; }
+        .btn-primary { background: #3498db; }
         .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
-        .btn-success { background: #27ae60; color: white; }
+        .btn-success { background: #27ae60; }
         .btn-success:hover { background: #219a52; transform: translateY(-2px); }
-        .btn-warning { background: #f39c12; color: white; }
+        .btn-warning { background: #f39c12; }
         .btn-warning:hover { background: #e67e22; transform: translateY(-2px); }
-        .btn-info { background: #00bcd4; color: white; }
+        .btn-info { background: #00bcd4; }
         .btn-info:hover { background: #00a5bb; transform: translateY(-2px); }
         .btn-secondary { background: #95a5a6; color: white; }
         .btn-secondary:hover { background: #7f8c8d; }
-        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger { background: #e74c3c; }
         .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
-
-        /* ==================================================================
-           MAIN SECTION 5: STATS CARD STYLES
-           ================================================================== */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { padding: 15px; border-radius: 8px; text-align: center; color: white; }
         .stat-card i { font-size: 2rem; margin-bottom: 5px; }
         .stat-card h3 { font-size: 1.5rem; }
@@ -72,24 +49,15 @@
         .stat-green { background: linear-gradient(135deg, #27ae60, #219a52); }
         .stat-orange { background: linear-gradient(135deg, #f39c12, #e67e22); }
         .stat-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-
-        /* ==================================================================
-           MAIN SECTION 6: FORM CONTAINER STYLES
-           ================================================================== */
         .form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: none;
-            animation: slideDown 0.3s ease;
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px;
+            display: none; animation: slideDown 0.3s ease;
         }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .form-container h3 { margin-bottom: 20px; color: #2c3e50; }
         .form-container h3 i { color: #f1c40f; margin-right: 10px; }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600; }
         .form-group label i { margin-right: 8px; color: #f1c40f; }
@@ -98,25 +66,20 @@
             transition: all 0.3s; background: #f8f9fa;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
-            background: white;
+            border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.2); background: white;
         }
-        .form-group input[readonly] { background: #e9ecef; cursor: not-allowed; }
+        .form-group input[readonly], .form-group textarea[readonly] { background: #e9ecef; cursor: not-allowed; }
+        .form-group.checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .form-group.checkbox-group input[type="checkbox"] { width: auto; }
+        .form-group.checkbox-group label { margin: 0; }
         .form-actions { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
         .full-width { grid-column: 1 / -1; }
-
-        /* ==================================================================
-           MAIN SECTION 7: SECTION HEADER STYLES
-           ================================================================== */
         .section-header {
-            background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0 15px; border-left: 4px solid #3498db;
+            background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0 15px;
+            border-left: 4px solid #3498db;
         }
         .section-header h4 { color: #2c3e50; margin: 0; display: flex; align-items: center; gap: 10px; }
         .section-header h4 i { color: #f1c40f; }
-
-        /* ==================================================================
-           MAIN SECTION 8: DOCUMENT UPLOAD STYLES
-           ================================================================== */
         .document-upload {
             border: 2px dashed #3498db; padding: 20px; text-align: center; border-radius: 8px;
             background: #f8f9fa; cursor: pointer; transition: all 0.3s;
@@ -125,7 +88,6 @@
         .document-upload i { font-size: 2rem; color: #3498db; margin-bottom: 10px; }
         .document-upload p { margin: 0; color: #7f8c8d; font-size: 0.9rem; }
         .document-upload small { display: block; color: #95a5a6; font-size: 0.8rem; margin-top: 5px; }
-
         .document-preview {
             margin-top: 10px; padding: 10px; background: #f0f8ff; border-radius: 5px;
             display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
@@ -138,34 +100,18 @@
         }
         .document-preview .file-actions button:hover { color: #2980b9; }
         .document-preview .file-actions button.delete { color: #e74c3c; }
-        .document-preview .file-actions button.delete:hover { color: #c0392b; }
-
-        /* ==================================================================
-           MAIN SECTION 9: SEARCH BOX STYLES
-           ================================================================== */
         .search-box { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
         .search-box input { flex: 1; min-width: 200px; padding: 12px 15px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 1rem; }
         .search-box input:focus { border-color: #3498db; outline: none; }
         .search-box button { padding: 12px 25px; }
-
-        /* ==================================================================
-           MAIN SECTION 10: TABLE STYLES
-           ================================================================== */
         .table-container {
             background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             overflow-x: auto; margin-top: 20px;
         }
         table { width: 100%; border-collapse: collapse; min-width: 1200px; }
-        th {
-            background: #2c3e50; color: white; padding: 15px; text-align: left;
-            font-weight: 600; white-space: nowrap;
-        }
+        th { background: #2c3e50; color: white; padding: 15px; text-align: left; font-weight: 600; white-space: nowrap; }
         td { padding: 15px; border-bottom: 1px solid #ecf0f1; white-space: nowrap; }
         tr:hover { background: #f8f9fa; }
-
-        /* ==================================================================
-           MAIN SECTION 11: STATUS BADGE STYLES
-           ================================================================== */
         .status-badge {
             padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;
             font-weight: 600; display: inline-block; white-space: nowrap;
@@ -174,33 +120,22 @@
         .status-pending { background: #fff3cd; color: #856404; }
         .status-warning { background: #fff3cd; color: #856404; }
         .status-inactive { background: #f8d7da; color: #721c24; }
-
-        /* ==================================================================
-           MAIN SECTION 12: DOCUMENT ICON STYLES
-           ================================================================== */
+        .validity-badge {
+            padding: 4px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; display: inline-block;
+        }
+        .validity-ok { background: #d4edda; color: #155724; }
+        .validity-warning { background: #fff3cd; color: #856404; }
+        .validity-danger { background: #f8d7da; color: #721c24; }
         .doc-icons { display: flex; gap: 5px; font-size: 1.2rem; }
         .doc-icon { cursor: pointer; transition: transform 0.2s; }
         .doc-icon:hover { transform: scale(1.2); }
         .doc-icon.available { color: #27ae60; }
         .doc-icon.missing { color: #e74c3c; opacity: 0.5; cursor: default; }
-        .doc-icon.missing:hover { transform: none; }
-
-        /* ==================================================================
-           MAIN SECTION 13: ICON BUTTON STYLES
-           ================================================================== */
         .icon-btn {
             background: none; border: none; color: #3498db; cursor: pointer; font-size: 1.2rem;
             margin: 0 5px; padding: 8px; border-radius: 5px; transition: all 0.3s; min-width: 40px;
         }
         .icon-btn:hover { background: #ecf0f1; color: #2c3e50; }
-        .icon-btn .fa-trash:hover { color: #e74c3c; }
-        .icon-btn .fa-eye:hover { color: #27ae60; }
-        .icon-btn .fa-edit:hover { color: #f39c12; }
-        .icon-btn .fa-download:hover { color: #3498db; }
-
-        /* ==================================================================
-           MAIN SECTION 14: MODAL STYLES
-           ================================================================== */
         .modal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%); background: white; padding: 30px;
@@ -216,35 +151,14 @@
             margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1;
         }
         .modal-header h3 { margin: 0; color: #2c3e50; }
-        .modal-close {
-            background: none; border: none; font-size: 1.5rem; cursor: pointer;
-            color: #7f8c8d; transition: color 0.3s;
-        }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; transition: color 0.3s; }
         .modal-close:hover { color: #e74c3c; }
-        .modal-body { margin: 20px 0; max-height: 65vh; overflow-y: auto; }
-        .modal-footer {
-            display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px;
-            padding-top: 10px; border-top: 1px solid #ecf0f1;
-        }
-
-        /* ==================================================================
-           MAIN SECTION 15: DETAIL GRID STYLES
-           ================================================================== */
-        .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .detail-item {
-            padding: 12px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #3498db;
-        }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ecf0f1; flex-wrap: wrap; }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .detail-item { padding: 12px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #3498db; }
         .detail-item strong { color: #2c3e50; display: block; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; }
         .detail-item span { color: #34495e; font-size: 1rem; font-weight: 500; }
-        .detail-item.full-width { grid-column: 1 / -1; }
-
-        /* ==================================================================
-           MAIN SECTION 16: DOCUMENT GRID STYLES
-           ================================================================== */
-        .document-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px; margin: 20px 0;
-        }
+        .document-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
         .document-card {
             background: white; padding: 15px; border-radius: 8px; text-align: center;
             border: 1px solid #ecf0f1; transition: all 0.3s; cursor: pointer;
@@ -253,38 +167,24 @@
         .document-card i { font-size: 2rem; color: #27ae60; margin-bottom: 10px; }
         .document-card i.missing { color: #e74c3c; }
         .document-card p { margin: 5px 0; font-size: 0.9rem; }
-        .document-card small { color: #7f8c8d; font-size: 0.8rem; }
-
-        /* ==================================================================
-           MAIN SECTION 17: CSV UPLOAD STYLES
-           ================================================================== */
         .csv-upload-section {
             background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px; border: 2px dashed #3498db;
+            margin-bottom: 30px; border: 2px dashed #3498db; display: none;
         }
         .csv-upload-section h3 { color: #2c3e50; margin-bottom: 15px; }
-        .csv-upload-section h3 i { color: #f1c40f; margin-right: 10px; }
         .csv-format-box {
             background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;
             font-family: monospace; overflow-x: auto;
         }
-        .csv-format-box pre { margin: 0; color: #2c3e50; }
-
-        /* ==================================================================
-           MAIN SECTION 18: NOTIFICATION STYLES
-           ================================================================== */
         .notification {
             position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px;
             color: white; z-index: 9999; display: none; animation: slideIn 0.3s ease;
         }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .notification-success { background: #27ae60; }
         .notification-error { background: #e74c3c; }
         .notification-info { background: #3498db; }
         .notification-warning { background: #f39c12; }
-
-        /* ==================================================================
-           MAIN SECTION 19: SESSION WARNING STYLES
-           ================================================================== */
         #sessionWarning {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: #f39c12; color: white; padding: 15px 30px; border-radius: 50px;
@@ -293,34 +193,16 @@
             cursor: pointer; border: 2px solid white;
         }
         #sessionWarning:hover { background: #e67e22; }
-
-        /* ==================================================================
-           MAIN SECTION 20: RESPONSIVE DESIGN STYLES
-           ================================================================== */
-        @media (max-width: 1200px) {
-            table { min-width: 1000px; }
-            .detail-grid { grid-template-columns: repeat(2, 1fr); }
-        }
         @media (max-width: 768px) {
-            .action-buttons { flex-direction: column; }
-            .form-grid { grid-template-columns: 1fr; }
-            .detail-grid { grid-template-columns: 1fr; }
+            .form-grid, .detail-grid { grid-template-columns: 1fr; }
             .document-grid { grid-template-columns: repeat(2, 1fr); }
             .search-box { flex-direction: column; }
             .search-box input { width: 100%; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .action-buttons { flex-direction: column; }
         }
     </style>
-    <script src="/admin/js/session-manager.js"></script>
-    <script src="/admin/js/mobile-fix.js"></script>
-    <script src="/admin/js/common.js"></script>
-    <script src="/admin/js/travelers.js"></script>
 </head>
 <body>
-
-    <!-- ==================================================================
-    MAIN SECTION 21: HEADER HTML
-    ================================================================== -->
     <div class="admin-header">
         <div class="container">
             <div class="header-content">
@@ -330,7 +212,7 @@
                     <span class="role-badge" id="roleBadge">Admin</span>
                 </div>
                 <div>
-                    <a href="dashboard.html" class="action-btn btn-info" style="margin-right: 10px;">
+                    <a href="admin-dashboard.html" class="action-btn btn-info" style="margin-right: 10px;">
                         <i class="fas fa-tachometer-alt"></i> Dashboard
                     </a>
                     <button onclick="logout()" class="logout-btn">
@@ -341,29 +223,16 @@
         </div>
     </div>
 
-    <!-- ==================================================================
-    MAIN SECTION 22: SESSION WARNING BANNER
-    ================================================================== -->
     <div id="sessionWarning" onclick="extendSession()">
         <i class="fas fa-exclamation-triangle"></i>
-        <span id="sessionWarningMessage">Your session will expire in 2 minutes. Click to extend.</span>
+        <span id="sessionWarningMessage">Your session will expire soon. Click to extend.</span>
     </div>
 
-    <!-- ==================================================================
-    MAIN SECTION 23: MAIN CONTAINER
-    ================================================================== -->
     <div class="container">
-
-        <!-- ==================================================================
-        MAIN SECTION 24: PAGE HEADER
-        ================================================================== -->
         <div class="page-header">
             <h2><i class="fas fa-users"></i> Traveler Management (33 Fields)</h2>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 25: STATS CARDS
-        ================================================================== -->
         <div class="stats-grid">
             <div class="stat-card stat-blue">
                 <i class="fas fa-users"></i>
@@ -387,18 +256,15 @@
             </div>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 26: ACTION BUTTONS
-        ================================================================== -->
         <div class="action-buttons">
             <button class="action-btn btn-success" onclick="showAddTravelerForm()">
-                <i class="fas fa-user-plus"></i> Add New Traveler (33 Fields)
+                <i class="fas fa-user-plus"></i> Add New Traveler
             </button>
             <button class="action-btn btn-primary" onclick="exportTravelersToExcel()">
-                <i class="fas fa-file-excel"></i> Export to Excel (33 Fields)
+                <i class="fas fa-file-excel"></i> Export Excel
             </button>
             <button class="action-btn btn-danger" onclick="exportTravelersToPDF()">
-                <i class="fas fa-file-pdf"></i> Export to PDF
+                <i class="fas fa-file-pdf"></i> Export PDF
             </button>
             <button class="action-btn btn-info" onclick="printTravelersTable()">
                 <i class="fas fa-print"></i> Print Table
@@ -407,23 +273,19 @@
                 <i class="fas fa-file-csv"></i> Bulk Upload CSV
             </button>
             <button class="action-btn btn-secondary" onclick="downloadCSVTemplate()">
-                <i class="fas fa-download"></i> Download CSV Template
+                <i class="fas fa-download"></i> CSV Template
             </button>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 27: CSV UPLOAD SECTION
-        ================================================================== -->
-        <div id="csvUploadSection" class="csv-upload-section" style="display: none;">
+        <div id="csvUploadSection" class="csv-upload-section">
             <h3><i class="fas fa-file-csv"></i> Bulk Upload Travelers via CSV</h3>
             <div class="csv-format-box">
                 <strong>CSV Format (33 columns):</strong>
-                <pre>first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,mailing_address,file_reference,expected_return_date,...other_columns</pre>
-                <p style="color: #7f8c8d; margin-top: 10px;">⚠️ Batch ID should match existing batch IDs in the system. If file_reference is admin-only, do not include it in CSV imports.</p>
+                <pre id="csvFormatPre">first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,mailing_address,file_reference,return_date,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes</pre>
             </div>
             <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <input type="file" id="csvFileInput" accept=".csv" style="flex: 1; padding: 10px;">
-                <button class="action-btn btn-success" onclick="uploadCSV()">
+                <button class="action-btn btn-success" onclick="processCSVUpload()">
                     <i class="fas fa-upload"></i> Upload & Process
                 </button>
                 <button class="action-btn btn-secondary" onclick="hideCSVUploadSection()">
@@ -436,525 +298,207 @@
             </div>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 28: ADD TRAVELER FORM - 33 FIELDS
-        ================================================================== -->
+        <!-- Add Form -->
         <div class="form-container" id="addTravelerForm">
             <h3><i class="fas fa-user-plus"></i> Add New Traveler - 33 Fields</h3>
-            <form id="travelerAddForm" onsubmit="event.preventDefault(); handleCreateTraveler();" enctype="multipart/form-data">
-
-                <!-- ======================================================
-                SUBSECTION 28.1: PERSONAL INFORMATION (10 fields)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
-                </div>
+            <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();">
+                <div class="section-header"><h4><i class="fas fa-user"></i> 1. Personal Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> First Name *</label>
-                        <input type="text" id="add_first_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> Last Name *</label>
-                        <input type="text" id="add_last_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Name</label>
-                        <input type="text" id="add_passport_name" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="add_batch_id" required>
-                            <option value="">Select Batch</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Number *</label>
-                        <input type="text" id="add_passport_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
-                        <input type="date" id="add_passport_issue_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
-                        <input type="date" id="add_passport_expiry_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
-                        <select id="add_passport_status">
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Processing">Processing</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-venus-mars"></i> Gender</label>
-                        <select id="add_gender">
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
-                        <input type="date" id="add_dob">
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="add_first_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="add_last_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="add_passport_name" readonly></div>
+                    <div class="form-group"><label><i class="fas fa-layer-group"></i> Batch *</label><select id="add_batch_id" required><option value="">Select Batch</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="add_passport_no" required></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="add_passport_issue_date"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date *</label><input type="date" id="add_passport_expiry_date" required onchange="checkPassportValidity('add')"></div>
+                    <div class="form-group"><label><i class="fas fa-plane"></i> Return Date *</label><input type="date" id="add_return_date" required onchange="checkPassportValidity('add')"></div>
+                    <div class="form-group" id="add_validity_status" style="display:none;"><span class="validity-badge"></span></div>
+                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="add_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="add_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="add_dob"></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 28.2: CONTACT INFORMATION (7 fields)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-address-book"></i> 2. Contact Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-mobile-alt"></i> Mobile Number *</label>
-                        <input type="tel" id="add_mobile" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="add_email">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-id-card"></i> Aadhaar Number</label>
-                        <input type="text" id="add_aadhaar">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-credit-card"></i> PAN Number</label>
-                        <input type="text" id="add_pan">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label>
-                        <select id="add_aadhaar_pan_linked">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-syringe"></i> Vaccine Status</label>
-                        <select id="add_vaccine_status">
-                            <option value="Not Vaccinated">Not Vaccinated</option>
-                            <option value="Partially Vaccinated">Partially Vaccinated</option>
-                            <option value="Fully Vaccinated">Fully Vaccinated</option>
-                            <option value="Booster">Booster</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-wheelchair"></i> Wheelchair Required</label>
-                        <select id="add_wheelchair">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="add_mobile" required></div>
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="add_email"></div>
+                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="add_aadhaar"></div>
+                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="add_pan"></div>
+                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="add_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="add_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="add_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 28.3: ADDRESS & FAMILY (extended with mailing + return + ref)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-home"></i> 3. Address & Family Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-home"></i> 3. Address & Family Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-globe"></i> Place of Birth</label>
-                        <input type="text" id="add_place_of_birth">
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="add_place_of_birth"></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="add_place_of_issue"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="add_passport_address" rows="2" oninput="syncMailingAddress('add')"></textarea></div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="add_same_as_passport" onchange="toggleSameMailingAddress('add')">
+                        <label for="add_same_as_passport"><i class="fas fa-copy"></i> Mailing address same as passport address</label>
                     </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-globe"></i> Place of Issue</label>
-                        <input type="text" id="add_place_of_issue">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-map-marker-alt"></i> Passport Address</label>
-                        <textarea id="add_passport_address" rows="2"></textarea>
-                    </div>
-
-                    <!-- Expected return date -->
-                    <div class="form-group">
-                        <label><i class="fas fa-plane-return"></i> Expected Return Date *</label>
-                        <input type="date" id="add_expected_return_date" required>
-                    </div>
-
-                    <!-- Checkbox to copy passport -> mailing -->
-                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
-                      <input type="checkbox" id="add_same_as_passport" />
-                      <label for="add_same_as_passport" style="margin:0;"><i class="fas fa-copy"></i> Mailing address same as passport</label>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-map-marked-alt"></i> Mailing Address</label>
-                        <textarea id="add_mailing_address" rows="2"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label><i class="fas fa-folder-open"></i> Official Reference / File Number *</label>
-                        <input type="text" id="add_file_reference" placeholder="Enter file/reference number assigned by admin" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label><i class="fas fa-male"></i> Father's Name</label>
-                        <input type="text" id="add_father_name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-female"></i> Mother's Name</label>
-                        <input type="text" id="add_mother_name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-heart"></i> Spouse's Name</label>
-                        <input type="text" id="add_spouse_name">
-                    </div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marked-alt"></i> Mailing Address *</label><textarea id="add_mailing_address" rows="2" required></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-folder-open"></i> Official Reference / File Number *</label><input type="text" id="add_file_reference" placeholder="Enter file/reference number assigned by admin" required></div>
+                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="add_father_name"></div>
+                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="add_mother_name"></div>
+                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="add_spouse_name"></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 28.4: DOCUMENT UPLOADS (5 fields)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4></div>
                 <div class="form-grid">
                     <div class="form-group">
                         <label><i class="fas fa-passport"></i> Passport Scan</label>
                         <div class="document-upload" onclick="document.getElementById('add_passport_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="add_passport_scan_text">Click to upload passport scan</p>
-                            <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_passport_scan_text', 'add_passport_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="add_passport_scan_text">Click to upload passport scan</p><small>PDF, JPG, PNG (Max 5MB)</small>
+                            <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
-                        <div id="add_passport_scan_preview" class="document-preview" style="display: none;"></div>
+                        <input type="hidden" id="add_passport_scan_data">
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-id-card"></i> Aadhaar Scan</label>
                         <div class="document-upload" onclick="document.getElementById('add_aadhaar_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="add_aadhaar_scan_text">Click to upload Aadhaar scan</p>
-                            <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_aadhaar_scan_text', 'add_aadhaar_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="add_aadhaar_scan_text">Click to upload Aadhaar scan</p><small>PDF, JPG, PNG (Max 5MB)</small>
+                            <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
-                        <div id="add_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
+                        <input type="hidden" id="add_aadhaar_scan_data">
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-credit-card"></i> PAN Scan</label>
                         <div class="document-upload" onclick="document.getElementById('add_pan_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="add_pan_scan_text">Click to upload PAN scan</p>
-                            <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_pan_scan_text', 'add_pan_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="add_pan_scan_text">Click to upload PAN scan</p><small>PDF, JPG, PNG (Max 5MB)</small>
+                            <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
-                        <div id="add_pan_scan_preview" class="document-preview" style="display: none;"></div>
+                        <input type="hidden" id="add_pan_scan_data">
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-syringe"></i> Vaccine Certificate</label>
                         <div class="document-upload" onclick="document.getElementById('add_vaccine_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="add_vaccine_scan_text">Click to upload vaccine certificate</p>
-                            <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_vaccine_scan_text', 'add_vaccine_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="add_vaccine_scan_text">Click to upload vaccine certificate</p><small>PDF, JPG, PNG (Max 5MB)</small>
+                            <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
-                        <div id="add_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
+                        <input type="hidden" id="add_vaccine_scan_data">
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-camera"></i> Photo</label>
                         <div class="document-upload" onclick="document.getElementById('add_photo').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="add_photo_text">Click to upload photo</p>
-                            <small>JPG, PNG (Max 2MB)</small>
-                            <input type="file" id="add_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_photo_text', 'add_photo_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="add_photo_text">Click to upload photo</p><small>JPG, PNG (Max 2MB)</small>
+                            <input type="file" id="add_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
-                        <div id="add_photo_preview" class="document-preview" style="display: none;"></div>
+                        <input type="hidden" id="add_photo_data">
                     </div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 28.5: ADDITIONAL INFORMATION (4 fields)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-cog"></i> 5. Additional Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-key"></i> PIN (4 digits)</label>
-                        <input type="text" id="add_pin" maxlength="4" value="0000">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone-alt"></i> Emergency Contact</label>
-                        <input type="text" id="add_emergency_contact" placeholder="Contact person name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Emergency Phone</label>
-                        <input type="tel" id="add_emergency_phone" placeholder="Emergency phone number">
-                    </div>
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-notes-medical"></i> Medical Notes</label>
-                        <textarea id="add_medical_notes" rows="2" placeholder="Any medical conditions, allergies, etc."></textarea>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="add_pin" maxlength="4" value="0000"></div>
+                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="add_emergency_contact"></div>
+                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="add_emergency_phone"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="add_medical_notes" rows="2"></textarea></div>
                 </div>
-
                 <div class="form-actions">
-                    <button type="submit" class="action-btn btn-success"><i class="fas fa-save"></i> Save Traveler (33 Fields)</button>
+                    <button type="submit" class="action-btn btn-success"><i class="fas fa-save"></i> Save Traveler</button>
                     <button type="button" class="action-btn btn-secondary" onclick="hideAddTravelerForm()"><i class="fas fa-times"></i> Cancel</button>
                 </div>
             </form>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 29: EDIT TRAVELER FORM - 33 FIELDS
-        ================================================================== -->
+        <!-- Edit Form -->
         <div class="form-container" id="editTravelerForm" style="display: none;">
             <h3><i class="fas fa-user-edit"></i> Edit Traveler - 33 Fields</h3>
-            <form id="travelerEditForm" onsubmit="event.preventDefault(); handleUpdateTraveler();" enctype="multipart/form-data">
+            <form id="travelerEditForm" onsubmit="event.preventDefault(); updateTraveler();">
                 <input type="hidden" id="edit_traveler_id">
-
-                <!-- ======================================================
-                SUBSECTION 29.1: PERSONAL INFORMATION
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-user"></i> 1. Personal Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> First Name *</label>
-                        <input type="text" id="edit_first_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> Last Name *</label>
-                        <input type="text" id="edit_last_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Name</label>
-                        <input type="text" id="edit_passport_name" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="edit_batch_id" required>
-                            <option value="">Select Batch</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Number *</label>
-                        <input type="text" id="edit_passport_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
-                        <input type="date" id="edit_passport_issue_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
-                        <input type="date" id="edit_passport_expiry_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
-                        <select id="edit_passport_status">
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Processing">Processing</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-venus-mars"></i> Gender</label>
-                        <select id="edit_gender">
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
-                        <input type="date" id="edit_dob">
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="edit_first_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="edit_last_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="edit_passport_name" readonly></div>
+                    <div class="form-group"><label><i class="fas fa-layer-group"></i> Batch *</label><select id="edit_batch_id" required><option value="">Select Batch</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="edit_passport_no" required></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="edit_passport_issue_date"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date *</label><input type="date" id="edit_passport_expiry_date" required onchange="checkPassportValidity('edit')"></div>
+                    <div class="form-group"><label><i class="fas fa-plane"></i> Return Date *</label><input type="date" id="edit_return_date" required onchange="checkPassportValidity('edit')"></div>
+                    <div class="form-group" id="edit_validity_status" style="display:none;"><span class="validity-badge"></span></div>
+                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="edit_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="edit_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="edit_dob"></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 29.2: CONTACT INFORMATION
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-address-book"></i> 2. Contact Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-mobile-alt"></i> Mobile Number *</label>
-                        <input type="tel" id="edit_mobile" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="edit_email">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-id-card"></i> Aadhaar Number</label>
-                        <input type="text" id="edit_aadhaar">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-credit-card"></i> PAN Number</label>
-                        <input type="text" id="edit_pan">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label>
-                        <select id="edit_aadhaar_pan_linked">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-syringe"></i> Vaccine Status</label>
-                        <select id="edit_vaccine_status">
-                            <option value="Not Vaccinated">Not Vaccinated</option>
-                            <option value="Partially Vaccinated">Partially Vaccinated</option>
-                            <option value="Fully Vaccinated">Fully Vaccinated</option>
-                            <option value="Booster">Booster</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-wheelchair"></i> Wheelchair Required</label>
-                        <select id="edit_wheelchair">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="edit_mobile" required></div>
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="edit_email"></div>
+                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="edit_aadhaar"></div>
+                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="edit_pan"></div>
+                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="edit_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="edit_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 29.3: ADDRESS & FAMILY (extended with mailing + return + ref)
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-home"></i> 3. Address & Family</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-home"></i> 3. Address & Family</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-globe"></i> Place of Birth</label>
-                        <input type="text" id="edit_place_of_birth">
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="edit_place_of_birth"></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="edit_place_of_issue"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="edit_passport_address" rows="2" oninput="syncMailingAddress('edit')"></textarea></div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="edit_same_as_passport" onchange="toggleSameMailingAddress('edit')">
+                        <label for="edit_same_as_passport"><i class="fas fa-copy"></i> Mailing address same as passport address</label>
                     </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-globe"></i> Place of Issue</label>
-                        <input type="text" id="edit_place_of_issue">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-map-marker-alt"></i> Passport Address</label>
-                        <textarea id="edit_passport_address" rows="2"></textarea>
-                    </div>
-
-                    <!-- Expected return date -->
-                    <div class="form-group">
-                        <label><i class="fas fa-plane-return"></i> Expected Return Date *</label>
-                        <input type="date" id="edit_expected_return_date" required>
-                    </div>
-
-                    <!-- Checkbox to copy passport -> mailing -->
-                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
-                      <input type="checkbox" id="edit_same_as_passport" />
-                      <label for="edit_same_as_passport" style="margin:0;"><i class="fas fa-copy"></i> Mailing address same as passport</label>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-map-marked-alt"></i> Mailing Address</label>
-                        <textarea id="edit_mailing_address" rows="2"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label><i class="fas fa-folder-open"></i> Official Reference / File Number *</label>
-                        <input type="text" id="edit_file_reference" placeholder="Enter file/reference number assigned by admin" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label><i class="fas fa-male"></i> Father's Name</label>
-                        <input type="text" id="edit_father_name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-female"></i> Mother's Name</label>
-                        <input type="text" id="edit_mother_name">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-heart"></i> Spouse's Name</label>
-                        <input type="text" id="edit_spouse_name">
-                    </div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marked-alt"></i> Mailing Address *</label><textarea id="edit_mailing_address" rows="2" required></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-folder-open"></i> Official Reference / File Number *</label><input type="text" id="edit_file_reference" placeholder="Enter file/reference number assigned by admin" required></div>
+                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="edit_father_name"></div>
+                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="edit_mother_name"></div>
+                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="edit_spouse_name"></div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 29.4: DOCUMENT UPLOADS
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-file-upload"></i> 4. Document Uploads</h4></div>
                 <div class="form-grid">
                     <div class="form-group">
                         <label><i class="fas fa-passport"></i> Passport Scan</label>
                         <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="edit_passport_scan_text">Click to update passport scan</p>
-                            <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_passport_scan_text', 'edit_passport_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="edit_passport_scan_text">Click to update passport scan</p>
+                            <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
+                        <input type="hidden" id="edit_passport_scan_data">
                         <div id="edit_passport_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-id-card"></i> Aadhaar Scan</label>
                         <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="edit_aadhaar_scan_text">Click to update Aadhaar scan</p>
-                            <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_aadhaar_scan_text', 'edit_aadhaar_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="edit_aadhaar_scan_text">Click to update Aadhaar scan</p>
+                            <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
+                        <input type="hidden" id="edit_aadhaar_scan_data">
                         <div id="edit_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-credit-card"></i> PAN Scan</label>
                         <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="edit_pan_scan_text">Click to update PAN scan</p>
-                            <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_pan_scan_text', 'edit_pan_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="edit_pan_scan_text">Click to update PAN scan</p>
+                            <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
+                        <input type="hidden" id="edit_pan_scan_data">
                         <div id="edit_pan_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-syringe"></i> Vaccine Certificate</label>
                         <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="edit_vaccine_scan_text">Click to update vaccine certificate</p>
-                            <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_vaccine_scan_text', 'edit_vaccine_scan_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="edit_vaccine_scan_text">Click to update vaccine certificate</p>
+                            <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
+                        <input type="hidden" id="edit_vaccine_scan_data">
                         <div id="edit_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-camera"></i> Photo</label>
                         <div class="document-upload" onclick="document.getElementById('edit_photo').click()">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p id="edit_photo_text">Click to update photo</p>
-                            <input type="file" id="edit_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_photo_text', 'edit_photo_preview')">
+                            <i class="fas fa-cloud-upload-alt"></i><p id="edit_photo_text">Click to update photo</p>
+                            <input type="file" id="edit_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this)">
                         </div>
+                        <input type="hidden" id="edit_photo_data">
                         <div id="edit_photo_preview" class="document-preview" style="display: none;"></div>
                     </div>
                 </div>
-
-                <!-- ======================================================
-                SUBSECTION 29.5: ADDITIONAL INFORMATION
-                ====================================================== -->
-                <div class="section-header">
-                    <h4><i class="fas fa-cog"></i> 5. Additional Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-cog"></i> 5. Additional Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label><i class="fas fa-key"></i> PIN (4 digits)</label>
-                        <input type="text" id="edit_pin" maxlength="4" value="0000">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone-alt"></i> Emergency Contact</label>
-                        <input type="text" id="edit_emergency_contact">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Emergency Phone</label>
-                        <input type="tel" id="edit_emergency_phone">
-                    </div>
-                    <div class="form-group full-width">
-                        <label><i class="fas fa-notes-medical"></i> Medical Notes</label>
-                        <textarea id="edit_medical_notes" rows="2"></textarea>
-                    </div>
+                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="edit_pin" maxlength="4" value="0000"></div>
+                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="edit_emergency_contact"></div>
+                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="edit_emergency_phone"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="edit_medical_notes" rows="2"></textarea></div>
                 </div>
-
                 <div class="form-actions">
                     <button type="submit" class="action-btn btn-primary"><i class="fas fa-save"></i> Update Traveler</button>
                     <button type="button" class="action-btn btn-secondary" onclick="hideEditTravelerForm()"><i class="fas fa-times"></i> Cancel</button>
@@ -962,22 +506,12 @@
             </form>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 30: SEARCH BOX
-        ================================================================== -->
         <div class="search-box">
             <input type="text" id="searchTravelers" placeholder="Search travelers by name, passport, mobile, batch...">
-            <button class="action-btn btn-primary" onclick="searchTravelers()">
-                <i class="fas fa-search"></i> Search
-            </button>
-            <button class="action-btn btn-secondary" onclick="clearSearch()">
-                <i class="fas fa-times"></i> Clear
-            </button>
+            <button class="action-btn btn-primary" onclick="searchTravelers()"><i class="fas fa-search"></i> Search</button>
+            <button class="action-btn btn-secondary" onclick="clearSearch()"><i class="fas fa-times"></i> Clear</button>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 31: TRAVELERS TABLE
-        ================================================================== -->
         <div class="table-container">
             <table id="travelersTable">
                 <thead>
@@ -991,20 +525,18 @@
                         <th>Status</th>
                         <th>Mailing Address</th>
                         <th>File Ref</th>
+                        <th>Validity</th>
                         <th>Documents</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="travelersTableBody">
-                    <tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
+                    <tr><td colspan="12" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- ==================================================================
-        MAIN SECTION 32: PAGINATION
-        ================================================================== -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 15px;">
             <div id="paginationInfo">
                 Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalCount">0</span> travelers
             </div>
@@ -1015,14 +547,7 @@
         </div>
     </div>
 
-    <!-- ==================================================================
-    MAIN SECTION 33: MODALS
-    ================================================================== -->
     <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
-
-    <!-- ==================================================================
-    MAIN SECTION 33.1: VIEW TRAVELER MODAL
-    ================================================================== -->
     <div id="viewTravelerModal" class="modal modal-large">
         <div class="modal-header">
             <h3><i class="fas fa-user"></i> Complete Traveler Details (33 Fields)</h3>
@@ -1035,10 +560,6 @@
             <button class="action-btn btn-info" onclick="downloadTravelerPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
         </div>
     </div>
-
-    <!-- ==================================================================
-    MAIN SECTION 33.2: DOCUMENT VIEWER MODAL
-    ================================================================== -->
     <div id="documentViewerModal" class="modal">
         <div class="modal-header">
             <h3><i class="fas fa-file"></i> <span id="documentViewerTitle">Document Viewer</span></h3>
@@ -1051,222 +572,723 @@
         </div>
     </div>
 
-    <!-- notification placeholder -->
-    <div class="notification notification-info" id="globalNotification" style="display:none;"></div>
+    <div id="notification" class="notification"></div>
 
-    <!-- ==================================================================
-    SCRIPT: UI behaviors for mailing address copy and passport expiry validation
-    ================================================================== -->
     <script>
-      // ------------ Helpers: same address sync --------------
-      function setupSameAddress(prefix) {
-        const sameCb = document.getElementById(prefix + '_same_as_passport');
-        const passportAddr = document.getElementById(prefix + '_passport_address');
-        const mailingAddr = document.getElementById(prefix + '_mailing_address');
+        'use strict';
+        const STORAGE_KEY = 'alhudha_travelers';
+        const BATCHES = [
+            { id: 1, batch_name: 'Haj Platinum 2026' },
+            { id: 2, batch_name: 'Haj Gold 2026' },
+            { id: 3, batch_name: 'Umrah Ramadhan Special' }
+        ];
+        let travelersData = [];
+        let currentEditId = null;
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentDocument = null;
+        let currentDocumentName = '';
+        let filteredData = [];
+        let notificationTimeout = null;
+        let sessionWarningTimeout = null;
+        let sessionLogoutTimeout = null;
+        let warningShown = false;
 
-        if (!sameCb || !passportAddr || !mailingAddr) return;
-
-        function syncFromPassport() {
-          if (sameCb.checked) {
-            mailingAddr.value = passportAddr.value;
-          }
+        if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
         }
 
-        sameCb.addEventListener('change', function() {
-          if (this.checked) {
-            mailingAddr.value = passportAddr.value;
-            mailingAddr.setAttribute('readonly', 'readonly');
-            mailingAddr.style.opacity = 0.75;
-          } else {
-            mailingAddr.removeAttribute('readonly');
-            mailingAddr.style.opacity = 1;
-          }
-        });
+        document.addEventListener('DOMContentLoaded', initializePage);
 
-        passportAddr.addEventListener('input', function() {
-          if (sameCb.checked) syncFromPassport();
-        });
-
-        // initialize if pre-checked
-        if (sameCb.checked) {
-          mailingAddr.value = passportAddr.value;
-          mailingAddr.setAttribute('readonly', 'readonly');
-          mailingAddr.style.opacity = 0.75;
-        }
-      }
-
-      // ------------ Validation: passport expiry vs return --------------
-      function isPassportValidForReturn(passportExpiryStr, returnDateStr) {
-        if (!passportExpiryStr || !returnDateStr) return false;
-        const expiry = new Date(passportExpiryStr);
-        const ret = new Date(returnDateStr);
-        if (isNaN(expiry) || isNaN(ret)) return false;
-
-        // Add 6 months to return date.
-        const minExpiry = new Date(ret.getTime());
-        minExpiry.setMonth(minExpiry.getMonth() + 6);
-
-        // Compare using date only
-        minExpiry.setHours(0,0,0,0);
-        expiry.setHours(0,0,0,0);
-
-        return expiry >= minExpiry;
-      }
-
-      // returns number of whole days between today and expiry; negative if already expired
-      function daysUntilExpiry(expiryDateStr) {
-        if (!expiryDateStr) return null;
-        const expiry = new Date(expiryDateStr);
-        if (isNaN(expiry)) return null;
-        const today = new Date();
-        const utc1 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-        const utc2 = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-        return Math.ceil((utc2 - utc1) / (1000 * 60 * 60 * 24));
-      }
-
-      // Small notification helper (re-uses #globalNotification if present)
-      function showNotification(type, message) {
-        const n = document.getElementById('globalNotification');
-        if (n) {
-          n.className = 'notification notification-' + (type || 'info');
-          n.textContent = message;
-          n.style.display = 'block';
-          clearTimeout(n._hideTimeout);
-          n._hideTimeout = setTimeout(() => { n.style.display = 'none'; }, 6000);
-          return;
-        }
-        alert(message);
-      }
-
-      // ------------- Wrappers for create/update -------------
-      function handleCreateTraveler() {
-        const passportExpiry = document.getElementById('add_passport_expiry_date')?.value;
-        const returnDate = document.getElementById('add_expected_return_date')?.value;
-        const fileRef = document.getElementById('add_file_reference')?.value?.trim();
-
-        if (!returnDate) {
-          showNotification('error', 'Please set the expected return date before saving.');
-          return;
-        }
-        if (!fileRef) {
-          showNotification('error', 'Please enter Official Reference / File Number.');
-          return;
+        function initializePage() {
+            document.getElementById('roleBadge').textContent = formatRole(sessionStorage.getItem('userRole') || 'admin');
+            resetSessionTimer();
+            ['click','mousemove','keypress','scroll','touchstart'].forEach(e => document.addEventListener(e, resetSessionTimer));
+            updateBatchDropdowns();
+            loadTravelers();
+            setupPassportNameAutoFill();
+            document.getElementById('searchTravelers').addEventListener('input', function() {
+                if (this.value === '') clearSearch();
+            });
         }
 
-        if (!isPassportValidForReturn(passportExpiry, returnDate)) {
-          showNotification('error', 'Passport expiry must be at least 6 months after the expected return date.');
-          return;
+        function formatRole(role) { return role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'Admin'; }
+
+        function getTravelers() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
         }
 
-        // Ensure mailing_address and file_reference are included in createTraveler form data.
-        // If createTraveler() reads the form fields directly, this is enough. If it builds a FormData manually,
-        // update it in /admin/js/travelers.js to append mailing_address & file_reference & expected_return_date.
-        if (typeof createTraveler === 'function') {
-          createTraveler();
-          const daysLeft = daysUntilExpiry(passportExpiry);
-          if (daysLeft !== null) {
-            showNotification('info', `Traveler saved. Passport expires in ${daysLeft} day(s).`);
-          }
-        } else {
-          console.warn('createTraveler() not found; ensure it exists in /admin/js/travelers.js');
-        }
-      }
-
-      function handleUpdateTraveler() {
-        const passportExpiry = document.getElementById('edit_passport_expiry_date')?.value;
-        const returnDate = document.getElementById('edit_expected_return_date')?.value;
-        const fileRef = document.getElementById('edit_file_reference')?.value?.trim();
-
-        if (!returnDate) {
-          showNotification('error', 'Please set the expected return date before saving.');
-          return;
-        }
-        if (!fileRef) {
-          showNotification('error', 'Please enter Official Reference / File Number.');
-          return;
+        function saveTravelers(data) {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); return true; }
+            catch (e) { showNotification('Storage error: data may be too large', 'error'); return false; }
         }
 
-        if (!isPassportValidForReturn(passportExpiry, returnDate)) {
-          showNotification('error', 'Passport expiry must be at least 6 months after the expected return date.');
-          return;
+        function resetSessionTimer() {
+            clearTimeout(sessionWarningTimeout);
+            clearTimeout(sessionLogoutTimeout);
+            hideSessionWarning();
+            sessionWarningTimeout = setTimeout(showSessionWarning, 120000);
+            sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 150000);
         }
 
-        if (typeof updateTraveler === 'function') {
-          updateTraveler();
-          const daysLeft = daysUntilExpiry(passportExpiry);
-          if (daysLeft !== null) {
-            showNotification('info', `Traveler updated. Passport expires in ${daysLeft} day(s).`);
-          }
-        } else {
-          console.warn('updateTraveler() not found; ensure it exists in /admin/js/travelers.js');
+        function showSessionWarning() { if (warningShown) return; document.getElementById('sessionWarning').style.display = 'block'; warningShown = true; }
+        function hideSessionWarning() { document.getElementById('sessionWarning').style.display = 'none'; warningShown = false; }
+        function showSessionExpiredWarning() { hideSessionWarning(); showNotification('Session expired. Redirecting...', 'warning'); setTimeout(() => { sessionStorage.clear(); window.location.href = 'admin-login.html'; }, 2000); }
+        function extendSession() { hideSessionWarning(); resetSessionTimer(); showNotification('Session extended', 'success'); }
+
+        async function logout() {
+            if (!confirm('Are you sure you want to logout?')) return;
+            sessionStorage.clear();
+            window.location.href = 'admin-login.html';
         }
-      }
 
-      // ------------- View modal: include expiry days (example) -------------
-      // NOTE: integrate this with your existing view rendering function. This helper can be called
-      // when you open the view modal with traveler data.
-      function renderTravelerDetailsWithExpiry(traveler) {
-        const container = document.getElementById('travelerDetails');
-        if (!container) return;
+        function showNotification(message, type = 'success') {
+            const n = document.getElementById('notification');
+            const icons = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle', info: 'info-circle' };
+            n.className = 'notification notification-' + type;
+            n.innerHTML = `<i class="fas fa-${icons[type]}"></i> ${escapeHtml(message)}`;
+            n.style.display = 'block';
+            clearTimeout(notificationTimeout);
+            notificationTimeout = setTimeout(() => n.style.display = 'none', 3000);
+        }
 
-        // adapt property names to your API response if different
-        const expiryDate = traveler.passport_expiry_date || traveler.passportExpiry || '';
-        const returnDate = traveler.expected_return_date || traveler.expectedReturnDate || '';
-        const mailing = traveler.mailing_address || '';
-        const fileRef = traveler.file_reference || traveler.fileRef || '';
+        function escapeHtml(text) {
+            if (!text) return text;
+            const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
+        }
 
-        const daysLeft = daysUntilExpiry(expiryDate);
-        const daysHtml = (daysLeft === null) ? '' :
-          (daysLeft < 0 ? `<div style="color:#e74c3c;font-weight:700;">Passport expired ${Math.abs(daysLeft)} day(s) ago</div>` :
-            `<div style="color:#27ae60;font-weight:700;">Passport expires in ${daysLeft} day(s)</div>`);
+        function updateBatchDropdowns() {
+            ['add_batch_id', 'edit_batch_id'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Select Batch</option>';
+                BATCHES.forEach(b => select.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`);
+            });
+        }
 
-        container.innerHTML = `
-          <div class="detail-grid">
-            <div class="detail-item full-width">
-              <strong>Full Name</strong>
-              <span>${(traveler.first_name || '') + ' ' + (traveler.last_name || '')}</span>
-            </div>
+        function setupPassportNameAutoFill() {
+            const addFn = document.getElementById('add_first_name');
+            const addLn = document.getElementById('add_last_name');
+            const addPn = document.getElementById('add_passport_name');
+            addFn.addEventListener('input', () => addPn.value = `${addFn.value || ''} ${addLn.value || ''}`.trim());
+            addLn.addEventListener('input', () => addPn.value = `${addFn.value || ''} ${addLn.value || ''}`.trim());
+            const editFn = document.getElementById('edit_first_name');
+            const editLn = document.getElementById('edit_last_name');
+            const editPn = document.getElementById('edit_passport_name');
+            editFn.addEventListener('input', () => editPn.value = `${editFn.value || ''} ${editLn.value || ''}`.trim());
+            editLn.addEventListener('input', () => editPn.value = `${editFn.value || ''} ${editLn.value || ''}`.trim());
+        }
 
-            <div class="detail-item">
-              <strong>Passport Number</strong>
-              <span>${traveler.passport_no || ''}</span>
-            </div>
+        function seedSampleData() {
+            const today = new Date();
+            const returnDate = new Date(today.getTime() + 90 * 86400000);
+            const expiryValid = new Date(returnDate.getTime() + 180 * 86400000);
+            const sample = [
+                { id: 1, first_name: 'Mohammed', last_name: 'Ali', passport_name: 'Mohammed Ali', passport_no: 'A1234567', mobile: '9876543210', email: 'mohammed@example.com', batch_id: 1, batch_name: 'Haj Platinum 2026', passport_status: 'Active', passport_issue_date: '2020-01-15', passport_expiry_date: expiryValid.toISOString().slice(0,10), return_date: returnDate.toISOString().slice(0,10), dob: '1985-05-10', gender: 'Male', aadhaar: '1234 5678 9012', pan: 'ABCDE1234F', aadhaar_pan_linked: 'Yes', vaccine_status: 'Fully Vaccinated', wheelchair: 'No', place_of_birth: 'Mumbai', place_of_issue: 'Mumbai', passport_address: '123, Haj House, Mumbai', mailing_address: '123, Haj House, Mumbai', file_reference: 'ALH-2026-0001', father_name: 'Abdullah', mother_name: 'Ayesha', spouse_name: 'Fatima', pin: '0000', emergency_contact: 'Ahmed Ali', emergency_phone: '9876543211', medical_notes: 'None', passport_scan_data: null, aadhaar_scan_data: null, pan_scan_data: null, vaccine_scan_data: null, photo_data: null, created_at: new Date().toISOString() },
+                { id: 2, first_name: 'Fatima', last_name: 'Begum', passport_name: 'Fatima Begum', passport_no: 'B7654321', mobile: '9876543220', email: 'fatima@example.com', batch_id: 2, batch_name: 'Haj Gold 2026', passport_status: 'Active', passport_issue_date: '2019-06-20', passport_expiry_date: expiryValid.toISOString().slice(0,10), return_date: returnDate.toISOString().slice(0,10), dob: '1990-08-15', gender: 'Female', aadhaar: '9876 5432 1098', pan: 'VWXYZ9876A', aadhaar_pan_linked: 'No', vaccine_status: 'Not Vaccinated', wheelchair: 'No', place_of_birth: 'Delhi', place_of_issue: 'Delhi', passport_address: '456, Main Road, Delhi', mailing_address: '456, Main Road, Delhi', file_reference: 'ALH-2026-0002', father_name: 'Rahman', mother_name: 'Sofia', spouse_name: '', pin: '0000', emergency_contact: 'Samina', emergency_phone: '9876543221', medical_notes: '', passport_scan_data: null, aadhaar_scan_data: null, pan_scan_data: null, vaccine_scan_data: null, photo_data: null, created_at: new Date().toISOString() }
+            ];
+            saveTravelers(sample);
+        }
 
-            <div class="detail-item">
-              <strong>Passport Expiry</strong>
-              <span>${expiryDate || ''}</span>
-            </div>
+        function loadTravelers() {
+            travelersData = getTravelers();
+            if (travelersData.length === 0) { seedSampleData(); travelersData = getTravelers(); }
+            filteredData = [...travelersData];
+            displayTravelers();
+            updateStats();
+        }
 
-            <div class="detail-item">
-              <strong>Expected Return</strong>
-              <span>${returnDate || ''}</span>
-            </div>
+        function updateStats() {
+            const total = travelersData.length;
+            const active = travelersData.filter(t => t.passport_status === 'Active').length;
+            const vaccinated = travelersData.filter(t => t.vaccine_status === 'Fully Vaccinated' || t.vaccine_status === 'Booster').length;
+            const docsComplete = travelersData.filter(t => (t.passport_scan_data || t.passport_scan) && (t.aadhaar_scan_data || t.aadhaar_scan) && (t.pan_scan_data || t.pan_scan)).length;
+            document.getElementById('totalTravelersCount').textContent = total;
+            document.getElementById('activeTravelersCount').textContent = active;
+            document.getElementById('vaccinatedCount').textContent = vaccinated;
+            document.getElementById('documentsComplete').textContent = docsComplete;
+        }
 
-            <div class="detail-item full-width">
-              ${daysHtml}
-            </div>
+        function getBatchName(id) { const b = BATCHES.find(x => x.id == id); return b ? b.batch_name : 'Not Assigned'; }
 
-            <div class="detail-item full-width">
-              <strong>Mailing Address</strong>
-              <span>${(mailing || '').replace(/\n/g, '<br>')}</span>
-            </div>
+        function getValidityInfo(t) {
+            const expiry = t.passport_expiry_date ? new Date(t.passport_expiry_date) : null;
+            const ret = t.return_date ? new Date(t.return_date) : null;
+            if (!expiry) return { text: 'No expiry', class: 'validity-warning', days: null };
+            const today = new Date();
+            const diffTime = expiry.getTime() - today.getTime();
+            const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (daysRemaining < 0) return { text: `Expired ${Math.abs(daysRemaining)} days ago`, class: 'validity-danger', days: daysRemaining };
+            if (daysRemaining <= 60) return { text: `${daysRemaining} days left`, class: 'validity-warning', days: daysRemaining };
+            let sixMonthOk = false;
+            if (ret) {
+                const sixMonthsAfterReturn = new Date(ret.getTime() + 180 * 86400000);
+                sixMonthOk = expiry.getTime() >= sixMonthsAfterReturn.getTime();
+            }
+            const txt = ret ? (sixMonthOk ? `Valid ✓ (${daysRemaining} days)` : `⚠ Less than 6 months from return (${daysRemaining} days)`) : `${daysRemaining} days left`;
+            return { text: txt, class: sixMonthOk ? 'validity-ok' : 'validity-warning', days: daysRemaining };
+        }
 
-            <div class="detail-item">
-              <strong>File Ref</strong>
-              <span>${fileRef}</span>
-            </div>
+        function displayTravelers() {
+            const tbody = document.getElementById('travelersTableBody');
+            const data = filteredData.length > 0 ? filteredData : travelersData;
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;">No travelers found</td></tr>';
+                updatePagination(0); return;
+            }
 
-            <!-- Add any other fields you want to show -->
-          </div>
-        `;
-      }
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = data.slice(start, end);
 
-      // initialize on DOM ready
-      document.addEventListener('DOMContentLoaded', function() {
-        setupSameAddress('add');
-        setupSameAddress('edit');
-      });
+            let html = '';
+            pageData.forEach(t => {
+                const fullName = `${escapeHtml(t.first_name || '')} ${escapeHtml(t.last_name || '')}`.trim() || 'N/A';
+                const batchName = escapeHtml(t.batch_name || getBatchName(t.batch_id));
+                let statusClass = t.passport_status === 'Active' ? 'status-active' : t.passport_status === 'Submitted' ? 'status-pending' : t.passport_status === 'Processing' ? 'status-warning' : 'status-inactive';
+                const docIcon = (hasDoc) => `<i class="fas fa-file doc-icon ${hasDoc ? 'available' : 'missing'}" title="${hasDoc ? 'Uploaded' : 'Missing'}"></i>`;
+                const hasPassport = !!(t.passport_scan_data || t.passport_scan);
+                const hasAadhaar = !!(t.aadhaar_scan_data || t.aadhaar_scan);
+                const hasPan = !!(t.pan_scan_data || t.pan_scan);
+                const hasVaccine = !!(t.vaccine_scan_data || t.vaccine_scan);
+                const hasPhoto = !!(t.photo_data || t.photo);
+                const validity = getValidityInfo(t);
+
+                html += `<tr>
+                    <td>${t.id}</td>
+                    <td><strong>${fullName}</strong><br><small>${escapeHtml(t.passport_name || '')}</small></td>
+                    <td>${escapeHtml(t.passport_no || '-')}<br><small>Exp: ${formatDate(t.passport_expiry_date)}</small></td>
+                    <td>${escapeHtml(t.mobile || '-')}</td>
+                    <td>${escapeHtml(t.email || '-')}</td>
+                    <td>${batchName}</td>
+                    <td><span class="status-badge ${statusClass}">${escapeHtml(t.passport_status || 'Active')}</span></td>
+                    <td>${escapeHtml((t.mailing_address || '').substring(0, 30))}${(t.mailing_address || '').length > 30 ? '...' : ''}</td>
+                    <td>${escapeHtml(t.file_reference || '-')}</td>
+                    <td><span class="validity-badge ${validity.class}">${escapeHtml(validity.text)}</span></td>
+                    <td><div class="doc-icons">${docIcon(hasPassport)}${docIcon(hasAadhaar)}${docIcon(hasPan)}${docIcon(hasVaccine)}${docIcon(hasPhoto)}</div></td>
+                    <td>
+                        <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn" onclick="deleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            updatePagination(data.length);
+        }
+
+        function formatDate(dateStr) { if (!dateStr) return 'N/A'; try { return new Date(dateStr).toLocaleDateString(); } catch(e) { return dateStr; } }
+
+        function updatePagination(total) {
+            document.getElementById('totalCount').textContent = total;
+            const start = total > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+            const end = Math.min(currentPage * itemsPerPage, total);
+            document.getElementById('showingFrom').textContent = start;
+            document.getElementById('showingTo').textContent = end;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = end >= total;
+        }
+
+        function previousPage() { if (currentPage > 1) { currentPage--; displayTravelers(); } }
+        function nextPage() { const data = filteredData.length > 0 ? filteredData : travelersData; if (currentPage * itemsPerPage < data.length) { currentPage++; displayTravelers(); } }
+
+        function toggleSameMailingAddress(prefix) {
+            const cb = document.getElementById(prefix + '_same_as_passport');
+            const passportAddr = document.getElementById(prefix + '_passport_address');
+            const mailingAddr = document.getElementById(prefix + '_mailing_address');
+            if (cb.checked) {
+                mailingAddr.value = passportAddr.value;
+                mailingAddr.setAttribute('readonly', 'readonly');
+            } else {
+                mailingAddr.removeAttribute('readonly');
+            }
+        }
+
+        function syncMailingAddress(prefix) {
+            const cb = document.getElementById(prefix + '_same_as_passport');
+            const passportAddr = document.getElementById(prefix + '_passport_address');
+            const mailingAddr = document.getElementById(prefix + '_mailing_address');
+            if (cb.checked) mailingAddr.value = passportAddr.value;
+        }
+
+        function checkPassportValidity(prefix) {
+            const expiryInput = document.getElementById(prefix + '_passport_expiry_date');
+            const returnInput = document.getElementById(prefix + '_return_date');
+            const statusDiv = document.getElementById(prefix + '_validity_status');
+            const statusBadge = statusDiv.querySelector('.validity-badge');
+            if (!expiryInput.value || !returnInput.value) { statusDiv.style.display = 'none'; return true; }
+            const expiry = new Date(expiryInput.value);
+            const ret = new Date(returnInput.value);
+            const sixMonthsAfterReturn = new Date(ret.getTime() + 180 * 86400000);
+            const today = new Date();
+            const daysRemaining = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            statusDiv.style.display = 'block';
+            if (expiry < today) {
+                statusBadge.className = 'validity-badge validity-danger';
+                statusBadge.textContent = `⚠ Passport expired ${Math.abs(daysRemaining)} days ago`;
+                return false;
+            } else if (expiry < sixMonthsAfterReturn) {
+                statusBadge.className = 'validity-badge validity-warning';
+                statusBadge.textContent = `⚠ Expires ${daysRemaining} days from today — less than 6 months after return date`;
+                return false;
+            } else {
+                statusBadge.className = 'validity-badge validity-ok';
+                statusBadge.textContent = `✓ Passport valid — ${daysRemaining} days remaining`;
+                return true;
+            }
+        }
+
+        function showAddTravelerForm() {
+            document.getElementById('addTravelerForm').style.display = 'block';
+            document.getElementById('addTravelerForm').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('add_validity_status').style.display = 'none';
+            hideEditTravelerForm();
+        }
+
+        function hideAddTravelerForm() {
+            document.getElementById('addTravelerForm').style.display = 'none';
+            document.getElementById('travelerAddForm').reset();
+            document.getElementById('add_validity_status').style.display = 'none';
+            ['add_passport_scan', 'add_aadhaar_scan', 'add_pan_scan', 'add_vaccine_scan', 'add_photo'].forEach(id => {
+                document.getElementById(id).value = '';
+                document.getElementById(id + '_data').value = '';
+                let defaultText = 'Click to upload ';
+                if (id === 'add_photo') defaultText += 'photo';
+                else defaultText += id.replace('add_','').replace('_scan','') + ' scan';
+                document.getElementById(id + '_text').textContent = defaultText;
+            });
+            document.getElementById('add_same_as_passport').checked = false;
+            document.getElementById('add_mailing_address').removeAttribute('readonly');
+        }
+
+        function hideEditTravelerForm() {
+            document.getElementById('editTravelerForm').style.display = 'none';
+            currentEditId = null;
+        }
+
+        function handleFileSelect(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const textId = input.id + '_text';
+            const dataId = input.id + '_data';
+            const previewId = input.id + '_preview';
+            document.getElementById(textId).textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(dataId).value = e.target.result;
+                if (document.getElementById(previewId)) {
+                    const preview = document.getElementById(previewId);
+                    preview.style.display = 'flex';
+                    const isImage = file.type.startsWith('image/');
+                    preview.innerHTML = `
+                        <div class="file-info"><i class="fas fa-${isImage ? 'file-image' : 'file-pdf'}"></i><span>${file.name}</span></div>
+                        <div class="file-actions">
+                            ${isImage ? `<button onclick="previewDocument('${e.target.result.replace(/'/g,"\\'")}', '${file.name.replace(/'/g,"\\'")}', '${file.type}')" title="Preview"><i class="fas fa-eye"></i></button>` : ''}
+                            <button onclick="clearFile('${input.id}')" class="delete" title="Remove"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearFile(inputId) {
+            document.getElementById(inputId).value = '';
+            const dataId = inputId + '_data';
+            const textId = inputId + '_text';
+            const previewId = inputId + '_preview';
+            document.getElementById(dataId).value = '';
+            const prefix = textId.startsWith('edit') ? 'edit' : 'add';
+            let defaultText = prefix === 'edit' ? 'Click to update ' : 'Click to upload ';
+            const docType = inputId.replace(prefix + '_','');
+            if (docType === 'photo') defaultText += 'photo';
+            else defaultText += docType.replace('_scan','') + ' scan';
+            document.getElementById(textId).textContent = defaultText;
+            if (document.getElementById(previewId)) document.getElementById(previewId).style.display = 'none';
+        }
+
+        function previewDocument(dataUrl, name, type) {
+            currentDocument = { data: dataUrl, name: name, type: type };
+            currentDocumentName = name;
+            document.getElementById('documentViewerTitle').textContent = name;
+            const content = document.getElementById('documentViewerContent');
+            if (type.startsWith('image/')) content.innerHTML = `<img src="${dataUrl}" style="max-width:100%;">`;
+            else content.innerHTML = `<iframe src="${dataUrl}" style="width:100%;height:400px;border:none;"></iframe>`;
+            document.getElementById('documentViewerModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeDocumentViewer() {
+            document.getElementById('documentViewerModal').style.display = 'none';
+            if (document.getElementById('viewTravelerModal').style.display !== 'block') document.getElementById('modalOverlay').style.display = 'none';
+            currentDocument = null;
+        }
+
+        function closeAllModals() {
+            closeTravelerModal();
+            closeDocumentViewer();
+        }
+
+        function getFormData(prefix) {
+            const data = {};
+            const fields = ['first_name','last_name','passport_name','batch_id','passport_no','passport_issue_date','passport_expiry_date','return_date','passport_status','gender','dob','mobile','email','aadhaar','pan','aadhaar_pan_linked','vaccine_status','wheelchair','place_of_birth','place_of_issue','passport_address','mailing_address','file_reference','father_name','mother_name','spouse_name','pin','emergency_contact','emergency_phone','medical_notes'];
+            fields.forEach(f => data[f] = document.getElementById(`${prefix}_${f}`).value);
+            data.batch_name = getBatchName(data.batch_id);
+            return data;
+        }
+
+        async function createTraveler() {
+            if (!checkPassportValidity('add')) {
+                showNotification('Passport must be valid for at least 6 months after return date', 'error');
+                return;
+            }
+            const data = getFormData('add');
+            if (!data.first_name || !data.last_name || !data.passport_no || !data.mobile || !data.batch_id || !data.return_date || !data.mailing_address || !data.file_reference) {
+                showNotification('Please fill all required fields', 'error'); return;
+            }
+            const docFields = ['passport_scan', 'aadhaar_scan', 'pan_scan', 'vaccine_scan', 'photo'];
+            docFields.forEach(d => data[d + '_data'] = document.getElementById('add_' + d + '_data').value || null);
+            const travelers = getTravelers();
+            const maxId = travelers.length > 0 ? Math.max(...travelers.map(t => t.id)) : 0;
+            data.id = maxId + 1;
+            data.created_at = new Date().toISOString();
+            travelers.push(data);
+            saveTravelers(travelers);
+            showNotification('Traveler created successfully!', 'success');
+            hideAddTravelerForm();
+            loadTravelers();
+        }
+
+        function editTraveler(id) {
+            const t = travelersData.find(x => x.id === id);
+            if (!t) { showNotification('Traveler not found', 'error'); return; }
+            currentEditId = id;
+            const fields = ['id','first_name','last_name','passport_name','batch_id','passport_no','passport_issue_date','passport_expiry_date','return_date','passport_status','gender','dob','mobile','email','aadhaar','pan','aadhaar_pan_linked','vaccine_status','wheelchair','place_of_birth','place_of_issue','passport_address','mailing_address','file_reference','father_name','mother_name','spouse_name','pin','emergency_contact','emergency_phone','medical_notes'];
+            fields.forEach(f => {
+                const el = document.getElementById('edit_' + f);
+                if (el) el.value = t[f] || '';
+            });
+            document.getElementById('edit_same_as_passport').checked = (t.mailing_address === t.passport_address);
+            if (t.mailing_address === t.passport_address) document.getElementById('edit_mailing_address').setAttribute('readonly','readonly');
+            else document.getElementById('edit_mailing_address').removeAttribute('readonly');
+            document.getElementById('editTravelerForm').style.display = 'block';
+            document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
+            hideAddTravelerForm();
+            checkPassportValidity('edit');
+            ['passport_scan','aadhaar_scan','pan_scan','vaccine_scan','photo'].forEach(d => {
+                const key = d + '_data';
+                const fileData = t[key] || null;
+                document.getElementById('edit_' + d + '_data').value = fileData || '';
+                document.getElementById('edit_' + d + '_text').textContent = fileData ? `[File stored]` : 'Click to update';
+                const previewId = 'edit_' + d + '_preview';
+                const preview = document.getElementById(previewId);
+                if (preview) preview.style.display = 'none';
+            });
+        }
+
+        function updateTraveler() {
+            if (!currentEditId) return;
+            if (!checkPassportValidity('edit')) {
+                showNotification('Passport must be valid for at least 6 months after return date', 'error');
+                return;
+            }
+            const data = getFormData('edit');
+            if (!data.first_name || !data.last_name || !data.passport_no || !data.mobile || !data.batch_id || !data.return_date || !data.mailing_address || !data.file_reference) {
+                showNotification('Please fill all required fields', 'error'); return;
+            }
+            const travelers = getTravelers();
+            const idx = travelers.findIndex(t => t.id === currentEditId);
+            if (idx === -1) { showNotification('Traveler not found', 'error'); return; }
+            ['passport_scan','aadhaar_scan','pan_scan','vaccine_scan','photo'].forEach(d => {
+                const inputData = document.getElementById('edit_' + d + '_data').value;
+                data[d + '_data'] = inputData || travelers[idx][d + '_data'] || null;
+            });
+            data.id = currentEditId;
+            data.created_at = travelers[idx].created_at;
+            travelers[idx] = data;
+            saveTravelers(travelers);
+            showNotification('Traveler updated successfully!', 'success');
+            hideEditTravelerForm();
+            loadTravelers();
+        }
+
+        function deleteTraveler(id) {
+            if (!confirm('Are you sure you want to delete this traveler?')) return;
+            const travelers = getTravelers().filter(t => t.id !== id);
+            saveTravelers(travelers);
+            showNotification('Traveler deleted successfully!', 'success');
+            loadTravelers();
+        }
+
+        function viewTraveler(id) {
+            const t = travelersData.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('travelerDetails').dataset.currentId = id;
+            const formatValue = v => v ? escapeHtml(String(v)) : '<span style="color:#95a5a6;">Not specified</span>';
+            const validInfo = getValidityInfo(t);
+            const existingDoc = (type, label) => {
+                const data = t[type + '_data'];
+                if (!data) return `<div class="document-card" style="cursor:default"><i class="fas fa-file missing"></i><p><strong>${label}</strong></p><p>❌ Missing</p></div>`;
+                return `<div class="document-card" onclick="previewDocument('${data.replace(/'/g,"\\'")}', '${label.replace(/'/g,"\\'")}', '${type === 'photo' ? 'image/jpeg' : 'application/pdf'}')"><i class="fas fa-file available"></i><p><strong>${label}</strong></p><p>✅ Uploaded</p><small>Click to view</small></div>`;
+            };
+            const html = `
+                <h4 style="color:#2c3e50;margin:20px 0 10px;border-bottom:2px solid #3498db;padding-bottom:5px"><i class="fas fa-user"></i> Personal Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>Full Name</strong><span>${formatValue(t.first_name + ' ' + t.last_name)}</span></div>
+                    <div class="detail-item"><strong>Passport Name</strong><span>${formatValue(t.passport_name)}</span></div>
+                    <div class="detail-item"><strong>Batch</strong><span>${formatValue(t.batch_name)}</span></div>
+                    <div class="detail-item"><strong>Passport Number</strong><span>${formatValue(t.passport_no)}</span></div>
+                    <div class="detail-item"><strong>Passport Issue Date</strong><span>${formatDate(t.passport_issue_date)}</span></div>
+                    <div class="detail-item"><strong>Passport Expiry Date</strong><span>${formatDate(t.passport_expiry_date)}</span></div>
+                    <div class="detail-item"><strong>Return Date</strong><span>${formatDate(t.return_date)}</span></div>
+                    <div class="detail-item"><strong>Passport Validity</strong><span class="validity-badge ${validInfo.class}">${escapeHtml(validInfo.text)}</span></div>
+                    <div class="detail-item"><strong>Passport Status</strong><span>${formatValue(t.passport_status)}</span></div>
+                    <div class="detail-item"><strong>Gender</strong><span>${formatValue(t.gender)}</span></div>
+                    <div class="detail-item"><strong>Date of Birth</strong><span>${formatDate(t.dob)}</span></div>
+                </div>
+                <h4 style="color:#2c3e50;margin:20px 0 10px;border-bottom:2px solid #3498db;padding-bottom:5px"><i class="fas fa-address-book"></i> Contact Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>Mobile</strong><span>${formatValue(t.mobile)}</span></div>
+                    <div class="detail-item"><strong>Email</strong><span>${formatValue(t.email)}</span></div>
+                    <div class="detail-item"><strong>Aadhaar</strong><span>${formatValue(t.aadhaar)}</span></div>
+                    <div class="detail-item"><strong>PAN</strong><span>${formatValue(t.pan)}</span></div>
+                    <div class="detail-item"><strong>Aadhaar-PAN Linked</strong><span>${formatValue(t.aadhaar_pan_linked)}</span></div>
+                    <div class="detail-item"><strong>Vaccine Status</strong><span>${formatValue(t.vaccine_status)}</span></div>
+                    <div class="detail-item"><strong>Wheelchair</strong><span>${formatValue(t.wheelchair)}</span></div>
+                </div>
+                <h4 style="color:#2c3e50;margin:20px 0 10px;border-bottom:2px solid #3498db;padding-bottom:5px"><i class="fas fa-home"></i> Address & Family</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>Place of Birth</strong><span>${formatValue(t.place_of_birth)}</span></div>
+                    <div class="detail-item"><strong>Place of Issue</strong><span>${formatValue(t.place_of_issue)}</span></div>
+                    <div class="detail-item full-width"><strong>Passport Address</strong><span>${formatValue(t.passport_address)}</span></div>
+                    <div class="detail-item full-width"><strong>Mailing Address</strong><span>${formatValue(t.mailing_address)}</span></div>
+                    <div class="detail-item"><strong>File Reference</strong><span>${formatValue(t.file_reference)}</span></div>
+                    <div class="detail-item"><strong>Father's Name</strong><span>${formatValue(t.father_name)}</span></div>
+                    <div class="detail-item"><strong>Mother's Name</strong><span>${formatValue(t.mother_name)}</span></div>
+                    <div class="detail-item"><strong>Spouse's Name</strong><span>${formatValue(t.spouse_name)}</span></div>
+                </div>
+                <h4 style="color:#2c3e50;margin:20px 0 10px;border-bottom:2px solid #3498db;padding-bottom:5px"><i class="fas fa-file-alt"></i> Documents</h4>
+                <div class="document-grid">
+                    ${existingDoc('passport_scan', 'Passport')}
+                    ${existingDoc('aadhaar_scan', 'Aadhaar')}
+                    ${existingDoc('pan_scan', 'PAN')}
+                    ${existingDoc('vaccine_scan', 'Vaccine')}
+                    ${existingDoc('photo', 'Photo')}
+                </div>
+                <h4 style="color:#2c3e50;margin:20px 0 10px;border-bottom:2px solid #3498db;padding-bottom:5px"><i class="fas fa-cog"></i> Additional Information</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>PIN</strong><span>${formatValue(t.pin)}</span></div>
+                    <div class="detail-item"><strong>Emergency Contact</strong><span>${formatValue(t.emergency_contact)}</span></div>
+                    <div class="detail-item"><strong>Emergency Phone</strong><span>${formatValue(t.emergency_phone)}</span></div>
+                    <div class="detail-item full-width"><strong>Medical Notes</strong><span>${formatValue(t.medical_notes)}</span></div>
+                    <div class="detail-item"><strong>Created At</strong><span>${formatDate(t.created_at)}</span></div>
+                </div>
+            `;
+            document.getElementById('travelerDetails').innerHTML = html;
+            document.getElementById('viewTravelerModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+            showNotification(escapeHtml(validInfo.text), validInfo.class === 'validity-ok' ? 'success' : validInfo.class === 'validity-warning' ? 'warning' : 'error');
+        }
+
+        function closeTravelerModal() {
+            document.getElementById('viewTravelerModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function searchTravelers() {
+            const query = document.getElementById('searchTravelers').value.toLowerCase().trim();
+            if (!query) { filteredData = [...travelersData]; }
+            else {
+                filteredData = travelersData.filter(t => {
+                    const text = `${t.first_name} ${t.last_name} ${t.passport_name} ${t.passport_no} ${t.mobile} ${t.email} ${t.batch_name} ${t.file_reference}`.toLowerCase();
+                    return text.includes(query);
+                });
+            }
+            currentPage = 1;
+            displayTravelers();
+        }
+
+        function clearSearch() { document.getElementById('searchTravelers').value = ''; filteredData = [...travelersData]; currentPage = 1; displayTravelers(); }
+
+        function exportTravelersToExcel() {
+            let csv = ['"ID","First Name","Last Name","Passport Name","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Return Date","Passport Status","Gender","Date of Birth","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Mailing Address","File Reference","Father Name","Mother Name","Spouse Name","PIN","Emergency Contact","Emergency Phone","Medical Notes","Created At"'];
+            travelersData.forEach(t => {
+                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.return_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${(t.mailing_address || '').replace(/"/g, '""')}","${t.file_reference || ''}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.created_at || ''}"`);
+            });
+            downloadBlob(csv.join('\n'), `travelers_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
+            showNotification('Travelers exported to Excel/CSV', 'success');
+        }
+
+        function exportTravelersToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            doc.setFontSize(18); doc.text('Alhudha Haj Travel - Travelers List', 14, 22);
+            doc.setFontSize(11); doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+            const tableColumn = ['ID', 'Name', 'Passport', 'Mobile', 'Batch', 'File Ref', 'Status'];
+            const tableRows = travelersData.map(t => [t.id, `${t.first_name || ''} ${t.last_name || ''}`, t.passport_no || '-', t.mobile || '-', t.batch_name || '-', t.file_reference || '-', t.passport_status || 'Active']);
+            doc.autoTable({ head: [tableColumn], body: tableRows, startY: 35, styles: { fontSize: 8 }, headStyles: { fillColor: [44, 62, 80] } });
+            doc.save(`travelers_list_${new Date().toISOString().slice(0,10)}.pdf`);
+            showNotification('PDF exported successfully', 'success');
+        }
+
+        function printTravelersTable() {
+            const table = document.getElementById('travelersTable');
+            const w = window.open('', '_blank');
+            w.document.write(`<html><head><title>Travelers List</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}</style></head><body><h2>Alhudha Haj Travel - Travelers</h2><p>Generated: ${new Date().toLocaleString()}</p>${table.outerHTML}</body></html>`);
+            w.document.close(); w.print();
+        }
+
+        function printTravelerDetails() {
+            const content = document.getElementById('travelerDetails').innerHTML;
+            const w = window.open('', '_blank');
+            w.document.write(`<html><head><title>Traveler Details</title><style>body{font-family:Arial;padding:30px;.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}.detail-item{padding:10px;background:#f8f9fa;border-radius:5px;border-left:3px solid #3498db;}.document-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;}}</style></head><body>${content}</body></html>`);
+            w.document.close(); w.print();
+        }
+
+        function downloadTravelerPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(18); doc.text('Traveler Details', 14, 22);
+            doc.setFontSize(11); doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 32);
+            const id = document.getElementById('travelerDetails').dataset.currentId;
+            const t = travelersData.find(x => String(x.id) === String(id));
+            if (!t) { showNotification('No traveler selected', 'error'); return; }
+            let y = 45;
+            doc.text(`Name: ${t.first_name} ${t.last_name}`, 14, y); y += 10;
+            doc.text(`Passport: ${t.passport_no}`, 14, y); y += 10;
+            doc.text(`Expiry: ${formatDate(t.passport_expiry_date)}`, 14, y); y += 10;
+            doc.text(`Return: ${formatDate(t.return_date)}`, 14, y); y += 10;
+            const v = getValidityInfo(t);
+            doc.text(`Validity: ${v.text}`, 14, y); y += 10;
+            doc.text(`File Ref: ${t.file_reference || '-'}`, 14, y); y += 10;
+            doc.text(`Mailing Address: ${(t.mailing_address || '').substring(0,80)}`, 14, y);
+            doc.save(`traveler_${t.passport_no}_${new Date().toISOString().slice(0,10)}.pdf`);
+            showNotification('Traveler PDF downloaded', 'success');
+        }
+
+        function downloadCurrentDocument() {
+            if (!currentDocument) { showNotification('No document to download', 'error'); return; }
+            downloadBlob(currentDocument.data, currentDocumentName, currentDocument.type || 'application/octet-stream');
+            showNotification('Document downloaded', 'success');
+        }
+
+        function downloadBlob(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+        }
+
+        function showCSVUploadSection() {
+            document.getElementById('csvUploadSection').style.display = 'block';
+            document.getElementById('csvUploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideCSVUploadSection() {
+            document.getElementById('csvUploadSection').style.display = 'none';
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('csvPreview').style.display = 'none';
+        }
+
+        function downloadCSVTemplate() {
+            const headers = 'first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,return_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,mailing_address,file_reference,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes';
+            const sample = 'John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,2026-07-15,Active,Male,1990-01-01,9000000000,john@example.com,1234 5678 9012,ABCDE1234F,Yes,Fully Vaccinated,No,Mumbai,Mumbai,"123 Street, Mumbai","123 Street, Mumbai",ALH-2026-0001,Father,Mother,,0000,Emergency,9000000001,None';
+            downloadBlob(headers + '\n' + sample, 'travelers_template.csv', 'text/csv');
+            showNotification('CSV template downloaded', 'success');
+        }
+
+        function processCSVUpload() {
+            const input = document.getElementById('csvFileInput');
+            if (!input.files || !input.files[0]) { showNotification('Please select a CSV file', 'error'); return; }
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const rows = parseCSV(e.target.result);
+                if (rows.length < 2) { showNotification('CSV is empty or invalid', 'error'); return; }
+                const headers = rows[0].map(h => h.trim().toLowerCase());
+                const requiredIdx = { first_name: headers.indexOf('first_name'), last_name: headers.indexOf('last_name'), passport_no: headers.indexOf('passport_no'), mobile: headers.indexOf('mobile'), batch_id: headers.indexOf('batch_id'), return_date: headers.indexOf('return_date'), mailing_address: headers.indexOf('mailing_address'), file_reference: headers.indexOf('file_reference') };
+                if (Object.values(requiredIdx).includes(-1)) { showNotification('CSV missing required columns', 'error'); return; }
+                const existing = getTravelers();
+                let maxId = existing.length ? Math.max(...existing.map(t => t.id)) : 0;
+                const col = name => headers.indexOf(name);
+                rows.slice(1).forEach(row => {
+                    if (row.length < 5 || !row[requiredIdx.first_name]) return;
+                    const expiry = row[col('passport_expiry_date')];
+                    const ret = row[col('return_date')];
+                    if (expiry && ret) {
+                        const expDate = new Date(expiry);
+                        const retDate = new Date(ret);
+                        const minValid = new Date(retDate.getTime() + 180 * 86400000);
+                        if (expDate < minValid) return;
+                    }
+                    const t = {
+                        id: ++maxId,
+                        first_name: row[col('first_name')] || '',
+                        last_name: row[col('last_name')] || '',
+                        passport_name: row[col('passport_name')] || `${row[col('first_name')] || ''} ${row[col('last_name')] || ''}`.trim(),
+                        batch_id: row[col('batch_id')] || '',
+                        batch_name: getBatchName(row[col('batch_id')]),
+                        passport_no: row[col('passport_no')] || '',
+                        passport_issue_date: row[col('passport_issue_date')] || '',
+                        passport_expiry_date: expiry || '',
+                        return_date: ret || '',
+                        passport_status: row[col('passport_status')] || 'Active',
+                        gender: row[col('gender')] || '',
+                        dob: row[col('dob')] || '',
+                        mobile: row[col('mobile')] || '',
+                        email: row[col('email')] || '',
+                        aadhaar: row[col('aadhaar')] || '',
+                        pan: row[col('pan')] || '',
+                        aadhaar_pan_linked: row[col('aadhaar_pan_linked')] || 'No',
+                        vaccine_status: row[col('vaccine_status')] || 'Not Vaccinated',
+                        wheelchair: row[col('wheelchair')] || 'No',
+                        place_of_birth: row[col('place_of_birth')] || '',
+                        place_of_issue: row[col('place_of_issue')] || '',
+                        passport_address: row[col('passport_address')] || '',
+                        mailing_address: row[col('mailing_address')] || row[col('passport_address')] || '',
+                        file_reference: row[col('file_reference')] || '',
+                        father_name: row[col('father_name')] || '',
+                        mother_name: row[col('mother_name')] || '',
+                        spouse_name: row[col('spouse_name')] || '',
+                        pin: row[col('pin')] || '0000',
+                        emergency_contact: row[col('emergency_contact')] || '',
+                        emergency_phone: row[col('emergency_phone')] || '',
+                        medical_notes: row[col('medical_notes')] || '',
+                        created_at: new Date().toISOString()
+                    };
+                    existing.push(t);
+                });
+                saveTravelers(existing);
+                showNotification(`Imported travelers from CSV`, 'success');
+                hideCSVUploadSection();
+                loadTravelers();
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            let current = [];
+            let cell = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+                if (char === '"') {
+                    if (inQuotes && next === '"') { cell += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (char === ',' && !inQuotes) {
+                    current.push(cell.trim()); cell = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    current.push(cell.trim()); if (current.some(c => c)) rows.push(current); current = []; cell = '';
+                } else {
+                    cell += char;
+                }
+            }
+            if (cell || current.length) { current.push(cell.trim()); rows.push(current); }
+            return rows;
+        }
     </script>
-
 </body>
 </html>
