@@ -386,10 +386,6 @@
             background: #fff5f5;
         }
     </style>
-    <script src="/admin/js/session-manager.js"></script>
-    <script src="/admin/js/mobile-fix.js"></script>
-    <script src="/admin/js/common.js"></script>
-    <script src="/admin/js/travelers.js"></script>
 </head>
 <body>
 
@@ -1325,7 +1321,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.7: BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
+         * SUBSECTION 36.7: BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE (FIXED)
          * ================================================================== */
         function onBatchSelect(prefix) {
             console.log(`🔄 onBatchSelect called for prefix: ${prefix}`);
@@ -1335,6 +1331,7 @@
             const returnInfoDiv = document.getElementById(prefix + '_batch_return_info');
             const returnTextSpan = document.getElementById(prefix + '_batch_return_text');
             const returnInfoMsg = document.getElementById(prefix + '_expected_return_info');
+            const validationDiv = document.getElementById(prefix + '_passport_validation');
             
             if (!batchSelect) {
                 console.warn(`⚠️ Batch select not found: ${prefix}_batch_id`);
@@ -1354,6 +1351,10 @@
                 returnInfoMsg.innerHTML = '';
                 returnInfoMsg.className = 'expected-return-info';
             }
+            if (validationDiv) {
+                validationDiv.textContent = '';
+                validationDiv.className = 'validation-message';
+            }
             
             if (!selectedBatchId) {
                 // No batch selected - reset
@@ -1364,12 +1365,6 @@
                 if (returnInfoMsg) {
                     returnInfoMsg.innerHTML = 'Please select a batch to auto-populate return date.';
                     returnInfoMsg.className = 'expected-return-info warning';
-                }
-                // Clear validation
-                const validationDiv = document.getElementById(prefix + '_passport_validation');
-                if (validationDiv) {
-                    validationDiv.textContent = '';
-                    validationDiv.className = 'validation-message';
                 }
                 return;
             }
@@ -1404,6 +1399,9 @@
                         if (parts.length === 3) {
                             formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
                         }
+                    } else if (returnDate.includes('-')) {
+                        // Already in YYYY-MM-DD format
+                        formattedDate = returnDate;
                     }
                     
                     returnDateInput.value = formattedDate;
@@ -1412,11 +1410,17 @@
                     
                     const batchName = batch.batch_name || batch.name || 'Selected Batch';
                     if (returnInfoMsg) {
-                        returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batchName} (Return: ${returnDate})`;
+                        returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batchName}`;
                         returnInfoMsg.className = 'expected-return-info success';
                     }
                     
-                    // Trigger validation
+                    // Clear validation message since return date is now set
+                    if (validationDiv) {
+                        validationDiv.textContent = '';
+                        validationDiv.className = 'validation-message';
+                    }
+                    
+                    // Trigger passport expiry validation
                     validatePassportExpiry(prefix);
                 } else {
                     returnDateInput.value = '';
@@ -1426,6 +1430,12 @@
                     if (returnInfoMsg) {
                         returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
                         returnInfoMsg.className = 'expected-return-info warning';
+                    }
+                    
+                    // Show warning in validation area
+                    if (validationDiv) {
+                        validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Batch has no return date. Please set return date for this batch.`;
+                        validationDiv.className = 'validation-message warning';
                     }
                 }
             } else {
@@ -1472,7 +1482,8 @@
             }
             
             if (!returnDate) {
-                validationDiv.textContent = '⚠️ Expected return date not set. Please select a batch with return date.';
+                // No return date set - show warning but not error
+                validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Expected return date not set. Please select a batch with return date.`;
                 validationDiv.className = 'validation-message warning';
                 expiryDateInput.classList.add('validation-warning');
                 console.log('⚠️ No return date set');
@@ -1484,7 +1495,7 @@
             const ret = new Date(returnDate + 'T00:00:00');
             
             if (isNaN(expiry.getTime()) || isNaN(ret.getTime())) {
-                validationDiv.textContent = '⚠️ Invalid date format';
+                validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Invalid date format`;
                 validationDiv.className = 'validation-message warning';
                 expiryDateInput.classList.add('validation-warning');
                 console.warn('⚠️ Invalid date format');
@@ -1744,7 +1755,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.13: LOAD BATCHES
+         * SUBSECTION 36.13: LOAD BATCHES (FIXED)
          * ================================================================== */
         async function loadBatches() {
             try {
@@ -1777,9 +1788,9 @@
                 { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
                 { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
                 { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' },
-                { id: 4, batch_name: 'Golden Package - Haj 2027', return_date: '2027-07-10' }
+                { id: 4, batch_name: 'Golden Short Term package_ Haj 2027', return_date: '2027-07-15' }
             ];
-            console.log('📦 Using fallback batches:', batchesData);
+            console.log('📦 Using fallback batches with return dates:', batchesData);
         }
 
         function updateBatchDropdowns(batches) {
@@ -1812,7 +1823,9 @@
                 if (currentValue) {
                     select.value = currentValue;
                     // Trigger onBatchSelect to populate return date
-                    onBatchSelect(prefix);
+                    setTimeout(() => {
+                        onBatchSelect(prefix);
+                    }, 100);
                 }
             });
         }
