@@ -70,17 +70,17 @@ function addMonths(date, months) {
     return d;
 }
 
-function formatDateForInput(date) {
-    if (!date) return '';
-    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-    if (date instanceof Date) {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
+function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    if (dateStr instanceof Date) {
+        const y = dateStr.getFullYear();
+        const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+        const d = String(dateStr.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
     }
     try {
-        const d = new Date(date);
+        const d = new Date(dateStr);
         if (isNaN(d.getTime())) return '';
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -125,7 +125,7 @@ function validatePassportValidity(passportExpiry, expectedReturn) {
 }
 
 // ============================================================
-// BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE (FIXED)
+// BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
 // ============================================================
 function onBatchSelect(prefix) {
     console.log(`🔄 onBatchSelect called for prefix: ${prefix}`);
@@ -135,6 +135,7 @@ function onBatchSelect(prefix) {
     const returnInfoDiv = document.getElementById(prefix + '_batch_return_info');
     const returnTextSpan = document.getElementById(prefix + '_batch_return_text');
     const returnInfoMsg = document.getElementById(prefix + '_expected_return_info');
+    const validationDiv = document.getElementById(prefix + '_passport_validation');
     
     if (!batchSelect) {
         console.warn(`⚠️ Batch select not found: ${prefix}_batch_id`);
@@ -154,6 +155,10 @@ function onBatchSelect(prefix) {
         returnInfoMsg.innerHTML = '';
         returnInfoMsg.className = 'expected-return-info';
     }
+    if (validationDiv) {
+        validationDiv.textContent = '';
+        validationDiv.className = 'validation-message';
+    }
     
     if (!selectedBatchId) {
         // No batch selected - reset
@@ -164,12 +169,6 @@ function onBatchSelect(prefix) {
         if (returnInfoMsg) {
             returnInfoMsg.innerHTML = 'Please select a batch to auto-populate return date.';
             returnInfoMsg.className = 'expected-return-info warning';
-        }
-        // Clear validation
-        const validationDiv = document.getElementById(prefix + '_passport_validation');
-        if (validationDiv) {
-            validationDiv.textContent = '';
-            validationDiv.className = 'validation-message';
         }
         return;
     }
@@ -188,6 +187,7 @@ function onBatchSelect(prefix) {
             returnInfoDiv.classList.add('show');
             if (returnDate) {
                 returnTextSpan.textContent = `Return Date: ${returnDate}`;
+                returnInfoDiv.style.borderLeftColor = '#27ae60';
             } else {
                 returnTextSpan.textContent = '⚠️ No return date set for this batch';
                 returnInfoDiv.style.borderLeftColor = '#f39c12';
@@ -199,23 +199,32 @@ function onBatchSelect(prefix) {
             // Format date if needed (ensure YYYY-MM-DD)
             let formattedDate = returnDate;
             if (returnDate.includes('/')) {
-                // Convert MM/DD/YYYY to YYYY-MM-DD
                 const parts = returnDate.split('/');
                 if (parts.length === 3) {
                     formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
                 }
+            } else if (returnDate.includes('-')) {
+                // Already in YYYY-MM-DD format
+                formattedDate = returnDate;
             }
             
             returnDateInput.value = formattedDate;
             returnDateInput.style.borderColor = '#27ae60';
             returnDateInput.style.background = '#f0fff4';
             
+            const batchName = batch.batch_name || batch.name || 'Selected Batch';
             if (returnInfoMsg) {
-                returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batch.batch_name || batch.name || 'Selected Batch'}`;
+                returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batchName}`;
                 returnInfoMsg.className = 'expected-return-info success';
             }
             
-            // Trigger validation
+            // Clear validation message since return date is now set
+            if (validationDiv) {
+                validationDiv.textContent = '';
+                validationDiv.className = 'validation-message';
+            }
+            
+            // Trigger passport expiry validation
             validatePassportExpiry(prefix);
         } else {
             returnDateInput.value = '';
@@ -225,6 +234,12 @@ function onBatchSelect(prefix) {
             if (returnInfoMsg) {
                 returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
                 returnInfoMsg.className = 'expected-return-info warning';
+            }
+            
+            // Show warning in validation area
+            if (validationDiv) {
+                validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Batch has no return date. Please set return date for this batch.`;
+                validationDiv.className = 'validation-message warning';
             }
         }
     } else {
@@ -265,14 +280,13 @@ function validatePassportExpiry(prefix) {
     validationDiv.className = 'validation-message';
     
     if (!expiryDate) {
-        // No expiry date set
         console.log('ℹ️ No expiry date set');
         return;
     }
     
     if (!returnDate) {
         // No return date set - show warning but not error
-        validationDiv.textContent = '⚠️ Expected return date not set. Please select a batch with return date.';
+        validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Expected return date not set. Please select a batch with return date.`;
         validationDiv.className = 'validation-message warning';
         expiryDateInput.classList.add('validation-warning');
         console.log('⚠️ No return date set');
@@ -284,7 +298,7 @@ function validatePassportExpiry(prefix) {
     const ret = new Date(returnDate + 'T00:00:00');
     
     if (isNaN(expiry.getTime()) || isNaN(ret.getTime())) {
-        validationDiv.textContent = '⚠️ Invalid date format';
+        validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Invalid date format`;
         validationDiv.className = 'validation-message warning';
         expiryDateInput.classList.add('validation-warning');
         console.warn('⚠️ Invalid date format');
@@ -295,16 +309,14 @@ function validatePassportExpiry(prefix) {
     const minExpiry = new Date(ret);
     minExpiry.setMonth(minExpiry.getMonth() + 6);
     
-    // Calculate days until expiry
+    // Calculate days
     const today = new Date();
     const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
     const daysUntilMinExpiry = Math.ceil((expiry - minExpiry) / (1000 * 60 * 60 * 24));
     
     console.log(`📅 Expiry: ${expiryDate}, Return: ${returnDate}, Min Expiry: ${minExpiry.toISOString().slice(0,10)}`);
-    console.log(`📊 Days until expiry: ${daysUntilExpiry}, Days until min expiry: ${daysUntilMinExpiry}`);
     
     if (expiry < minExpiry) {
-        // Invalid - passport expires before 6 months after return
         validationDiv.innerHTML = `
             <i class="fas fa-times-circle"></i> 
             Passport expires on ${expiryDate}. Must be valid for at least 6 months after expected return date.
@@ -315,7 +327,6 @@ function validatePassportExpiry(prefix) {
         expiryDateInput.classList.add('validation-invalid');
         expiryDateInput.setCustomValidity('Passport must be valid for 6 months after expected return date');
     } else if (daysUntilExpiry < 180) {
-        // Warning - less than 6 months remaining
         validationDiv.innerHTML = `
             <i class="fas fa-exclamation-triangle"></i> 
             Passport expires in ${daysUntilExpiry} days. Less than 6 months remaining.
@@ -325,7 +336,6 @@ function validatePassportExpiry(prefix) {
         expiryDateInput.classList.add('validation-warning');
         expiryDateInput.setCustomValidity('');
     } else {
-        // Valid
         validationDiv.innerHTML = `
             <i class="fas fa-check-circle"></i> 
             Passport is valid. Expires in ${daysUntilExpiry} days.
@@ -619,8 +629,6 @@ function toggleMailingAddress(prefix) {
 function setupDateValidation() {
     ['add', 'edit'].forEach(prefix => {
         const expiryEl = document.getElementById(prefix + '_passport_expiry_date');
-        const returnEl = document.getElementById(prefix + '_expected_return_date');
-        
         if (expiryEl) {
             expiryEl.addEventListener('change', function() {
                 validatePassportExpiry(prefix);
@@ -647,10 +655,9 @@ async function loadBatches() {
         const data = await response.json();
         console.log('📦 Batches API response:', data);
         
-        if (data.success && data.batches) {
+        if (data.success && data.batches && data.batches.length > 0) {
             batchesData = data.batches;
-            console.log(`✅ Loaded ${batchesData.length} batches:`, batchesData);
-            updateBatchDropdowns(batchesData);
+            console.log(`✅ Loaded ${batchesData.length} batches from API`);
         } else {
             console.warn('⚠️ No batches found in API response, using fallback');
             useFallbackBatches();
@@ -659,19 +666,38 @@ async function loadBatches() {
         console.error('❌ Error loading batches:', error);
         useFallbackBatches();
     }
+    updateBatchDropdowns(batchesData);
 }
 
 function useFallbackBatches() {
     batchesData = [
-        { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
-        { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
-        { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' }
+        { 
+            id: 1, 
+            batch_name: 'Haj Platinum 2026', 
+            return_date: '2026-07-15' 
+        },
+        { 
+            id: 2, 
+            batch_name: 'Haj Gold 2026', 
+            return_date: '2026-07-20' 
+        },
+        { 
+            id: 3, 
+            batch_name: 'Umrah Ramadhan Special', 
+            return_date: '2026-03-25' 
+        },
+        { 
+            id: 4, 
+            batch_name: 'Golden Short Term package_ Haj 2027', 
+            return_date: '2027-07-15' 
+        }
     ];
     console.log('📦 Using fallback batches:', batchesData);
-    updateBatchDropdowns(batchesData);
 }
 
 function updateBatchDropdowns(batches) {
+    console.log('🔄 Updating batch dropdowns with', batches.length, 'batches');
+    
     ['add', 'edit'].forEach(prefix => {
         const select = document.getElementById(prefix + '_batch_id');
         if (!select) {
@@ -681,10 +707,11 @@ function updateBatchDropdowns(batches) {
         
         const currentValue = select.value;
         select.innerHTML = '<option value="">Select Batch</option>';
+        
         batches.forEach(b => {
             const option = document.createElement('option');
             option.value = b.id;
-            const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date;
+            const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date || b.return_dt;
             const returnInfo = returnDate ? ` (Return: ${returnDate})` : ' (No return date set)';
             option.textContent = (b.batch_name || b.name || 'Batch ' + b.id) + returnInfo;
             // Store return date as data attribute
@@ -693,9 +720,14 @@ function updateBatchDropdowns(batches) {
             }
             select.appendChild(option);
         });
+        
         // Restore selection if possible
         if (currentValue) {
             select.value = currentValue;
+            // Trigger onBatchSelect to populate return date
+            setTimeout(() => {
+                onBatchSelect(prefix);
+            }, 100);
         }
     });
 }
@@ -731,7 +763,6 @@ async function loadTravelers() {
         travelersData = getFallbackTravelers();
     }
     
-    filteredTravelers = [...travelersData];
     displayTravelers();
     updateStats();
 }
@@ -762,6 +793,26 @@ function getFallbackTravelers() {
 }
 
 let filteredTravelers = [];
+
+// ============================================================
+// UPDATE STATS
+// ============================================================
+function updateStats() {
+    const total = travelersData.length;
+    const active = travelersData.filter(t => t.passport_status === 'Active').length;
+    const vaccinated = travelersData.filter(t => t.vaccine_status === 'Fully Vaccinated').length;
+    const docsComplete = travelersData.filter(t => t.passport_scan && t.aadhaar_scan && t.pan_scan && t.photo).length;
+    
+    const totalEl = document.getElementById('totalTravelersCount');
+    const activeEl = document.getElementById('activeTravelersCount');
+    const vaccinatedEl = document.getElementById('vaccinatedCount');
+    const docsCompleteEl = document.getElementById('documentsComplete');
+    
+    if (totalEl) totalEl.textContent = total;
+    if (activeEl) activeEl.textContent = active;
+    if (vaccinatedEl) vaccinatedEl.textContent = vaccinated;
+    if (docsCompleteEl) docsCompleteEl.textContent = docsComplete;
+}
 
 // ============================================================
 // DISPLAY TRAVELERS
@@ -844,26 +895,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
-
-// ============================================================
-// UPDATE STATS
-// ============================================================
-function updateStats() {
-    const total = travelersData.length;
-    const active = travelersData.filter(t => t.passport_status === 'Active').length;
-    const vaccinated = travelersData.filter(t => t.vaccine_status === 'Fully Vaccinated').length;
-    const docsComplete = travelersData.filter(t => t.passport_scan && t.aadhaar_scan && t.pan_scan && t.photo).length;
-    
-    const totalEl = document.getElementById('totalTravelersCount');
-    const activeEl = document.getElementById('activeTravelersCount');
-    const vaccinatedEl = document.getElementById('vaccinatedCount');
-    const docsCompleteEl = document.getElementById('documentsComplete');
-    
-    if (totalEl) totalEl.textContent = total;
-    if (activeEl) activeEl.textContent = active;
-    if (vaccinatedEl) vaccinatedEl.textContent = vaccinated;
-    if (docsCompleteEl) docsCompleteEl.textContent = docsComplete;
 }
 
 // ============================================================
@@ -1153,11 +1184,11 @@ function editTraveler(id) {
     showExistingDocument('edit_vaccine_scan_preview', traveler.vaccine_scan, 'vaccine');
     showExistingDocument('edit_photo_preview', traveler.photo, 'photo');
     
-    // Auto-populate return date info
+    // Auto-populate return date from batch
     if (traveler.batch_id) {
         setTimeout(() => {
             onBatchSelect('edit');
-        }, 200);
+        }, 300);
     }
     
     form.style.display = 'block';
