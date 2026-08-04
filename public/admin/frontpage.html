@@ -678,6 +678,7 @@
             z-index: 9999;
             animation: slideIn 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
         }
 
         @keyframes slideIn {
@@ -732,10 +733,6 @@
             }
         }
     </style>
-<script src="/admin/js/session-manager.js"></script>
-    <script src="/admin/js/mobile-fix.js"></script>
-    <script src="/admin/js/common.js"></script>
-    <script src="/admin/js/frontpage.js"></script>
 </head>
 <body>
     <div class="admin-header">
@@ -1261,22 +1258,36 @@
     </div>
 
     <!-- Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="SessionManager.closeAllModals()"></div>
+    <div id="modalOverlay" class="modal-overlay" onclick="closePackageModal()"></div>
     <div id="notification" class="notification"></div>
 
+    <script src="/admin/js/session-manager.js"></script>
+    <script src="/admin/js/mobile-fix.js"></script>
+    <script src="/admin/js/common.js"></script>
+    <script src="/admin/js/frontpage.js"></script>
+    
     <script>
         // ====== GLOBAL VARIABLES ======
         let packages = [];
         let features = [];
         let companyDetails = {};
+        let autoSaveTimer = null;
 
-       // ====== INITIALIZATION ======
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Loading frontpage...');
-    await SessionManager.initPage(loadFrontpageData);
-});
+        // ====== INITIALIZATION ======
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Loading frontpage editor...');
+            
+            // Check if SessionManager exists
+            if (typeof SessionManager !== 'undefined') {
+                SessionManager.initPage(loadFrontpageData);
+            } else {
+                console.warn('SessionManager not loaded, loading data directly');
+                loadFrontpageData();
+            }
+        });
 
-    async function loadFrontpageData() {
+        function loadFrontpageData() {
+            console.log('📋 Loading frontpage data...');
             loadSavedSettings();
             loadPackagesFromDatabase();
             loadFeatures();
@@ -1293,18 +1304,27 @@ document.addEventListener('DOMContentLoaded', async function() {
             updatePreview();
             
             // Set up auto-save
-            setInterval(autoSave, 60000); // Auto-save every minute
+            if (autoSaveTimer) {
+                clearInterval(autoSaveTimer);
+            }
+            autoSaveTimer = setInterval(autoSave, 60000); // Auto-save every minute
 
-    // Clear interval on page unload
-    window.addEventListener('beforeunload', function() {
-        if (autoSaveTimer) clearInterval(autoSaveTimer);
-    });
-    }
+            // Clear interval on page unload
+            window.addEventListener('beforeunload', function() {
+                if (autoSaveTimer) {
+                    clearInterval(autoSaveTimer);
+                }
+            });
+        }
 
         // ====== LOGOUT ======
-async function logout() {
-    await SessionManager.logout();
-}
+        async function logout() {
+            if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+                await SessionManager.logout();
+            } else {
+                window.location.href = '/admin/login.html';
+            }
+        }
 
         // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
@@ -1383,59 +1403,67 @@ async function logout() {
         function loadCompanyTemplate() {
             const savedCompany = localStorage.getItem('companyDetails');
             if (savedCompany) {
-                companyDetails = JSON.parse(savedCompany);
-                
-                document.getElementById('companyLegalName').value = companyDetails.legalName || 'Alhudha Haj Service P Ltd.';
-                document.getElementById('companyDisplayName').value = companyDetails.displayName || 'Alhudha Haj Travel';
-                document.getElementById('companyAddress1').value = companyDetails.address1 || '2/117, Second Floor, Armenian Street';
-                document.getElementById('companyAddress2').value = companyDetails.address2 || 'Mannady, Chennai - 600001';
-                document.getElementById('companyCity').value = companyDetails.city || 'Chennai';
-                document.getElementById('companyState').value = companyDetails.state || 'Tamil Nadu';
-                document.getElementById('companyCountry').value = companyDetails.country || 'India';
-                document.getElementById('companyPin').value = companyDetails.pin || '600001';
-                document.getElementById('companyPhone').value = companyDetails.phone || '+91 44 1234 5678';
-                document.getElementById('companyMobile').value = companyDetails.mobile || '+91 98765 43210';
-                document.getElementById('companyEmail').value = companyDetails.email || 'info@alhudha.com';
-                document.getElementById('companyWebsite').value = companyDetails.website || 'www.alhudha.com';
-                
-                document.getElementById('companyGSTIN').value = companyDetails.gstin || '33ABCDE1234F1Z5';
-                document.getElementById('companyPAN').value = companyDetails.pan || 'ABCDE1234F';
-                document.getElementById('companyTAN').value = companyDetails.tan || 'ABCD12345E';
-                document.getElementById('companyTCS').value = companyDetails.tcs || 'TCS123456789';
-                document.getElementById('companyTIN').value = companyDetails.tin || '33123456789';
-                document.getElementById('companyCIN').value = companyDetails.cin || 'U12345TN1998PTC123456';
-                document.getElementById('companyIEC').value = companyDetails.iec || '1234567890';
-                document.getElementById('companyMSME').value = companyDetails.msme || 'UDYAM-TN-01-1234567';
-                
-                document.getElementById('companyBankName').value = companyDetails.bankName || 'State Bank of India';
-                document.getElementById('companyBankBranch').value = companyDetails.bankBranch || 'Armenian Street, Chennai';
-                document.getElementById('companyAccountName').value = companyDetails.accountName || 'Alhudha Haj Service P Ltd.';
-                document.getElementById('companyAccountNo').value = companyDetails.accountNo || '12345678901';
-                document.getElementById('companyIFSC').value = companyDetails.ifsc || 'SBIN0012345';
-                document.getElementById('companyMICR').value = companyDetails.micr || '600002123';
-                document.getElementById('companyUPI').value = companyDetails.upi || 'alhudha@okhdfcbank';
-                document.getElementById('companyQR').value = companyDetails.qr || 'upi://pay?pa=alhudha@okhdfcbank&pn=Alhudha';
+                try {
+                    companyDetails = JSON.parse(savedCompany);
+                    
+                    document.getElementById('companyLegalName').value = companyDetails.legalName || 'Alhudha Haj Service P Ltd.';
+                    document.getElementById('companyDisplayName').value = companyDetails.displayName || 'Alhudha Haj Travel';
+                    document.getElementById('companyAddress1').value = companyDetails.address1 || '2/117, Second Floor, Armenian Street';
+                    document.getElementById('companyAddress2').value = companyDetails.address2 || 'Mannady, Chennai - 600001';
+                    document.getElementById('companyCity').value = companyDetails.city || 'Chennai';
+                    document.getElementById('companyState').value = companyDetails.state || 'Tamil Nadu';
+                    document.getElementById('companyCountry').value = companyDetails.country || 'India';
+                    document.getElementById('companyPin').value = companyDetails.pin || '600001';
+                    document.getElementById('companyPhone').value = companyDetails.phone || '+91 44 1234 5678';
+                    document.getElementById('companyMobile').value = companyDetails.mobile || '+91 98765 43210';
+                    document.getElementById('companyEmail').value = companyDetails.email || 'info@alhudha.com';
+                    document.getElementById('companyWebsite').value = companyDetails.website || 'www.alhudha.com';
+                    
+                    document.getElementById('companyGSTIN').value = companyDetails.gstin || '33ABCDE1234F1Z5';
+                    document.getElementById('companyPAN').value = companyDetails.pan || 'ABCDE1234F';
+                    document.getElementById('companyTAN').value = companyDetails.tan || 'ABCD12345E';
+                    document.getElementById('companyTCS').value = companyDetails.tcs || 'TCS123456789';
+                    document.getElementById('companyTIN').value = companyDetails.tin || '33123456789';
+                    document.getElementById('companyCIN').value = companyDetails.cin || 'U12345TN1998PTC123456';
+                    document.getElementById('companyIEC').value = companyDetails.iec || '1234567890';
+                    document.getElementById('companyMSME').value = companyDetails.msme || 'UDYAM-TN-01-1234567';
+                    
+                    document.getElementById('companyBankName').value = companyDetails.bankName || 'State Bank of India';
+                    document.getElementById('companyBankBranch').value = companyDetails.bankBranch || 'Armenian Street, Chennai';
+                    document.getElementById('companyAccountName').value = companyDetails.accountName || 'Alhudha Haj Service P Ltd.';
+                    document.getElementById('companyAccountNo').value = companyDetails.accountNo || '12345678901';
+                    document.getElementById('companyIFSC').value = companyDetails.ifsc || 'SBIN0012345';
+                    document.getElementById('companyMICR').value = companyDetails.micr || '600002123';
+                    document.getElementById('companyUPI').value = companyDetails.upi || 'alhudha@okhdfcbank';
+                    document.getElementById('companyQR').value = companyDetails.qr || 'upi://pay?pa=alhudha@okhdfcbank&pn=Alhudha';
+                } catch (e) {
+                    console.error('Error loading company template:', e);
+                    loadIndividualCompanyFields();
+                }
             } else {
-                // Load individual fields for backward compatibility
-                document.getElementById('companyLegalName').value = localStorage.getItem('companyLegalName') || 'Alhudha Haj Service P Ltd.';
-                document.getElementById('companyDisplayName').value = localStorage.getItem('companyDisplayName') || 'Alhudha Haj Travel';
-                document.getElementById('companyAddress1').value = localStorage.getItem('companyAddress1') || '2/117, Second Floor, Armenian Street';
-                document.getElementById('companyAddress2').value = localStorage.getItem('companyAddress2') || 'Mannady, Chennai - 600001';
-                document.getElementById('companyCity').value = localStorage.getItem('companyCity') || 'Chennai';
-                document.getElementById('companyState').value = localStorage.getItem('companyState') || 'Tamil Nadu';
-                document.getElementById('companyPin').value = localStorage.getItem('companyPin') || '600001';
-                document.getElementById('companyPhone').value = localStorage.getItem('companyPhone') || '+91 44 1234 5678';
-                document.getElementById('companyEmail').value = localStorage.getItem('companyEmail') || 'info@alhudha.com';
-                document.getElementById('companyGSTIN').value = localStorage.getItem('companyGSTIN') || '33ABCDE1234F1Z5';
-                document.getElementById('companyPAN').value = localStorage.getItem('companyPAN') || 'ABCDE1234F';
-                document.getElementById('companyTAN').value = localStorage.getItem('companyTAN') || 'ABCD12345E';
-                document.getElementById('companyTCS').value = localStorage.getItem('companyTCS') || 'TCS123456789';
-                document.getElementById('companyTIN').value = localStorage.getItem('companyTIN') || '33123456789';
-                document.getElementById('companyCIN').value = localStorage.getItem('companyCIN') || 'U12345TN1998PTC123456';
-                document.getElementById('companyBankName').value = localStorage.getItem('companyBankName') || 'State Bank of India';
-                document.getElementById('companyAccountNo').value = localStorage.getItem('companyAccountNo') || '12345678901';
-                document.getElementById('companyIFSC').value = localStorage.getItem('companyIFSC') || 'SBIN0012345';
+                loadIndividualCompanyFields();
             }
+        }
+
+        function loadIndividualCompanyFields() {
+            document.getElementById('companyLegalName').value = localStorage.getItem('companyLegalName') || 'Alhudha Haj Service P Ltd.';
+            document.getElementById('companyDisplayName').value = localStorage.getItem('companyDisplayName') || 'Alhudha Haj Travel';
+            document.getElementById('companyAddress1').value = localStorage.getItem('companyAddress1') || '2/117, Second Floor, Armenian Street';
+            document.getElementById('companyAddress2').value = localStorage.getItem('companyAddress2') || 'Mannady, Chennai - 600001';
+            document.getElementById('companyCity').value = localStorage.getItem('companyCity') || 'Chennai';
+            document.getElementById('companyState').value = localStorage.getItem('companyState') || 'Tamil Nadu';
+            document.getElementById('companyPin').value = localStorage.getItem('companyPin') || '600001';
+            document.getElementById('companyPhone').value = localStorage.getItem('companyPhone') || '+91 44 1234 5678';
+            document.getElementById('companyEmail').value = localStorage.getItem('companyEmail') || 'info@alhudha.com';
+            document.getElementById('companyGSTIN').value = localStorage.getItem('companyGSTIN') || '33ABCDE1234F1Z5';
+            document.getElementById('companyPAN').value = localStorage.getItem('companyPAN') || 'ABCDE1234F';
+            document.getElementById('companyTAN').value = localStorage.getItem('companyTAN') || 'ABCD12345E';
+            document.getElementById('companyTCS').value = localStorage.getItem('companyTCS') || 'TCS123456789';
+            document.getElementById('companyTIN').value = localStorage.getItem('companyTIN') || '33123456789';
+            document.getElementById('companyCIN').value = localStorage.getItem('companyCIN') || 'U12345TN1998PTC123456';
+            document.getElementById('companyBankName').value = localStorage.getItem('companyBankName') || 'State Bank of India';
+            document.getElementById('companyAccountNo').value = localStorage.getItem('companyAccountNo') || '12345678901';
+            document.getElementById('companyIFSC').value = localStorage.getItem('companyIFSC') || 'SBIN0012345';
         }
 
         // ====== LOAD SAVED SETTINGS ======
@@ -1485,15 +1513,23 @@ async function logout() {
             // Load packages
             const savedPackages = localStorage.getItem('packages');
             if (savedPackages) {
-                packages = JSON.parse(savedPackages);
-                renderPackages();
+                try {
+                    packages = JSON.parse(savedPackages);
+                    renderPackages();
+                } catch (e) {
+                    console.error('Error loading packages:', e);
+                }
             }
             
             // Load features
             const savedFeatures = localStorage.getItem('features');
             if (savedFeatures) {
-                features = JSON.parse(savedFeatures);
-                renderFeatures();
+                try {
+                    features = JSON.parse(savedFeatures);
+                    renderFeatures();
+                } catch (e) {
+                    console.error('Error loading features:', e);
+                }
             }
             
             // Load logo
@@ -1512,14 +1548,17 @@ async function logout() {
         function loadPackagesFromDatabase() {
             // Try to load from batches first
             fetch('/api/batches')
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
                 .then(data => {
-                    if (data.success && data.batches) {
+                    if (data.success && data.batches && data.batches.length > 0) {
                         packages = data.batches.map(b => ({
-                            id: b.id,
-                            name: b.batch_name,
+                            id: b.id || b.batch_id,
+                            name: b.batch_name || b.name || 'Haj Package',
                             description: b.description || 'Premium Haj/Umrah package',
-                            price: b.price || 0,
+                            price: parseFloat(b.price) || 0,
                             icon: 'fa-mosque'
                         }));
                     } else {
@@ -1549,9 +1588,20 @@ async function logout() {
                 });
         }
 
+        // ====== SYNC PACKAGES FROM DATABASE ======
+        function syncPackagesFromDatabase() {
+            showNotification('Syncing packages from batches...', 'info');
+            loadPackagesFromDatabase();
+        }
+
         function renderPackages() {
             const packagesList = document.getElementById('packagesList');
             packagesList.innerHTML = '';
+            
+            if (!packages || packages.length === 0) {
+                packagesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #7f8c8d;">No packages added yet. Click "Add Package" to create one.</div>';
+                return;
+            }
             
             packages.forEach((pkg, index) => {
                 const pkgDiv = document.createElement('div');
@@ -1565,21 +1615,24 @@ async function logout() {
                         </div>
                     </div>
                     <div style="font-size: 0.9rem; color: #7f8c8d;">${pkg.description || ''}</div>
-                    <div style="font-weight: bold; color: #27ae60; margin-top: 5px;">₹${(pkg.price || 0).toLocaleString()}</div>
+                    <div style="font-weight: bold; color: #27ae60; margin-top: 5px;">₹${(pkg.price || 0).toLocaleString('en-IN')}</div>
                 `;
                 packagesList.appendChild(pkgDiv);
             });
-        }
-
-        function syncPackagesFromDatabase() {
-            showNotification('Syncing packages from batches...', 'info');
-            loadPackagesFromDatabase();
         }
 
         function showAddPackageModal() {
             document.getElementById('packageModal').style.display = 'block';
             document.getElementById('modalOverlay').style.display = 'block';
             document.getElementById('packageForm').reset();
+            // Reset form submission
+            const form = document.getElementById('packageForm');
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                savePackage();
+            };
+            // Reset modal title
+            document.querySelector('#packageModal .modal-header h3').innerHTML = '<i class="fas fa-plus-circle"></i> Add Package';
         }
 
         function closePackageModal() {
@@ -1605,14 +1658,14 @@ async function logout() {
 
         function editPackage(index) {
             const pkg = packages[index];
-            document.getElementById('packageName').value = pkg.name;
+            document.getElementById('packageName').value = pkg.name || '';
             document.getElementById('packageDesc').value = pkg.description || '';
             document.getElementById('packagePrice').value = pkg.price || '';
             document.getElementById('packageIcon').value = pkg.icon || 'fa-mosque';
             
             // Change modal for editing
             const modal = document.getElementById('packageModal');
-            modal.querySelector('h3').innerHTML = '<i class="fas fa-edit"></i> Edit Package';
+            modal.querySelector('.modal-header h3').innerHTML = '<i class="fas fa-edit"></i> Edit Package';
             const form = document.getElementById('packageForm');
             form.onsubmit = function(e) {
                 e.preventDefault();
@@ -1651,21 +1704,35 @@ async function logout() {
         function loadFeatures() {
             const savedFeatures = localStorage.getItem('features');
             if (savedFeatures) {
-                features = JSON.parse(savedFeatures);
+                try {
+                    features = JSON.parse(savedFeatures);
+                } catch (e) {
+                    console.error('Error loading features:', e);
+                    setDefaultFeatures();
+                }
             } else {
-                features = [
-                    { id: 1, text: '25+ Years Experience', icon: 'fa-mosque' },
-                    { id: 2, text: 'Premium Accommodation', icon: 'fa-hotel' },
-                    { id: 3, text: 'VIP Transportation', icon: 'fa-bus' },
-                    { id: 4, text: 'Expert Guides', icon: 'fa-users' }
-                ];
+                setDefaultFeatures();
             }
             renderFeatures();
+        }
+
+        function setDefaultFeatures() {
+            features = [
+                { id: 1, text: '25+ Years Experience', icon: 'fa-mosque' },
+                { id: 2, text: 'Premium Accommodation', icon: 'fa-hotel' },
+                { id: 3, text: 'VIP Transportation', icon: 'fa-bus' },
+                { id: 4, text: 'Expert Guides', icon: 'fa-users' }
+            ];
         }
 
         function renderFeatures() {
             const featuresList = document.getElementById('featuresList');
             featuresList.innerHTML = '';
+            
+            if (!features || features.length === 0) {
+                featuresList.innerHTML = '<div style="text-align: center; padding: 20px; color: #7f8c8d;">No features added yet. Click "Add Feature" to create one.</div>';
+                return;
+            }
             
             features.forEach((feature, index) => {
                 const featureDiv = document.createElement('div');
@@ -1678,8 +1745,10 @@ async function logout() {
                         <option value="fa-users" ${feature.icon === 'fa-users' ? 'selected' : ''}>Users</option>
                         <option value="fa-star" ${feature.icon === 'fa-star' ? 'selected' : ''}>Star</option>
                         <option value="fa-check-circle" ${feature.icon === 'fa-check-circle' ? 'selected' : ''}>Check</option>
+                        <option value="fa-kaaba" ${feature.icon === 'fa-kaaba' ? 'selected' : ''}>Kaaba</option>
+                        <option value="fa-plane" ${feature.icon === 'fa-plane' ? 'selected' : ''}>Plane</option>
                     </select>
-                    <input type="text" value="${feature.text}" onchange="updateFeatureText(${index}, this.value)">
+                    <input type="text" value="${feature.text || ''}" onchange="updateFeatureText(${index}, this.value)">
                     <i class="fas fa-trash" onclick="deleteFeature(${index})"></i>
                 `;
                 featuresList.appendChild(featureDiv);
@@ -1687,13 +1756,17 @@ async function logout() {
         }
 
         function updateFeatureIcon(index, icon) {
-            features[index].icon = icon;
-            updatePreview();
+            if (features[index]) {
+                features[index].icon = icon;
+                updatePreview();
+            }
         }
 
         function updateFeatureText(index, text) {
-            features[index].text = text;
-            updatePreview();
+            if (features[index]) {
+                features[index].text = text;
+                updatePreview();
+            }
         }
 
         function addFeature() {
@@ -1726,6 +1799,8 @@ async function logout() {
             if (alertEnabled) {
                 alertStatus.style.display = 'block';
                 document.getElementById('alertStatusMessage').textContent = alertMessage.substring(0, 100) + (alertMessage.length > 100 ? '...' : '');
+                document.getElementById('alertLiveStatus').textContent = 'LIVE';
+                document.getElementById('alertLiveStatus').className = 'live-status active';
             } else {
                 alertStatus.style.display = 'none';
             }
@@ -1734,6 +1809,13 @@ async function logout() {
         // ====== LOGO UPLOAD ======
         function handleLogoUpload(input) {
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                // Check file size (max 1MB)
+                if (file.size > 1024 * 1024) {
+                    showNotification('Logo file size must be less than 1MB', 'error');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById('logoPreview');
@@ -1742,8 +1824,30 @@ async function logout() {
                     updatePreview();
                     showNotification('Logo uploaded successfully!', 'success');
                 };
-                reader.readAsDataURL(input.files[0]);
+                reader.onerror = function() {
+                    showNotification('Error reading file', 'error');
+                };
+                reader.readAsDataURL(file);
             }
+        }
+
+        // ====== HELPER FUNCTION ======
+        function adjustColor(hex, percent) {
+            // Simple color adjustment function
+            if (!hex || hex.length < 7) return hex;
+            
+            // Parse the hex color
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+            
+            // Adjust brightness
+            r = Math.max(0, Math.min(255, r + percent));
+            g = Math.max(0, Math.min(255, g + percent));
+            b = Math.max(0, Math.min(255, b + percent));
+            
+            // Convert back to hex
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
         }
 
         // ====== PREVIEW UPDATE ======
@@ -1784,7 +1888,7 @@ async function logout() {
             
             // Build packages HTML
             let packagesHtml = '';
-            if (packages.length > 0) {
+            if (packages && packages.length > 0) {
                 packages.forEach(pkg => {
                     const whatsappUrl = whatsappEnabled ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${whatsappMessage}%20${encodeURIComponent(pkg.name)}` : '#';
                     const emailUrl = emailEnabled ? `mailto:${bookingEmail}?subject=${encodeURIComponent(emailSubject + pkg.name)}&body=${encodeURIComponent('I am interested in ' + pkg.name)}` : '#';
@@ -1809,7 +1913,7 @@ async function logout() {
             
             // Build features HTML
             let featuresHtml = '';
-            if (features.length > 0) {
+            if (features && features.length > 0) {
                 features.forEach(feature => {
                     featuresHtml += `
                         <div class='feature'>
@@ -1835,6 +1939,8 @@ async function logout() {
             }
             
             const previewFrame = document.getElementById('previewFrame');
+            if (!previewFrame) return;
+            
             previewFrame.srcdoc = `
                 <!DOCTYPE html>
                 <html>
@@ -1879,7 +1985,7 @@ async function logout() {
                         .package-header i { margin-right: 8px; }
                         .package-body { padding: 20px; text-align: center; }
                         .package-price { font-size: 1.5rem; color: ${secondaryColor}; font-weight: bold; margin: 15px 0; }
-                        .package-actions { display: flex; gap: 10px; justify-content: center; }
+                        .package-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
                         .package-actions a { padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
                         .package-actions a:hover { transform: translateY(-2px); }
                         .whatsapp-btn { background: #25D366; color: white; }
@@ -1898,8 +2004,7 @@ async function logout() {
                             .footer .contact-info { flex-direction: column; gap: 10px; }
                         }
                     </style>
-                    <script src="/admin/js/mobile-fix.js"><\/script>
-</head>
+                </head>
                 <body>
                     ${alertEnabled ? `
                     <div class='urgent-alert'>
@@ -1940,91 +2045,79 @@ async function logout() {
                             <a href='${instagramUrl}' target='_blank'><i class='fab fa-instagram'></i></a>
                         </div>
                     </div>
-                
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
-        });
-    }
-});
-<\/script>
-
-</body>
+                </body>
                 </html>
             `;
         }
 
-        // Helper function to adjust color brightness
-        function adjustColor(hex, percent) {
-            // Simplified version - in production use a proper color library
-            return hex;
-        }
-
-        // ====== SAVE/LOAD FUNCTIONS ======
+        // ====== SAVE FUNCTIONS ======
         function saveChanges() {
-            // Save hero section
-            localStorage.setItem('heroHeading', document.getElementById('heroHeading').value);
-            localStorage.setItem('heroSubheading', document.getElementById('heroSubheading').value);
-            localStorage.setItem('heroButton', document.getElementById('heroButton').value);
-            localStorage.setItem('heroButtonLink', document.getElementById('heroButtonLink').value);
-            localStorage.setItem('heroColor1', document.getElementById('heroColor1').value);
-            localStorage.setItem('heroColor2', document.getElementById('heroColor2').value);
-            
-            // Save packages title
-            localStorage.setItem('packagesTitle', document.getElementById('packagesTitle').value);
-            
-            // Save footer
-            localStorage.setItem('footerText', document.getElementById('footerText').value);
-            localStorage.setItem('footerPhone', document.getElementById('footerPhone').value);
-            localStorage.setItem('footerEmail', document.getElementById('footerEmail').value);
-            
-            // Save social links
-            localStorage.setItem('facebookUrl', document.getElementById('facebookUrl').value);
-            localStorage.setItem('twitterUrl', document.getElementById('twitterUrl').value);
-            localStorage.setItem('instagramUrl', document.getElementById('instagramUrl').value);
-            
-            // Save global settings
-            localStorage.setItem('fontFamily', document.getElementById('fontFamily').value);
-            localStorage.setItem('primaryColor', document.getElementById('primaryColor').value);
-            localStorage.setItem('secondaryColor', document.getElementById('secondaryColor').value);
-            
-            // Save contact settings
-            localStorage.setItem('whatsappNumber', document.getElementById('whatsappNumber').value);
-            localStorage.setItem('whatsappMessage', document.getElementById('whatsappMessage').value);
-            localStorage.setItem('bookingEmail', document.getElementById('bookingEmail').value);
-            localStorage.setItem('emailSubject', document.getElementById('emailSubject').value);
-            localStorage.setItem('whatsappEnabled', document.getElementById('whatsappEnabled').checked);
-            localStorage.setItem('emailEnabled', document.getElementById('emailEnabled').checked);
-            
-            // Save alert settings
-            localStorage.setItem('urgentAlertEnabled', document.getElementById('urgentAlertEnabled').checked);
-            localStorage.setItem('urgentAlertMessage', document.getElementById('urgentAlertMessage').value);
-            localStorage.setItem('urgentAlertLink', document.getElementById('urgentAlertLink').value);
-            localStorage.setItem('urgentAlertColor', document.getElementById('urgentAlertColor').value);
-            localStorage.setItem('urgentAlertStyle', document.getElementById('urgentAlertStyle').value);
-            
-            // Save packages
-            localStorage.setItem('packages', JSON.stringify(packages));
-            
-            // Save features
-            localStorage.setItem('features', JSON.stringify(features));
-            
-            // Save company template
-            saveCompanyTemplate();
-            
-            showNotification('Changes saved successfully!', 'success');
-            updateAlertStatus();
+            try {
+                // Save hero section
+                localStorage.setItem('heroHeading', document.getElementById('heroHeading').value);
+                localStorage.setItem('heroSubheading', document.getElementById('heroSubheading').value);
+                localStorage.setItem('heroButton', document.getElementById('heroButton').value);
+                localStorage.setItem('heroButtonLink', document.getElementById('heroButtonLink').value);
+                localStorage.setItem('heroColor1', document.getElementById('heroColor1').value);
+                localStorage.setItem('heroColor2', document.getElementById('heroColor2').value);
+                
+                // Save packages title
+                localStorage.setItem('packagesTitle', document.getElementById('packagesTitle').value);
+                
+                // Save footer
+                localStorage.setItem('footerText', document.getElementById('footerText').value);
+                localStorage.setItem('footerPhone', document.getElementById('footerPhone').value);
+                localStorage.setItem('footerEmail', document.getElementById('footerEmail').value);
+                
+                // Save social links
+                localStorage.setItem('facebookUrl', document.getElementById('facebookUrl').value);
+                localStorage.setItem('twitterUrl', document.getElementById('twitterUrl').value);
+                localStorage.setItem('instagramUrl', document.getElementById('instagramUrl').value);
+                
+                // Save global settings
+                localStorage.setItem('fontFamily', document.getElementById('fontFamily').value);
+                localStorage.setItem('primaryColor', document.getElementById('primaryColor').value);
+                localStorage.setItem('secondaryColor', document.getElementById('secondaryColor').value);
+                
+                // Save contact settings
+                localStorage.setItem('whatsappNumber', document.getElementById('whatsappNumber').value);
+                localStorage.setItem('whatsappMessage', document.getElementById('whatsappMessage').value);
+                localStorage.setItem('bookingEmail', document.getElementById('bookingEmail').value);
+                localStorage.setItem('emailSubject', document.getElementById('emailSubject').value);
+                localStorage.setItem('whatsappEnabled', document.getElementById('whatsappEnabled').checked);
+                localStorage.setItem('emailEnabled', document.getElementById('emailEnabled').checked);
+                
+                // Save alert settings
+                localStorage.setItem('urgentAlertEnabled', document.getElementById('urgentAlertEnabled').checked);
+                localStorage.setItem('urgentAlertMessage', document.getElementById('urgentAlertMessage').value);
+                localStorage.setItem('urgentAlertLink', document.getElementById('urgentAlertLink').value);
+                localStorage.setItem('urgentAlertColor', document.getElementById('urgentAlertColor').value);
+                localStorage.setItem('urgentAlertStyle', document.getElementById('urgentAlertStyle').value);
+                
+                // Save packages
+                localStorage.setItem('packages', JSON.stringify(packages));
+                
+                // Save features
+                localStorage.setItem('features', JSON.stringify(features));
+                
+                // Save company template
+                saveCompanyTemplate();
+                
+                showNotification('Changes saved successfully!', 'success');
+                updateAlertStatus();
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                showNotification('Error saving changes. Please try again.', 'error');
+            }
         }
 
         function autoSave() {
-            saveChanges();
-            console.log('Auto-saved at', new Date().toLocaleTimeString());
+            try {
+                saveChanges();
+                console.log('Auto-saved at', new Date().toLocaleTimeString());
+            } catch (error) {
+                console.error('Auto-save error:', error);
+            }
         }
 
         function publishChanges() {
@@ -2033,75 +2126,99 @@ document.addEventListener('DOMContentLoaded', function() {
             
             showNotification('Publishing to live website...', 'info');
             
-            setTimeout(() => {
-                // Save to server (simulated)
-                const websiteData = {
-                    hero: {
-                        heading: document.getElementById('heroHeading').value,
-                        subheading: document.getElementById('heroSubheading').value,
-                        button: document.getElementById('heroButton').value,
-                        buttonLink: document.getElementById('heroButtonLink').value,
-                        color1: document.getElementById('heroColor1').value,
-                        color2: document.getElementById('heroColor2').value
-                    },
-                    packages: packages,
-                    features: features,
-                    contact: {
-                        whatsapp: document.getElementById('whatsappNumber').value,
-                        whatsappMessage: document.getElementById('whatsappMessage').value,
-                        email: document.getElementById('bookingEmail').value,
-                        emailSubject: document.getElementById('emailSubject').value,
-                        phone: document.getElementById('footerPhone').value,
-                        facebook: document.getElementById('facebookUrl').value,
-                        twitter: document.getElementById('twitterUrl').value,
-                        instagram: document.getElementById('instagramUrl').value
-                    },
-                    footer: {
-                        text: document.getElementById('footerText').value,
-                        email: document.getElementById('footerEmail').value
-                    },
-                    alert: {
-                        enabled: document.getElementById('urgentAlertEnabled').checked,
-                        message: document.getElementById('urgentAlertMessage').value,
-                        link: document.getElementById('urgentAlertLink').value,
-                        color: document.getElementById('urgentAlertColor').value,
-                        style: document.getElementById('urgentAlertStyle').value
-                    },
-                    global: {
-                        fontFamily: document.getElementById('fontFamily').value,
-                        primaryColor: document.getElementById('primaryColor').value,
-                        secondaryColor: document.getElementById('secondaryColor').value
-                    },
-                    company: companyDetails
-                };
-                
-                console.log('Publishing:', websiteData);
-                
-                // Simulate API call
-                fetch('/api/frontpage/publish', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(websiteData)
-                }).then(() => {
+            // Build data object
+            const websiteData = {
+                hero: {
+                    heading: document.getElementById('heroHeading').value,
+                    subheading: document.getElementById('heroSubheading').value,
+                    button: document.getElementById('heroButton').value,
+                    buttonLink: document.getElementById('heroButtonLink').value,
+                    color1: document.getElementById('heroColor1').value,
+                    color2: document.getElementById('heroColor2').value
+                },
+                packages: packages,
+                features: features,
+                contact: {
+                    whatsapp: document.getElementById('whatsappNumber').value,
+                    whatsappMessage: document.getElementById('whatsappMessage').value,
+                    email: document.getElementById('bookingEmail').value,
+                    emailSubject: document.getElementById('emailSubject').value,
+                    phone: document.getElementById('footerPhone').value,
+                    facebook: document.getElementById('facebookUrl').value,
+                    twitter: document.getElementById('twitterUrl').value,
+                    instagram: document.getElementById('instagramUrl').value
+                },
+                footer: {
+                    text: document.getElementById('footerText').value,
+                    email: document.getElementById('footerEmail').value
+                },
+                alert: {
+                    enabled: document.getElementById('urgentAlertEnabled').checked,
+                    message: document.getElementById('urgentAlertMessage').value,
+                    link: document.getElementById('urgentAlertLink').value,
+                    color: document.getElementById('urgentAlertColor').value,
+                    style: document.getElementById('urgentAlertStyle').value
+                },
+                global: {
+                    fontFamily: document.getElementById('fontFamily').value,
+                    primaryColor: document.getElementById('primaryColor').value,
+                    secondaryColor: document.getElementById('secondaryColor').value
+                },
+                company: companyDetails
+            };
+            
+            console.log('Publishing data:', websiteData);
+            
+            // Try to publish to server
+            fetch('/api/frontpage/publish', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(websiteData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
                     showNotification('Website published successfully! Public homepage updated.', 'success');
-                }).catch(() => {
-                    showNotification('Demo mode: Website published (simulated)', 'success');
-            }, 2000);
-        </script>
+                } else {
+                    showNotification('Publish failed: ' + (data.message || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Publish error:', error);
+                showNotification('Publishing to live site (simulated) - ' + error.message, 'warning');
+            });
+        }
 
-<script>
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    var mobileToggle = document.querySelector('.mobile-toggle');
-    var navLinks = document.querySelector('.nav-links');
-    
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', function() {
-            navLinks.classList.toggle('active');
+        // ====== CLOSE MODALS ON OVERLAY CLICK ======
+        document.addEventListener('click', function(event) {
+            const overlay = document.getElementById('modalOverlay');
+            if (event.target === overlay) {
+                closePackageModal();
+            }
         });
-    }
-});
-</script>
 
+        // ====== KEYBOARD SHORTCUTS ======
+        document.addEventListener('keydown', function(event) {
+            // Ctrl+S to save
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                saveChanges();
+            }
+            // Escape to close modal
+            if (event.key === 'Escape') {
+                closePackageModal();
+            }
+        });
+
+        console.log('✅ Frontpage editor loaded successfully!');
+    </script>
 </body>
 </html>
