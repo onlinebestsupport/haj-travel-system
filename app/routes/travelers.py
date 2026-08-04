@@ -62,7 +62,7 @@ def log_activity(user_id, action, module, description, ip_address=None):
 
 @bp.route('', methods=['GET'])
 def get_travelers():
-    """Get all travelers"""
+    """Get all travelers with 36 fields"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -112,7 +112,7 @@ def get_travelers():
 
 @bp.route('/<int:traveler_id>', methods=['GET'])
 def get_traveler(traveler_id):
-    """Get single traveler with complete details"""
+    """Get single traveler with complete details (36 fields)"""
     # Check authentication
     if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
@@ -252,7 +252,7 @@ def get_traveler_by_passport(passport_no):
 
 @bp.route('', methods=['POST'])
 def create_traveler():
-    """Create new traveler"""
+    """Create new traveler with 36 fields (includes mailing_address, file_reference, expected_return_date)"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -276,6 +276,26 @@ def create_traveler():
     except ValueError:
         return jsonify({'success': False, 'error': 'Invalid batch_id'}), 400
     
+    # Validate passport expiry vs expected return date (client-side validation should catch this)
+    # Server-side validation for extra safety
+    passport_expiry = data.get('passport_expiry_date')
+    expected_return = data.get('expected_return_date')
+    if passport_expiry and expected_return:
+        try:
+            expiry_date = datetime.strptime(passport_expiry, '%Y-%m-%d')
+            return_date = datetime.strptime(expected_return, '%Y-%m-%d')
+            # Calculate 6 months after return date
+            from dateutil.relativedelta import relativedelta
+            min_expiry = return_date + relativedelta(months=6)
+            if expiry_date < min_expiry:
+                return jsonify({
+                    'success': False, 
+                    'error': f'Passport must be valid for at least 6 months after expected return date. Minimum expiry: {min_expiry.strftime("%Y-%m-%d")}'
+                }), 400
+        except Exception as e:
+            # If date parsing fails, skip validation
+            print(f"⚠️ Date validation warning: {e}")
+    
     passport_name = data.get('passport_name') or f"{data['first_name']} {data['last_name']}".strip()
     
     extra_fields = data.get('extra_fields', '{}')
@@ -292,7 +312,7 @@ def create_traveler():
         if cursor.fetchone():
             return jsonify({'success': False, 'error': 'Passport number already exists'}), 400
         
-        # Insert traveler first to get ID
+        # Insert traveler first to get ID - NOW WITH 36 FIELDS
         cursor.execute('''
             INSERT INTO travelers (
                 first_name, last_name, passport_name, batch_id,
@@ -303,8 +323,10 @@ def create_traveler():
                 place_of_birth, place_of_issue, passport_address,
                 father_name, mother_name, spouse_name,
                 pin, emergency_contact, emergency_phone, medical_notes,
+                -- NEW FIELDS (3)
+                mailing_address, file_reference, expected_return_date,
                 extra_fields, created_at, updated_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (
             data['first_name'],
@@ -334,6 +356,10 @@ def create_traveler():
             data.get('emergency_contact'),
             data.get('emergency_phone'),
             data.get('medical_notes'),
+            # NEW FIELDS (3)
+            data.get('mailing_address'),
+            data.get('file_reference'),
+            data.get('expected_return_date'),
             extra_fields,
             datetime.now(),
             datetime.now()
@@ -390,7 +416,7 @@ def create_traveler():
 
 @bp.route('/<int:traveler_id>', methods=['PUT'])
 def update_traveler(traveler_id):
-    """Update traveler"""
+    """Update traveler with 36 fields (includes mailing_address, file_reference, expected_return_date)"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -423,7 +449,7 @@ def update_traveler(traveler_id):
         update_fields = []
         values = []
         
-        # Text fields that can be updated
+        # Text fields that can be updated (including new fields)
         text_fields = [
             'first_name', 'last_name', 'passport_name', 'passport_no',
             'passport_issue_date', 'passport_expiry_date', 'passport_status',
@@ -431,7 +457,9 @@ def update_traveler(traveler_id):
             'aadhaar_pan_linked', 'vaccine_status', 'wheelchair',
             'place_of_birth', 'place_of_issue', 'passport_address',
             'father_name', 'mother_name', 'spouse_name', 'pin',
-            'emergency_contact', 'emergency_phone', 'medical_notes'
+            'emergency_contact', 'emergency_phone', 'medical_notes',
+            # NEW FIELDS (3)
+            'mailing_address', 'file_reference', 'expected_return_date'
         ]
         
         for field in text_fields:
@@ -851,7 +879,9 @@ def search_travelers():
             SELECT 
                 t.id, t.first_name, t.last_name, t.passport_no, 
                 t.mobile, t.email, t.passport_status,
-                b.batch_name
+                b.batch_name,
+                t.file_reference,
+                t.expected_return_date
             FROM travelers t
             LEFT JOIN batches b ON t.batch_id = b.id
             WHERE 
@@ -860,10 +890,12 @@ def search_travelers():
                 t.passport_no ILIKE %s OR 
                 t.mobile ILIKE %s OR 
                 t.email ILIKE %s OR
-                t.passport_name ILIKE %s
+                t.passport_name ILIKE %s OR
+                t.file_reference ILIKE %s OR
+                t.mailing_address ILIKE %s
             ORDER BY t.created_at DESC
             LIMIT 50
-        ''', [search_term] * 6)
+        ''', [search_term] * 8)
         
         results = cursor.fetchall()
         
@@ -880,7 +912,7 @@ def search_travelers():
 
 @bp.route('/export', methods=['POST'])
 def export_travelers():
-    """Export travelers data in various formats"""
+    """Export travelers data in various formats (including new fields)"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -916,12 +948,13 @@ def export_travelers():
             output = io.StringIO()
             writer = csv.writer(output)
             
-            # Write headers
+            # Write headers - include new fields
             if fields:
                 writer.writerow(fields)
             else:
                 writer.writerow(['ID', 'First Name', 'Last Name', 'Passport Name', 'Batch', 
-                               'Passport No', 'Mobile', 'Email', 'Status', 'Created At'])
+                               'Passport No', 'Mobile', 'Email', 'Status', 'Created At',
+                               'Mailing Address', 'File Reference', 'Expected Return Date'])
             
             # Write data
             for t in travelers:
@@ -931,7 +964,10 @@ def export_travelers():
                     row = [
                         t['id'], t['first_name'], t['last_name'], t['passport_name'],
                         t['batch_name'], t['passport_no'], t['mobile'], t['email'],
-                        t['passport_status'], t['created_at']
+                        t['passport_status'], t['created_at'],
+                        t.get('mailing_address', ''),
+                        t.get('file_reference', ''),
+                        t.get('expected_return_date', '')
                     ]
                 writer.writerow(row)
             
