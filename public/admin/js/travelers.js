@@ -5,10 +5,20 @@
   so the minimal existing code is preserved and new behavior is added.
 */
 
+// Provide compatibility wrappers so HTML that calls handleCreateTraveler/handleUpdateTraveler keeps working
+function handleCreateTraveler(event) {
+    return createTraveler(event);
+}
+
+function handleUpdateTraveler(event) {
+    return updateTraveler(event);
+}
+
 // Helper: copy passport address to mailing address when checkbox is checked
 function toggleMailingAddress(prefix) {
     try {
-        const sameCb = document.getElementById(prefix + '_same_mailing');
+        // support two checkbox id naming patterns used in different versions of the HTML
+        const sameCb = document.getElementById(prefix + '_same_mailing') || document.getElementById(prefix + '_same_as_passport');
         const passportAddr = document.getElementById(prefix + '_passport_address');
         const mailingEl = document.getElementById(prefix + '_mailing_address');
         if (!sameCb || !mailingEl || !passportAddr) return;
@@ -181,8 +191,9 @@ async function updateTraveler(event) {
 
 // Wire checkbox auto-copy behavior for add/edit forms
 document.addEventListener('DOMContentLoaded', () => {
-    const addCb = document.getElementById('add_same_mailing');
+    // support both id variants: *_same_mailing and *_same_as_passport
+    const addCb = document.getElementById('add_same_mailing') || document.getElementById('add_same_as_passport');
     if (addCb) addCb.addEventListener('change', () => toggleMailingAddress('add'));
-    const editCb = document.getElementById('edit_same_mailing');
+    const editCb = document.getElementById('edit_same_mailing') || document.getElementById('edit_same_as_passport');
     if (editCb) editCb.addEventListener('change', () => toggleMailingAddress('edit'));
 });
