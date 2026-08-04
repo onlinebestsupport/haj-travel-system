@@ -5,9 +5,55 @@ import json
 
 bp = Blueprint('batches', __name__, url_prefix='/api/batches')
 
+# ============================================================
+# DATABASE MIGRATION - Add return_date column if missing
+# ============================================================
+def migrate_batches_table():
+    """Add return_date column to batches table if it doesn't exist"""
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        
+        # Check if return_date column exists
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'batches' AND column_name = 'return_date'
+        """)
+        
+        if not cursor.fetchone():
+            print("🔄 Adding return_date column to batches table...")
+            cursor.execute("""
+                ALTER TABLE batches 
+                ADD COLUMN return_date DATE
+            """)
+            conn.commit()
+            print("✅ return_date column added successfully!")
+        else:
+            print("✅ return_date column already exists")
+            
+    except Exception as e:
+        print(f"⚠️ Migration error: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+# Run migration on import
+try:
+    migrate_batches_table()
+except Exception as e:
+    print(f"⚠️ Migration failed: {e}")
+
+# ============================================================
+# ROUTES
+# ============================================================
+
 @bp.route('', methods=['GET'])
 def get_batches():
-    """Get all batches"""
+    """Get all batches with return_date included"""
     if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -15,9 +61,28 @@ def get_batches():
     cursor = None
     try:
         conn, cursor = get_db()
-        cursor.execute("SELECT * FROM batches ORDER BY created_at DESC")
+        
+        # Select all fields including return_date
+        cursor.execute("""
+            SELECT 
+                id, batch_name, total_seats, booked_seats, price, 
+                departure_date, return_date, status, description, 
+                created_at, updated_at
+            FROM batches 
+            ORDER BY created_at DESC
+        """)
         batches = cursor.fetchall()
-        return jsonify({'success': True, 'batches': [dict(b) for b in batches]})
+        
+        # Convert to dict and ensure return_date is included
+        result = []
+        for b in batches:
+            batch_dict = dict(b)
+            # Ensure return_date is in the response even if None
+            if 'return_date' not in batch_dict:
+                batch_dict['return_date'] = None
+            result.append(batch_dict)
+            
+        return jsonify({'success': True, 'batches': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
@@ -26,7 +91,7 @@ def get_batches():
 
 @bp.route('/<int:batch_id>', methods=['GET'])
 def get_batch(batch_id):
-    """Get single batch"""
+    """Get single batch with return_date"""
     if 'user_id' not in session and 'traveler_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -34,11 +99,23 @@ def get_batch(batch_id):
     cursor = None
     try:
         conn, cursor = get_db()
-        cursor.execute("SELECT * FROM batches WHERE id = %s", (batch_id,))
+        cursor.execute("""
+            SELECT 
+                id, batch_name, total_seats, booked_seats, price, 
+                departure_date, return_date, status, description, 
+                created_at, updated_at
+            FROM batches 
+            WHERE id = %s
+        """, (batch_id,))
         batch = cursor.fetchone()
         if not batch:
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        return jsonify({'success': True, 'batch': dict(batch)})
+            
+        batch_dict = dict(batch)
+        if 'return_date' not in batch_dict:
+            batch_dict['return_date'] = None
+            
+        return jsonify({'success': True, 'batch': batch_dict})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
@@ -47,7 +124,7 @@ def get_batch(batch_id):
 
 @bp.route('', methods=['POST'])
 def create_batch():
-    """Create new batch"""
+    """Create new batch with return_date"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -57,13 +134,26 @@ def create_batch():
     if not data.get('batch_name'):
         return jsonify({'success': False, 'error': 'Batch name is required'}), 400
     
+    # Validate return date is after departure date
+    departure_date = data.get('departure_date')
+    return_date = data.get('return_date')
+    
+    if departure_date and return_date and return_date < departure_date:
+        return jsonify({
+            'success': False, 
+            'error': 'Return date must be after departure date'
+        }), 400
+    
     conn = None
     cursor = None
     try:
         conn, cursor = get_db()
         cursor.execute('''
-            INSERT INTO batches (batch_name, total_seats, price, departure_date, return_date, 
-                                 status, description, created_at, updated_at)
+            INSERT INTO batches (
+                batch_name, total_seats, price, 
+                departure_date, return_date, 
+                status, description, created_at, updated_at
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (
@@ -71,7 +161,7 @@ def create_batch():
             data.get('total_seats', 150),
             data.get('price'),
             data.get('departure_date'),
-            data.get('return_date'),
+            data.get('return_date'),  # return_date is now included
             data.get('status', 'Open'),
             data.get('description'),
             datetime.now(),
@@ -84,7 +174,8 @@ def create_batch():
         return jsonify({
             'success': True,
             'batch_id': result['id'],
-            'message': 'Batch created successfully'
+            'message': 'Batch created successfully',
+            'return_date': data.get('return_date')  # Return it back for confirmation
         })
     except Exception as e:
         if conn:
@@ -96,11 +187,21 @@ def create_batch():
 
 @bp.route('/<int:batch_id>', methods=['PUT'])
 def update_batch(batch_id):
-    """Update batch"""
+    """Update batch with return_date"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     data = request.json
+    
+    # Validate return date is after departure date
+    departure_date = data.get('departure_date')
+    return_date = data.get('return_date')
+    
+    if departure_date and return_date and return_date < departure_date:
+        return jsonify({
+            'success': False, 
+            'error': 'Return date must be after departure date'
+        }), 400
     
     conn = None
     cursor = None
@@ -112,32 +213,53 @@ def update_batch(batch_id):
         if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
         
-        # Update batch
-        cursor.execute("""
-            UPDATE batches SET
-                batch_name = COALESCE(%s, batch_name),
-                total_seats = COALESCE(%s, total_seats),
-                price = COALESCE(%s, price),
-                departure_date = COALESCE(%s, departure_date),
-                return_date = COALESCE(%s, return_date),
-                status = COALESCE(%s, status),
-                description = COALESCE(%s, description),
-                updated_at = %s
-            WHERE id = %s
-        """, (
-            data.get('batch_name'),
-            data.get('total_seats'),
-            data.get('price'),
-            data.get('departure_date'),
-            data.get('return_date'),
-            data.get('status'),
-            data.get('description'),
-            datetime.now(),
-            batch_id
-        ))
+        # Build update query dynamically to only update provided fields
+        update_fields = []
+        params = []
+        
+        # Fields that can be updated
+        field_mapping = {
+            'batch_name': data.get('batch_name'),
+            'total_seats': data.get('total_seats'),
+            'price': data.get('price'),
+            'departure_date': data.get('departure_date'),
+            'return_date': data.get('return_date'),  # return_date is included
+            'status': data.get('status'),
+            'description': data.get('description')
+        }
+        
+        for field, value in field_mapping.items():
+            if value is not None:
+                update_fields.append(f"{field} = %s")
+                params.append(value)
+        
+        # Always update updated_at
+        update_fields.append("updated_at = %s")
+        params.append(datetime.now())
+        
+        # Add batch_id to params
+        params.append(batch_id)
+        
+        if update_fields:
+            query = f"UPDATE batches SET {', '.join(update_fields)} WHERE id = %s"
+            cursor.execute(query, params)
         
         conn.commit()
-        return jsonify({'success': True, 'message': 'Batch updated successfully'})
+        
+        # Get updated batch to return
+        cursor.execute("""
+            SELECT id, batch_name, total_seats, booked_seats, price, 
+                   departure_date, return_date, status, description, 
+                   created_at, updated_at
+            FROM batches WHERE id = %s
+        """, (batch_id,))
+        updated_batch = cursor.fetchone()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Batch updated successfully',
+            'batch': dict(updated_batch) if updated_batch else None
+        })
         
     except Exception as e:
         if conn:
@@ -179,7 +301,10 @@ def delete_batch(batch_id):
         if conn:
             release_db(conn, cursor)
 
-# Additional endpoints (make sure these don't conflict)
+# ============================================================
+# ADDITIONAL ENDPOINTS
+# ============================================================
+
 @bp.route('/<int:batch_id>/travelers', methods=['GET'])
 def get_batch_travelers(batch_id):
     """Get travelers in a batch"""
@@ -233,7 +358,7 @@ def get_batch_payments(batch_id):
 
 @bp.route('/summary', methods=['GET'])
 def get_batches_summary():
-    """Get summary of all batches"""
+    """Get summary of all batches including return date stats"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
@@ -247,13 +372,131 @@ def get_batches_summary():
                 COUNT(*) as total_batches,
                 SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_batches,
                 SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_batches,
+                SUM(CASE WHEN status = 'Closing Soon' THEN 1 ELSE 0 END) as closing_batches,
+                SUM(CASE WHEN status = 'Full' THEN 1 ELSE 0 END) as full_batches,
                 COALESCE(SUM(total_seats), 0) as total_seats,
-                COALESCE(SUM(booked_seats), 0) as total_booked
+                COALESCE(SUM(booked_seats), 0) as total_booked,
+                COUNT(CASE WHEN return_date IS NOT NULL THEN 1 END) as batches_with_return_date
             FROM batches
         ''')
         
         summary = cursor.fetchone()
         return jsonify({'success': True, 'summary': dict(summary) if summary else {}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/with-return-date', methods=['GET'])
+def get_batches_with_return_date():
+    """Get only batches that have a return date set"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                id, batch_name, return_date, departure_date,
+                total_seats, booked_seats, status
+            FROM batches 
+            WHERE return_date IS NOT NULL
+            ORDER BY return_date ASC
+        """)
+        batches = cursor.fetchall()
+        return jsonify({
+            'success': True, 
+            'batches': [dict(b) for b in batches],
+            'count': len(batches)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/<int:batch_id>/update-return-date', methods=['PATCH'])
+def update_batch_return_date(batch_id):
+    """Update only the return date of a batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    return_date = data.get('return_date')
+    
+    if not return_date:
+        return jsonify({'success': False, 'error': 'Return date is required'}), 400
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        
+        # Check if batch exists
+        cursor.execute("SELECT id FROM batches WHERE id = %s", (batch_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Batch not found'}), 404
+        
+        # Update only the return date
+        cursor.execute("""
+            UPDATE batches 
+            SET return_date = %s, updated_at = %s
+            WHERE id = %s
+        """, (return_date, datetime.now(), batch_id))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Return date updated successfully',
+            'return_date': return_date
+        })
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+# ============================================================
+# UTILITY: Get batch with return date for traveler
+# ============================================================
+@bp.route('/for-traveler/<int:batch_id>', methods=['GET'])
+def get_batch_for_traveler(batch_id):
+    """
+    Get batch details specifically for traveler form
+    Includes return_date for auto-population
+    """
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                id, batch_name, return_date, departure_date,
+                price, total_seats, booked_seats, status
+            FROM batches 
+            WHERE id = %s
+        """, (batch_id,))
+        batch = cursor.fetchone()
+        
+        if not batch:
+            return jsonify({'success': False, 'error': 'Batch not found'}), 404
+        
+        batch_dict = dict(batch)
+        # Ensure return_date is included even if None
+        if 'return_date' not in batch_dict:
+            batch_dict['return_date'] = None
+            
+        return jsonify({
+            'success': True,
+            'batch': batch_dict,
+            'has_return_date': batch_dict.get('return_date') is not None
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
