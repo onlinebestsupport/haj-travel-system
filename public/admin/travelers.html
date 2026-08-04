@@ -89,7 +89,7 @@
         .form-container h3 { margin-bottom: 20px; color: #2c3e50; }
         .form-container h3 i { color: #f1c40f; margin-right: 10px; }
 
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600; }
         .form-group label i { margin-right: 8px; color: #f1c40f; }
@@ -174,6 +174,8 @@
         .status-pending { background: #fff3cd; color: #856404; }
         .status-warning { background: #fff3cd; color: #856404; }
         .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-valid { background: #d4edda; color: #155724; }
+        .status-invalid { background: #f8d7da; color: #721c24; }
 
         /* ==================================================================
            MAIN SECTION 12: DOCUMENT ICON STYLES
@@ -310,6 +312,66 @@
             .search-box input { width: 100%; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
+
+        /* ==================================================================
+           MAIN SECTION 21: VALIDATION STYLES
+           ================================================================== */
+        .validation-valid {
+            border-color: #27ae60 !important;
+            background: #f0fff4 !important;
+        }
+        .validation-invalid {
+            border-color: #e74c3c !important;
+            background: #fff5f5 !important;
+        }
+        .validation-warning {
+            border-color: #f39c12 !important;
+            background: #fffbf0 !important;
+        }
+        .validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .validation-message.valid {
+            color: #27ae60;
+            background: #f0fff4;
+        }
+        .validation-message.invalid {
+            color: #e74c3c;
+            background: #fff5f5;
+        }
+        .validation-message.warning {
+            color: #f39c12;
+            background: #fffbf0;
+        }
+        .auto-filled {
+            background: #e8f4f8 !important;
+            border-color: #3498db !important;
+        }
+        .auto-filled-label {
+            color: #3498db !important;
+        }
+        .auto-filled-label i {
+            color: #3498db !important;
+        }
+        .batch-return-info {
+            background: #e8f4f8;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            display: none;
+        }
+        .batch-return-info.show {
+            display: block;
+        }
+        .batch-return-info i {
+            color: #3498db;
+            margin-right: 8px;
+        }
     </style>
     <script src="/admin/js/session-manager.js"></script>
     <script src="/admin/js/mobile-fix.js"></script>
@@ -319,7 +381,7 @@
 <body>
 
     <!-- ==================================================================
-    MAIN SECTION 21: HEADER HTML
+    MAIN SECTION 22: HEADER HTML
     ================================================================== -->
     <div class="admin-header">
         <div class="container">
@@ -342,7 +404,7 @@
     </div>
 
     <!-- ==================================================================
-    MAIN SECTION 22: SESSION WARNING BANNER
+    MAIN SECTION 23: SESSION WARNING BANNER
     ================================================================== -->
     <div id="sessionWarning" onclick="extendSession()">
         <i class="fas fa-exclamation-triangle"></i>
@@ -350,19 +412,19 @@
     </div>
 
     <!-- ==================================================================
-    MAIN SECTION 23: MAIN CONTAINER
+    MAIN SECTION 24: MAIN CONTAINER
     ================================================================== -->
     <div class="container">
 
         <!-- ==================================================================
-        MAIN SECTION 24: PAGE HEADER
+        MAIN SECTION 25: PAGE HEADER
         ================================================================== -->
         <div class="page-header">
             <h2><i class="fas fa-users"></i> Traveler Management (36 Fields)</h2>
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 25: STATS CARDS
+        MAIN SECTION 26: STATS CARDS
         ================================================================== -->
         <div class="stats-grid">
             <div class="stat-card stat-blue">
@@ -388,7 +450,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 26: ACTION BUTTONS
+        MAIN SECTION 27: ACTION BUTTONS
         ================================================================== -->
         <div class="action-buttons">
             <button class="action-btn btn-success" onclick="showAddTravelerForm()">
@@ -412,15 +474,15 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 27: CSV UPLOAD SECTION
+        MAIN SECTION 28: CSV UPLOAD SECTION
         ================================================================== -->
         <div id="csvUploadSection" class="csv-upload-section" style="display: none;">
             <h3><i class="fas fa-file-csv"></i> Bulk Upload Travelers via CSV</h3>
             <div class="csv-format-box">
                 <strong>CSV Format (36 columns):</strong>
-                <pre>first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,mailing_address,file_reference,expected_return_date,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields</pre>
+                <pre>first_name,last_name,passport_name,gender,dob,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,mailing_address,file_reference,expected_return_date,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields</pre>
                 <p style="color: #7f8c8d; margin-top: 10px;">⚠️ Batch ID should match existing batch IDs in the system</p>
-                <p style="color: #27ae60; margin-top: 5px;">✅ NEW: mailing_address, file_reference, expected_return_date added</p>
+                <p style="color: #27ae60; margin-top: 5px;">✅ Expected Return Date auto-populates from selected batch</p>
             </div>
             <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                 <input type="file" id="csvFileInput" accept=".csv" style="flex: 1; padding: 10px;">
@@ -438,14 +500,14 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 28: ADD TRAVELER FORM - 36 FIELDS
+        MAIN SECTION 29: ADD TRAVELER FORM - 36 FIELDS (REORDERED)
         ================================================================== -->
         <div class="form-container" id="addTravelerForm">
             <h3><i class="fas fa-user-plus"></i> Add New Traveler - 36 Fields</h3>
             <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();" enctype="multipart/form-data">
 
                 <!-- ======================================================
-                SUBSECTION 28.1: PERSONAL INFORMATION (10 fields)
+                SUBSECTION 29.1: PERSONAL INFORMATION (REORDERED)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
@@ -464,33 +526,6 @@
                         <input type="text" id="add_passport_name" readonly>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="add_batch_id" required>
-                            <option value="">Select Batch</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Number *</label>
-                        <input type="text" id="add_passport_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
-                        <input type="date" id="add_passport_issue_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
-                        <input type="date" id="add_passport_expiry_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
-                        <select id="add_passport_status">
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Processing">Processing</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label><i class="fas fa-venus-mars"></i> Gender</label>
                         <select id="add_gender">
                             <option value="">Select</option>
@@ -503,10 +538,42 @@
                         <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
                         <input type="date" id="add_dob">
                     </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-layer-group"></i> Batch *</label>
+                        <select id="add_batch_id" required onchange="onBatchSelect('add')">
+                            <option value="">Select Batch</option>
+                        </select>
+                        <div id="add_batch_return_info" class="batch-return-info">
+                            <i class="fas fa-calendar-check"></i> 
+                            <span id="add_batch_return_text">Return Date: </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-passport"></i> Passport Number *</label>
+                        <input type="text" id="add_passport_no" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
+                        <input type="date" id="add_passport_issue_date">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
+                        <input type="date" id="add_passport_expiry_date" onchange="validatePassportExpiry('add')">
+                        <div id="add_passport_validation" class="validation-message"></div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
+                        <select id="add_passport_status">
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Processing">Processing</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 28.2: CONTACT INFORMATION (7 fields)
+                SUBSECTION 29.2: CONTACT INFORMATION (7 fields)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
@@ -555,7 +622,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 28.3: ADDRESS & FAMILY (8 fields - includes mailing_address)
+                SUBSECTION 29.3: ADDRESS & FAMILY (8 fields)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-home"></i> 3. Address & Family Information</h4>
@@ -596,16 +663,17 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 28.4: TRAVEL & RETURN INFORMATION (2 new fields)
+                SUBSECTION 29.4: TRAVEL & RETURN INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-calendar-alt"></i> 4. Travel & Return Information</h4>
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
-                        <input type="date" id="add_expected_return_date" placeholder="Expected return from Hajj">
-                        <small style="color: #7f8c8d;">Passport must be valid for 6 months after this date</small>
+                        <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
+                        <input type="date" id="add_expected_return_date" readonly class="auto-filled">
+                        <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
+                        <div id="add_expected_return_info" style="font-size: 0.85rem; color: #3498db; margin-top: 3px;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
@@ -614,7 +682,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 28.5: DOCUMENT UPLOADS (5 fields)
+                SUBSECTION 29.5: DOCUMENT UPLOADS (5 fields)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-file-upload"></i> 5. Document Uploads</h4>
@@ -673,7 +741,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 28.6: ADDITIONAL INFORMATION (4 fields)
+                SUBSECTION 29.6: ADDITIONAL INFORMATION (4 fields)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-cog"></i> 6. Additional Information</h4>
@@ -705,7 +773,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 29: EDIT TRAVELER FORM - 36 FIELDS
+        MAIN SECTION 30: EDIT TRAVELER FORM - 36 FIELDS (REORDERED)
         ================================================================== -->
         <div class="form-container" id="editTravelerForm" style="display: none;">
             <h3><i class="fas fa-user-edit"></i> Edit Traveler - 36 Fields</h3>
@@ -713,7 +781,7 @@
                 <input type="hidden" id="edit_traveler_id">
 
                 <!-- ======================================================
-                SUBSECTION 29.1: PERSONAL INFORMATION
+                SUBSECTION 30.1: PERSONAL INFORMATION (REORDERED)
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
@@ -732,33 +800,6 @@
                         <input type="text" id="edit_passport_name" readonly>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="edit_batch_id" required>
-                            <option value="">Select Batch</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-passport"></i> Passport Number *</label>
-                        <input type="text" id="edit_passport_no" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
-                        <input type="date" id="edit_passport_issue_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
-                        <input type="date" id="edit_passport_expiry_date">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
-                        <select id="edit_passport_status">
-                            <option value="Active">Active</option>
-                            <option value="Expired">Expired</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Processing">Processing</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label><i class="fas fa-venus-mars"></i> Gender</label>
                         <select id="edit_gender">
                             <option value="">Select</option>
@@ -771,10 +812,42 @@
                         <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
                         <input type="date" id="edit_dob">
                     </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-layer-group"></i> Batch *</label>
+                        <select id="edit_batch_id" required onchange="onBatchSelect('edit')">
+                            <option value="">Select Batch</option>
+                        </select>
+                        <div id="edit_batch_return_info" class="batch-return-info">
+                            <i class="fas fa-calendar-check"></i> 
+                            <span id="edit_batch_return_text">Return Date: </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-passport"></i> Passport Number *</label>
+                        <input type="text" id="edit_passport_no" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Passport Issue Date</label>
+                        <input type="date" id="edit_passport_issue_date">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Passport Expiry Date</label>
+                        <input type="date" id="edit_passport_expiry_date" onchange="validatePassportExpiry('edit')">
+                        <div id="edit_passport_validation" class="validation-message"></div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-info-circle"></i> Passport Status</label>
+                        <select id="edit_passport_status">
+                            <option value="Active">Active</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Processing">Processing</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.2: CONTACT INFORMATION
+                SUBSECTION 30.2: CONTACT INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
@@ -823,7 +896,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.3: ADDRESS & FAMILY
+                SUBSECTION 30.3: ADDRESS & FAMILY
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-home"></i> 3. Address & Family</h4>
@@ -864,16 +937,17 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.4: TRAVEL & RETURN INFORMATION
+                SUBSECTION 30.4: TRAVEL & RETURN INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-calendar-alt"></i> 4. Travel & Return Information</h4>
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
-                        <input type="date" id="edit_expected_return_date">
-                        <small style="color: #7f8c8d;">Passport must be valid for 6 months after this date</small>
+                        <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
+                        <input type="date" id="edit_expected_return_date" readonly class="auto-filled">
+                        <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
+                        <div id="edit_expected_return_info" style="font-size: 0.85rem; color: #3498db; margin-top: 3px;"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
@@ -882,7 +956,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.5: DOCUMENT UPLOADS
+                SUBSECTION 30.5: DOCUMENT UPLOADS
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-file-upload"></i> 5. Document Uploads</h4>
@@ -936,7 +1010,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.6: ADDITIONAL INFORMATION
+                SUBSECTION 30.6: ADDITIONAL INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-cog"></i> 6. Additional Information</h4>
@@ -968,7 +1042,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 30: SEARCH BOX
+        MAIN SECTION 31: SEARCH BOX
         ================================================================== -->
         <div class="search-box">
             <input type="text" id="searchTravelers" placeholder="Search travelers by name, passport, mobile, batch, file reference...">
@@ -981,7 +1055,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 31: TRAVELERS TABLE
+        MAIN SECTION 32: TRAVELERS TABLE
         ================================================================== -->
         <div class="table-container">
             <table id="travelersTable">
@@ -1007,7 +1081,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 32: PAGINATION
+        MAIN SECTION 33: PAGINATION
         ================================================================== -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
             <div id="paginationInfo">
@@ -1021,12 +1095,12 @@
     </div>
 
     <!-- ==================================================================
-    MAIN SECTION 33: MODALS
+    MAIN SECTION 34: MODALS
     ================================================================== -->
     <div id="modalOverlay" class="modal-overlay" onclick="closeAllModals()"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 33.1: VIEW TRAVELER MODAL
+    MAIN SECTION 34.1: VIEW TRAVELER MODAL
     ================================================================== -->
     <div id="viewTravelerModal" class="modal modal-large">
         <div class="modal-header">
@@ -1042,7 +1116,7 @@
     </div>
 
     <!-- ==================================================================
-    MAIN SECTION 33.2: DOCUMENT VIEWER MODAL
+    MAIN SECTION 34.2: DOCUMENT VIEWER MODAL
     ================================================================== -->
     <div id="documentViewerModal" class="modal">
         <div class="modal-header">
@@ -1057,17 +1131,17 @@
     </div>
 
     <!-- ==================================================================
-    MAIN SECTION 34: NOTIFICATION
+    MAIN SECTION 35: NOTIFICATION
     ================================================================== -->
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 35: JAVASCRIPT
+    MAIN SECTION 36: JAVASCRIPT
     ================================================================== -->
     <script>
         /**
          * ==================================================================
-         * SUBSECTION 35.1: GLOBAL VARIABLES
+         * SUBSECTION 36.1: GLOBAL VARIABLES
          * ================================================================== */
         let currentEditId = null;
         let travelersData = [];
@@ -1083,7 +1157,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.2: PAGE INITIALIZATION
+         * SUBSECTION 36.2: PAGE INITIALIZATION
          * ================================================================== */
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -1110,7 +1184,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.3: SESSION MANAGEMENT
+         * SUBSECTION 36.3: SESSION MANAGEMENT
          * ================================================================== */
         function resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
@@ -1164,7 +1238,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.4: NOTIFICATION FUNCTION
+         * SUBSECTION 36.4: NOTIFICATION FUNCTION
          * ================================================================== */
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
@@ -1181,7 +1255,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.5: LOGOUT FUNCTION
+         * SUBSECTION 36.5: LOGOUT FUNCTION
          * ================================================================== */
         async function logout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -1195,7 +1269,160 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.6: FILE HANDLING - SELECT & PREVIEW
+         * SUBSECTION 36.6: BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
+         * ================================================================== */
+        function onBatchSelect(prefix) {
+            const batchSelect = document.getElementById(prefix + '_batch_id');
+            const returnDateInput = document.getElementById(prefix + '_expected_return_date');
+            const returnInfoDiv = document.getElementById(prefix + '_batch_return_info');
+            const returnTextSpan = document.getElementById(prefix + '_batch_return_text');
+            const returnInfoMsg = document.getElementById(prefix + '_expected_return_info');
+            
+            if (!batchSelect || !returnDateInput) return;
+            
+            const selectedBatchId = batchSelect.value;
+            
+            if (selectedBatchId && batchesData.length > 0) {
+                const batch = batchesData.find(b => b.id == selectedBatchId);
+                
+                if (batch) {
+                    // Show return info
+                    if (returnInfoDiv && returnTextSpan) {
+                        returnInfoDiv.classList.add('show');
+                        returnTextSpan.textContent = batch.return_date ? `Return Date: ${batch.return_date}` : 'No return date set for this batch';
+                    }
+                    
+                    // Auto-populate expected return date
+                    if (batch.return_date) {
+                        returnDateInput.value = batch.return_date;
+                        returnDateInput.style.borderColor = '#27ae60';
+                        returnDateInput.style.background = '#f0fff4';
+                        
+                        if (returnInfoMsg) {
+                            returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batch.batch_name}`;
+                            returnInfoMsg.style.color = '#27ae60';
+                        }
+                        
+                        // Trigger validation
+                        validatePassportExpiry(prefix);
+                    } else {
+                        returnDateInput.value = '';
+                        returnDateInput.style.borderColor = '#f39c12';
+                        returnDateInput.style.background = '#fffbf0';
+                        
+                        if (returnInfoMsg) {
+                            returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
+                            returnInfoMsg.style.color = '#f39c12';
+                        }
+                    }
+                }
+            } else {
+                // Reset if no batch selected
+                returnDateInput.value = '';
+                returnDateInput.style.borderColor = '';
+                returnDateInput.style.background = '';
+                
+                if (returnInfoDiv) returnInfoDiv.classList.remove('show');
+                if (returnInfoMsg) returnInfoMsg.innerHTML = '';
+                
+                // Clear validation
+                const validationDiv = document.getElementById(prefix + '_passport_validation');
+                if (validationDiv) {
+                    validationDiv.textContent = '';
+                    validationDiv.className = 'validation-message';
+                }
+            }
+        }
+
+        /**
+         * ==================================================================
+         * SUBSECTION 36.7: VALIDATE PASSPORT EXPIRY (6 months after return date)
+         * ================================================================== */
+        function validatePassportExpiry(prefix) {
+            const expiryDateInput = document.getElementById(prefix + '_passport_expiry_date');
+            const returnDateInput = document.getElementById(prefix + '_expected_return_date');
+            const validationDiv = document.getElementById(prefix + '_passport_validation');
+            
+            if (!expiryDateInput || !validationDiv) return;
+            
+            const expiryDate = expiryDateInput.value;
+            const returnDate = returnDateInput ? returnDateInput.value : null;
+            
+            // Clear previous validation
+            expiryDateInput.className = '';
+            validationDiv.textContent = '';
+            validationDiv.className = 'validation-message';
+            
+            if (!expiryDate) {
+                // No expiry date set
+                return;
+            }
+            
+            if (!returnDate) {
+                // No return date set - show warning but not error
+                validationDiv.textContent = '⚠️ Expected return date not set. Please select a batch with return date.';
+                validationDiv.className = 'validation-message warning';
+                expiryDateInput.classList.add('validation-warning');
+                return;
+            }
+            
+            // Parse dates
+            const expiry = new Date(expiryDate + 'T00:00:00');
+            const ret = new Date(returnDate + 'T00:00:00');
+            
+            if (isNaN(expiry.getTime()) || isNaN(ret.getTime())) {
+                validationDiv.textContent = '⚠️ Invalid date format';
+                validationDiv.className = 'validation-message warning';
+                expiryDateInput.classList.add('validation-warning');
+                return;
+            }
+            
+            // Calculate 6 months after return date
+            const minExpiry = new Date(ret);
+            minExpiry.setMonth(minExpiry.getMonth() + 6);
+            
+            // Calculate days until expiry
+            const today = new Date();
+            const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+            const daysUntilMinExpiry = Math.ceil((expiry - minExpiry) / (1000 * 60 * 60 * 24));
+            
+            if (expiry < minExpiry) {
+                // Invalid - passport expires before 6 months after return
+                validationDiv.innerHTML = `
+                    <i class="fas fa-times-circle"></i> 
+                    Passport expires on ${expiryDate}. Must be valid for at least 6 months after expected return date.
+                    <br><strong>Minimum expiry date: ${minExpiry.toISOString().slice(0, 10)}</strong>
+                    (${Math.abs(daysUntilMinExpiry)} days short)
+                `;
+                validationDiv.className = 'validation-message invalid';
+                expiryDateInput.classList.add('validation-invalid');
+                expiryDateInput.setCustomValidity('Passport must be valid for 6 months after expected return date');
+            } else if (daysUntilExpiry < 180) {
+                // Warning - less than 6 months remaining
+                validationDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Passport expires in ${daysUntilExpiry} days. Less than 6 months remaining.
+                    <br>Recommended: Renew passport before travel.
+                `;
+                validationDiv.className = 'validation-message warning';
+                expiryDateInput.classList.add('validation-warning');
+                expiryDateInput.setCustomValidity('');
+            } else {
+                // Valid
+                validationDiv.innerHTML = `
+                    <i class="fas fa-check-circle"></i> 
+                    Passport is valid. Expires in ${daysUntilExpiry} days.
+                    <br>Remains valid for ${daysUntilMinExpiry} days after expected return.
+                `;
+                validationDiv.className = 'validation-message valid';
+                expiryDateInput.classList.add('validation-valid');
+                expiryDateInput.setCustomValidity('');
+            }
+        }
+
+        /**
+         * ==================================================================
+         * SUBSECTION 36.8: FILE HANDLING - SELECT & PREVIEW
          * ================================================================== */
         function handleFileSelect(input, textElementId, previewElementId) {
             const textElement = document.getElementById(textElementId);
@@ -1264,7 +1491,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.7: VIEW UPLOADED DOCUMENT
+         * SUBSECTION 36.9: VIEW UPLOADED DOCUMENT
          * ================================================================== */
         function viewUploadedDocument(docType, filename) {
             if (!filename) {
@@ -1287,7 +1514,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.8: SHOW EXISTING DOCUMENT PREVIEW
+         * SUBSECTION 36.10: SHOW EXISTING DOCUMENT PREVIEW
          * ================================================================== */
         function showExistingDocumentPreview(previewElementId, filename, docType) {
             if (!filename) return;
@@ -1334,7 +1561,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.9: AUTO-FILL PASSPORT NAME
+         * SUBSECTION 36.11: AUTO-FILL PASSPORT NAME
          * ================================================================== */
         function setupPassportNameAutoFill() {
             const addFirst = document.getElementById('add_first_name');
@@ -1362,7 +1589,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.10: TOGGLE MAILING ADDRESS
+         * SUBSECTION 36.12: TOGGLE MAILING ADDRESS
          * ================================================================== */
         function toggleMailingAddress(prefix) {
             const cb = document.getElementById(prefix + '_same_mailing');
@@ -1383,7 +1610,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.11: LOAD BATCHES
+         * SUBSECTION 36.13: LOAD BATCHES
          * ================================================================== */
         async function loadBatches() {
             try {
@@ -1403,33 +1630,32 @@
 
         function useFallbackBatches() {
             batchesData = [
-                { id: 1, batch_name: 'Haj Platinum 2026' },
-                { id: 2, batch_name: 'Haj Gold 2026' },
-                { id: 3, batch_name: 'Umrah Ramadhan Special' }
+                { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
+                { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
+                { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' }
             ];
             updateBatchDropdowns(batchesData);
         }
 
         function updateBatchDropdowns(batches) {
-            const addSelect = document.getElementById('add_batch_id');
-            const editSelect = document.getElementById('edit_batch_id');
-            if (addSelect) {
-                addSelect.innerHTML = '<option value="">Select Batch</option>';
+            ['add', 'edit'].forEach(prefix => {
+                const select = document.getElementById(prefix + '_batch_id');
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">Select Batch</option>';
                 batches.forEach(b => {
-                    addSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
+                    const option = document.createElement('option');
+                    option.value = b.id;
+                    const returnInfo = b.return_date ? ` (Return: ${b.return_date})` : ' (No return date set)';
+                    option.textContent = b.batch_name + returnInfo;
+                    select.appendChild(option);
                 });
-            }
-            if (editSelect) {
-                editSelect.innerHTML = '<option value="">Select Batch</option>';
-                batches.forEach(b => {
-                    editSelect.innerHTML += `<option value="${b.id}">${b.batch_name}</option>`;
-                });
-            }
+            });
         }
 
         /**
          * ==================================================================
-         * SUBSECTION 35.12: LOAD TRAVELERS
+         * SUBSECTION 36.14: LOAD TRAVELERS
          * ================================================================== */
         async function loadTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
@@ -1473,7 +1699,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.13: DISPLAY TRAVELERS
+         * SUBSECTION 36.15: DISPLAY TRAVELERS
          * ================================================================== */
         function displayTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
@@ -1568,7 +1794,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.14: FORM VISIBILITY
+         * SUBSECTION 36.16: FORM VISIBILITY
          * ================================================================== */
         function showAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'block';
@@ -1583,6 +1809,23 @@
             const textIds = ['add_passport_scan_text', 'add_aadhaar_scan_text', 'add_pan_scan_text', 'add_vaccine_scan_text', 'add_photo_text'];
             previewIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
             textIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = id.includes('photo') ? 'Click to upload photograph' : 'Click to upload'; });
+            
+            // Reset validation
+            const validationDiv = document.getElementById('add_passport_validation');
+            if (validationDiv) {
+                validationDiv.textContent = '';
+                validationDiv.className = 'validation-message';
+            }
+            const expiryInput = document.getElementById('add_passport_expiry_date');
+            if (expiryInput) expiryInput.className = '';
+            const returnDateInput = document.getElementById('add_expected_return_date');
+            if (returnDateInput) {
+                returnDateInput.value = '';
+                returnDateInput.style.borderColor = '';
+                returnDateInput.style.background = '';
+            }
+            const returnInfoDiv = document.getElementById('add_batch_return_info');
+            if (returnInfoDiv) returnInfoDiv.classList.remove('show');
         }
 
         function hideEditTravelerForm() {
@@ -1592,11 +1835,20 @@
             const textIds = ['edit_passport_scan_text', 'edit_aadhaar_scan_text', 'edit_pan_scan_text', 'edit_vaccine_scan_text', 'edit_photo_text'];
             previewIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
             textIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Click to update'; });
+            
+            // Reset validation
+            const validationDiv = document.getElementById('edit_passport_validation');
+            if (validationDiv) {
+                validationDiv.textContent = '';
+                validationDiv.className = 'validation-message';
+            }
+            const expiryInput = document.getElementById('edit_passport_expiry_date');
+            if (expiryInput) expiryInput.className = '';
         }
 
         /**
          * ==================================================================
-         * SUBSECTION 35.15: DATE FORMATTING
+         * SUBSECTION 36.17: DATE FORMATTING
          * ================================================================== */
         function formatDateForInput(dateStr) {
             if (!dateStr) return '';
@@ -1610,7 +1862,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.16: CREATE TRAVELER
+         * SUBSECTION 36.18: CREATE TRAVELER
          * ================================================================== */
         async function createTraveler() {
             const formData = new FormData(document.getElementById('travelerAddForm'));
@@ -1619,13 +1871,13 @@
                 first_name: document.getElementById('add_first_name').value,
                 last_name: document.getElementById('add_last_name').value,
                 passport_name: document.getElementById('add_passport_name').value,
+                gender: document.getElementById('add_gender').value,
+                dob: document.getElementById('add_dob').value,
                 batch_id: document.getElementById('add_batch_id').value,
                 passport_no: document.getElementById('add_passport_no').value,
                 passport_issue_date: document.getElementById('add_passport_issue_date').value,
                 passport_expiry_date: document.getElementById('add_passport_expiry_date').value,
                 passport_status: document.getElementById('add_passport_status').value,
-                gender: document.getElementById('add_gender').value,
-                dob: document.getElementById('add_dob').value,
                 mobile: document.getElementById('add_mobile').value,
                 email: document.getElementById('add_email').value,
                 aadhaar: document.getElementById('add_aadhaar').value,
@@ -1647,6 +1899,21 @@
                 emergency_phone: document.getElementById('add_emergency_phone').value,
                 medical_notes: document.getElementById('add_medical_notes').value
             };
+
+            // Validate passport expiry
+            const expiryDate = document.getElementById('add_passport_expiry_date').value;
+            const returnDate = document.getElementById('add_expected_return_date').value;
+            if (expiryDate && returnDate) {
+                const expiry = new Date(expiryDate + 'T00:00:00');
+                const ret = new Date(returnDate + 'T00:00:00');
+                const minExpiry = new Date(ret);
+                minExpiry.setMonth(minExpiry.getMonth() + 6);
+                
+                if (expiry < minExpiry) {
+                    showNotification('Passport must be valid for at least 6 months after expected return date.', 'error');
+                    return;
+                }
+            }
 
             Object.keys(fields).forEach(key => {
                 if (fields[key]) formData.append(key, fields[key]);
@@ -1703,7 +1970,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.17: EDIT TRAVELER
+         * SUBSECTION 36.19: EDIT TRAVELER
          * ================================================================== */
         function editTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
@@ -1718,13 +1985,13 @@
             document.getElementById('edit_first_name').value = traveler.first_name || '';
             document.getElementById('edit_last_name').value = traveler.last_name || '';
             document.getElementById('edit_passport_name').value = traveler.passport_name || '';
+            document.getElementById('edit_gender').value = traveler.gender || '';
+            document.getElementById('edit_dob').value = formatDateForInput(traveler.dob);
             document.getElementById('edit_batch_id').value = traveler.batch_id || '';
             document.getElementById('edit_passport_no').value = traveler.passport_no || '';
             document.getElementById('edit_passport_issue_date').value = formatDateForInput(traveler.passport_issue_date);
             document.getElementById('edit_passport_expiry_date').value = formatDateForInput(traveler.passport_expiry_date);
-            document.getElementById('edit_dob').value = formatDateForInput(traveler.dob);
             document.getElementById('edit_passport_status').value = traveler.passport_status || 'Active';
-            document.getElementById('edit_gender').value = traveler.gender || '';
             document.getElementById('edit_mobile').value = traveler.mobile || '';
             document.getElementById('edit_email').value = traveler.email || '';
             document.getElementById('edit_aadhaar').value = traveler.aadhaar || '';
@@ -1746,11 +2013,17 @@
             document.getElementById('edit_emergency_phone').value = traveler.emergency_phone || '';
             document.getElementById('edit_medical_notes').value = traveler.medical_notes || '';
 
+            // Show existing documents
             showExistingDocumentPreview('edit_passport_scan_preview', traveler.passport_scan, 'passport');
             showExistingDocumentPreview('edit_aadhaar_scan_preview', traveler.aadhaar_scan, 'aadhaar');
             showExistingDocumentPreview('edit_pan_scan_preview', traveler.pan_scan, 'pan');
             showExistingDocumentPreview('edit_vaccine_scan_preview', traveler.vaccine_scan, 'vaccine');
             showExistingDocumentPreview('edit_photo_preview', traveler.photo, 'photo');
+
+            // Auto-populate return date info
+            if (traveler.batch_id) {
+                onBatchSelect('edit');
+            }
 
             document.getElementById('editTravelerForm').style.display = 'block';
             document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
@@ -1758,7 +2031,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.18: UPDATE TRAVELER
+         * SUBSECTION 36.20: UPDATE TRAVELER
          * ================================================================== */
         async function updateTraveler() {
             if (!currentEditId) {
@@ -1768,17 +2041,32 @@
 
             const formData = new FormData(document.getElementById('travelerEditForm'));
 
+            // Validate passport expiry
+            const expiryDate = document.getElementById('edit_passport_expiry_date').value;
+            const returnDate = document.getElementById('edit_expected_return_date').value;
+            if (expiryDate && returnDate) {
+                const expiry = new Date(expiryDate + 'T00:00:00');
+                const ret = new Date(returnDate + 'T00:00:00');
+                const minExpiry = new Date(ret);
+                minExpiry.setMonth(minExpiry.getMonth() + 6);
+                
+                if (expiry < minExpiry) {
+                    showNotification('Passport must be valid for at least 6 months after expected return date.', 'error');
+                    return;
+                }
+            }
+
             const fields = {
                 first_name: document.getElementById('edit_first_name').value,
                 last_name: document.getElementById('edit_last_name').value,
                 passport_name: document.getElementById('edit_passport_name').value,
+                gender: document.getElementById('edit_gender').value,
+                dob: document.getElementById('edit_dob').value,
                 batch_id: document.getElementById('edit_batch_id').value,
                 passport_no: document.getElementById('edit_passport_no').value,
                 passport_issue_date: document.getElementById('edit_passport_issue_date').value,
                 passport_expiry_date: document.getElementById('edit_passport_expiry_date').value,
                 passport_status: document.getElementById('edit_passport_status').value,
-                gender: document.getElementById('edit_gender').value,
-                dob: document.getElementById('edit_dob').value,
                 mobile: document.getElementById('edit_mobile').value,
                 email: document.getElementById('edit_email').value,
                 aadhaar: document.getElementById('edit_aadhaar').value,
@@ -1847,7 +2135,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.19: DELETE TRAVELER
+         * SUBSECTION 36.21: DELETE TRAVELER
          * ================================================================== */
         async function deleteTraveler(id) {
             if (!confirm('Are you sure you want to delete this traveler? This action cannot be undone.')) return;
@@ -1871,7 +2159,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.20: VIEW TRAVELER
+         * SUBSECTION 36.22: VIEW TRAVELER
          * ================================================================== */
         function viewTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
@@ -1884,7 +2172,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.21: DISPLAY TRAVELER DETAILS
+         * SUBSECTION 36.23: DISPLAY TRAVELER DETAILS
          * ================================================================== */
         function displayTravelerDetails(t) {
             const formatValue = (val) => val && val !== '' ? escapeHtml(val) : '<span style="color: #95a5a6;">Not specified</span>';
@@ -1930,13 +2218,13 @@
                 <div class="detail-grid">
                     <div class="detail-item"><strong>Full Name:</strong> <span>${t.first_name || ''} ${t.last_name || ''}</span></div>
                     <div class="detail-item"><strong>Passport Name:</strong> <span>${formatValue(t.passport_name)}</span></div>
+                    <div class="detail-item"><strong>Gender:</strong> <span>${formatValue(t.gender)}</span></div>
+                    <div class="detail-item"><strong>Date of Birth:</strong> <span>${formatDate(t.dob)}</span></div>
                     <div class="detail-item"><strong>Batch:</strong> <span>${formatValue(t.batch_name)}</span></div>
                     <div class="detail-item"><strong>Passport Number:</strong> <span>${formatValue(t.passport_no)}</span></div>
                     <div class="detail-item"><strong>Passport Issue Date:</strong> <span>${formatDate(t.passport_issue_date)}</span></div>
                     <div class="detail-item"><strong>Passport Expiry Date:</strong> <span>${formatDate(t.passport_expiry_date)}</span></div>
                     <div class="detail-item"><strong>Passport Status:</strong> <span class="status-badge status-active">${formatValue(t.passport_status)}</span></div>
-                    <div class="detail-item"><strong>Gender:</strong> <span>${formatValue(t.gender)}</span></div>
-                    <div class="detail-item"><strong>Date of Birth:</strong> <span>${formatDate(t.dob)}</span></div>
                 </div>
 
                 <h4 style="color: #2c3e50; margin: 20px 0 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
@@ -2007,12 +2295,12 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.22: EXPORT FUNCTIONS
+         * SUBSECTION 36.24: EXPORT FUNCTIONS
          * ================================================================== */
         function exportTravelersToExcel() {
-            let csv = ['"ID","First Name","Last Name","Passport Name","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Passport Status","Gender","Date of Birth","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Mailing Address","Father\'s Name","Mother\'s Name","Spouse\'s Name","Expected Return Date","File Reference","PIN","Emergency Contact","Emergency Phone","Medical Notes","Passport Scan","Aadhaar Scan","PAN Scan","Vaccine Scan","Photo","Created At"'];
+            let csv = ['"ID","First Name","Last Name","Passport Name","Gender","Date of Birth","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Passport Status","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Mailing Address","Father\'s Name","Mother\'s Name","Spouse\'s Name","Expected Return Date","File Reference","PIN","Emergency Contact","Emergency Phone","Medical Notes","Passport Scan","Aadhaar Scan","PAN Scan","Vaccine Scan","Photo","Created At"'];
             travelersData.forEach(t => {
-                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.gender || ''}","${t.dob || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${(t.mailing_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.expected_return_date || ''}","${t.file_reference || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.passport_scan || ''}","${t.aadhaar_scan || ''}","${t.pan_scan || ''}","${t.vaccine_scan || ''}","${t.photo || ''}","${t.created_at || ''}"`);
+                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.gender || ''}","${t.dob || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${(t.mailing_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.expected_return_date || ''}","${t.file_reference || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.passport_scan || ''}","${t.aadhaar_scan || ''}","${t.pan_scan || ''}","${t.vaccine_scan || ''}","${t.photo || ''}","${t.created_at || ''}"`);
             });
             const csvContent = csv.join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -2115,7 +2403,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 35.23: CSV UPLOAD FUNCTIONS
+         * SUBSECTION 36.25: CSV UPLOAD FUNCTIONS
          * ================================================================== */
         function showCSVUploadSection() {
             document.getElementById('csvUploadSection').style.display = 'block';
@@ -2129,8 +2417,8 @@
         }
 
         function downloadCSVTemplate() {
-            const template = `first_name,last_name,passport_name,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,gender,dob,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,mailing_address,file_reference,expected_return_date,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
-John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,Active,Male,1990-01-01,9000000000,example@email.com,000000000000,AAAAA0000A,No,Not Vaccinated,No,City,City,"123 Sample Street, City",Father Name,Mother Name,,0000,Emergency Contact,9000000001,No notes,"123 Correspondence St, City",REF-001,2026-07-15,,,,,{}`;
+            const template = `first_name,last_name,passport_name,gender,dob,batch_id,passport_no,passport_issue_date,passport_expiry_date,passport_status,mobile,email,aadhaar,pan,aadhaar_pan_linked,vaccine_status,wheelchair,place_of_birth,place_of_issue,passport_address,father_name,mother_name,spouse_name,pin,emergency_contact,emergency_phone,medical_notes,mailing_address,file_reference,expected_return_date,passport_scan,aadhaar_scan,pan_scan,vaccine_scan,photo,extra_fields
+John,Doe,John Doe,Male,1990-01-01,1,A0000001,2020-01-01,2030-01-01,Active,9000000000,example@email.com,000000000000,AAAAA0000A,No,Not Vaccinated,No,City,City,"123 Sample Street, City",Father Name,Mother Name,,0000,Emergency Contact,9000000001,No notes,"123 Correspondence St, City",REF-001,2026-07-15,,,,,{}`;
             const blob = new Blob([template], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2180,7 +2468,7 @@ John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,Active,Male,1990-01-01,900000
 
         /**
          * ==================================================================
-         * SUBSECTION 35.24: SEARCH FUNCTIONS
+         * SUBSECTION 36.26: SEARCH FUNCTIONS
          * ================================================================== */
         function searchTravelers() {
             const search = document.getElementById('searchTravelers').value.toLowerCase().trim();
@@ -2210,7 +2498,7 @@ John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,Active,Male,1990-01-01,900000
 
         /**
          * ==================================================================
-         * SUBSECTION 35.25: UI HELPERS
+         * SUBSECTION 36.27: UI HELPERS
          * ================================================================== */
         function showLoading(btn, text) {
             if (!btn) return;
@@ -2234,7 +2522,7 @@ John,Doe,John Doe,1,A0000001,2020-01-01,2030-01-01,Active,Male,1990-01-01,900000
             btn.textContent = btn.textContent.replace('Saving...', 'Save Traveler (36 Fields)');
         }
 
-        console.log('✅ Travelers page loaded successfully with 36 fields!');
+        console.log('✅ Travelers page loaded successfully with auto-populated return dates and validation!');
     </script>
 </body>
 </html>
