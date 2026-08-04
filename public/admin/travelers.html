@@ -372,6 +372,25 @@
             color: #3498db;
             margin-right: 8px;
         }
+        .expected-return-info {
+            font-size: 0.85rem;
+            margin-top: 3px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: #f0f8ff;
+        }
+        .expected-return-info.success {
+            color: #27ae60;
+            background: #f0fff4;
+        }
+        .expected-return-info.warning {
+            color: #f39c12;
+            background: #fffbf0;
+        }
+        .expected-return-info.error {
+            color: #e74c3c;
+            background: #fff5f5;
+        }
     </style>
     <script src="/admin/js/session-manager.js"></script>
     <script src="/admin/js/mobile-fix.js"></script>
@@ -673,7 +692,7 @@
                         <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
                         <input type="date" id="add_expected_return_date" readonly class="auto-filled">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
-                        <div id="add_expected_return_info" style="font-size: 0.85rem; color: #3498db; margin-top: 3px;"></div>
+                        <div id="add_expected_return_info" class="expected-return-info"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
@@ -947,7 +966,7 @@
                         <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
                         <input type="date" id="edit_expected_return_date" readonly class="auto-filled">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
-                        <div id="edit_expected_return_info" style="font-size: 0.85rem; color: #3498db; margin-top: 3px;"></div>
+                        <div id="edit_expected_return_info" class="expected-return-info"></div>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
@@ -1282,25 +1301,40 @@
             
             const selectedBatchId = batchSelect.value;
             
+            // Clear previous info
+            if (returnInfoMsg) {
+                returnInfoMsg.innerHTML = '';
+                returnInfoMsg.className = 'expected-return-info';
+            }
+            
             if (selectedBatchId && batchesData.length > 0) {
-                const batch = batchesData.find(b => b.id == selectedBatchId);
+                // Find the selected batch - handle both integer and string IDs                const batch = batchesData.find(b => String(b.id) === String(selectedBatchId));
+                
+                console.log('Selected batch:', batch); // Debug log
                 
                 if (batch) {
+                    // Check for return date in multiple possible field names
+                    const returnDate = batch.return_date || batch.returnDate || batch.expected_return_date || batch.expectedReturnDate || batch.batch_return_date;
+                    
                     // Show return info
                     if (returnInfoDiv && returnTextSpan) {
                         returnInfoDiv.classList.add('show');
-                        returnTextSpan.textContent = batch.return_date ? `Return Date: ${batch.return_date}` : 'No return date set for this batch';
+                        if (returnDate) {
+                            returnTextSpan.textContent = `Return Date: ${returnDate}`;
+                        } else {
+                            returnTextSpan.textContent = 'No return date set for this batch';
+                        }
                     }
                     
                     // Auto-populate expected return date
-                    if (batch.return_date) {
-                        returnDateInput.value = batch.return_date;
+                    if (returnDate) {
+                        returnDateInput.value = returnDate;
                         returnDateInput.style.borderColor = '#27ae60';
                         returnDateInput.style.background = '#f0fff4';
                         
                         if (returnInfoMsg) {
-                            returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batch.batch_name}`;
-                            returnInfoMsg.style.color = '#27ae60';
+                            returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batch.batch_name || batch.name || 'Selected Batch'}`;
+                            returnInfoMsg.className = 'expected-return-info success';
                         }
                         
                         // Trigger validation
@@ -1312,8 +1346,18 @@
                         
                         if (returnInfoMsg) {
                             returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
-                            returnInfoMsg.style.color = '#f39c12';
+                            returnInfoMsg.className = 'expected-return-info warning';
                         }
+                    }
+                } else {
+                    console.warn('Batch not found in batchesData:', selectedBatchId);
+                    returnDateInput.value = '';
+                    returnDateInput.style.borderColor = '#e74c3c';
+                    returnDateInput.style.background = '#fff5f5';
+                    
+                    if (returnInfoMsg) {
+                        returnInfoMsg.innerHTML = `<i class="fas fa-times-circle" style="color: #e74c3c;"></i> Batch not found. Please refresh and try again.`;
+                        returnInfoMsg.className = 'expected-return-info error';
                     }
                 }
             } else {
@@ -1323,7 +1367,10 @@
                 returnDateInput.style.background = '';
                 
                 if (returnInfoDiv) returnInfoDiv.classList.remove('show');
-                if (returnInfoMsg) returnInfoMsg.innerHTML = '';
+                if (returnInfoMsg) {
+                    returnInfoMsg.innerHTML = '';
+                    returnInfoMsg.className = 'expected-return-info';
+                }
                 
                 // Clear validation
                 const validationDiv = document.getElementById(prefix + '_passport_validation');
@@ -1616,6 +1663,8 @@
             try {
                 const response = await fetch('/api/batches', { credentials: 'include' });
                 const data = await response.json();
+                console.log('Batches API response:', data); // Debug log
+                
                 if (data.success && data.batches) {
                     batchesData = data.batches;
                     updateBatchDropdowns(data.batches);
@@ -1634,6 +1683,7 @@
                 { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
                 { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' }
             ];
+            console.log('Using fallback batches:', batchesData);
             updateBatchDropdowns(batchesData);
         }
 
@@ -1646,8 +1696,9 @@
                 batches.forEach(b => {
                     const option = document.createElement('option');
                     option.value = b.id;
-                    const returnInfo = b.return_date ? ` (Return: ${b.return_date})` : ' (No return date set)';
-                    option.textContent = b.batch_name + returnInfo;
+                    const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date;
+                    const returnInfo = returnDate ? ` (Return: ${returnDate})` : ' (No return date set)';
+                    option.textContent = (b.batch_name || b.name || 'Batch ' + b.id) + returnInfo;
                     select.appendChild(option);
                 });
             });
@@ -1826,6 +1877,11 @@
             }
             const returnInfoDiv = document.getElementById('add_batch_return_info');
             if (returnInfoDiv) returnInfoDiv.classList.remove('show');
+            const returnInfoMsg = document.getElementById('add_expected_return_info');
+            if (returnInfoMsg) {
+                returnInfoMsg.innerHTML = '';
+                returnInfoMsg.className = 'expected-return-info';
+            }
         }
 
         function hideEditTravelerForm() {
@@ -1844,6 +1900,11 @@
             }
             const expiryInput = document.getElementById('edit_passport_expiry_date');
             if (expiryInput) expiryInput.className = '';
+            const returnInfoMsg = document.getElementById('edit_expected_return_info');
+            if (returnInfoMsg) {
+                returnInfoMsg.innerHTML = '';
+                returnInfoMsg.className = 'expected-return-info';
+            }
         }
 
         /**
@@ -2022,7 +2083,10 @@
 
             // Auto-populate return date info
             if (traveler.batch_id) {
-                onBatchSelect('edit');
+                // Need to ensure batches are loaded
+                setTimeout(() => {
+                    onBatchSelect('edit');
+                }, 100);
             }
 
             document.getElementById('editTravelerForm').style.display = 'block';
