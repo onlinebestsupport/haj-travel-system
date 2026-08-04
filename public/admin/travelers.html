@@ -314,7 +314,7 @@
         }
 
         /* ==================================================================
-           MAIN SECTION 21: VALIDATION STYLES
+           MAIN SECTION 21: VALIDATION AND AUTO-POPULATE STYLES
            ================================================================== */
         .validation-valid {
             border-color: #27ae60 !important;
@@ -350,12 +350,6 @@
             background: #e8f4f8 !important;
             border-color: #3498db !important;
         }
-        .auto-filled-label {
-            color: #3498db !important;
-        }
-        .auto-filled-label i {
-            color: #3498db !important;
-        }
         .batch-return-info {
             background: #e8f4f8;
             padding: 10px 15px;
@@ -364,6 +358,7 @@
             font-size: 0.9rem;
             color: #2c3e50;
             display: none;
+            border-left: 4px solid #3498db;
         }
         .batch-return-info.show {
             display: block;
@@ -377,7 +372,6 @@
             margin-top: 3px;
             padding: 5px 10px;
             border-radius: 4px;
-            background: #f0f8ff;
         }
         .expected-return-info.success {
             color: #27ae60;
@@ -519,14 +513,14 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 29: ADD TRAVELER FORM - 36 FIELDS (REORDERED)
+        MAIN SECTION 29: ADD TRAVELER FORM - 36 FIELDS
         ================================================================== -->
         <div class="form-container" id="addTravelerForm">
             <h3><i class="fas fa-user-plus"></i> Add New Traveler - 36 Fields</h3>
             <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();" enctype="multipart/form-data">
 
                 <!-- ======================================================
-                SUBSECTION 29.1: PERSONAL INFORMATION (REORDERED)
+                SUBSECTION 29.1: PERSONAL INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
@@ -592,7 +586,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.2: CONTACT INFORMATION (7 fields)
+                SUBSECTION 29.2: CONTACT INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-address-book"></i> 2. Contact Information</h4>
@@ -641,7 +635,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.3: ADDRESS & FAMILY (8 fields)
+                SUBSECTION 29.3: ADDRESS & FAMILY
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-home"></i> 3. Address & Family Information</h4>
@@ -660,7 +654,7 @@
                         <textarea id="add_passport_address" rows="2"></textarea>
                     </div>
                     <div class="form-group full-width">
-                        <label><i class="fas fa-envelope"></i> Mailing Address <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
+                        <label><i class="fas fa-envelope"></i> Mailing Address</label>
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
                             <input type="checkbox" id="add_same_mailing" onchange="toggleMailingAddress('add')">
                             <label for="add_same_mailing" style="font-weight: normal; color: #7f8c8d; cursor: pointer;">Same as Passport Address</label>
@@ -690,18 +684,18 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
-                        <input type="date" id="add_expected_return_date" readonly class="auto-filled">
+                        <input type="date" id="add_expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
                         <div id="add_expected_return_info" class="expected-return-info"></div>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
+                        <label><i class="fas fa-file-alt"></i> File Reference</label>
                         <input type="text" id="add_file_reference" placeholder="File or document reference number">
                     </div>
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.5: DOCUMENT UPLOADS (5 fields)
+                SUBSECTION 29.5: DOCUMENT UPLOADS
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-file-upload"></i> 5. Document Uploads</h4>
@@ -760,7 +754,7 @@
                 </div>
 
                 <!-- ======================================================
-                SUBSECTION 29.6: ADDITIONAL INFORMATION (4 fields)
+                SUBSECTION 29.6: ADDITIONAL INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-cog"></i> 6. Additional Information</h4>
@@ -792,7 +786,7 @@
         </div>
 
         <!-- ==================================================================
-        MAIN SECTION 30: EDIT TRAVELER FORM - 36 FIELDS (REORDERED)
+        MAIN SECTION 30: EDIT TRAVELER FORM - 36 FIELDS
         ================================================================== -->
         <div class="form-container" id="editTravelerForm" style="display: none;">
             <h3><i class="fas fa-user-edit"></i> Edit Traveler - 36 Fields</h3>
@@ -800,7 +794,7 @@
                 <input type="hidden" id="edit_traveler_id">
 
                 <!-- ======================================================
-                SUBSECTION 30.1: PERSONAL INFORMATION (REORDERED)
+                SUBSECTION 30.1: PERSONAL INFORMATION
                 ====================================================== -->
                 <div class="section-header">
                     <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
@@ -934,7 +928,7 @@
                         <textarea id="edit_passport_address" rows="2"></textarea>
                     </div>
                     <div class="form-group full-width">
-                        <label><i class="fas fa-envelope"></i> Mailing Address <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
+                        <label><i class="fas fa-envelope"></i> Mailing Address</label>
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
                             <input type="checkbox" id="edit_same_mailing" onchange="toggleMailingAddress('edit')">
                             <label for="edit_same_mailing" style="font-weight: normal; color: #7f8c8d; cursor: pointer;">Same as Passport Address</label>
@@ -964,12 +958,12 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60; font-weight: normal;">(Auto from Batch)</span></label>
-                        <input type="date" id="edit_expected_return_date" readonly class="auto-filled">
+                        <input type="date" id="edit_expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
                         <div id="edit_expected_return_info" class="expected-return-info"></div>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60; font-weight: normal;">(NEW)</span></label>
+                        <label><i class="fas fa-file-alt"></i> File Reference</label>
                         <input type="text" id="edit_file_reference" placeholder="File or document reference number">
                     </div>
                 </div>
@@ -1155,7 +1149,7 @@
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 36: JAVASCRIPT
+    MAIN SECTION 36: JAVASCRIPT - ALL FUNCTIONS INCLUDED
     ================================================================== -->
     <script>
         /**
@@ -1179,6 +1173,7 @@
          * SUBSECTION 36.2: PAGE INITIALIZATION
          * ================================================================== */
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Travelers page initializing...');
             try {
                 if (typeof SessionManager !== 'undefined') {
                     await SessionManager.initPage(initializePage);
@@ -1192,6 +1187,7 @@
         });
 
         async function initializePage() {
+            console.log('📋 Initializing page...');
             resetSessionTimer();
             ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
                 document.addEventListener(event, resetSessionTimer);
@@ -1199,6 +1195,8 @@
             await loadBatches();
             await loadTravelers();
             setupPassportNameAutoFill();
+            setupMailingAddressToggle();
+            setupDateValidation();
         }
 
         /**
@@ -1288,18 +1286,68 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.6: BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
+         * SUBSECTION 36.6: DATE HELPERS
+         * ================================================================== */
+        function parseDateYMD(str) {
+            if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return null;
+            const [y, m, d] = str.split('-').map(Number);
+            return new Date(Date.UTC(y, m - 1, d));
+        }
+
+        function addMonths(date, months) {
+            if (!date) return null;
+            const d = new Date(date.getTime());
+            const day = d.getUTCDate();
+            d.setUTCMonth(d.getUTCMonth() + months);
+            if (d.getUTCDate() !== day) {
+                d.setUTCDate(0);
+            }
+            return d;
+        }
+
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return '';
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            } catch (e) { return ''; }
+        }
+
+        function daysUntil(dateStr) {
+            const d = parseDateYMD(dateStr);
+            if (!d) return null;
+            const now = new Date();
+            const diff = d.getTime() - now.getTime();
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        /**
+         * ==================================================================
+         * SUBSECTION 36.7: BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
          * ================================================================== */
         function onBatchSelect(prefix) {
+            console.log(`🔄 onBatchSelect called for prefix: ${prefix}`);
+            
             const batchSelect = document.getElementById(prefix + '_batch_id');
             const returnDateInput = document.getElementById(prefix + '_expected_return_date');
             const returnInfoDiv = document.getElementById(prefix + '_batch_return_info');
             const returnTextSpan = document.getElementById(prefix + '_batch_return_text');
             const returnInfoMsg = document.getElementById(prefix + '_expected_return_info');
             
-            if (!batchSelect || !returnDateInput) return;
+            if (!batchSelect) {
+                console.warn(`⚠️ Batch select not found: ${prefix}_batch_id`);
+                return;
+            }
+            if (!returnDateInput) {
+                console.warn(`⚠️ Return date input not found: ${prefix}_expected_return_date`);
+                return;
+            }
             
             const selectedBatchId = batchSelect.value;
+            console.log(`📋 Selected batch ID: ${selectedBatchId}`);
+            console.log(`📦 Batches data:`, batchesData);
             
             // Clear previous info
             if (returnInfoMsg) {
@@ -1307,90 +1355,108 @@
                 returnInfoMsg.className = 'expected-return-info';
             }
             
-            if (selectedBatchId && batchesData.length > 0) {
-                // Find the selected batch - handle both integer and string IDs                const batch = batchesData.find(b => String(b.id) === String(selectedBatchId));
-                
-                console.log('Selected batch:', batch); // Debug log
-                
-                if (batch) {
-                    // Check for return date in multiple possible field names
-                    const returnDate = batch.return_date || batch.returnDate || batch.expected_return_date || batch.expectedReturnDate || batch.batch_return_date;
-                    
-                    // Show return info
-                    if (returnInfoDiv && returnTextSpan) {
-                        returnInfoDiv.classList.add('show');
-                        if (returnDate) {
-                            returnTextSpan.textContent = `Return Date: ${returnDate}`;
-                        } else {
-                            returnTextSpan.textContent = 'No return date set for this batch';
-                        }
-                    }
-                    
-                    // Auto-populate expected return date
-                    if (returnDate) {
-                        returnDateInput.value = returnDate;
-                        returnDateInput.style.borderColor = '#27ae60';
-                        returnDateInput.style.background = '#f0fff4';
-                        
-                        if (returnInfoMsg) {
-                            returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batch.batch_name || batch.name || 'Selected Batch'}`;
-                            returnInfoMsg.className = 'expected-return-info success';
-                        }
-                        
-                        // Trigger validation
-                        validatePassportExpiry(prefix);
-                    } else {
-                        returnDateInput.value = '';
-                        returnDateInput.style.borderColor = '#f39c12';
-                        returnDateInput.style.background = '#fffbf0';
-                        
-                        if (returnInfoMsg) {
-                            returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
-                            returnInfoMsg.className = 'expected-return-info warning';
-                        }
-                    }
-                } else {
-                    console.warn('Batch not found in batchesData:', selectedBatchId);
-                    returnDateInput.value = '';
-                    returnDateInput.style.borderColor = '#e74c3c';
-                    returnDateInput.style.background = '#fff5f5';
-                    
-                    if (returnInfoMsg) {
-                        returnInfoMsg.innerHTML = `<i class="fas fa-times-circle" style="color: #e74c3c;"></i> Batch not found. Please refresh and try again.`;
-                        returnInfoMsg.className = 'expected-return-info error';
-                    }
-                }
-            } else {
-                // Reset if no batch selected
+            if (!selectedBatchId) {
+                // No batch selected - reset
                 returnDateInput.value = '';
                 returnDateInput.style.borderColor = '';
                 returnDateInput.style.background = '';
-                
                 if (returnInfoDiv) returnInfoDiv.classList.remove('show');
                 if (returnInfoMsg) {
-                    returnInfoMsg.innerHTML = '';
-                    returnInfoMsg.className = 'expected-return-info';
+                    returnInfoMsg.innerHTML = 'Please select a batch to auto-populate return date.';
+                    returnInfoMsg.className = 'expected-return-info warning';
                 }
-                
                 // Clear validation
                 const validationDiv = document.getElementById(prefix + '_passport_validation');
                 if (validationDiv) {
                     validationDiv.textContent = '';
                     validationDiv.className = 'validation-message';
                 }
+                return;
+            }
+            
+            // Find the selected batch - handle both integer and string IDs
+            const batch = batchesData.find(b => String(b.id) === String(selectedBatchId));
+            console.log(`🔍 Found batch:`, batch);
+            
+            if (batch) {
+                // Check for return date in multiple possible field names
+                const returnDate = batch.return_date || batch.returnDate || batch.expected_return_date || batch.expectedReturnDate || batch.batch_return_date || batch.return_dt;
+                console.log(`📅 Return date found: ${returnDate}`);
+                
+                // Show return info
+                if (returnInfoDiv && returnTextSpan) {
+                    returnInfoDiv.classList.add('show');
+                    if (returnDate) {
+                        returnTextSpan.textContent = `Return Date: ${returnDate}`;
+                        returnInfoDiv.style.borderLeftColor = '#27ae60';
+                    } else {
+                        returnTextSpan.textContent = '⚠️ No return date set for this batch';
+                        returnInfoDiv.style.borderLeftColor = '#f39c12';
+                    }
+                }
+                
+                // Auto-populate expected return date
+                if (returnDate) {
+                    // Format date if needed (ensure YYYY-MM-DD)
+                    let formattedDate = returnDate;
+                    if (returnDate.includes('/')) {
+                        const parts = returnDate.split('/');
+                        if (parts.length === 3) {
+                            formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
+                        }
+                    }
+                    
+                    returnDateInput.value = formattedDate;
+                    returnDateInput.style.borderColor = '#27ae60';
+                    returnDateInput.style.background = '#f0fff4';
+                    
+                    const batchName = batch.batch_name || batch.name || 'Selected Batch';
+                    if (returnInfoMsg) {
+                        returnInfoMsg.innerHTML = `<i class="fas fa-check-circle" style="color: #27ae60;"></i> Auto-populated from batch: ${batchName} (Return: ${returnDate})`;
+                        returnInfoMsg.className = 'expected-return-info success';
+                    }
+                    
+                    // Trigger validation
+                    validatePassportExpiry(prefix);
+                } else {
+                    returnDateInput.value = '';
+                    returnDateInput.style.borderColor = '#f39c12';
+                    returnDateInput.style.background = '#fffbf0';
+                    
+                    if (returnInfoMsg) {
+                        returnInfoMsg.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i> Selected batch has no return date set. Please set in batch management.`;
+                        returnInfoMsg.className = 'expected-return-info warning';
+                    }
+                }
+            } else {
+                console.warn(`⚠️ Batch not found in batchesData for ID: ${selectedBatchId}`);
+                returnDateInput.value = '';
+                returnDateInput.style.borderColor = '#e74c3c';
+                returnDateInput.style.background = '#fff5f5';
+                
+                if (returnInfoMsg) {
+                    returnInfoMsg.innerHTML = `<i class="fas fa-times-circle" style="color: #e74c3c;"></i> Batch not found. Please refresh and try again.`;
+                    returnInfoMsg.className = 'expected-return-info error';
+                }
+                if (returnInfoDiv) returnInfoDiv.classList.remove('show');
             }
         }
 
         /**
          * ==================================================================
-         * SUBSECTION 36.7: VALIDATE PASSPORT EXPIRY (6 months after return date)
+         * SUBSECTION 36.8: VALIDATE PASSPORT EXPIRY
          * ================================================================== */
         function validatePassportExpiry(prefix) {
+            console.log(`🔍 validatePassportExpiry called for prefix: ${prefix}`);
+            
             const expiryDateInput = document.getElementById(prefix + '_passport_expiry_date');
             const returnDateInput = document.getElementById(prefix + '_expected_return_date');
             const validationDiv = document.getElementById(prefix + '_passport_validation');
             
-            if (!expiryDateInput || !validationDiv) return;
+            if (!expiryDateInput || !validationDiv) {
+                console.warn(`⚠️ Validation elements not found for prefix: ${prefix}`);
+                return;
+            }
             
             const expiryDate = expiryDateInput.value;
             const returnDate = returnDateInput ? returnDateInput.value : null;
@@ -1401,15 +1467,15 @@
             validationDiv.className = 'validation-message';
             
             if (!expiryDate) {
-                // No expiry date set
+                console.log('ℹ️ No expiry date set');
                 return;
             }
             
             if (!returnDate) {
-                // No return date set - show warning but not error
                 validationDiv.textContent = '⚠️ Expected return date not set. Please select a batch with return date.';
                 validationDiv.className = 'validation-message warning';
                 expiryDateInput.classList.add('validation-warning');
+                console.log('⚠️ No return date set');
                 return;
             }
             
@@ -1421,6 +1487,7 @@
                 validationDiv.textContent = '⚠️ Invalid date format';
                 validationDiv.className = 'validation-message warning';
                 expiryDateInput.classList.add('validation-warning');
+                console.warn('⚠️ Invalid date format');
                 return;
             }
             
@@ -1428,13 +1495,14 @@
             const minExpiry = new Date(ret);
             minExpiry.setMonth(minExpiry.getMonth() + 6);
             
-            // Calculate days until expiry
+            // Calculate days
             const today = new Date();
             const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
             const daysUntilMinExpiry = Math.ceil((expiry - minExpiry) / (1000 * 60 * 60 * 24));
             
+            console.log(`📅 Expiry: ${expiryDate}, Return: ${returnDate}, Min Expiry: ${minExpiry.toISOString().slice(0,10)}`);
+            
             if (expiry < minExpiry) {
-                // Invalid - passport expires before 6 months after return
                 validationDiv.innerHTML = `
                     <i class="fas fa-times-circle"></i> 
                     Passport expires on ${expiryDate}. Must be valid for at least 6 months after expected return date.
@@ -1445,7 +1513,6 @@
                 expiryDateInput.classList.add('validation-invalid');
                 expiryDateInput.setCustomValidity('Passport must be valid for 6 months after expected return date');
             } else if (daysUntilExpiry < 180) {
-                // Warning - less than 6 months remaining
                 validationDiv.innerHTML = `
                     <i class="fas fa-exclamation-triangle"></i> 
                     Passport expires in ${daysUntilExpiry} days. Less than 6 months remaining.
@@ -1455,7 +1522,6 @@
                 expiryDateInput.classList.add('validation-warning');
                 expiryDateInput.setCustomValidity('');
             } else {
-                // Valid
                 validationDiv.innerHTML = `
                     <i class="fas fa-check-circle"></i> 
                     Passport is valid. Expires in ${daysUntilExpiry} days.
@@ -1469,7 +1535,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.8: FILE HANDLING - SELECT & PREVIEW
+         * SUBSECTION 36.9: FILE HANDLING
          * ================================================================== */
         function handleFileSelect(input, textElementId, previewElementId) {
             const textElement = document.getElementById(textElementId);
@@ -1536,10 +1602,6 @@
             currentDocument = null;
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 36.9: VIEW UPLOADED DOCUMENT
-         * ================================================================== */
         function viewUploadedDocument(docType, filename) {
             if (!filename) {
                 showNotification('No document available', 'error');
@@ -1559,10 +1621,6 @@
             window.open(url, '_blank');
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 36.10: SHOW EXISTING DOCUMENT PREVIEW
-         * ================================================================== */
         function showExistingDocumentPreview(previewElementId, filename, docType) {
             if (!filename) return;
             const previewElement = document.getElementById(previewElementId);
@@ -1608,7 +1666,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.11: AUTO-FILL PASSPORT NAME
+         * SUBSECTION 36.10: AUTO-FILL PASSPORT NAME
          * ================================================================== */
         function setupPassportNameAutoFill() {
             const addFirst = document.getElementById('add_first_name');
@@ -1636,8 +1694,19 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.12: TOGGLE MAILING ADDRESS
+         * SUBSECTION 36.11: TOGGLE MAILING ADDRESS
          * ================================================================== */
+        function setupMailingAddressToggle() {
+            ['add', 'edit'].forEach(prefix => {
+                const cb = document.getElementById(prefix + '_same_mailing');
+                if (cb) {
+                    cb.addEventListener('change', function() {
+                        toggleMailingAddress(prefix);
+                    });
+                }
+            });
+        }
+
         function toggleMailingAddress(prefix) {
             const cb = document.getElementById(prefix + '_same_mailing');
             const passportAddr = document.getElementById(prefix + '_passport_address');
@@ -1657,50 +1726,94 @@
 
         /**
          * ==================================================================
+         * SUBSECTION 36.12: DATE VALIDATION SETUP
+         * ================================================================== */
+        function setupDateValidation() {
+            ['add', 'edit'].forEach(prefix => {
+                const expiryEl = document.getElementById(prefix + '_passport_expiry_date');
+                if (expiryEl) {
+                    expiryEl.addEventListener('change', function() {
+                        validatePassportExpiry(prefix);
+                    });
+                    expiryEl.addEventListener('input', function() {
+                        validatePassportExpiry(prefix);
+                    });
+                }
+            });
+        }
+
+        /**
+         * ==================================================================
          * SUBSECTION 36.13: LOAD BATCHES
          * ================================================================== */
         async function loadBatches() {
             try {
-                const response = await fetch('/api/batches', { credentials: 'include' });
+                console.log('🔄 Loading batches...');
+                const response = await fetch('/api/batches', { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
                 const data = await response.json();
-                console.log('Batches API response:', data); // Debug log
+                console.log('📦 Batches API response:', data);
                 
-                if (data.success && data.batches) {
+                if (data.success && data.batches && data.batches.length > 0) {
                     batchesData = data.batches;
-                    updateBatchDropdowns(data.batches);
+                    console.log(`✅ Loaded ${batchesData.length} batches from API`);
                 } else {
+                    console.warn('⚠️ No batches found in API response, using fallback');
                     useFallbackBatches();
                 }
             } catch (error) {
-                console.error('Error loading batches:', error);
+                console.error('❌ Error loading batches:', error);
                 useFallbackBatches();
             }
+            updateBatchDropdowns(batchesData);
         }
 
         function useFallbackBatches() {
             batchesData = [
                 { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
                 { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
-                { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' }
+                { id: 3, batch_name: 'Umrah Ramadhan Special', return_date: '2026-03-25' },
+                { id: 4, batch_name: 'Golden Package - Haj 2027', return_date: '2027-07-10' }
             ];
-            console.log('Using fallback batches:', batchesData);
-            updateBatchDropdowns(batchesData);
+            console.log('📦 Using fallback batches:', batchesData);
         }
 
         function updateBatchDropdowns(batches) {
+            console.log('🔄 Updating batch dropdowns with', batches.length, 'batches');
+            
             ['add', 'edit'].forEach(prefix => {
                 const select = document.getElementById(prefix + '_batch_id');
-                if (!select) return;
+                if (!select) {
+                    console.warn(`⚠️ Batch select not found: ${prefix}_batch_id`);
+                    return;
+                }
                 
+                const currentValue = select.value;
                 select.innerHTML = '<option value="">Select Batch</option>';
+                
                 batches.forEach(b => {
                     const option = document.createElement('option');
                     option.value = b.id;
-                    const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date;
+                    const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date || b.return_dt;
                     const returnInfo = returnDate ? ` (Return: ${returnDate})` : ' (No return date set)';
                     option.textContent = (b.batch_name || b.name || 'Batch ' + b.id) + returnInfo;
+                    // Store return date as data attribute
+                    if (returnDate) {
+                        option.dataset.returnDate = returnDate;
+                    }
                     select.appendChild(option);
                 });
+                
+                // Restore selection if possible
+                if (currentValue) {
+                    select.value = currentValue;
+                    // Trigger onBatchSelect to populate return date
+                    onBatchSelect(prefix);
+                }
             });
         }
 
@@ -1710,23 +1823,59 @@
          * ================================================================== */
         async function loadTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
-            tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
-
+            if (tableBody) {
+                tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading travelers...</td></tr>';
+            }
+            
             try {
-                const response = await fetch('/api/travelers', { credentials: 'include' });
+                const response = await fetch('/api/travelers', { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
                 const data = await response.json();
+                console.log('📋 Travelers API response:', data);
+                
                 if (data.success && data.travelers) {
                     travelersData = data.travelers;
+                    console.log(`✅ Loaded ${travelersData.length} travelers`);
                 } else {
-                    useFallbackTravelers();
+                    console.warn('⚠️ No travelers found, using fallback');
+                    travelersData = getFallbackTravelers();
                 }
             } catch (error) {
-                console.error('Error loading travelers:', error);
-                useFallbackTravelers();
+                console.error('❌ Error loading travelers:', error);
+                travelersData = getFallbackTravelers();
             }
-
+            
             displayTravelers();
             updateDashboardStats();
+        }
+
+        function getFallbackTravelers() {
+            return [
+                {
+                    id: 1, first_name: 'John', last_name: 'Doe',
+                    passport_name: 'John Doe', passport_no: 'A0000001',
+                    mobile: '9000000000', email: 'john@example.com',
+                    batch_id: 1, batch_name: 'Haj Platinum 2026',
+                    passport_status: 'Active', passport_expiry_date: '2030-01-01',
+                    expected_return_date: '2026-07-15', file_reference: 'REF-001',
+                    mailing_address: '123 Main St, Chennai, India',
+                    created_at: '2026-01-01T10:00:00'
+                },
+                {
+                    id: 2, first_name: 'Jane', last_name: 'Smith',
+                    passport_name: 'Jane Smith', passport_no: 'A0000002',
+                    mobile: '9000000001', email: 'jane@example.com',
+                    batch_id: 2, batch_name: 'Haj Gold 2026',
+                    passport_status: 'Active', passport_expiry_date: '2029-06-01',
+                    expected_return_date: '2026-07-20', file_reference: 'REF-002',
+                    mailing_address: '456 Park Ave, Mumbai, India',
+                    created_at: '2026-01-02T10:00:00'
+                }
+            ];
         }
 
         function updateDashboardStats() {
@@ -1734,18 +1883,11 @@
             const active = travelersData.filter(t => t.passport_status === 'Active').length;
             const vaccinated = travelersData.filter(t => t.vaccine_status === 'Fully Vaccinated').length;
             const docsComplete = travelersData.filter(t => t.passport_scan && t.aadhaar_scan && t.pan_scan && t.photo).length;
+            
             document.getElementById('totalTravelersCount').textContent = total;
             document.getElementById('activeTravelersCount').textContent = active;
             document.getElementById('vaccinatedCount').textContent = vaccinated;
             document.getElementById('documentsComplete').textContent = docsComplete;
-        }
-
-        function useFallbackTravelers() {
-            travelersData = [
-                { id: 1, first_name: 'John', last_name: 'Doe', passport_name: 'John Doe', passport_no: 'A0000001', mobile: '9000000000', email: 'john@example.com', batch_id: 1, batch_name: 'Haj Platinum 2026', passport_status: 'Active', passport_issue_date: '2020-01-01', passport_expiry_date: '2030-01-01', dob: '1990-01-01', vaccine_status: 'Fully Vaccinated', wheelchair: 'No', gender: 'Male', aadhaar: '0000 0000 0000', pan: 'AAAAA0000A', aadhaar_pan_linked: 'No', mailing_address: '123 Main St, Chennai', file_reference: 'REF-001', expected_return_date: '2026-07-15', created_at: '2026-01-01T10:00:00' },
-                { id: 2, first_name: 'Jane', last_name: 'Doe', passport_name: 'Jane Doe', passport_no: 'A0000002', mobile: '9000000001', email: 'jane@example.com', batch_id: 2, batch_name: 'Haj Gold 2026', passport_status: 'Active', passport_issue_date: '2020-01-01', passport_expiry_date: '2030-01-01', dob: '1990-01-01', vaccine_status: 'Not Vaccinated', wheelchair: 'No', gender: 'Female', aadhaar: '0000 0000 0001', pan: 'AAAAA0000B', aadhaar_pan_linked: 'No', mailing_address: '456 Park Ave, Mumbai', file_reference: 'REF-002', expected_return_date: '2026-07-20', created_at: '2026-01-01T10:00:00' }
-            ];
-            updateDashboardStats();
         }
 
         /**
@@ -1754,71 +1896,69 @@
          * ================================================================== */
         function displayTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
-            if (!travelersData || travelersData.length === 0) {
+            if (!tableBody) return;
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = Math.min(start + itemsPerPage, travelersData.length);
+            const pageItems = travelersData.slice(start, end);
+            
+            if (travelersData.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No travelers found</td></tr>';
                 updatePaginationInfo(0);
                 return;
             }
-
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const paginatedData = travelersData.slice(start, end);
-
+            
             let html = '';
-            paginatedData.forEach(t => {
+            pageItems.forEach(t => {
                 const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
-                const batchName = t.batch_name || 'Not Assigned';
-                const returnDate = t.expected_return_date || '-';
-
+                const statusClass = t.passport_status === 'Active' ? 'status-active' :
+                                   t.passport_status === 'Submitted' ? 'status-pending' :
+                                   t.passport_status === 'Processing' ? 'status-warning' : 'status-inactive';
+                
                 const docIcons = `
                     <div class="doc-icons">
                         <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}"
                            onclick="${t.passport_scan ? `viewUploadedDocument('passport', '${t.passport_scan}')` : ''}"
-                           title="Passport: ${t.passport_scan ? t.passport_scan : 'Missing'}"
+                           title="Passport: ${t.passport_scan || 'Missing'}"
                            style="cursor: ${t.passport_scan ? 'pointer' : 'default'}"></i>
                         <i class="fas fa-id-card doc-icon ${t.aadhaar_scan ? 'available' : 'missing'}"
                            onclick="${t.aadhaar_scan ? `viewUploadedDocument('aadhaar', '${t.aadhaar_scan}')` : ''}"
-                           title="Aadhaar: ${t.aadhaar_scan ? t.aadhaar_scan : 'Missing'}"
+                           title="Aadhaar: ${t.aadhaar_scan || 'Missing'}"
                            style="cursor: ${t.aadhaar_scan ? 'pointer' : 'default'}"></i>
                         <i class="fas fa-credit-card doc-icon ${t.pan_scan ? 'available' : 'missing'}"
                            onclick="${t.pan_scan ? `viewUploadedDocument('pan', '${t.pan_scan}')` : ''}"
-                           title="PAN: ${t.pan_scan ? t.pan_scan : 'Missing'}"
+                           title="PAN: ${t.pan_scan || 'Missing'}"
                            style="cursor: ${t.pan_scan ? 'pointer' : 'default'}"></i>
                         <i class="fas fa-syringe doc-icon ${t.vaccine_scan ? 'available' : 'missing'}"
                            onclick="${t.vaccine_scan ? `viewUploadedDocument('vaccine', '${t.vaccine_scan}')` : ''}"
-                           title="Vaccine: ${t.vaccine_scan ? t.vaccine_scan : 'Missing'}"
+                           title="Vaccine: ${t.vaccine_scan || 'Missing'}"
                            style="cursor: ${t.vaccine_scan ? 'pointer' : 'default'}"></i>
                         <i class="fas fa-camera doc-icon ${t.photo ? 'available' : 'missing'}"
                            onclick="${t.photo ? `viewUploadedDocument('photo', '${t.photo}')` : ''}"
-                           title="Photo: ${t.photo ? t.photo : 'Missing'}"
+                           title="Photo: ${t.photo || 'Missing'}"
                            style="cursor: ${t.photo ? 'pointer' : 'default'}"></i>
                     </div>
                 `;
-
-                let statusClass = 'status-active';
-                if (t.passport_status === 'Submitted') statusClass = 'status-pending';
-                if (t.passport_status === 'Processing') statusClass = 'status-warning';
-                if (t.passport_status === 'Expired') statusClass = 'status-inactive';
-
+                
                 html += `<tr>
                     <td>${t.id}</td>
                     <td><strong>${escapeHtml(fullName)}</strong><br><small>${escapeHtml(t.passport_name || '')}</small></td>
                     <td>${escapeHtml(t.passport_no || '-')}<br><small>Exp: ${t.passport_expiry_date || 'N/A'}</small></td>
                     <td>${escapeHtml(t.mobile || '-')}</td>
                     <td>${escapeHtml(t.email || '-')}</td>
-                    <td>${escapeHtml(batchName)}</td>
-                    <td>${escapeHtml(returnDate)}</td>
+                    <td>${escapeHtml(t.batch_name || 'Not Assigned')}</td>
+                    <td>${t.expected_return_date ? escapeHtml(t.expected_return_date) : '-'}</td>
                     <td>${escapeHtml(t.file_reference || '-')}</td>
                     <td><span class="status-badge ${statusClass}">${escapeHtml(t.passport_status || 'Active')}</span></td>
                     <td>${docIcons}</td>
                     <td>
-                        <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View Full Details"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn" onclick="viewTraveler(${t.id})" title="View"><i class="fas fa-eye"></i></button>
                         <button class="icon-btn" onclick="editTraveler(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
                         <button class="icon-btn" onclick="deleteTraveler(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
             });
-
+            
             tableBody.innerHTML = html;
             updatePaginationInfo(travelersData.length);
         }
@@ -1832,16 +1972,28 @@
 
         function updatePaginationInfo(total) {
             document.getElementById('totalCount').textContent = total;
-            const start = (currentPage - 1) * itemsPerPage + 1;
+            const start = total > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
             const end = Math.min(currentPage * itemsPerPage, total);
-            document.getElementById('showingFrom').textContent = total > 0 ? start : 0;
-            document.getElementById('showingTo').textContent = total > 0 ? end : 0;
+            document.getElementById('showingFrom').textContent = start;
+            document.getElementById('showingTo').textContent = end;
+            
             document.getElementById('prevPageBtn').disabled = currentPage === 1;
             document.getElementById('nextPageBtn').disabled = end >= total;
         }
 
-        function previousPage() { if (currentPage > 1) { currentPage--; displayTravelers(); } }
-        function nextPage() { if (currentPage * itemsPerPage < travelersData.length) { currentPage++; displayTravelers(); } }
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayTravelers();
+            }
+        }
+
+        function nextPage() {
+            if (currentPage * itemsPerPage < travelersData.length) {
+                currentPage++;
+                displayTravelers();
+            }
+        }
 
         /**
          * ==================================================================
@@ -1856,12 +2008,8 @@
         function hideAddTravelerForm() {
             document.getElementById('addTravelerForm').style.display = 'none';
             document.getElementById('travelerAddForm').reset();
-            const previewIds = ['add_passport_scan_preview', 'add_aadhaar_scan_preview', 'add_pan_scan_preview', 'add_vaccine_scan_preview', 'add_photo_preview'];
-            const textIds = ['add_passport_scan_text', 'add_aadhaar_scan_text', 'add_pan_scan_text', 'add_vaccine_scan_text', 'add_photo_text'];
-            previewIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-            textIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = id.includes('photo') ? 'Click to upload photograph' : 'Click to upload'; });
+            resetDocumentPreviews('add');
             
-            // Reset validation
             const validationDiv = document.getElementById('add_passport_validation');
             if (validationDiv) {
                 validationDiv.textContent = '';
@@ -1887,12 +2035,8 @@
         function hideEditTravelerForm() {
             document.getElementById('editTravelerForm').style.display = 'none';
             currentEditId = null;
-            const previewIds = ['edit_passport_scan_preview', 'edit_aadhaar_scan_preview', 'edit_pan_scan_preview', 'edit_vaccine_scan_preview', 'edit_photo_preview'];
-            const textIds = ['edit_passport_scan_text', 'edit_aadhaar_scan_text', 'edit_pan_scan_text', 'edit_vaccine_scan_text', 'edit_photo_text'];
-            previewIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-            textIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Click to update'; });
+            resetDocumentPreviews('edit');
             
-            // Reset validation
             const validationDiv = document.getElementById('edit_passport_validation');
             if (validationDiv) {
                 validationDiv.textContent = '';
@@ -1907,66 +2051,68 @@
             }
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 36.17: DATE FORMATTING
-         * ================================================================== */
-        function formatDateForInput(dateStr) {
-            if (!dateStr) return '';
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-            try {
-                const date = new Date(dateStr);
-                if (isNaN(date.getTime())) return '';
-                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            } catch (e) { return ''; }
+        function resetDocumentPreviews(prefix) {
+            const previewIds = [
+                `${prefix}_passport_scan_preview`,
+                `${prefix}_aadhaar_scan_preview`,
+                `${prefix}_pan_scan_preview`,
+                `${prefix}_vaccine_scan_preview`,
+                `${prefix}_photo_preview`
+            ];
+            const textIds = [
+                `${prefix}_passport_scan_text`,
+                `${prefix}_aadhaar_scan_text`,
+                `${prefix}_pan_scan_text`,
+                `${prefix}_vaccine_scan_text`,
+                `${prefix}_photo_text`
+            ];
+            
+            previewIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = '';
+                    el.style.display = 'none';
+                }
+            });
+            textIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = el.id.includes('edit') ? 'Click to update' : 'Click to upload';
+                }
+            });
         }
 
         /**
          * ==================================================================
-         * SUBSECTION 36.18: CREATE TRAVELER
+         * SUBSECTION 36.17: CREATE TRAVELER
          * ================================================================== */
         async function createTraveler() {
-            const formData = new FormData(document.getElementById('travelerAddForm'));
-
-            const fields = {
-                first_name: document.getElementById('add_first_name').value,
-                last_name: document.getElementById('add_last_name').value,
-                passport_name: document.getElementById('add_passport_name').value,
-                gender: document.getElementById('add_gender').value,
-                dob: document.getElementById('add_dob').value,
-                batch_id: document.getElementById('add_batch_id').value,
-                passport_no: document.getElementById('add_passport_no').value,
-                passport_issue_date: document.getElementById('add_passport_issue_date').value,
-                passport_expiry_date: document.getElementById('add_passport_expiry_date').value,
-                passport_status: document.getElementById('add_passport_status').value,
-                mobile: document.getElementById('add_mobile').value,
-                email: document.getElementById('add_email').value,
-                aadhaar: document.getElementById('add_aadhaar').value,
-                pan: document.getElementById('add_pan').value,
-                aadhaar_pan_linked: document.getElementById('add_aadhaar_pan_linked').value,
-                vaccine_status: document.getElementById('add_vaccine_status').value,
-                wheelchair: document.getElementById('add_wheelchair').value,
-                place_of_birth: document.getElementById('add_place_of_birth').value,
-                place_of_issue: document.getElementById('add_place_of_issue').value,
-                passport_address: document.getElementById('add_passport_address').value,
-                mailing_address: document.getElementById('add_mailing_address').value,
-                father_name: document.getElementById('add_father_name').value,
-                mother_name: document.getElementById('add_mother_name').value,
-                spouse_name: document.getElementById('add_spouse_name').value,
-                expected_return_date: document.getElementById('add_expected_return_date').value,
-                file_reference: document.getElementById('add_file_reference').value,
-                pin: document.getElementById('add_pin').value,
-                emergency_contact: document.getElementById('add_emergency_contact').value,
-                emergency_phone: document.getElementById('add_emergency_phone').value,
-                medical_notes: document.getElementById('add_medical_notes').value
-            };
-
+            const form = document.getElementById('travelerAddForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            
+            const firstName = document.getElementById('add_first_name')?.value?.trim();
+            const lastName = document.getElementById('add_last_name')?.value?.trim();
+            const passportNo = document.getElementById('add_passport_no')?.value?.trim();
+            const mobile = document.getElementById('add_mobile')?.value?.trim();
+            const batchId = document.getElementById('add_batch_id')?.value;
+            const passportExpiry = document.getElementById('add_passport_expiry_date')?.value;
+            const expectedReturn = document.getElementById('add_expected_return_date')?.value;
+            
+            if (!firstName || !lastName || !passportNo || !mobile) {
+                showNotification('First name, last name, passport number, and mobile are required', 'error');
+                return;
+            }
+            if (!batchId) {
+                showNotification('Please select a batch', 'error');
+                return;
+            }
+            
             // Validate passport expiry
-            const expiryDate = document.getElementById('add_passport_expiry_date').value;
-            const returnDate = document.getElementById('add_expected_return_date').value;
-            if (expiryDate && returnDate) {
-                const expiry = new Date(expiryDate + 'T00:00:00');
-                const ret = new Date(returnDate + 'T00:00:00');
+            if (passportExpiry && expectedReturn) {
+                const expiry = new Date(passportExpiry + 'T00:00:00');
+                const ret = new Date(expectedReturn + 'T00:00:00');
                 const minExpiry = new Date(ret);
                 minExpiry.setMonth(minExpiry.getMonth() + 6);
                 
@@ -1975,38 +2121,10 @@
                     return;
                 }
             }
-
-            Object.keys(fields).forEach(key => {
-                if (fields[key]) formData.append(key, fields[key]);
-            });
-
-            const fileInputs = [
-                { id: 'add_passport_scan', field: 'passport_scan' },
-                { id: 'add_aadhaar_scan', field: 'aadhaar_scan' },
-                { id: 'add_pan_scan', field: 'pan_scan' },
-                { id: 'add_vaccine_scan', field: 'vaccine_scan' },
-                { id: 'add_photo', field: 'photo' }
-            ];
-
-            fileInputs.forEach(item => {
-                const input = document.getElementById(item.id);
-                if (input && input.files && input.files[0]) {
-                    formData.append(item.field, input.files[0]);
-                }
-            });
-
-            if (!fields.first_name || !fields.last_name || !fields.passport_no || !fields.mobile) {
-                showNotification('Please fill all required fields', 'error');
-                return;
-            }
-            if (!fields.batch_id) {
-                showNotification('Please select a batch', 'error');
-                return;
-            }
-
-            const submitBtn = document.querySelector('#travelerAddForm button[type="submit"]');
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
             showLoading(submitBtn, 'Saving...');
-
+            
             try {
                 const response = await fetch('/api/travelers', {
                     method: 'POST',
@@ -2031,7 +2149,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.19: EDIT TRAVELER
+         * SUBSECTION 36.18: EDIT TRAVELER
          * ================================================================== */
         function editTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
@@ -2039,9 +2157,9 @@
                 showNotification('Traveler not found', 'error');
                 return;
             }
-
+            
             currentEditId = id;
-
+            
             document.getElementById('edit_traveler_id').value = traveler.id;
             document.getElementById('edit_first_name').value = traveler.first_name || '';
             document.getElementById('edit_last_name').value = traveler.last_name || '';
@@ -2073,44 +2191,45 @@
             document.getElementById('edit_emergency_contact').value = traveler.emergency_contact || '';
             document.getElementById('edit_emergency_phone').value = traveler.emergency_phone || '';
             document.getElementById('edit_medical_notes').value = traveler.medical_notes || '';
-
-            // Show existing documents
+            
             showExistingDocumentPreview('edit_passport_scan_preview', traveler.passport_scan, 'passport');
             showExistingDocumentPreview('edit_aadhaar_scan_preview', traveler.aadhaar_scan, 'aadhaar');
             showExistingDocumentPreview('edit_pan_scan_preview', traveler.pan_scan, 'pan');
             showExistingDocumentPreview('edit_vaccine_scan_preview', traveler.vaccine_scan, 'vaccine');
             showExistingDocumentPreview('edit_photo_preview', traveler.photo, 'photo');
-
-            // Auto-populate return date info
+            
+            // Auto-populate return date from batch
             if (traveler.batch_id) {
-                // Need to ensure batches are loaded
                 setTimeout(() => {
                     onBatchSelect('edit');
-                }, 100);
+                }, 300);
             }
-
+            
             document.getElementById('editTravelerForm').style.display = 'block';
             document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
         }
 
         /**
          * ==================================================================
-         * SUBSECTION 36.20: UPDATE TRAVELER
+         * SUBSECTION 36.19: UPDATE TRAVELER
          * ================================================================== */
         async function updateTraveler() {
             if (!currentEditId) {
                 showNotification('No traveler selected for editing', 'error');
                 return;
             }
-
-            const formData = new FormData(document.getElementById('travelerEditForm'));
-
-            // Validate passport expiry
-            const expiryDate = document.getElementById('edit_passport_expiry_date').value;
-            const returnDate = document.getElementById('edit_expected_return_date').value;
-            if (expiryDate && returnDate) {
-                const expiry = new Date(expiryDate + 'T00:00:00');
-                const ret = new Date(returnDate + 'T00:00:00');
+            
+            const form = document.getElementById('travelerEditForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            
+            const passportExpiry = document.getElementById('edit_passport_expiry_date')?.value;
+            const expectedReturn = document.getElementById('edit_expected_return_date')?.value;
+            
+            if (passportExpiry && expectedReturn) {
+                const expiry = new Date(passportExpiry + 'T00:00:00');
+                const ret = new Date(expectedReturn + 'T00:00:00');
                 const minExpiry = new Date(ret);
                 minExpiry.setMonth(minExpiry.getMonth() + 6);
                 
@@ -2119,62 +2238,10 @@
                     return;
                 }
             }
-
-            const fields = {
-                first_name: document.getElementById('edit_first_name').value,
-                last_name: document.getElementById('edit_last_name').value,
-                passport_name: document.getElementById('edit_passport_name').value,
-                gender: document.getElementById('edit_gender').value,
-                dob: document.getElementById('edit_dob').value,
-                batch_id: document.getElementById('edit_batch_id').value,
-                passport_no: document.getElementById('edit_passport_no').value,
-                passport_issue_date: document.getElementById('edit_passport_issue_date').value,
-                passport_expiry_date: document.getElementById('edit_passport_expiry_date').value,
-                passport_status: document.getElementById('edit_passport_status').value,
-                mobile: document.getElementById('edit_mobile').value,
-                email: document.getElementById('edit_email').value,
-                aadhaar: document.getElementById('edit_aadhaar').value,
-                pan: document.getElementById('edit_pan').value,
-                aadhaar_pan_linked: document.getElementById('edit_aadhaar_pan_linked').value,
-                vaccine_status: document.getElementById('edit_vaccine_status').value,
-                wheelchair: document.getElementById('edit_wheelchair').value,
-                place_of_birth: document.getElementById('edit_place_of_birth').value,
-                place_of_issue: document.getElementById('edit_place_of_issue').value,
-                passport_address: document.getElementById('edit_passport_address').value,
-                mailing_address: document.getElementById('edit_mailing_address').value,
-                father_name: document.getElementById('edit_father_name').value,
-                mother_name: document.getElementById('edit_mother_name').value,
-                spouse_name: document.getElementById('edit_spouse_name').value,
-                expected_return_date: document.getElementById('edit_expected_return_date').value,
-                file_reference: document.getElementById('edit_file_reference').value,
-                pin: document.getElementById('edit_pin').value,
-                emergency_contact: document.getElementById('edit_emergency_contact').value,
-                emergency_phone: document.getElementById('edit_emergency_phone').value,
-                medical_notes: document.getElementById('edit_medical_notes').value
-            };
-
-            Object.keys(fields).forEach(key => {
-                if (fields[key]) formData.append(key, fields[key]);
-            });
-
-            const fileInputs = [
-                { id: 'edit_passport_scan', field: 'passport_scan' },
-                { id: 'edit_aadhaar_scan', field: 'aadhaar_scan' },
-                { id: 'edit_pan_scan', field: 'pan_scan' },
-                { id: 'edit_vaccine_scan', field: 'vaccine_scan' },
-                { id: 'edit_photo', field: 'photo' }
-            ];
-
-            fileInputs.forEach(item => {
-                const input = document.getElementById(item.id);
-                if (input && input.files && input.files[0]) {
-                    formData.append(item.field, input.files[0]);
-                }
-            });
-
-            const submitBtn = document.querySelector('#travelerEditForm button[type="submit"]');
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
             showLoading(submitBtn, 'Updating...');
-
+            
             try {
                 const response = await fetch(`/api/travelers/${currentEditId}`, {
                     method: 'PUT',
@@ -2199,7 +2266,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.21: DELETE TRAVELER
+         * SUBSECTION 36.20: DELETE TRAVELER
          * ================================================================== */
         async function deleteTraveler(id) {
             if (!confirm('Are you sure you want to delete this traveler? This action cannot be undone.')) return;
@@ -2223,7 +2290,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.22: VIEW TRAVELER
+         * SUBSECTION 36.21: VIEW TRAVELER
          * ================================================================== */
         function viewTraveler(id) {
             const traveler = travelersData.find(t => t.id === id);
@@ -2234,10 +2301,6 @@
             displayTravelerDetails(traveler);
         }
 
-        /**
-         * ==================================================================
-         * SUBSECTION 36.23: DISPLAY TRAVELER DETAILS
-         * ================================================================== */
         function displayTravelerDetails(t) {
             const formatValue = (val) => val && val !== '' ? escapeHtml(val) : '<span style="color: #95a5a6;">Not specified</span>';
             const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'Not specified';
@@ -2359,21 +2422,81 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.24: EXPORT FUNCTIONS
+         * SUBSECTION 36.22: SEARCH FUNCTIONS
+         * ================================================================== */
+        function searchTravelers() {
+            const search = document.getElementById('searchTravelers').value.toLowerCase().trim();
+            if (!search) { displayTravelers(); return; }
+            
+            const filtered = travelersData.filter(t => {
+                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.toLowerCase();
+                const passport = (t.passport_no || '').toLowerCase();
+                const mobile = (t.mobile || '').toLowerCase();
+                const email = (t.email || '').toLowerCase();
+                const batch = (t.batch_name || '').toLowerCase();
+                const fileRef = (t.file_reference || '').toLowerCase();
+                return fullName.includes(search) || passport.includes(search) || 
+                       mobile.includes(search) || email.includes(search) || 
+                       batch.includes(search) || fileRef.includes(search);
+            });
+            
+            const originalData = travelersData;
+            travelersData = filtered;
+            currentPage = 1;
+            displayTravelers();
+            travelersData = originalData;
+        }
+
+        function clearSearch() {
+            document.getElementById('searchTravelers').value = '';
+            displayTravelers();
+        }
+
+        /**
+         * ==================================================================
+         * SUBSECTION 36.23: EXPORT FUNCTIONS
          * ================================================================== */
         function exportTravelersToExcel() {
-            let csv = ['"ID","First Name","Last Name","Passport Name","Gender","Date of Birth","Batch ID","Batch Name","Passport Number","Passport Issue Date","Passport Expiry Date","Passport Status","Mobile","Email","Aadhaar","PAN","Aadhaar-PAN Linked","Vaccine Status","Wheelchair","Place of Birth","Place of Issue","Passport Address","Mailing Address","Father\'s Name","Mother\'s Name","Spouse\'s Name","Expected Return Date","File Reference","PIN","Emergency Contact","Emergency Phone","Medical Notes","Passport Scan","Aadhaar Scan","PAN Scan","Vaccine Scan","Photo","Created At"'];
+            const headers = [
+                'ID', 'First Name', 'Last Name', 'Passport Name', 'Gender', 'Date of Birth',
+                'Batch ID', 'Batch Name', 'Passport Number', 'Passport Issue Date', 'Passport Expiry Date',
+                'Passport Status', 'Mobile', 'Email', 'Aadhaar', 'PAN', 'Aadhaar-PAN Linked',
+                'Vaccine Status', 'Wheelchair', 'Place of Birth', 'Place of Issue', 'Passport Address',
+                'Mailing Address', 'Father Name', 'Mother Name', 'Spouse Name',
+                'Expected Return Date', 'File Reference',
+                'PIN', 'Emergency Contact', 'Emergency Phone', 'Medical Notes',
+                'Passport Scan', 'Aadhaar Scan', 'PAN Scan', 'Vaccine Scan', 'Photo', 'Created At'
+            ];
+            
+            let csv = ['"' + headers.join('","') + '"'];
+            
             travelersData.forEach(t => {
-                csv.push(`"${t.id || ''}","${t.first_name || ''}","${t.last_name || ''}","${t.passport_name || ''}","${t.gender || ''}","${t.dob || ''}","${t.batch_id || ''}","${t.batch_name || ''}","${t.passport_no || ''}","${t.passport_issue_date || ''}","${t.passport_expiry_date || ''}","${t.passport_status || ''}","${t.mobile || ''}","${t.email || ''}","${t.aadhaar || ''}","${t.pan || ''}","${t.aadhaar_pan_linked || ''}","${t.vaccine_status || ''}","${t.wheelchair || ''}","${t.place_of_birth || ''}","${t.place_of_issue || ''}","${(t.passport_address || '').replace(/"/g, '""')}","${(t.mailing_address || '').replace(/"/g, '""')}","${t.father_name || ''}","${t.mother_name || ''}","${t.spouse_name || ''}","${t.expected_return_date || ''}","${t.file_reference || ''}","${t.pin || ''}","${t.emergency_contact || ''}","${t.emergency_phone || ''}","${(t.medical_notes || '').replace(/"/g, '""')}","${t.passport_scan || ''}","${t.aadhaar_scan || ''}","${t.pan_scan || ''}","${t.vaccine_scan || ''}","${t.photo || ''}","${t.created_at || ''}"`);
+                const row = [
+                    t.id || '', t.first_name || '', t.last_name || '', t.passport_name || '',
+                    t.gender || '', t.dob || '',
+                    t.batch_id || '', t.batch_name || '', t.passport_no || '',
+                    t.passport_issue_date || '', t.passport_expiry_date || '', t.passport_status || '',
+                    t.mobile || '', t.email || '',
+                    t.aadhaar || '', t.pan || '', t.aadhaar_pan_linked || '',
+                    t.vaccine_status || '', t.wheelchair || '', t.place_of_birth || '', t.place_of_issue || '',
+                    (t.passport_address || '').replace(/"/g, '""'),
+                    (t.mailing_address || '').replace(/"/g, '""'),
+                    t.father_name || '', t.mother_name || '', t.spouse_name || '',
+                    t.expected_return_date || '', t.file_reference || '',
+                    t.pin || '', t.emergency_contact || '', t.emergency_phone || '',
+                    (t.medical_notes || '').replace(/"/g, '""'),
+                    t.passport_scan || '', t.aadhaar_scan || '', t.pan_scan || '',
+                    t.vaccine_scan || '', t.photo || '', t.created_at || ''
+                ];
+                csv.push('"' + row.join('","') + '"');
             });
-            const csvContent = csv.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `travelers_full_data_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            showNotification('Travelers data (36 fields) exported successfully!', 'success');
+            
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `travelers_export_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showNotification('Travelers data exported successfully!', 'success');
         }
 
         function exportTravelersToPDF() {
@@ -2384,33 +2507,52 @@
             
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape');
+            
             doc.setFontSize(18);
             doc.text('Alhudha Haj Travel - Travelers List', 14, 22);
             doc.setFontSize(11);
             doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
-            const tableColumn = ['ID', 'Name', 'Passport', 'Mobile', 'Email', 'Batch', 'Return Date', 'File Ref'];
-            const tableRows = [];
-            travelersData.forEach(t => {
-                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
-                tableRows.push([t.id, fullName, t.passport_no || '-', t.mobile || '-', t.email || '-', t.batch_name || '-', t.expected_return_date || '-', t.file_reference || '-']);
+            
+            const headers = ['ID', 'Name', 'Passport', 'Mobile', 'Email', 'Batch', 'Return Date', 'File Ref'];
+            const rows = travelersData.map(t => {
+                const name = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
+                return [
+                    t.id,
+                    name,
+                    t.passport_no || '-',
+                    t.mobile || '-',
+                    t.email || '-',
+                    t.batch_name || '-',
+                    t.expected_return_date || '-',
+                    t.file_reference || '-'
+                ];
             });
+            
             doc.autoTable({
-                head: [tableColumn],
-                body: tableRows,
+                head: [headers],
+                body: rows,
                 startY: 35,
-                styles: { fontSize: 8 },
+                styles: { fontSize: 7 },
                 headStyles: { fillColor: [44, 62, 80] }
             });
-            doc.save(`travelers_list_${new Date().toISOString().slice(0,10)}.pdf`);
+            
+            doc.save(`travelers_${new Date().toISOString().slice(0,10)}.pdf`);
             showNotification('PDF exported successfully!', 'success');
         }
 
         function printTravelersTable() {
             const table = document.getElementById('travelersTable');
+            if (!table) return;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html><head><title>Travelers List</title>
-                <style>body { font-family: Arial, sans-serif; padding: 20px; }</style>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
+                    td { padding: 10px; border-bottom: 1px solid #ddd; }
+                </style>
                 </head><body>
                 <h2>Alhudha Haj Travel - Travelers List</h2>
                 <p>Generated on: ${new Date().toLocaleString()}</p>
@@ -2422,8 +2564,9 @@
         }
 
         function printTravelerDetails() {
-            const content = document.getElementById('travelerDetails')?.innerHTML;
+            const content = document.getElementById('travelerDetails');
             if (!content) return;
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html><head><title>Traveler Details</title>
@@ -2435,14 +2578,12 @@
                     .detail-item.full-width { grid-column: 1 / -1; }
                     .document-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
                     .document-card { background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-                    .document-card i { font-size: 2rem; color: #27ae60; margin-bottom: 10px; }
-                    .document-card i.missing { color: #e74c3c; }
                     .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
                     .status-active { background: #d4edda; color: #155724; }
                     @media print { body { padding: 15px; } }
                 </style>
                 </head><body>
-                ${content}
+                ${content.innerHTML}
                 </body></html>
             `);
             printWindow.document.close();
@@ -2467,7 +2608,7 @@
 
         /**
          * ==================================================================
-         * SUBSECTION 36.25: CSV UPLOAD FUNCTIONS
+         * SUBSECTION 36.24: CSV UPLOAD FUNCTIONS
          * ================================================================== */
         function showCSVUploadSection() {
             document.getElementById('csvUploadSection').style.display = 'block';
@@ -2532,37 +2673,7 @@ John,Doe,John Doe,Male,1990-01-01,1,A0000001,2020-01-01,2030-01-01,Active,900000
 
         /**
          * ==================================================================
-         * SUBSECTION 36.26: SEARCH FUNCTIONS
-         * ================================================================== */
-        function searchTravelers() {
-            const search = document.getElementById('searchTravelers').value.toLowerCase().trim();
-            if (!search) { displayTravelers(); return; }
-            const filtered = travelersData.filter(t => {
-                const fullName = `${t.first_name || ''} ${t.last_name || ''}`.toLowerCase();
-                const passport = (t.passport_no || '').toLowerCase();
-                const mobile = (t.mobile || '').toLowerCase();
-                const email = (t.email || '').toLowerCase();
-                const batch = (t.batch_name || '').toLowerCase();
-                const fileRef = (t.file_reference || '').toLowerCase();
-                return fullName.includes(search) || passport.includes(search) || 
-                       mobile.includes(search) || email.includes(search) || 
-                       batch.includes(search) || fileRef.includes(search);
-            });
-            currentPage = 1;
-            const originalData = travelersData;
-            travelersData = filtered;
-            displayTravelers();
-            travelersData = originalData;
-        }
-
-        function clearSearch() {
-            document.getElementById('searchTravelers').value = '';
-            displayTravelers();
-        }
-
-        /**
-         * ==================================================================
-         * SUBSECTION 36.27: UI HELPERS
+         * SUBSECTION 36.25: UI HELPERS
          * ================================================================== */
         function showLoading(btn, text) {
             if (!btn) return;
@@ -2586,7 +2697,7 @@ John,Doe,John Doe,Male,1990-01-01,1,A0000001,2020-01-01,2030-01-01,Active,900000
             btn.textContent = btn.textContent.replace('Saving...', 'Save Traveler (36 Fields)');
         }
 
-        console.log('✅ Travelers page loaded successfully with auto-populated return dates and validation!');
+        console.log('✅ Travelers page loaded successfully with auto-populated return dates!');
     </script>
 </body>
 </html>
