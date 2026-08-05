@@ -147,11 +147,15 @@ function displayBatches() {
             '<i class="fas fa-check-circle" style="color: #27ae60;" title="Has Return Date - Auto-populates for travelers"></i>' : 
             '<i class="fas fa-times-circle" style="color: #e74c3c;" title="No Return Date Set - Travelers cannot auto-populate"></i>';
 
+        const returnDateDisplay = b.return_date ? 
+            `<span style="color: #27ae60; font-weight: bold;">${formatDate(b.return_date)}</span>` : 
+            `<span style="color: #e74c3c;">⚠️ Not Set</span>`;
+
         html += `<tr>
             <td>${b.id}</td>
             <td><strong>${escapeHtml(b.batch_name || '-')}</strong> ${hasReturnDate}</td>
             <td>${b.departure_date ? formatDate(b.departure_date) : '-'}</td>
-            <td style="${b.return_date ? 'color: #27ae60; font-weight: bold;' : 'color: #e74c3c;'}">${b.return_date ? formatDate(b.return_date) : '⚠️ Not Set'}</td>
+            <td>${returnDateDisplay}</td>
             <td>₹${price}</td>
             <td>${totalSeats}</td>
             <td>${bookedSeats}</td>
@@ -272,7 +276,15 @@ async function createBatch() {
     const departureDate = document.getElementById('departure_date')?.value;
     const returnDate = document.getElementById('return_date')?.value;
     
-    if (departureDate && returnDate && returnDate < departureDate) {
+    if (!departureDate) {
+        showNotification('Departure date is required', 'error');
+        return;
+    }
+    if (!returnDate) {
+        showNotification('Return date is required for traveler auto-population', 'error');
+        return;
+    }
+    if (returnDate < departureDate) {
         showNotification('Return date must be after departure date.', 'error');
         return;
     }
@@ -318,8 +330,7 @@ async function createBatch() {
         const data = await response.json();
 
         if (data.success) {
-            const returnMsg = batchData.return_date ? ` Return date: ${batchData.return_date}` : '';
-            showNotification('Batch created successfully!' + returnMsg, 'success');
+            showNotification(`Batch created successfully! Return date: ${batchData.return_date} (will auto-populate for travelers)`, 'success');
             if (typeof hideCreateBatchForm === 'function') hideCreateBatchForm();
             await loadBatches();
         } else {
@@ -449,7 +460,15 @@ async function updateBatch() {
     const departureDate = document.getElementById('edit_departure_date')?.value;
     const returnDate = document.getElementById('edit_return_date')?.value;
     
-    if (departureDate && returnDate && returnDate < departureDate) {
+    if (!departureDate) {
+        showNotification('Departure date is required', 'error');
+        return;
+    }
+    if (!returnDate) {
+        showNotification('Return date is required for traveler auto-population', 'error');
+        return;
+    }
+    if (returnDate < departureDate) {
         showNotification('Return date must be after departure date.', 'error');
         return;
     }
@@ -491,7 +510,7 @@ async function updateBatch() {
         const data = await response.json();
 
         if (data.success) {
-            showNotification('Batch updated successfully! Return date updated for travelers.', 'success');
+            showNotification(`Batch updated successfully! Return date: ${batchData.return_date} (will auto-populate for travelers)`, 'success');
             if (typeof hideEditBatchForm === 'function') hideEditBatchForm();
             batchesCurrentEditId = null;
             await loadBatches();
@@ -601,7 +620,7 @@ function viewBatchDetails(id) {
                 </div>
                 <div style="background:#f8f9fa;padding:12px;border-radius:5px;border-left:4px solid ${b.return_date ? '#27ae60' : '#e74c3c'};">
                     <strong>Return Date:</strong><br>
-                    <span style="font-weight:bold;">${b.return_date ? formatDate(b.return_date) : '⚠️ Not Set'}</span>
+                    <span style="font-weight:bold;">${hasReturnDate}</span>
                     <br><small style="color:${b.return_date ? '#27ae60' : '#e74c3c'};">${b.return_date ? '✅ Auto-populates for travelers' : '⚠️ Set this for traveler auto-population'}</small>
                 </div>
                 <div style="background:#f8f9fa;padding:12px;border-radius:5px;">
@@ -863,7 +882,7 @@ function printBatches() {
 /**
  * Validate dates for create form
  */
-function validateDates() {
+function validateCreateDates() {
     const departure = document.getElementById('departure_date')?.value;
     const returnDate = document.getElementById('return_date')?.value;
     const validationDiv = document.getElementById('create_date_validation');
@@ -876,7 +895,7 @@ function validateDates() {
             validationDiv.className = 'date-validation-info invalid';
             return false;
         } else {
-            validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Valid dates: Return is after departure.';
+            validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Valid dates: Return is after departure. Will auto-populate for travelers.';
             validationDiv.className = 'date-validation-info valid';
             return true;
         }
@@ -907,7 +926,7 @@ function validateEditDates() {
             validationDiv.className = 'date-validation-info invalid';
             return false;
         } else {
-            validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Valid dates: Return is after departure.';
+            validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> Valid dates: Return is after departure. Will auto-populate for travelers.';
             validationDiv.className = 'date-validation-info valid';
             return true;
         }
@@ -1062,8 +1081,8 @@ async function initializePage() {
     // Set up date validation listeners
     const depEl = document.getElementById('departure_date');
     const retEl = document.getElementById('return_date');
-    if (depEl) depEl.addEventListener('change', validateDates);
-    if (retEl) retEl.addEventListener('change', validateDates);
+    if (depEl) depEl.addEventListener('change', validateCreateDates);
+    if (retEl) retEl.addEventListener('change', validateCreateDates);
 
     const editDepEl = document.getElementById('edit_departure_date');
     const editRetEl = document.getElementById('edit_return_date');
@@ -1097,7 +1116,7 @@ window.closeViewBatchModal = closeViewBatchModal;
 window.printBatchDetails = printBatchDetails;
 window.exportBatchesToExcel = exportBatchesToExcel;
 window.printBatches = printBatches;
-window.validateDates = validateDates;
+window.validateCreateDates = validateCreateDates;
 window.validateEditDates = validateEditDates;
 window.showNotification = showNotification;
 window.logout = async function() {
