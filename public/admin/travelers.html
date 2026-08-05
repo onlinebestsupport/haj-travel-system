@@ -479,57 +479,57 @@
             <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();" enctype="multipart/form-data">
                 <div class="section-header"><h4><i class="fas fa-user"></i> 1. Personal Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="add_first_name" required></div>
-                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="add_last_name" required></div>
-                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="add_passport_name" readonly></div>
-                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="add_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="add_dob"></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="add_first_name" name="first_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="add_last_name" name="last_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="add_passport_name" name="passport_name" readonly></div>
+                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="add_gender" name="gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="add_dob" name="dob"></div>
                     <div class="form-group"><label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="add_batch_id" required onchange="onBatchSelect('add')"><option value="">Select Batch</option></select>
+                        <select id="add_batch_id" name="batch_id" required onchange="onBatchSelect('add')"><option value="">Select Batch</option></select>
                         <div id="add_batch_return_info" class="batch-return-info"><i class="fas fa-calendar-check"></i> <span id="add_batch_return_text">Return Date: </span></div>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="add_passport_no" required></div>
-                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="add_passport_issue_date"></div>
-                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date</label><input type="date" id="add_passport_expiry_date" onchange="validatePassportExpiry('add')"><div id="add_passport_validation" class="validation-message"></div></div>
-                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="add_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="add_passport_no" name="passport_no" required></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="add_passport_issue_date" name="passport_issue_date"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date</label><input type="date" id="add_passport_expiry_date" name="passport_expiry_date" onchange="validatePassportExpiry('add')"><div id="add_passport_validation" class="validation-message"></div></div>
+                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="add_passport_status" name="passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-address-book"></i> 2. Contact Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="add_mobile" required></div>
-                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="add_email"></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="add_aadhaar"></div>
-                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="add_pan"></div>
-                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="add_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="add_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="add_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="add_mobile" name="mobile" required></div>
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="add_email" name="email"></div>
+                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="add_aadhaar" name="aadhaar"></div>
+                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="add_pan" name="pan"></div>
+                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="add_aadhaar_pan_linked" name="aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="add_vaccine_status" name="vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="add_wheelchair" name="wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-home"></i> 3. Address & Family Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="add_place_of_birth"></div>
-                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="add_place_of_issue"></div>
-                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="add_passport_address" rows="2"></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="add_place_of_birth" name="place_of_birth"></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="add_place_of_issue" name="place_of_issue"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="add_passport_address" name="passport_address" rows="2"></textarea></div>
                     <div class="form-group full-width"><label><i class="fas fa-envelope"></i> Mailing Address <span style="color: #27ae60;">(NEW)</span></label>
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
                             <input type="checkbox" id="add_same_mailing" onchange="toggleMailingAddress('add')">
                             <label for="add_same_mailing" style="font-weight: normal; color: #7f8c8d; cursor: pointer;">Same as Passport Address</label>
                         </div>
-                        <textarea id="add_mailing_address" rows="2" placeholder="Address for correspondence"></textarea>
+                        <textarea id="add_mailing_address" name="mailing_address" rows="2" placeholder="Address for correspondence"></textarea>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="add_father_name"></div>
-                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="add_mother_name"></div>
-                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="add_spouse_name"></div>
+                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="add_father_name" name="father_name"></div>
+                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="add_mother_name" name="mother_name"></div>
+                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="add_spouse_name" name="spouse_name"></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-calendar-alt"></i> 4. Travel & Return Information</h4></div>
                 <div class="form-grid">
                     <div class="form-group"><label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60;">(Auto from Batch)</span></label>
-                        <input type="date" id="add_expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
+                        <input type="date" id="add_expected_return_date" name="expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
                         <div id="add_expected_return_info" class="expected-return-info"></div>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60;">(NEW)</span></label><input type="text" id="add_file_reference" placeholder="File or document reference number"></div>
+                    <div class="form-group"><label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60;">(NEW)</span></label><input type="text" id="add_file_reference" name="file_reference" placeholder="File or document reference number"></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-file-upload"></i> 5. Document Uploads</h4></div>
@@ -539,7 +539,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_passport_scan_text">Click to upload passport scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_passport_scan_text', 'add_passport_scan_preview')">
+                            <input type="file" id="add_passport_scan" name="passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_passport_scan_text', 'add_passport_scan_preview')">
                         </div>
                         <div id="add_passport_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -548,7 +548,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_aadhaar_scan_text">Click to upload Aadhaar scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_aadhaar_scan_text', 'add_aadhaar_scan_preview')">
+                            <input type="file" id="add_aadhaar_scan" name="aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_aadhaar_scan_text', 'add_aadhaar_scan_preview')">
                         </div>
                         <div id="add_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -557,7 +557,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_pan_scan_text">Click to upload PAN scan</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_pan_scan_text', 'add_pan_scan_preview')">
+                            <input type="file" id="add_pan_scan" name="pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_pan_scan_text', 'add_pan_scan_preview')">
                         </div>
                         <div id="add_pan_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -566,7 +566,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_vaccine_scan_text">Click to upload vaccine certificate</p>
                             <small>PDF, JPG, PNG (Max 5MB)</small>
-                            <input type="file" id="add_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_vaccine_scan_text', 'add_vaccine_scan_preview')">
+                            <input type="file" id="add_vaccine_scan" name="vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_vaccine_scan_text', 'add_vaccine_scan_preview')">
                         </div>
                         <div id="add_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -575,7 +575,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="add_photo_text">Click to upload photo</p>
                             <small>JPG, PNG (Max 2MB)</small>
-                            <input type="file" id="add_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_photo_text', 'add_photo_preview')">
+                            <input type="file" id="add_photo" name="photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'add_photo_text', 'add_photo_preview')">
                         </div>
                         <div id="add_photo_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -583,10 +583,10 @@
 
                 <div class="section-header"><h4><i class="fas fa-cog"></i> 6. Additional Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="add_pin" maxlength="4" value="0000"></div>
-                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="add_emergency_contact" placeholder="Contact person name"></div>
-                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="add_emergency_phone" placeholder="Emergency phone number"></div>
-                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="add_medical_notes" rows="2" placeholder="Any medical conditions, allergies, etc."></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="add_pin" name="pin" maxlength="4" value="0000"></div>
+                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="add_emergency_contact" name="emergency_contact" placeholder="Contact person name"></div>
+                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="add_emergency_phone" name="emergency_phone" placeholder="Emergency phone number"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="add_medical_notes" name="medical_notes" rows="2" placeholder="Any medical conditions, allergies, etc."></textarea></div>
                 </div>
 
                 <div class="form-actions">
@@ -600,60 +600,60 @@
         <div class="form-container" id="editTravelerForm" style="display: none;">
             <h3><i class="fas fa-user-edit"></i> Edit Traveler - 36 Fields</h3>
             <form id="travelerEditForm" onsubmit="event.preventDefault(); updateTraveler();" enctype="multipart/form-data">
-                <input type="hidden" id="edit_traveler_id">
+                <input type="hidden" id="edit_traveler_id" name="id">
                 <div class="section-header"><h4><i class="fas fa-user"></i> 1. Personal Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="edit_first_name" required></div>
-                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="edit_last_name" required></div>
-                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="edit_passport_name" readonly></div>
-                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="edit_gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="edit_dob"></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="edit_first_name" name="first_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="edit_last_name" name="last_name" required></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Name</label><input type="text" id="edit_passport_name" name="passport_name" readonly></div>
+                    <div class="form-group"><label><i class="fas fa-venus-mars"></i> Gender</label><select id="edit_gender" name="gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-birthday-cake"></i> Date of Birth</label><input type="date" id="edit_dob" name="dob"></div>
                     <div class="form-group"><label><i class="fas fa-layer-group"></i> Batch *</label>
-                        <select id="edit_batch_id" required onchange="onBatchSelect('edit')"><option value="">Select Batch</option></select>
+                        <select id="edit_batch_id" name="batch_id" required onchange="onBatchSelect('edit')"><option value="">Select Batch</option></select>
                         <div id="edit_batch_return_info" class="batch-return-info"><i class="fas fa-calendar-check"></i> <span id="edit_batch_return_text">Return Date: </span></div>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="edit_passport_no" required></div>
-                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="edit_passport_issue_date"></div>
-                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date</label><input type="date" id="edit_passport_expiry_date" onchange="validatePassportExpiry('edit')"><div id="edit_passport_validation" class="validation-message"></div></div>
-                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="edit_passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-passport"></i> Passport Number *</label><input type="text" id="edit_passport_no" name="passport_no" required></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Issue Date</label><input type="date" id="edit_passport_issue_date" name="passport_issue_date"></div>
+                    <div class="form-group"><label><i class="fas fa-calendar"></i> Passport Expiry Date</label><input type="date" id="edit_passport_expiry_date" name="passport_expiry_date" onchange="validatePassportExpiry('edit')"><div id="edit_passport_validation" class="validation-message"></div></div>
+                    <div class="form-group"><label><i class="fas fa-info-circle"></i> Passport Status</label><select id="edit_passport_status" name="passport_status"><option value="Active">Active</option><option value="Expired">Expired</option><option value="Submitted">Submitted</option><option value="Processing">Processing</option></select></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-address-book"></i> 2. Contact Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="edit_mobile" required></div>
-                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="edit_email"></div>
-                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="edit_aadhaar"></div>
-                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="edit_pan"></div>
-                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="edit_vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
-                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="edit_wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-mobile-alt"></i> Mobile Number *</label><input type="tel" id="edit_mobile" name="mobile" required></div>
+                    <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="edit_email" name="email"></div>
+                    <div class="form-group"><label><i class="fas fa-id-card"></i> Aadhaar Number</label><input type="text" id="edit_aadhaar" name="aadhaar"></div>
+                    <div class="form-group"><label><i class="fas fa-credit-card"></i> PAN Number</label><input type="text" id="edit_pan" name="pan"></div>
+                    <div class="form-group"><label><i class="fas fa-link"></i> Aadhaar-PAN Linked</label><select id="edit_aadhaar_pan_linked" name="aadhaar_pan_linked"><option value="No">No</option><option value="Yes">Yes</option><option value="Pending">Pending</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-syringe"></i> Vaccine Status</label><select id="edit_vaccine_status" name="vaccine_status"><option value="Not Vaccinated">Not Vaccinated</option><option value="Partially Vaccinated">Partially Vaccinated</option><option value="Fully Vaccinated">Fully Vaccinated</option><option value="Booster">Booster</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-wheelchair"></i> Wheelchair Required</label><select id="edit_wheelchair" name="wheelchair"><option value="No">No</option><option value="Yes">Yes</option></select></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-home"></i> 3. Address & Family</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="edit_place_of_birth"></div>
-                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="edit_place_of_issue"></div>
-                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="edit_passport_address" rows="2"></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Birth</label><input type="text" id="edit_place_of_birth" name="place_of_birth"></div>
+                    <div class="form-group"><label><i class="fas fa-globe"></i> Place of Issue</label><input type="text" id="edit_place_of_issue" name="place_of_issue"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-map-marker-alt"></i> Passport Address</label><textarea id="edit_passport_address" name="passport_address" rows="2"></textarea></div>
                     <div class="form-group full-width"><label><i class="fas fa-envelope"></i> Mailing Address <span style="color: #27ae60;">(NEW)</span></label>
                         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
                             <input type="checkbox" id="edit_same_mailing" onchange="toggleMailingAddress('edit')">
                             <label for="edit_same_mailing" style="font-weight: normal; color: #7f8c8d; cursor: pointer;">Same as Passport Address</label>
                         </div>
-                        <textarea id="edit_mailing_address" rows="2" placeholder="Address for correspondence"></textarea>
+                        <textarea id="edit_mailing_address" name="mailing_address" rows="2" placeholder="Address for correspondence"></textarea>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="edit_father_name"></div>
-                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="edit_mother_name"></div>
-                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="edit_spouse_name"></div>
+                    <div class="form-group"><label><i class="fas fa-male"></i> Father's Name</label><input type="text" id="edit_father_name" name="father_name"></div>
+                    <div class="form-group"><label><i class="fas fa-female"></i> Mother's Name</label><input type="text" id="edit_mother_name" name="mother_name"></div>
+                    <div class="form-group"><label><i class="fas fa-heart"></i> Spouse's Name</label><input type="text" id="edit_spouse_name" name="spouse_name"></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-calendar-alt"></i> 4. Travel & Return Information</h4></div>
                 <div class="form-grid">
                     <div class="form-group"><label><i class="fas fa-calendar-check"></i> Expected Return Date <span style="color: #27ae60;">(Auto from Batch)</span></label>
-                        <input type="date" id="edit_expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
+                        <input type="date" id="edit_expected_return_date" name="expected_return_date" readonly class="auto-filled" placeholder="Auto-populated from batch">
                         <small style="color: #7f8c8d;">Auto-populated from selected batch's return date</small>
                         <div id="edit_expected_return_info" class="expected-return-info"></div>
                     </div>
-                    <div class="form-group"><label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60;">(NEW)</span></label><input type="text" id="edit_file_reference" placeholder="File or document reference number"></div>
+                    <div class="form-group"><label><i class="fas fa-file-alt"></i> File Reference <span style="color: #27ae60;">(NEW)</span></label><input type="text" id="edit_file_reference" name="file_reference" placeholder="File or document reference number"></div>
                 </div>
 
                 <div class="section-header"><h4><i class="fas fa-file-upload"></i> 5. Document Uploads</h4></div>
@@ -662,7 +662,7 @@
                         <div class="document-upload" onclick="document.getElementById('edit_passport_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_passport_scan_text">Click to update passport scan</p>
-                            <input type="file" id="edit_passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_passport_scan_text', 'edit_passport_scan_preview')">
+                            <input type="file" id="edit_passport_scan" name="passport_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_passport_scan_text', 'edit_passport_scan_preview')">
                         </div>
                         <div id="edit_passport_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -670,7 +670,7 @@
                         <div class="document-upload" onclick="document.getElementById('edit_aadhaar_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_aadhaar_scan_text">Click to update Aadhaar scan</p>
-                            <input type="file" id="edit_aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_aadhaar_scan_text', 'edit_aadhaar_scan_preview')">
+                            <input type="file" id="edit_aadhaar_scan" name="aadhaar_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_aadhaar_scan_text', 'edit_aadhaar_scan_preview')">
                         </div>
                         <div id="edit_aadhaar_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -678,7 +678,7 @@
                         <div class="document-upload" onclick="document.getElementById('edit_pan_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_pan_scan_text">Click to update PAN scan</p>
-                            <input type="file" id="edit_pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_pan_scan_text', 'edit_pan_scan_preview')">
+                            <input type="file" id="edit_pan_scan" name="pan_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_pan_scan_text', 'edit_pan_scan_preview')">
                         </div>
                         <div id="edit_pan_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -686,7 +686,7 @@
                         <div class="document-upload" onclick="document.getElementById('edit_vaccine_scan').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_vaccine_scan_text">Click to update vaccine certificate</p>
-                            <input type="file" id="edit_vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_vaccine_scan_text', 'edit_vaccine_scan_preview')">
+                            <input type="file" id="edit_vaccine_scan" name="vaccine_scan" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_vaccine_scan_text', 'edit_vaccine_scan_preview')">
                         </div>
                         <div id="edit_vaccine_scan_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -694,7 +694,7 @@
                         <div class="document-upload" onclick="document.getElementById('edit_photo').click()">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p id="edit_photo_text">Click to update photo</p>
-                            <input type="file" id="edit_photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_photo_text', 'edit_photo_preview')">
+                            <input type="file" id="edit_photo" name="photo" style="display: none;" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'edit_photo_text', 'edit_photo_preview')">
                         </div>
                         <div id="edit_photo_preview" class="document-preview" style="display: none;"></div>
                     </div>
@@ -702,10 +702,10 @@
 
                 <div class="section-header"><h4><i class="fas fa-cog"></i> 6. Additional Information</h4></div>
                 <div class="form-grid">
-                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="edit_pin" maxlength="4" value="0000"></div>
-                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="edit_emergency_contact"></div>
-                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="edit_emergency_phone"></div>
-                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="edit_medical_notes" rows="2"></textarea></div>
+                    <div class="form-group"><label><i class="fas fa-key"></i> PIN (4 digits)</label><input type="text" id="edit_pin" name="pin" maxlength="4" value="0000"></div>
+                    <div class="form-group"><label><i class="fas fa-phone-alt"></i> Emergency Contact</label><input type="text" id="edit_emergency_contact" name="emergency_contact"></div>
+                    <div class="form-group"><label><i class="fas fa-phone"></i> Emergency Phone</label><input type="tel" id="edit_emergency_phone" name="emergency_phone"></div>
+                    <div class="form-group full-width"><label><i class="fas fa-notes-medical"></i> Medical Notes</label><textarea id="edit_medical_notes" name="medical_notes" rows="2"></textarea></div>
                 </div>
 
                 <div class="form-actions">
@@ -785,7 +785,7 @@
     <script>
         /**
          * ============================================================
-         * COMPLETE TRAVELERS MODULE - WITH DATE FORMAT FIX
+         * COMPLETE TRAVELERS MODULE - FIXED FORM HANDLING
          * ============================================================
          */
 
@@ -804,19 +804,11 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Travelers page loading...');
             try {
-                // Check session
-                const sessionCheck = await fetch('/api/check-session', { credentials: 'include' });
-                if (!sessionCheck.ok) {
-                    window.location.href = '/admin/login.html';
-                    return;
-                }
-                
                 await loadBatches();
                 await loadTravelers();
                 setupPassportNameAutoFill();
                 setupMailingAddressToggle();
                 setupDateValidation();
-                
                 console.log('✅ Travelers page loaded successfully!');
             } catch (error) {
                 console.error('❌ Error initializing page:', error);
@@ -845,6 +837,7 @@
                 if (data.success && data.batches) {
                     batchesData = data.batches;
                 } else {
+                    // Fallback data
                     batchesData = [
                         { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
                         { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
@@ -961,12 +954,7 @@
         // ============================================================
         function displayTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
-            if (!tableBody) {
-                console.error('❌ Table body not found!');
-                return;
-            }
-            
-            console.log(`📊 Displaying ${travelersData.length} travelers`);
+            if (!tableBody) return;
             
             if (!travelersData || travelersData.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: #7f8c8d;">No travelers found</td></tr>';
@@ -977,8 +965,6 @@
             const start = (currentPage - 1) * itemsPerPage;
             const end = Math.min(start + itemsPerPage, travelersData.length);
             const pageItems = travelersData.slice(start, end);
-            
-            console.log(`📄 Showing page ${currentPage}, items ${start+1} to ${end}`);
             
             let html = '';
             pageItems.forEach(t => {
@@ -1174,27 +1160,56 @@
         }
 
         // ============================================================
-        // CREATE TRAVELER
+        // CREATE TRAVELER - FIXED
         // ============================================================
         async function createTraveler() {
             const form = document.getElementById('travelerAddForm');
             if (!form) return;
             
+            // Get all form data
             const formData = new FormData(form);
             
-            const firstName = document.getElementById('add_first_name')?.value?.trim();
-            const lastName = document.getElementById('add_last_name')?.value?.trim();
-            const passportNo = document.getElementById('add_passport_no')?.value?.trim();
-            const mobile = document.getElementById('add_mobile')?.value?.trim();
-            const batchId = document.getElementById('add_batch_id')?.value;
+            // Log all fields for debugging
+            console.log('📝 Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                if (key.includes('scan') || key === 'photo') {
+                    console.log(`  ${key}: [File: ${value.name || value}]`);
+                } else {
+                    console.log(`  ${key}: ${value || '(empty)'}`);
+                }
+            }
             
-            if (!firstName || !lastName || !passportNo || !mobile) {
-                showNotification('First name, last name, passport number, and mobile are required', 'error');
+            // Validate required fields
+            const firstName = formData.get('first_name')?.trim();
+            const lastName = formData.get('last_name')?.trim();
+            const passportNo = formData.get('passport_no')?.trim();
+            const mobile = formData.get('mobile')?.trim();
+            const batchId = formData.get('batch_id');
+            
+            if (!firstName) {
+                showNotification('First name is required', 'error');
+                return;
+            }
+            if (!lastName) {
+                showNotification('Last name is required', 'error');
+                return;
+            }
+            if (!passportNo) {
+                showNotification('Passport number is required', 'error');
+                return;
+            }
+            if (!mobile) {
+                showNotification('Mobile number is required', 'error');
                 return;
             }
             if (!batchId) {
                 showNotification('Please select a batch', 'error');
                 return;
+            }
+            
+            // Generate passport name if not provided
+            if (!formData.get('passport_name')) {
+                formData.set('passport_name', `${firstName} ${lastName}`);
             }
             
             const submitBtn = form.querySelector('button[type="submit"]');
@@ -1206,16 +1221,22 @@
                     body: formData,
                     credentials: 'include'
                 });
+                
+                // Get response data
                 const data = await response.json();
-                if (data.success) {
+                console.log('📥 Server response:', data);
+                
+                if (response.ok && data.success) {
                     showNotification('Traveler created successfully!', 'success');
                     hideAddTravelerForm();
-                    loadTravelers();
+                    await loadTravelers();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Could not create traveler'), 'error');
+                    const errorMsg = data.error || data.message || 'Could not create traveler';
+                    showNotification('Error: ' + errorMsg, 'error');
+                    console.error('❌ Server error:', data);
                 }
             } catch (error) {
-                console.error('Create error:', error);
+                console.error('❌ Create error:', error);
                 showNotification('Network error. Please try again.', 'error');
             } finally {
                 hideLoading(submitBtn);
@@ -1278,7 +1299,7 @@
         }
 
         // ============================================================
-        // UPDATE TRAVELER
+        // UPDATE TRAVELER - FIXED
         // ============================================================
         async function updateTraveler() {
             if (!currentEditId) {
@@ -1291,6 +1312,34 @@
             
             const formData = new FormData(form);
             
+            // Log all fields for debugging
+            console.log('📝 Update data being sent:');
+            for (let [key, value] of formData.entries()) {
+                if (key.includes('scan') || key === 'photo') {
+                    console.log(`  ${key}: [File: ${value.name || value}]`);
+                } else {
+                    console.log(`  ${key}: ${value || '(empty)'}`);
+                }
+            }
+            
+            // Validate required fields
+            const firstName = formData.get('first_name')?.trim();
+            const lastName = formData.get('last_name')?.trim();
+            
+            if (!firstName) {
+                showNotification('First name is required', 'error');
+                return;
+            }
+            if (!lastName) {
+                showNotification('Last name is required', 'error');
+                return;
+            }
+            
+            // Generate passport name if not provided
+            if (!formData.get('passport_name')) {
+                formData.set('passport_name', `${firstName} ${lastName}`);
+            }
+            
             const submitBtn = form.querySelector('button[type="submit"]');
             showLoading(submitBtn, 'Updating...');
             
@@ -1300,16 +1349,21 @@
                     body: formData,
                     credentials: 'include'
                 });
+                
                 const data = await response.json();
-                if (data.success) {
+                console.log('📥 Update response:', data);
+                
+                if (response.ok && data.success) {
                     showNotification('Traveler updated successfully!', 'success');
                     hideEditTravelerForm();
-                    loadTravelers();
+                    await loadTravelers();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Update failed'), 'error');
+                    const errorMsg = data.error || data.message || 'Update failed';
+                    showNotification('Error: ' + errorMsg, 'error');
+                    console.error('❌ Server error:', data);
                 }
             } catch (error) {
-                console.error('Update error:', error);
+                console.error('❌ Update error:', error);
                 showNotification('Network error. Please try again.', 'error');
             } finally {
                 hideLoading(submitBtn);
@@ -1329,7 +1383,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showNotification('Traveler deleted successfully!', 'success');
-                    loadTravelers();
+                    await loadTravelers();
                 } else {
                     showNotification('Error: ' + (data.error || 'Could not delete traveler'), 'error');
                 }
@@ -1620,7 +1674,7 @@
         }
 
         // ============================================================
-        // BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE (FIXED)
+        // BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
         // ============================================================
         function onBatchSelect(prefix) {
             console.log(`🔄 onBatchSelect called for prefix: ${prefix}`);
@@ -1659,23 +1713,18 @@
                 let returnDate = batch.return_date || batch.returnDate || batch.expected_return_date;
                 console.log('📅 Raw return date:', returnDate);
                 
-                // ===== DATE FORMAT CONVERSION FIX =====
+                // Date format conversion
                 let formattedDate = '';
                 if (returnDate) {
                     try {
-                        // Already in YYYY-MM-DD format
                         if (/^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
                             formattedDate = returnDate;
-                        }
-                        // MM/DD/YYYY format
-                        else if (returnDate.includes('/')) {
+                        } else if (returnDate.includes('/')) {
                             const parts = returnDate.split('/');
                             if (parts.length === 3) {
                                 formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
                             }
-                        }
-                        // Date object or GMT string (e.g., "Fri, 21 May 2027 00:00:00 GMT")
-                        else {
+                        } else {
                             const dateObj = new Date(returnDate);
                             if (!isNaN(dateObj.getTime())) {
                                 const year = dateObj.getFullYear();
@@ -1691,7 +1740,6 @@
                 }
                 
                 console.log('📅 Formatted date (YYYY-MM-DD):', formattedDate);
-                // ===== END DATE FORMAT CONVERSION FIX =====
                 
                 if (returnInfoDiv && returnTextSpan) {
                     returnInfoDiv.classList.add('show');
@@ -1705,7 +1753,6 @@
                 }
                 
                 if (formattedDate) {
-                    // Set the date input value with the formatted date
                     returnDateInput.value = formattedDate;
                     returnDateInput.style.borderColor = '#27ae60';
                     returnDateInput.style.background = '#f0fff4';
@@ -1758,8 +1805,6 @@
         }
 
         function validatePassportExpiry(prefix) {
-            console.log(`🔍 validatePassportExpiry called for prefix: ${prefix}`);
-            
             const expiryDateInput = document.getElementById(prefix + '_passport_expiry_date');
             const returnDateInput = document.getElementById(prefix + '_expected_return_date');
             const validationDiv = document.getElementById(prefix + '_passport_validation');
@@ -1795,8 +1840,7 @@
             const minExpiry = new Date(ret);
             minExpiry.setMonth(minExpiry.getMonth() + 6);
             
-            const today = new Date();
-            const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+            const daysUntilExpiry = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
             const daysUntilMinExpiry = Math.ceil((expiry - minExpiry) / (1000 * 60 * 60 * 24));
             
             if (expiry < minExpiry) {
@@ -2109,7 +2153,6 @@ John,Doe,John Doe,Male,1990-01-01,1,A0000001,2020-01-01,2030-01-01,Active,900000
         }
 
         console.log('✅ Travelers module loaded successfully!');
-        console.log(`📊 Loaded ${travelersData.length} travelers and ${batchesData.length} batches`);
     </script>
 </body>
 </html>
