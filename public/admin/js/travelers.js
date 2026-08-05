@@ -51,6 +51,88 @@ async function initializePage() {
 }
 
 // ============================================================
+// SESSION MANAGEMENT
+// ============================================================
+function resetSessionTimer() {
+    if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+    if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+    hideSessionWarning();
+    sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
+    sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
+}
+
+function showSessionWarning() {
+    if (warningShown) return;
+    const warning = document.getElementById('sessionWarning');
+    const message = document.getElementById('sessionWarningMessage');
+    if (!warning || !message) return;
+    message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
+    warning.style.display = 'block';
+    warningShown = true;
+}
+
+function hideSessionWarning() {
+    const warning = document.getElementById('sessionWarning');
+    if (warning) warning.style.display = 'none';
+    warningShown = false;
+}
+
+function showSessionExpiredWarning() {
+    hideSessionWarning();
+    showNotification('Your session has expired. Redirecting to login...', 'warning');
+    setTimeout(() => { 
+        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+            SessionManager.logout();
+        } else {
+            window.location.href = '/admin/login.html';
+        }
+    }, 3000);
+}
+
+async function extendSession() {
+    try {
+        if (typeof SessionManager !== 'undefined' && SessionManager.checkSession) {
+            await SessionManager.checkSession();
+        }
+        hideSessionWarning();
+        resetSessionTimer();
+        showNotification('Session extended successfully', 'success');
+    } catch (error) {
+        console.error('Session extension failed:', error);
+        showSessionExpiredWarning();
+    }
+}
+
+// ============================================================
+// NOTIFICATION FUNCTION
+// ============================================================
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    const icon = type === 'success' ? 'check-circle' :
+        type === 'error' ? 'exclamation-circle' :
+        type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+    notification.style.display = 'block';
+    if (notificationTimeout) clearTimeout(notificationTimeout);
+    notificationTimeout = setTimeout(() => { notification.style.display = 'none'; }, 3000);
+}
+
+// ============================================================
+// LOGOUT FUNCTION
+// ============================================================
+async function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+            await SessionManager.logout();
+        } else {
+            window.location.href = '/admin/login.html';
+        }
+    }
+}
+
+// ============================================================
 // DATE HELPERS
 // ============================================================
 function parseDateYMD(str) {
@@ -348,88 +430,6 @@ function validatePassportExpiry(prefix) {
 }
 
 // ============================================================
-// SESSION MANAGEMENT
-// ============================================================
-function resetSessionTimer() {
-    if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
-    if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
-    hideSessionWarning();
-    sessionWarningTimeout = setTimeout(showSessionWarning, 1500000);
-    sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 1800000);
-}
-
-function showSessionWarning() {
-    if (warningShown) return;
-    const warning = document.getElementById('sessionWarning');
-    const message = document.getElementById('sessionWarningMessage');
-    if (!warning || !message) return;
-    message.textContent = 'Your session will expire in 2 minutes. Click to extend.';
-    warning.style.display = 'block';
-    warningShown = true;
-}
-
-function hideSessionWarning() {
-    const warning = document.getElementById('sessionWarning');
-    if (warning) warning.style.display = 'none';
-    warningShown = false;
-}
-
-function showSessionExpiredWarning() {
-    hideSessionWarning();
-    showNotification('Your session has expired. Redirecting to login...', 'warning');
-    setTimeout(() => { 
-        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
-            SessionManager.logout();
-        } else {
-            window.location.href = '/admin/login.html';
-        }
-    }, 3000);
-}
-
-async function extendSession() {
-    try {
-        if (typeof SessionManager !== 'undefined' && SessionManager.checkSession) {
-            await SessionManager.checkSession();
-        }
-        hideSessionWarning();
-        resetSessionTimer();
-        showNotification('Session extended successfully', 'success');
-    } catch (error) {
-        console.error('Session extension failed:', error);
-        showSessionExpiredWarning();
-    }
-}
-
-// ============================================================
-// NOTIFICATION FUNCTION
-// ============================================================
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    const icon = type === 'success' ? 'check-circle' :
-        type === 'error' ? 'exclamation-circle' :
-        type === 'warning' ? 'exclamation-triangle' : 'info-circle';
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
-    notification.style.display = 'block';
-    if (notificationTimeout) clearTimeout(notificationTimeout);
-    notificationTimeout = setTimeout(() => { notification.style.display = 'none'; }, 3000);
-}
-
-// ============================================================
-// LOGOUT FUNCTION
-// ============================================================
-async function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
-            await SessionManager.logout();
-        } else {
-            window.location.href = '/admin/login.html';
-        }
-    }
-}
-
-// ============================================================
 // FILE HANDLING - SELECT & PREVIEW
 // ============================================================
 function handleFileSelect(input, textElementId, previewElementId) {
@@ -692,12 +692,10 @@ function useFallbackBatches() {
             return_date: '2027-07-15' 
         }
     ];
-    console.log('📦 Using fallback batches:', batchesData);
+    console.log('📦 Using fallback batches with return dates:', batchesData);
 }
 
 function updateBatchDropdowns(batches) {
-    console.log('🔄 Updating batch dropdowns with', batches.length, 'batches');
-    
     ['add', 'edit'].forEach(prefix => {
         const select = document.getElementById(prefix + '_batch_id');
         if (!select) {
@@ -714,17 +712,15 @@ function updateBatchDropdowns(batches) {
             const returnDate = b.return_date || b.returnDate || b.expected_return_date || b.expectedReturnDate || b.batch_return_date || b.return_dt;
             const returnInfo = returnDate ? ` (Return: ${returnDate})` : ' (No return date set)';
             option.textContent = (b.batch_name || b.name || 'Batch ' + b.id) + returnInfo;
-            // Store return date as data attribute
             if (returnDate) {
                 option.dataset.returnDate = returnDate;
             }
             select.appendChild(option);
         });
         
-        // Restore selection if possible
+        // Restore selection and trigger auto-populate
         if (currentValue) {
             select.value = currentValue;
-            // Trigger onBatchSelect to populate return date
             setTimeout(() => {
                 onBatchSelect(prefix);
             }, 100);
@@ -1178,11 +1174,11 @@ function editTraveler(id) {
     });
     
     // Show existing documents
-    showExistingDocument('edit_passport_scan_preview', traveler.passport_scan, 'passport');
-    showExistingDocument('edit_aadhaar_scan_preview', traveler.aadhaar_scan, 'aadhaar');
-    showExistingDocument('edit_pan_scan_preview', traveler.pan_scan, 'pan');
-    showExistingDocument('edit_vaccine_scan_preview', traveler.vaccine_scan, 'vaccine');
-    showExistingDocument('edit_photo_preview', traveler.photo, 'photo');
+    showExistingDocumentPreview('edit_passport_scan_preview', traveler.passport_scan, 'passport');
+    showExistingDocumentPreview('edit_aadhaar_scan_preview', traveler.aadhaar_scan, 'aadhaar');
+    showExistingDocumentPreview('edit_pan_scan_preview', traveler.pan_scan, 'pan');
+    showExistingDocumentPreview('edit_vaccine_scan_preview', traveler.vaccine_scan, 'vaccine');
+    showExistingDocumentPreview('edit_photo_preview', traveler.photo, 'photo');
     
     // Auto-populate return date from batch
     if (traveler.batch_id) {
@@ -1193,45 +1189,6 @@ function editTraveler(id) {
     
     form.style.display = 'block';
     form.scrollIntoView({ behavior: 'smooth' });
-}
-
-function showExistingDocument(previewId, filename, docType) {
-    const previewEl = document.getElementById(previewId);
-    if (!previewEl) return;
-    
-    if (!filename) {
-        previewEl.style.display = 'none';
-        return;
-    }
-    
-    const subfolderMap = {
-        'passport': 'passports',
-        'aadhaar': 'aadhaar',
-        'pan': 'pan',
-        'vaccine': 'vaccine',
-        'photo': 'photos'
-    };
-    const subfolder = subfolderMap[docType] || 'documents';
-    const viewUrl = `/uploads/${subfolder}/${filename}`;
-    
-    previewEl.innerHTML = `
-        <div class="file-info">
-            <i class="fas fa-file"></i>
-            <span>${filename} (Uploaded)</span>
-        </div>
-        <div class="file-actions">
-            <button onclick="window.open('${viewUrl}', '_blank')" title="View">
-                <i class="fas fa-eye"></i>
-            </button>
-            <a href="${viewUrl}" download="${filename}" title="Download">
-                <i class="fas fa-download"></i>
-            </a>
-            <span title="File saved in database" style="color: #27ae60;">
-                <i class="fas fa-check-circle"></i>
-            </span>
-        </div>
-    `;
-    previewEl.style.display = 'flex';
 }
 
 // ============================================================
