@@ -854,11 +854,12 @@
 
     <script>
         // ================================================================
-        // FIXED: No duplicate declarations - All variables from batches.js
-        // Only functions that need to be overridden or added
+        // FIXED: NO duplicate variable declarations
+        // All variables (batchesData, currentPage, itemsPerPage, etc.) 
+        // come from batches.js - DO NOT redeclare them here!
         // ================================================================
 
-        // ====== SESSION TIMER - FIXED (Only logs once) ======
+        // ====== SESSION TIMER - FIXED ======
         let sessionListenersAdded = false;
         let warningShown = false;
         let sessionWarningTimeout = null;
@@ -916,7 +917,7 @@
             }
         }
 
-        // ====== NOTIFICATION (Fallback if batches.js doesn't have it) ======
+        // ====== NOTIFICATION (Fallback) ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) {
@@ -935,8 +936,6 @@
         // ====== ALLOW NUMBERS ONLY FOR AMOUNT ======
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
-            var keyChar = String.fromCharCode(key);
-            
             if (key == 8 || key == 9 || key == 13 || key == 27 || key == 46 || 
                 (key >= 35 && key <= 40) || (key >= 48 && key <= 57) || 
                 (key >= 96 && key <= 105)) {
@@ -1013,7 +1012,7 @@
 
         function hideEditBatchForm() {
             document.getElementById('editBatchForm').style.display = 'none';
-            // currentEditBatchId is managed by batches.js
+            // currentEditBatchId is from batches.js - DO NOT redeclare
             document.getElementById('edit_date_validation').innerHTML = '';
             document.getElementById('edit_date_validation').className = 'date-validation-info';
         }
@@ -1027,6 +1026,7 @@
 
         // ====== INITIALIZATION - FIXED ======
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Batches page initializing...');
             try {
                 await SessionManager.initPage(initializePage);
             } catch (error) {
@@ -1043,30 +1043,36 @@
             initSessionTimer();
             
             // Load page data - using function from batches.js
-            if (typeof loadBatches === 'function') {
-                await loadBatches();
+            if (typeof window.loadBatches === 'function') {
+                await window.loadBatches();
             } else {
                 console.warn('⚠️ loadBatches not found, using fallback');
                 // Fallback: load batches manually
-                const response = await fetch('/api/batches', {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.batches) {
-                        // batchesData is from batches.js
-                        window.batchesData = data.batches;
-                        if (typeof displayBatches === 'function') {
-                            displayBatches();
-                        }
-                        if (typeof updateStatistics === 'function') {
-                            updateStatistics();
+                try {
+                    const response = await fetch('/api/batches', {
+                        credentials: 'include',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.batches) {
+                            // Use window to access the variable from batches.js
+                            window.batchesData = data.batches;
+                            if (typeof window.displayBatches === 'function') {
+                                window.displayBatches();
+                            }
+                            if (typeof window.updateStatistics === 'function') {
+                                window.updateStatistics();
+                            }
                         }
                     }
+                } catch (e) {
+                    console.error('Fallback load failed:', e);
                 }
             }
         }
+
+        console.log('✅ Batches page script loaded (no duplicate declarations)');
     </script>
 
     <script>
