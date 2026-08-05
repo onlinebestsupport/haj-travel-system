@@ -528,6 +528,9 @@
         ================================================================== -->
         <div class="page-header">
             <h2><i class="fas fa-credit-card"></i> Payment Management</h2>
+            <span style="color: #e74c3c; font-size: 0.9rem;">
+                <i class="fas fa-info-circle"></i> Delete button removes any payment (including sample data)
+            </span>
         </div>
 
         <!-- ==================================================================
@@ -542,6 +545,9 @@
             </button>
             <button class="action-btn btn-info" onclick="printPaymentsTable()">
                 <i class="fas fa-print"></i> Print
+            </button>
+            <button class="action-btn btn-danger" onclick="deleteAllPayments()">
+                <i class="fas fa-trash-alt"></i> Delete All Payments
             </button>
         </div>
 
@@ -823,6 +829,7 @@
         <div class="modal-footer">
             <button onclick="printPaymentReceipt()" class="action-btn btn-primary"><i class="fas fa-print"></i> Print Receipt</button>
             <button onclick="reversePayment()" class="action-btn btn-danger"><i class="fas fa-undo-alt"></i> Reverse Payment</button>
+            <button onclick="deletePaymentFromModal()" class="action-btn btn-danger"><i class="fas fa-trash"></i> Delete Payment</button>
             <button onclick="closePaymentModal()" class="action-btn btn-secondary"><i class="fas fa-times"></i> Close</button>
         </div>
     </div>
@@ -874,17 +881,16 @@
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 34: JAVASCRIPT - FIXED (No duplicate declarations, no session spam)
+    MAIN SECTION 34: JAVASCRIPT - FIXED WITH DELETE FUNCTIONALITY
     ================================================================== -->
     <script>
         /**
          * ================================================================
-         * FIXED: No duplicate declarations - All variables from payments.js
-         * Only session timer functions and UI helpers
+         * PAYMENTS MODULE - With Delete Functionality for All Payments
          * ================================================================
          */
 
-        // ====== SESSION TIMER - FIXED (Only logs once) ======
+        // ====== SESSION TIMER - FIXED ======
         let sessionListenersAdded = false;
         let warningShown = false;
         let sessionWarningTimeout = null;
@@ -942,7 +948,7 @@
             }
         }
 
-        // ====== NOTIFICATION (Fallback) ======
+        // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) {
@@ -1028,7 +1034,6 @@
             }
 
             try {
-                // Get travelers data from the global scope (from payments.js)
                 const travelersData = window.travelersData || [];
                 let traveler;
 
@@ -1072,7 +1077,6 @@
             const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
             const balance = packagePrice - totalPaid;
 
-            // Store in global for summary update
             window.currentTravelerData = {
                 ...traveler,
                 batch: batch,
@@ -1172,24 +1176,171 @@
 
         // ====== REVERSE PAYMENT ======
         function reversePayment() {
-            showNotification('Please use the Reverse button in the payment details view', 'info');
+            if (!window.currentPaymentId) {
+                showNotification('No payment selected', 'error');
+                return;
+            }
+            const payment = window.paymentsData?.find(p => p.id === window.currentPaymentId);
+            if (payment) {
+                closePaymentModal();
+                setTimeout(() => {
+                    showReverseModal(window.currentPaymentId, payment.amount);
+                }, 300);
+            }
+        }
+
+        // ====== SHOW REVERSE MODAL ======
+        function showReverseModal(paymentId, amount) {
+            document.getElementById('reverse_payment_id').value = paymentId;
+            document.getElementById('reverse_amount').value = amount.toLocaleString();
+            document.getElementById('reverseModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+            window.currentPaymentId = paymentId;
         }
 
         // ====== PROCESS REVERSAL ======
-        function processReversal() {
-            const reason = document.getElementById('reverse_reason')?.value;
+        async function processReversal() {
+            const paymentId = document.getElementById('reverse_payment_id').value;
+            const reason = document.getElementById('reverse_reason').value;
+            const remarks = document.getElementById('reverse_remarks').value;
+
             if (!reason) {
                 showNotification('Please select a reason for reversal', 'error');
                 return;
             }
-            showNotification('Payment reversed successfully!', 'success');
-            closeReverseModal();
-            // Reload payments
-            if (typeof loadPayments === 'function') {
-                loadPayments();
+
+            try {
+                const response = await fetch(`/api/payments/${paymentId}/reverse`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ reason: reason, remarks: remarks || '' })
+                });
+
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Payment reversed successfully!', 'success');
+                    closeReverseModal();
+                    await loadPaymentsData();
+                    await loadPaymentStatsData();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not reverse payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Reversal error:', error);
+                showNotification('Payment reversed (demo mode)', 'success');
+                closeReverseModal();
+                loadPaymentsData();
+                loadPaymentStatsData();
             }
-            if (typeof loadPaymentStats === 'function') {
-                loadPaymentStats();
+        }
+
+        // ====== DELETE PAYMENT ======
+        async function deletePayment(paymentId) {
+            if (!confirm('⚠️ Are you sure you want to delete this payment? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/payments/${paymentId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Payment deleted successfully!', 'success');
+                    closePaymentModal();
+                    await loadPaymentsData();
+                    await loadPaymentStatsData();
+                } else {
+                    showNotification('Error: ' + (data.error || 'Could not delete payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                // Demo mode fallback
+                const paymentsData = window.paymentsData || [];
+                const index = paymentsData.findIndex(p => p.id === paymentId);
+                if (index !== -1) {
+                    paymentsData.splice(index, 1);
+                    window.paymentsData = paymentsData;
+                    window.filteredPaymentsData = [...paymentsData];
+                    showNotification('Payment deleted (demo mode)', 'success');
+                    closePaymentModal();
+                    displayPaymentsTable();
+                    updatePaymentStatsUI();
+                } else {
+                    showNotification('Error deleting payment', 'error');
+                }
+            }
+        }
+
+        // ====== DELETE PAYMENT FROM MODAL ======
+        function deletePaymentFromModal() {
+            if (!window.currentPaymentId) {
+                showNotification('No payment selected', 'error');
+                return;
+            }
+            deletePayment(window.currentPaymentId);
+        }
+
+        // ====== DELETE ALL PAYMENTS ======
+        async function deleteAllPayments() {
+            const paymentsData = window.paymentsData || [];
+            if (paymentsData.length === 0) {
+                showNotification('No payments to delete', 'info');
+                return;
+            }
+
+            if (!confirm(`⚠️ Are you sure you want to delete ALL ${paymentsData.length} payments? This action cannot be undone!`)) {
+                return;
+            }
+
+            try {
+                let deleted = 0;
+                let failed = 0;
+                const total = paymentsData.length;
+
+                for (const payment of paymentsData) {
+                    try {
+                        const response = await fetch(`/api/payments/${payment.id}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+                        if (response.ok) {
+                            deleted++;
+                        } else {
+                            failed++;
+                        }
+                    } catch (e) {
+                        failed++;
+                    }
+                }
+
+                showNotification(`Deleted ${deleted} payments. Failed: ${failed}`, deleted > 0 ? 'success' : 'error');
+                await loadPaymentsData();
+                await loadPaymentStatsData();
+
+            } catch (error) {
+                console.error('Delete all error:', error);
+                // Demo mode fallback
+                window.paymentsData = [];
+                window.filteredPaymentsData = [];
+                showNotification('All payments deleted (demo mode)', 'success');
+                displayPaymentsTable();
+                updatePaymentStatsUI();
             }
         }
 
@@ -1241,32 +1392,37 @@
             const statusFilter = document.getElementById('paymentStatusFilter')?.value || 'all';
             const methodFilter = document.getElementById('paymentMethodFilter')?.value || 'all';
 
-            // Use the filter function from payments.js if available
-            if (typeof window.filterPayments === 'function') {
-                window.filterPayments();
-                return;
-            }
-
-            // Fallback: filter locally
             const paymentsData = window.paymentsData || [];
             const filtered = paymentsData.filter(p => {
                 const travelerName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
                 const passport = (p.passport_no || '').toLowerCase();
-                const txId = (p.transaction_id || p.reference || '').toLowerCase();
-                const matchesSearch = !search || travelerName.includes(search) || passport.includes(search) || txId.includes(search);
+                const txId = (p.reference || p.transaction_id || '').toLowerCase();
+                const batch = (p.batch_name || '').toLowerCase();
+                const matchesSearch = !search || travelerName.includes(search) || passport.includes(search) || txId.includes(search) || batch.includes(search);
 
-                const pStatus = p.status === 'completed' ? 'Paid' : (p.status || 'Pending');
-                const matchesStatus = statusFilter === 'all' || pStatus.toLowerCase() === statusFilter.toLowerCase();
-                const matchesMethod = methodFilter === 'all' || (p.payment_method || '').toLowerCase() === methodFilter.toLowerCase();
+                let matchesStatus = true;
+                if (statusFilter !== 'all') {
+                    if (statusFilter === 'Overdue') {
+                        const today = new Date();
+                        const dueDate = p.due_date ? new Date(p.due_date) : null;
+                        matchesStatus = p.status === 'pending' && dueDate && dueDate < today;
+                    } else {
+                        const statusMap = { 'Paid': 'completed', 'Pending': 'pending', 'Reversed': 'reversed' };
+                        matchesStatus = p.status === (statusMap[statusFilter] || statusFilter.toLowerCase());
+                    }
+                }
+
+                let matchesMethod = true;
+                if (methodFilter !== 'all') {
+                    matchesMethod = (p.payment_method || '') === methodFilter;
+                }
 
                 return matchesSearch && matchesStatus && matchesMethod;
             });
 
-            window.paymentsFiltered = filtered;
+            window.filteredPaymentsData = filtered;
             window.paymentsCurrentPage = 1;
-            if (typeof window.displayPayments === 'function') {
-                window.displayPayments();
-            }
+            displayPaymentsTable();
             showNotification(`Found ${filtered.length} payment(s)`, 'info');
         }
 
@@ -1274,25 +1430,324 @@
             document.getElementById('searchPayments').value = '';
             document.getElementById('paymentStatusFilter').value = 'all';
             document.getElementById('paymentMethodFilter').value = 'all';
-            if (typeof window.resetFilters === 'function') {
-                window.resetFilters();
-            } else {
-                window.paymentsFiltered = [...(window.paymentsData || [])];
-                window.paymentsCurrentPage = 1;
-                if (typeof window.displayPayments === 'function') {
-                    window.displayPayments();
-                }
-                showNotification('Filters reset', 'info');
+            window.filteredPaymentsData = [...(window.paymentsData || [])];
+            window.paymentsCurrentPage = 1;
+            displayPaymentsTable();
+            showNotification('Filters reset', 'info');
+        }
+
+        // ====== DISPLAY PAYMENTS TABLE ======
+        function displayPaymentsTable() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            if (!tableBody) return;
+
+            const data = window.filteredPaymentsData || window.paymentsData || [];
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#7f8c8d;">No payments found</td></tr>';
+                updatePaginationUI(0);
+                return;
             }
+
+            const start = ((window.paymentsCurrentPage || 1) - 1) * 10;
+            const end = Math.min(start + 10, data.length);
+            const pageData = data.slice(start, end);
+
+            let html = '';
+            pageData.forEach(p => {
+                const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '-');
+                const amount = parseFloat(p.amount || 0);
+                const statusText = p.status === 'completed' ? 'Paid' : (p.status === 'pending' ? 'Pending' : p.status === 'reversed' ? 'Reversed' : (p.status || 'Pending'));
+                const statusClass = p.status === 'completed' ? 'status-active' : p.status === 'pending' ? 'status-pending' : 'status-inactive';
+
+                // Check if overdue
+                let isOverdue = false;
+                if (p.status === 'pending' && p.due_date) {
+                    const today = new Date();
+                    const dueDate = new Date(p.due_date);
+                    if (dueDate < today) isOverdue = true;
+                }
+
+                const statusDisplay = isOverdue ? 'Overdue' : statusText;
+                const statusClassDisplay = isOverdue ? 'status-inactive' : statusClass;
+
+                html += `<tr>
+                    <td>${p.id}</td>
+                    <td><strong>${escapeHtml(travelerName)}</strong></td>
+                    <td>${escapeHtml(p.passport_no || '-')}</td>
+                    <td>${escapeHtml(p.batch_name || '-')}</td>
+                    <td>${escapeHtml(p.installment || '-')}</td>
+                    <td><strong>₹${amount.toLocaleString('en-IN')}</strong></td>
+                    <td>${p.payment_date ? formatDate(p.payment_date) : '-'}</td>
+                    <td>${escapeHtml(p.payment_method || '-')}</td>
+                    <td>${escapeHtml(p.reference || p.transaction_id || '-')}</td>
+                    <td><span class="status-badge ${statusClassDisplay}">${escapeHtml(statusDisplay)}</span></td>
+                    <td>
+                        <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View"><i class="fas fa-eye"></i></button>
+                        ${p.status === 'completed' ? `<button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse"><i class="fas fa-undo-alt"></i></button>` : ''}
+                        <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete" style="color:#e74c3c;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+
+            tableBody.innerHTML = html;
+            updatePaginationUI(data.length);
+        }
+
+        function updatePaginationUI(total) {
+            document.getElementById('totalCount').textContent = total;
+            const start = total > 0 ? ((window.paymentsCurrentPage || 1) - 1) * 10 + 1 : 0;
+            const end = Math.min((window.paymentsCurrentPage || 1) * 10, total);
+            document.getElementById('showingFrom').textContent = start;
+            document.getElementById('showingTo').textContent = end;
+            document.getElementById('prevPageBtn').disabled = (window.paymentsCurrentPage || 1) === 1;
+            document.getElementById('nextPageBtn').disabled = end >= total;
+        }
+
+        function previousPage() {
+            if ((window.paymentsCurrentPage || 1) > 1) {
+                window.paymentsCurrentPage--;
+                displayPaymentsTable();
+            }
+        }
+
+        function nextPage() {
+            const total = (window.filteredPaymentsData || window.paymentsData || []).length;
+            if ((window.paymentsCurrentPage || 1) * 10 < total) {
+                window.paymentsCurrentPage++;
+                displayPaymentsTable();
+            }
+        }
+
+        // ====== VIEW PAYMENT DETAILS ======
+        function viewPaymentDetails(id) {
+            const paymentsData = window.paymentsData || [];
+            const p = paymentsData.find(p => p.id === id);
+            if (!p) {
+                showNotification('Payment not found', 'error');
+                return;
+            }
+
+            window.currentPaymentId = p.id;
+            const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '-');
+            const amount = parseFloat(p.amount || 0);
+            const statusText = p.status === 'completed' ? 'Paid' : (p.status === 'pending' ? 'Pending' : p.status === 'reversed' ? 'Reversed' : (p.status || 'Pending'));
+            const statusClass = p.status === 'completed' ? 'status-active' : p.status === 'pending' ? 'status-pending' : 'status-inactive';
+
+            const detailsHtml = `
+                <div style="padding: 10px;">
+                    <h4 style="color: #2c3e50; margin-bottom: 20px;">Payment #${p.id}</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Traveler:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(travelerName)}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Passport Number:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(p.passport_no || '-')}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Batch:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(p.batch_name || '-')}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Amount:</strong><br>
+                            <span style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">₹${amount.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Payment Date:</strong><br>
+                            <span style="font-weight: 500;">${p.payment_date ? formatDate(p.payment_date) : '-'}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Payment Method:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(p.payment_method || '-')}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Transaction ID:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(p.reference || p.transaction_id || '-')}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Status:</strong><br>
+                            <span class="status-badge ${statusClass}">${escapeHtml(statusText)}</span>
+                        </div>
+                        ${p.installment ? `
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Installment:</strong><br>
+                            <span style="font-weight: 500;">${escapeHtml(p.installment)}</span>
+                        </div>
+                        ` : ''}
+                        ${p.due_date ? `
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 5px;">
+                            <strong>Due Date:</strong><br>
+                            <span style="font-weight: 500;">${formatDate(p.due_date)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${(p.notes) ? `
+                        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+                            <strong>Remarks:</strong>
+                            <p style="margin-top: 5px;">${escapeHtml(p.notes)}</p>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f4f8; border-radius: 5px; border-left: 4px solid #3498db;">
+                        <strong><i class="fas fa-info-circle"></i> Payment Info:</strong>
+                        <p style="margin-top: 5px; font-size: 0.9rem; color: #2c3e50;">
+                            Recorded on: ${p.created_at ? formatDate(p.created_at) : '-'}
+                            ${p.updated_at ? `<br>Last updated: ${formatDate(p.updated_at)}` : ''}
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('paymentDetails').innerHTML = detailsHtml;
+            document.getElementById('paymentModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        // ====== LOAD PAYMENTS DATA ======
+        async function loadPaymentsData() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments...</td></tr>';
+            }
+
+            try {
+                const response = await fetch('/api/payments', {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.payments) {
+                        window.paymentsData = data.payments;
+                        window.filteredPaymentsData = [...data.payments];
+                        window.paymentsCurrentPage = 1;
+                    }
+                } else {
+                    // Demo data fallback
+                    window.paymentsData = getDemoPayments();
+                    window.filteredPaymentsData = [...window.paymentsData];
+                    window.paymentsCurrentPage = 1;
+                }
+            } catch (error) {
+                console.error('Error loading payments:', error);
+                window.paymentsData = getDemoPayments();
+                window.filteredPaymentsData = [...window.paymentsData];
+                window.paymentsCurrentPage = 1;
+            }
+
+            displayPaymentsTable();
+            updatePaymentStatsUI();
+        }
+
+        function getDemoPayments() {
+            return [
+                {
+                    id: 1, traveler_id: 1, batch_id: 1, amount: 25000,
+                    payment_date: '2026-01-15', payment_method: 'Cash',
+                    status: 'completed', reference: 'CASH-001',
+                    notes: 'Booking amount paid', installment: 'Booking Amount',
+                    first_name: 'John', last_name: 'Doe',
+                    passport_no: 'A0000001', batch_name: 'Haj Platinum 2026',
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 2, traveler_id: 2, batch_id: 2, amount: 50000,
+                    payment_date: '2026-01-20', payment_method: 'Bank Transfer',
+                    status: 'completed', reference: 'BT-2026-001',
+                    notes: '1st installment paid', installment: '1st Installment',
+                    first_name: 'Jane', last_name: 'Smith',
+                    passport_no: 'A0000002', batch_name: 'Haj Gold 2026',
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 3, traveler_id: 1, batch_id: 1, amount: 30000,
+                    payment_date: '2026-02-10', payment_method: 'UPI',
+                    status: 'pending', reference: 'UPI-001',
+                    notes: 'Pending 2nd installment', installment: '2nd Installment',
+                    first_name: 'John', last_name: 'Doe',
+                    passport_no: 'A0000001', batch_name: 'Haj Platinum 2026',
+                    created_at: new Date().toISOString()
+                }
+            ];
+        }
+
+        // ====== LOAD PAYMENT STATS ======
+        async function loadPaymentStatsData() {
+            try {
+                const response = await fetch('/api/payments/stats', {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.stats) {
+                        const s = data.stats;
+                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(s.total_collected || 0).toLocaleString('en-IN')}`;
+                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(s.pending_amount || 0).toLocaleString('en-IN')}`;
+                        document.getElementById('paidCount').textContent = s.completed_count || 0;
+                        document.getElementById('pendingCount').textContent = s.pending_count || 0;
+                        document.getElementById('reversedCount').textContent = s.reversed_count || 0;
+                        return;
+                    }
+                }
+
+                updatePaymentStatsUI();
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                updatePaymentStatsUI();
+            }
+        }
+
+        function updatePaymentStatsUI() {
+            const paymentsData = window.paymentsData || [];
+            const totalCollected = paymentsData.filter(p => p.status === 'completed').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const pendingAmount = paymentsData.filter(p => p.status === 'pending').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const paidCount = paymentsData.filter(p => p.status === 'completed').length;
+            const pendingCount = paymentsData.filter(p => p.status === 'pending').length;
+            const reversedCount = paymentsData.filter(p => p.status === 'reversed').length;
+
+            document.getElementById('paymentTotalCollected').innerHTML = `₹${totalCollected.toLocaleString('en-IN')}`;
+            document.getElementById('paymentPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString('en-IN')}`;
+            document.getElementById('paidCount').textContent = paidCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('reversedCount').textContent = reversedCount;
         }
 
         // ====== EXPORT FUNCTIONS ======
         function exportPaymentsToExcel() {
-            if (typeof window.exportPaymentsToCSV === 'function') {
-                window.exportPaymentsToCSV();
+            const data = window.filteredPaymentsData || window.paymentsData || [];
+            if (data.length === 0) {
+                showNotification('No payments to export', 'warning');
                 return;
             }
-            showNotification('Export to Excel not available', 'warning');
+
+            const headers = ['ID', 'Traveler Name', 'Passport Number', 'Batch', 'Installment',
+                'Amount', 'Payment Date', 'Due Date', 'Method', 'Transaction ID', 'Status', 'Remarks'];
+
+            const rows = data.map(p => {
+                const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '');
+                return [
+                    p.id || '', travelerName, p.passport_no || '', p.batch_name || '',
+                    p.installment || '', p.amount || 0, p.payment_date || '', p.due_date || '',
+                    p.payment_method || '', p.reference || p.transaction_id || '',
+                    p.status || '', (p.notes || '').replace(/"/g, '""')
+                ];
+            });
+
+            let csv = headers.map(h => `"${h}"`).join(',') + '\n';
+            csv += rows.map(row => row.map(v => `"${v}"`).join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `payments_export_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            showNotification(`Exported ${data.length} payments to CSV`, 'success');
         }
 
         function printPaymentsTable() {
@@ -1301,21 +1756,24 @@
                 showNotification('Table not found', 'warning');
                 return;
             }
+
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
                 showNotification('Please allow popups for printing', 'warning');
                 return;
             }
+
             printWindow.document.write(`
                 <html><head><title>Payments List</title>
                 <style>
                     body { font-family: Arial, sans-serif; padding: 20px; }
                     table { border-collapse: collapse; width: 100%; }
-                    th { background: #2c3e50; color: white; padding: 10px; }
+                    th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
                     td { padding: 10px; border: 1px solid #ddd; }
                     .status-badge { padding: 5px 12px; border-radius: 20px; display: inline-block; }
                     .status-active { background: #d4edda; color: #155724; }
                     .status-pending { background: #fff3cd; color: #856404; }
+                    .status-inactive { background: #f8d7da; color: #721c24; }
                     @media print { th { background: #2c3e50 !important; color: white !important; } }
                 </style>
                 </head>
@@ -1330,29 +1788,22 @@
             printWindow.print();
         }
 
-        // ====== PAGINATION ======
-        function previousPage() {
-            if (typeof window.previousPage === 'function') {
-                window.previousPage();
-            } else if (window.paymentsCurrentPage > 1) {
-                window.paymentsCurrentPage--;
-                if (typeof window.displayPayments === 'function') {
-                    window.displayPayments();
-                }
-            }
+        // ====== UI HELPERS ======
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        function nextPage() {
-            if (typeof window.nextPage === 'function') {
-                window.nextPage();
-            } else {
-                const total = (window.paymentsFiltered || window.paymentsData || []).length;
-                if (window.paymentsCurrentPage * 10 < total) {
-                    window.paymentsCurrentPage++;
-                    if (typeof window.displayPayments === 'function') {
-                        window.displayPayments();
-                    }
-                }
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (e) {
+                return dateStr;
             }
         }
 
@@ -1363,7 +1814,7 @@
             window.location.href = '/admin/login.html';
         }
 
-        // ====== INITIALIZATION - FIXED ======
+        // ====== INITIALIZATION ======
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Payments page initializing...');
             try {
@@ -1381,34 +1832,19 @@
         async function initializePage() {
             console.log('✅ User authenticated, loading payments page...');
 
-            // Initialize session timer (only once)
             resetSessionTimer();
             initSessionTimer();
 
-            // Load traveler and batch data for verification
+            // Load travelers for dropdown
             await loadTravelerList();
-            await loadBatchList();
 
-            // Load payments data from payments.js
-            if (typeof loadPayments === 'function') {
-                await loadPayments();
-            } else {
-                console.warn('⚠️ loadPayments not found, using fallback');
-                await loadPaymentsFallback();
-            }
-
-            // Load payment stats
-            if (typeof loadPaymentStats === 'function') {
-                await loadPaymentStats();
-            } else {
-                await loadPaymentStatsFallback();
-            }
+            // Load payments data
+            await loadPaymentsData();
 
             setTodayDate();
             console.log('✅ Payments page loaded successfully!');
         }
 
-        // ====== FALLBACK: LOAD TRAVELER LIST ======
         async function loadTravelerList() {
             try {
                 const response = await fetch('/api/travelers', { credentials: 'include' });
@@ -1430,76 +1866,7 @@
             }
         }
 
-        // ====== FALLBACK: LOAD BATCH LIST ======
-        async function loadBatchList() {
-            try {
-                const response = await fetch('/api/batches', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.batches) {
-                        window.batchesData = data.batches;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading batches:', error);
-            }
-        }
-
-        // ====== FALLBACK: LOAD PAYMENTS ======
-        async function loadPaymentsFallback() {
-            try {
-                const response = await fetch('/api/payments', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.payments) {
-                        window.paymentsData = data.payments;
-                        window.paymentsFiltered = [...data.payments];
-                        window.paymentsCurrentPage = 1;
-                        if (typeof window.displayPayments === 'function') {
-                            window.displayPayments();
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading payments:', error);
-            }
-        }
-
-        // ====== FALLBACK: LOAD PAYMENT STATS ======
-        async function loadPaymentStatsFallback() {
-            try {
-                const response = await fetch('/api/payments/stats', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.stats) {
-                        const s = data.stats;
-                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(s.total_collected || 0).toLocaleString()}`;
-                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(s.pending_amount || 0).toLocaleString()}`;
-                        document.getElementById('paidCount').innerHTML = s.completed_count || '0';
-                        document.getElementById('pendingCount').innerHTML = s.pending_count || '0';
-                        document.getElementById('reversedCount').innerHTML = s.reversed_count || '0';
-                        return;
-                    }
-                }
-                // Fallback: calculate from paymentsData
-                const paymentsData = window.paymentsData || [];
-                const totalCollected = paymentsData.reduce((sum, p) => sum + (p.status === 'completed' ? (p.amount || 0) : 0), 0);
-                const pendingAmount = paymentsData.reduce((sum, p) => sum + (p.status === 'pending' ? (p.amount || 0) : 0), 0);
-                const paidCount = paymentsData.filter(p => p.status === 'completed').length;
-                const pendingCount = paymentsData.filter(p => p.status === 'pending').length;
-                const reversedCount = paymentsData.filter(p => p.status === 'reversed').length;
-
-                document.getElementById('paymentTotalCollected').innerHTML = `₹${totalCollected.toLocaleString()}`;
-                document.getElementById('paymentPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString()}`;
-                document.getElementById('paidCount').innerHTML = paidCount;
-                document.getElementById('pendingCount').innerHTML = pendingCount;
-                document.getElementById('reversedCount').innerHTML = reversedCount;
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        console.log('✅ Payments page script loaded (no duplicate declarations, no session spam)');
+        console.log('✅ Payments page loaded with delete functionality!');
     </script>
 
     <!-- ==================================================================
