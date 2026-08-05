@@ -145,7 +145,6 @@ def get_batch_for_traveler(batch_id):
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
         
         batch_dict = dict(batch)
-        # Ensure return_date is included even if None
         if 'return_date' not in batch_dict:
             batch_dict['return_date'] = None
             
@@ -199,7 +198,7 @@ def create_batch():
             data.get('total_seats', 150),
             data.get('price'),
             data.get('departure_date'),
-            data.get('return_date'),  # return_date is now included
+            data.get('return_date'),
             data.get('status', 'Open'),
             data.get('description'),
             datetime.now(),
@@ -215,7 +214,7 @@ def create_batch():
             'success': True,
             'batch_id': batch_id,
             'message': 'Batch created successfully',
-            'return_date': data.get('return_date')  # Return it back for confirmation
+            'return_date': data.get('return_date')
         })
     except Exception as e:
         if conn:
@@ -253,17 +252,16 @@ def update_batch(batch_id):
         if not cursor.fetchone():
             return jsonify({'success': False, 'error': 'Batch not found'}), 404
         
-        # Build update query dynamically to only update provided fields
+        # Build update query dynamically
         update_fields = []
         params = []
         
-        # Fields that can be updated
         field_mapping = {
             'batch_name': data.get('batch_name'),
             'total_seats': data.get('total_seats'),
             'price': data.get('price'),
             'departure_date': data.get('departure_date'),
-            'return_date': data.get('return_date'),  # return_date is included
+            'return_date': data.get('return_date'),
             'status': data.get('status'),
             'description': data.get('description')
         }
@@ -273,11 +271,8 @@ def update_batch(batch_id):
                 update_fields.append(f"{field} = %s")
                 params.append(value)
         
-        # Always update updated_at
         update_fields.append("updated_at = %s")
         params.append(datetime.now())
-        
-        # Add batch_id to params
         params.append(batch_id)
         
         if update_fields:
@@ -286,7 +281,7 @@ def update_batch(batch_id):
         
         conn.commit()
         
-        # Get updated batch to return
+        # Get updated batch
         cursor.execute("""
             SELECT 
                 id, batch_name, total_seats, booked_seats, price, 
@@ -375,32 +370,6 @@ def get_batch_travelers(batch_id):
         if conn:
             release_db(conn, cursor)
 
-@bp.route('/<int:batch_id>/payments', methods=['GET'])
-def get_batch_payments(batch_id):
-    """Get payments for a batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    conn = None
-    cursor = None
-    try:
-        conn, cursor = get_db()
-        cursor.execute('''
-            SELECT p.*, t.first_name, t.last_name, t.passport_no
-            FROM payments p
-            JOIN travelers t ON p.traveler_id = t.id
-            WHERE p.batch_id = %s
-            ORDER BY p.payment_date DESC
-        ''', (batch_id,))
-        
-        payments = cursor.fetchall()
-        return jsonify({'success': True, 'payments': [dict(p) for p in payments]})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        if conn:
-            release_db(conn, cursor)
-
 @bp.route('/summary', methods=['GET'])
 def get_batches_summary():
     """Get summary of all batches including return date stats"""
@@ -463,46 +432,4 @@ def get_batches_with_return_date():
         if conn:
             release_db(conn, cursor)
 
-@bp.route('/<int:batch_id>/update-return-date', methods=['PATCH'])
-def update_batch_return_date(batch_id):
-    """Update only the return date of a batch"""
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    return_date = data.get('return_date')
-    
-    if not return_date:
-        return jsonify({'success': False, 'error': 'Return date is required'}), 400
-    
-    conn = None
-    cursor = None
-    try:
-        conn, cursor = get_db()
-        
-        # Check if batch exists
-        cursor.execute("SELECT id FROM batches WHERE id = %s", (batch_id,))
-        if not cursor.fetchone():
-            return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-        # Update only the return date
-        cursor.execute("""
-            UPDATE batches 
-            SET return_date = %s, updated_at = %s
-            WHERE id = %s
-        """, (return_date, datetime.now(), batch_id))
-        
-        conn.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Return date updated successfully',
-            'return_date': return_date
-        })
-    except Exception as e:
-        if conn:
-            conn.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        if conn:
-            release_db(conn, cursor)
+print("✅ batches.py loaded successfully with return_date support!")
