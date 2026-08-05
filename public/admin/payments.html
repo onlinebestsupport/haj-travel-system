@@ -486,12 +486,31 @@
             .traveler-info-grid { grid-template-columns: 1fr; }
             .pagination { flex-direction: column; text-align: center; }
         }
+
+        /* Loading shimmer effect for empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #bdc3c7;
+            display: block;
+            margin-bottom: 20px;
+        }
+        .empty-state h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .empty-state p {
+            color: #95a5a6;
+        }
     </style>
 
     <script src="/admin/js/session-manager.js"></script>
     <script src="/admin/js/mobile-fix.js"></script>
     <script src="/admin/js/common.js"></script>
-    <script src="/admin/js/payments.js"></script>
 </head>
 <body>
 
@@ -529,7 +548,7 @@
         <div class="page-header">
             <h2><i class="fas fa-credit-card"></i> Payment Management</h2>
             <span style="color: #e74c3c; font-size: 0.9rem;">
-                <i class="fas fa-info-circle"></i> Delete button removes any payment (including sample data)
+                <i class="fas fa-info-circle"></i> All payments are from live database
             </span>
         </div>
 
@@ -548,6 +567,9 @@
             </button>
             <button class="action-btn btn-danger" onclick="deleteAllPayments()">
                 <i class="fas fa-trash-alt"></i> Delete All Payments
+            </button>
+            <button class="action-btn btn-secondary" onclick="refreshPayments()">
+                <i class="fas fa-sync"></i> Refresh
             </button>
         </div>
 
@@ -881,21 +903,31 @@
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 34: JAVASCRIPT - FIXED WITH DELETE FUNCTIONALITY
+    MAIN SECTION 34: JAVASCRIPT - COMPLETE FIXED VERSION
     ================================================================== -->
     <script>
         /**
          * ================================================================
-         * PAYMENTS MODULE - With Delete Functionality for All Payments
+         * PAYMENTS MODULE - Complete Fixed Version
+         * No demo data fallback - All data from live database
          * ================================================================
          */
 
-        // ====== SESSION TIMER - FIXED ======
+        // ====== GLOBALS ======
+        let paymentsData = [];
+        let filteredPaymentsData = [];
+        let paymentsCurrentPage = 1;
+        const PAYMENTS_PER_PAGE = 10;
+        let travelersData = [];
+        let batchesData = [];
+        let currentPaymentId = null;
+        let currentTravelerData = null;
         let sessionListenersAdded = false;
         let warningShown = false;
         let sessionWarningTimeout = null;
         let sessionLogoutTimeout = null;
 
+        // ====== SESSION TIMER ======
         function resetSessionTimer() {
             if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
             if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
@@ -944,7 +976,7 @@
                     });
                 });
                 sessionListenersAdded = true;
-                console.log('✅ Session event listeners added once');
+                console.log('✅ Session event listeners added');
             }
         }
 
@@ -958,17 +990,35 @@
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
             notification.style.display = 'block';
-            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+            if (window.notificationTimeout) clearTimeout(window.notificationTimeout);
+            window.notificationTimeout = setTimeout(() => { notification.style.display = 'none'; }, 3000);
         }
 
-        // ====== DATE UTILITY ======
+        // ====== UTILITY FUNCTIONS ======
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
         function setTodayDate() {
             const today = new Date().toISOString().split('T')[0];
             const dateEl = document.getElementById('payment_date');
             if (dateEl) dateEl.value = today;
         }
 
-        // ====== NUMBER VALIDATION ======
         function allowNumbersOnly(e) {
             var key = e.keyCode || e.which;
             if (key == 8 || key == 9 || key == 13 || key == 27 || key == 46 ||
@@ -979,411 +1029,169 @@
             return false;
         }
 
-        // ====== AMOUNT INPUT EVENT ======
-        document.addEventListener('DOMContentLoaded', function() {
-            const amountEl = document.getElementById('amount');
-            if (amountEl) {
-                amountEl.addEventListener('input', updateSummary);
-            }
-        });
-
-        function updateSummary() {
-            const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
-            const amount = parseFloat(amountText) || 0;
-            const totalPaid = parseFloat(window.currentTravelerData?.totalPaid || 0);
-            const packagePrice = parseFloat(window.currentTravelerData?.packagePrice || 0);
-
-            const summaryNew = document.getElementById('summary_new');
-            const summaryBalance = document.getElementById('summary_balance');
-
-            if (summaryNew) {
-                summaryNew.innerHTML = `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-            }
-
-            if (summaryBalance) {
-                const newBalance = packagePrice - (totalPaid + amount);
-                if (newBalance < 0) {
-                    summaryBalance.style.color = '#e74c3c';
-                    summaryBalance.innerHTML = `₹${Math.abs(newBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} (Overpaid)`;
-                } else if (newBalance === 0) {
-                    summaryBalance.style.color = '#27ae60';
-                    summaryBalance.innerHTML = '₹0.00 (Paid in Full)';
-                } else {
-                    summaryBalance.style.color = '#f39c12';
-                    summaryBalance.innerHTML = `₹${newBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-                }
-            }
-        }
-
-        // ====== TRAVELER SELECTION ======
-        function selectTravelerFromDropdown() {
-            const dropdown = document.getElementById('traveler_dropdown');
-            if (!dropdown) return;
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
-            if (!selectedOption.value) return;
-            document.getElementById('payment_search').value = selectedOption.value;
-            verifyTraveler();
-        }
-
-        // ====== TRAVELER VERIFICATION ======
-        async function verifyTraveler() {
-            const search = document.getElementById('payment_search')?.value?.trim() || '';
-            if (!search) {
-                showNotification('Please enter Traveler ID or Passport Number', 'error');
-                return;
+        // ====== LOAD PAYMENTS FROM API ======
+        async function loadPaymentsData() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments from database...</td></tr>';
             }
 
             try {
-                const travelersData = window.travelersData || [];
-                let traveler;
-
-                if (!isNaN(search)) {
-                    traveler = travelersData.find(t => t.id == search);
-                } else {
-                    traveler = travelersData.find(t => t.passport_no === search);
-                }
-
-                if (traveler) {
-                    await loadTravelerDetails(traveler);
-                } else {
-                    showNotification('Traveler not found. Please check the ID or Passport Number.', 'error');
-                }
-            } catch (error) {
-                console.error('Error verifying traveler:', error);
-                showNotification('Error verifying traveler', 'error');
-            }
-        }
-
-        // ====== LOAD TRAVELER DETAILS ======
-        async function loadTravelerDetails(traveler) {
-            const batchesData = window.batchesData || [];
-            const batch = batchesData.find(b => b.id == traveler.batch_id);
-
-            let payments = [];
-            try {
-                const response = await fetch(`/api/payments/traveler/${traveler.id}`, { credentials: 'include' });
-                const data = await response.json();
-                if (data.success) {
-                    payments = data.payments || [];
-                }
-            } catch (error) {
-                console.error('Error loading payments:', error);
-            }
-
-            const totalPaid = payments
-                .filter(p => p.status === 'completed')
-                .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-
-            const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
-            const balance = packagePrice - totalPaid;
-
-            window.currentTravelerData = {
-                ...traveler,
-                batch: batch,
-                payments: payments,
-                totalPaid: totalPaid,
-                packagePrice: packagePrice,
-                balance: balance
-            };
-
-            document.getElementById('payment_traveler_id').value = traveler.id;
-            document.getElementById('payment_traveler_name').value = `${traveler.first_name} ${traveler.last_name}`;
-            document.getElementById('payment_batch_id').value = traveler.batch_id || '';
-
-            document.getElementById('display_traveler_name').textContent = `${traveler.first_name} ${traveler.last_name}`;
-            document.getElementById('display_passport').textContent = traveler.passport_no || '-';
-            document.getElementById('display_batch_name').textContent = batch ? batch.batch_name : 'Not Assigned';
-            document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-
-            const balanceEl = document.getElementById('display_balance');
-            balanceEl.innerHTML = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-            balanceEl.className = balance <= 0 ? 'value positive' : 'value negative';
-
-            document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-            document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-            updateSummary();
-
-            document.getElementById('paymentSearchSection').style.display = 'none';
-            document.getElementById('paymentForm').style.display = 'block';
-        }
-
-        // ====== RESET VERIFICATION ======
-        function resetVerification() {
-            document.getElementById('paymentSearchSection').style.display = 'block';
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('payment_search').value = '';
-            document.getElementById('traveler_dropdown').value = '';
-            window.currentTravelerData = null;
-            resetPaymentForm();
-        }
-
-        // ====== RESET PAYMENT FORM ======
-        function resetPaymentForm() {
-            document.getElementById('paymentForm')?.reset();
-            document.getElementById('payment_traveler_id').value = '';
-            document.getElementById('payment_traveler_name').value = '';
-            document.getElementById('payment_batch_id').value = '';
-            document.getElementById('display_traveler_name').textContent = '-';
-            document.getElementById('display_passport').textContent = '-';
-            document.getElementById('display_batch_name').textContent = '-';
-            document.getElementById('display_batch_price').textContent = '0';
-            document.getElementById('display_total_paid').innerHTML = '₹0';
-            document.getElementById('display_balance').innerHTML = '₹0';
-            document.getElementById('summary_price').innerHTML = '₹0';
-            document.getElementById('summary_paid').innerHTML = '₹0';
-            document.getElementById('summary_new').innerHTML = '₹0';
-            document.getElementById('summary_balance').innerHTML = '₹0';
-            setTodayDate();
-        }
-
-        // ====== SHOW ADD PAYMENT FORM ======
-        function showAddPaymentForm() {
-            document.getElementById('addPaymentForm').style.display = 'block';
-            document.getElementById('paymentSearchSection').style.display = 'block';
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('payment_search').value = '';
-            document.getElementById('traveler_dropdown').value = '';
-            resetPaymentForm();
-            document.getElementById('addPaymentForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // ====== HIDE ADD PAYMENT FORM ======
-        function hideAddPaymentForm() {
-            document.getElementById('addPaymentForm').style.display = 'none';
-            resetPaymentForm();
-            window.currentTravelerData = null;
-        }
-
-        // ====== CLOSE PAYMENT MODAL ======
-        function closePaymentModal() {
-            document.getElementById('paymentModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        // ====== CLOSE REVERSE MODAL ======
-        function closeReverseModal() {
-            document.getElementById('reverseModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-            document.getElementById('reverseForm')?.reset();
-        }
-
-        // ====== CLOSE ALL MODALS ======
-        function closeAllModals() {
-            closePaymentModal();
-            closeReverseModal();
-        }
-
-        // ====== REVERSE PAYMENT ======
-        function reversePayment() {
-            if (!window.currentPaymentId) {
-                showNotification('No payment selected', 'error');
-                return;
-            }
-            const payment = window.paymentsData?.find(p => p.id === window.currentPaymentId);
-            if (payment) {
-                closePaymentModal();
-                setTimeout(() => {
-                    showReverseModal(window.currentPaymentId, payment.amount);
-                }, 300);
-            }
-        }
-
-        // ====== SHOW REVERSE MODAL ======
-        function showReverseModal(paymentId, amount) {
-            document.getElementById('reverse_payment_id').value = paymentId;
-            document.getElementById('reverse_amount').value = amount.toLocaleString();
-            document.getElementById('reverseModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block';
-            window.currentPaymentId = paymentId;
-        }
-
-        // ====== PROCESS REVERSAL ======
-        async function processReversal() {
-            const paymentId = document.getElementById('reverse_payment_id').value;
-            const reason = document.getElementById('reverse_reason').value;
-            const remarks = document.getElementById('reverse_remarks').value;
-
-            if (!reason) {
-                showNotification('Please select a reason for reversal', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/payments/${paymentId}/reverse`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const response = await fetch('/api/payments', {
                     credentials: 'include',
-                    body: JSON.stringify({ reason: reason, remarks: remarks || '' })
+                    headers: { 'Accept': 'application/json' }
                 });
 
-                if (response.status === 401) {
-                    showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
-                    return;
-                }
-
-                const data = await response.json();
-                if (data.success) {
-                    showNotification('Payment reversed successfully!', 'success');
-                    closeReverseModal();
-                    await loadPaymentsData();
-                    await loadPaymentStatsData();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Could not reverse payment'), 'error');
-                }
-            } catch (error) {
-                console.error('Reversal error:', error);
-                showNotification('Payment reversed (demo mode)', 'success');
-                closeReverseModal();
-                loadPaymentsData();
-                loadPaymentStatsData();
-            }
-        }
-
-        // ====== DELETE PAYMENT ======
-        async function deletePayment(paymentId) {
-            if (!confirm('⚠️ Are you sure you want to delete this payment? This action cannot be undone.')) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/payments/${paymentId}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
-                });
-
-                if (response.status === 401) {
-                    showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
-                    return;
-                }
-
-                const data = await response.json();
-                if (data.success) {
-                    showNotification('Payment deleted successfully!', 'success');
-                    closePaymentModal();
-                    await loadPaymentsData();
-                    await loadPaymentStatsData();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Could not delete payment'), 'error');
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                // Demo mode fallback
-                const paymentsData = window.paymentsData || [];
-                const index = paymentsData.findIndex(p => p.id === paymentId);
-                if (index !== -1) {
-                    paymentsData.splice(index, 1);
-                    window.paymentsData = paymentsData;
-                    window.filteredPaymentsData = [...paymentsData];
-                    showNotification('Payment deleted (demo mode)', 'success');
-                    closePaymentModal();
-                    displayPaymentsTable();
-                    updatePaymentStatsUI();
-                } else {
-                    showNotification('Error deleting payment', 'error');
-                }
-            }
-        }
-
-        // ====== DELETE PAYMENT FROM MODAL ======
-        function deletePaymentFromModal() {
-            if (!window.currentPaymentId) {
-                showNotification('No payment selected', 'error');
-                return;
-            }
-            deletePayment(window.currentPaymentId);
-        }
-
-        // ====== DELETE ALL PAYMENTS ======
-        async function deleteAllPayments() {
-            const paymentsData = window.paymentsData || [];
-            if (paymentsData.length === 0) {
-                showNotification('No payments to delete', 'info');
-                return;
-            }
-
-            if (!confirm(`⚠️ Are you sure you want to delete ALL ${paymentsData.length} payments? This action cannot be undone!`)) {
-                return;
-            }
-
-            try {
-                let deleted = 0;
-                let failed = 0;
-                const total = paymentsData.length;
-
-                for (const payment of paymentsData) {
-                    try {
-                        const response = await fetch(`/api/payments/${payment.id}`, {
-                            method: 'DELETE',
-                            credentials: 'include'
-                        });
-                        if (response.ok) {
-                            deleted++;
-                        } else {
-                            failed++;
-                        }
-                    } catch (e) {
-                        failed++;
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        showNotification('Session expired. Please login again', 'error');
+                        setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                        return;
                     }
+                    throw new Error(`HTTP ${response.status}`);
                 }
 
-                showNotification(`Deleted ${deleted} payments. Failed: ${failed}`, deleted > 0 ? 'success' : 'error');
-                await loadPaymentsData();
-                await loadPaymentStatsData();
-
+                const data = await response.json();
+                
+                if (data.success && Array.isArray(data.payments)) {
+                    paymentsData = data.payments;
+                    filteredPaymentsData = [...data.payments];
+                    paymentsCurrentPage = 1;
+                    console.log(`✅ Loaded ${paymentsData.length} payments from database`);
+                    showNotification(`Loaded ${paymentsData.length} payments from database`, 'success');
+                } else {
+                    paymentsData = [];
+                    filteredPaymentsData = [];
+                    console.warn('⚠️ No payments found in database');
+                    showNotification('No payments found in database', 'info');
+                }
             } catch (error) {
-                console.error('Delete all error:', error);
-                // Demo mode fallback
-                window.paymentsData = [];
-                window.filteredPaymentsData = [];
-                showNotification('All payments deleted (demo mode)', 'success');
+                console.error('❌ Error loading payments:', error);
+                paymentsData = [];
+                filteredPaymentsData = [];
+                showNotification('Failed to load payments. Please check your connection.', 'error');
+            }
+
+            displayPaymentsTable();
+            updatePaymentStatsUI();
+        }
+
+        // ====== DISPLAY PAYMENTS TABLE ======
+        function displayPaymentsTable() {
+            const tableBody = document.getElementById('paymentsTableBody');
+            if (!tableBody) return;
+
+            const data = filteredPaymentsData || [];
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="11">
+                            <div class="empty-state">
+                                <i class="fas fa-credit-card"></i>
+                                <h3>No Payments Found</h3>
+                                <p>No payments have been recorded yet. Click "Record New Payment" to add one.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                updatePaginationUI(0);
+                return;
+            }
+
+            const start = (paymentsCurrentPage - 1) * PAYMENTS_PER_PAGE;
+            const end = Math.min(start + PAYMENTS_PER_PAGE, data.length);
+            const pageData = data.slice(start, end);
+
+            let html = '';
+            pageData.forEach(p => {
+                const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '-');
+                const amount = parseFloat(p.amount || 0);
+                const statusText = p.status === 'completed' ? 'Paid' : (p.status === 'pending' ? 'Pending' : p.status === 'reversed' ? 'Reversed' : (p.status || 'Pending'));
+                const statusClass = p.status === 'completed' ? 'status-active' : p.status === 'pending' ? 'status-pending' : 'status-inactive';
+
+                let isOverdue = false;
+                if (p.status === 'pending' && p.due_date) {
+                    const today = new Date();
+                    const dueDate = new Date(p.due_date);
+                    if (dueDate < today) isOverdue = true;
+                }
+
+                const statusDisplay = isOverdue ? 'Overdue' : statusText;
+                const statusClassDisplay = isOverdue ? 'status-inactive' : statusClass;
+
+                html += `<tr>
+                    <td><strong>#${p.id}</strong></td>
+                    <td><strong>${escapeHtml(travelerName)}</strong></td>
+                    <td>${escapeHtml(p.passport_no || '-')}</td>
+                    <td>${escapeHtml(p.batch_name || '-')}</td>
+                    <td>${escapeHtml(p.installment || '-')}</td>
+                    <td><strong>₹${amount.toLocaleString('en-IN')}</strong></td>
+                    <td>${p.payment_date ? formatDate(p.payment_date) : '-'}</td>
+                    <td>${escapeHtml(p.payment_method || '-')}</td>
+                    <td>${escapeHtml(p.reference || p.transaction_id || '-')}</td>
+                    <td><span class="status-badge ${statusClassDisplay}">${escapeHtml(statusDisplay)}</span></td>
+                    <td>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                            <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${p.status === 'completed' ? `
+                                <button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse Payment" style="color:#f39c12;">
+                                    <i class="fas fa-undo-alt"></i>
+                                </button>
+                            ` : ''}
+                            <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete Payment" style="color:#e74c3c;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+
+            tableBody.innerHTML = html;
+            updatePaginationUI(data.length);
+        }
+
+        // ====== UPDATE PAGINATION ======
+        function updatePaginationUI(total) {
+            document.getElementById('totalCount').textContent = total;
+            const start = total > 0 ? (paymentsCurrentPage - 1) * PAYMENTS_PER_PAGE + 1 : 0;
+            const end = Math.min(paymentsCurrentPage * PAYMENTS_PER_PAGE, total);
+            document.getElementById('showingFrom').textContent = start;
+            document.getElementById('showingTo').textContent = end;
+            document.getElementById('prevPageBtn').disabled = paymentsCurrentPage === 1;
+            document.getElementById('nextPageBtn').disabled = end >= total;
+        }
+
+        function previousPage() {
+            if (paymentsCurrentPage > 1) {
+                paymentsCurrentPage--;
                 displayPaymentsTable();
-                updatePaymentStatsUI();
             }
         }
 
-        // ====== PRINT PAYMENT RECEIPT ======
-        function printPaymentReceipt() {
-            const content = document.getElementById('paymentDetails')?.innerHTML;
-            if (!content) {
-                showNotification('No payment details to print', 'warning');
-                return;
+        function nextPage() {
+            const total = filteredPaymentsData.length;
+            if (paymentsCurrentPage * PAYMENTS_PER_PAGE < total) {
+                paymentsCurrentPage++;
+                displayPaymentsTable();
             }
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                showNotification('Please allow popups for printing', 'warning');
-                return;
-            }
-            printWindow.document.write(`
-                <html><head><title>Payment Receipt</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 30px; }
-                    .receipt-header { text-align: center; margin-bottom: 30px; }
-                    .receipt-header h1 { color: #2c3e50; }
-                    .receipt-header h2 { color: #3498db; }
-                    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-                    .detail-item { padding: 10px; background: #f8f9fa; border-radius: 5px; }
-                    .detail-item strong { display: block; color: #7f8c8d; margin-bottom: 5px; }
-                    .status-badge { padding: 5px 12px; border-radius: 20px; display: inline-block; }
-                    .status-active { background: #d4edda; color: #155724; }
-                    @media print { body { padding: 15px; } }
-                </style>
-                </head>
-                <body>
-                    <div class="receipt-header">
-                        <h1>Alhudha Haj Travel</h1>
-                        <h2>Payment Receipt</h2>
-                        <p>Date: ${new Date().toLocaleDateString()}</p>
-                    </div>
-                    ${content}
-                    <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">This is a computer generated receipt</p>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
+        }
+
+        // ====== UPDATE STATS ======
+        function updatePaymentStatsUI() {
+            const totalCollected = paymentsData.filter(p => p.status === 'completed').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const pendingAmount = paymentsData.filter(p => p.status === 'pending').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const paidCount = paymentsData.filter(p => p.status === 'completed').length;
+            const pendingCount = paymentsData.filter(p => p.status === 'pending').length;
+            const reversedCount = paymentsData.filter(p => p.status === 'reversed').length;
+
+            document.getElementById('paymentTotalCollected').innerHTML = `₹${totalCollected.toLocaleString('en-IN')}`;
+            document.getElementById('paymentPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString('en-IN')}`;
+            document.getElementById('paidCount').textContent = paidCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('reversedCount').textContent = reversedCount;
         }
 
         // ====== FILTER FUNCTIONS ======
@@ -1392,8 +1200,7 @@
             const statusFilter = document.getElementById('paymentStatusFilter')?.value || 'all';
             const methodFilter = document.getElementById('paymentMethodFilter')?.value || 'all';
 
-            const paymentsData = window.paymentsData || [];
-            const filtered = paymentsData.filter(p => {
+            filteredPaymentsData = paymentsData.filter(p => {
                 const travelerName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
                 const passport = (p.passport_no || '').toLowerCase();
                 const txId = (p.reference || p.transaction_id || '').toLowerCase();
@@ -1420,114 +1227,110 @@
                 return matchesSearch && matchesStatus && matchesMethod;
             });
 
-            window.filteredPaymentsData = filtered;
-            window.paymentsCurrentPage = 1;
+            paymentsCurrentPage = 1;
             displayPaymentsTable();
-            showNotification(`Found ${filtered.length} payment(s)`, 'info');
+            showNotification(`Found ${filteredPaymentsData.length} payment(s)`, 'info');
         }
 
         function resetFilters() {
             document.getElementById('searchPayments').value = '';
             document.getElementById('paymentStatusFilter').value = 'all';
             document.getElementById('paymentMethodFilter').value = 'all';
-            window.filteredPaymentsData = [...(window.paymentsData || [])];
-            window.paymentsCurrentPage = 1;
+            filteredPaymentsData = [...paymentsData];
+            paymentsCurrentPage = 1;
             displayPaymentsTable();
             showNotification('Filters reset', 'info');
         }
 
-        // ====== DISPLAY PAYMENTS TABLE ======
-        function displayPaymentsTable() {
-            const tableBody = document.getElementById('paymentsTableBody');
-            if (!tableBody) return;
-
-            const data = window.filteredPaymentsData || window.paymentsData || [];
-            if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#7f8c8d;">No payments found</td></tr>';
-                updatePaginationUI(0);
+        // ====== DELETE PAYMENT ======
+        async function deletePayment(paymentId) {
+            if (!confirm('⚠️ Are you sure you want to delete this payment? This action cannot be undone.')) {
                 return;
             }
 
-            const start = ((window.paymentsCurrentPage || 1) - 1) * 10;
-            const end = Math.min(start + 10, data.length);
-            const pageData = data.slice(start, end);
+            try {
+                const response = await fetch(`/api/payments/${paymentId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
 
-            let html = '';
-            pageData.forEach(p => {
-                const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '-');
-                const amount = parseFloat(p.amount || 0);
-                const statusText = p.status === 'completed' ? 'Paid' : (p.status === 'pending' ? 'Pending' : p.status === 'reversed' ? 'Reversed' : (p.status || 'Pending'));
-                const statusClass = p.status === 'completed' ? 'status-active' : p.status === 'pending' ? 'status-pending' : 'status-inactive';
-
-                // Check if overdue
-                let isOverdue = false;
-                if (p.status === 'pending' && p.due_date) {
-                    const today = new Date();
-                    const dueDate = new Date(p.due_date);
-                    if (dueDate < today) isOverdue = true;
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                    return;
                 }
 
-                const statusDisplay = isOverdue ? 'Overdue' : statusText;
-                const statusClassDisplay = isOverdue ? 'status-inactive' : statusClass;
-
-                html += `<tr>
-                    <td>${p.id}</td>
-                    <td><strong>${escapeHtml(travelerName)}</strong></td>
-                    <td>${escapeHtml(p.passport_no || '-')}</td>
-                    <td>${escapeHtml(p.batch_name || '-')}</td>
-                    <td>${escapeHtml(p.installment || '-')}</td>
-                    <td><strong>₹${amount.toLocaleString('en-IN')}</strong></td>
-                    <td>${p.payment_date ? formatDate(p.payment_date) : '-'}</td>
-                    <td>${escapeHtml(p.payment_method || '-')}</td>
-                    <td>${escapeHtml(p.reference || p.transaction_id || '-')}</td>
-                    <td><span class="status-badge ${statusClassDisplay}">${escapeHtml(statusDisplay)}</span></td>
-                    <td>
-                        <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View"><i class="fas fa-eye"></i></button>
-                        ${p.status === 'completed' ? `<button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse"><i class="fas fa-undo-alt"></i></button>` : ''}
-                        <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete" style="color:#e74c3c;"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-            });
-
-            tableBody.innerHTML = html;
-            updatePaginationUI(data.length);
-        }
-
-        function updatePaginationUI(total) {
-            document.getElementById('totalCount').textContent = total;
-            const start = total > 0 ? ((window.paymentsCurrentPage || 1) - 1) * 10 + 1 : 0;
-            const end = Math.min((window.paymentsCurrentPage || 1) * 10, total);
-            document.getElementById('showingFrom').textContent = start;
-            document.getElementById('showingTo').textContent = end;
-            document.getElementById('prevPageBtn').disabled = (window.paymentsCurrentPage || 1) === 1;
-            document.getElementById('nextPageBtn').disabled = end >= total;
-        }
-
-        function previousPage() {
-            if ((window.paymentsCurrentPage || 1) > 1) {
-                window.paymentsCurrentPage--;
-                displayPaymentsTable();
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Payment deleted successfully!', 'success');
+                    closePaymentModal();
+                    await loadPaymentsData();
+                } else {
+                    showNotification('Error: ' + (data.message || 'Could not delete payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showNotification('Failed to delete payment. Please try again.', 'error');
             }
         }
 
-        function nextPage() {
-            const total = (window.filteredPaymentsData || window.paymentsData || []).length;
-            if ((window.paymentsCurrentPage || 1) * 10 < total) {
-                window.paymentsCurrentPage++;
-                displayPaymentsTable();
+        function deletePaymentFromModal() {
+            if (!currentPaymentId) {
+                showNotification('No payment selected', 'error');
+                return;
             }
+            deletePayment(currentPaymentId);
+        }
+
+        // ====== DELETE ALL PAYMENTS ======
+        async function deleteAllPayments() {
+            if (paymentsData.length === 0) {
+                showNotification('No payments to delete', 'info');
+                return;
+            }
+
+            if (!confirm(`⚠️ Are you sure you want to delete ALL ${paymentsData.length} payments? This action cannot be undone!`)) {
+                return;
+            }
+
+            if (!confirm('⚠️ FINAL WARNING: This will permanently delete all payment records. Are you absolutely sure?')) {
+                return;
+            }
+
+            let deleted = 0;
+            let failed = 0;
+
+            for (const payment of paymentsData) {
+                try {
+                    const response = await fetch(`/api/payments/${payment.id}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        deleted++;
+                    } else {
+                        failed++;
+                    }
+                } catch (e) {
+                    failed++;
+                }
+            }
+
+            showNotification(`Deleted ${deleted} payments. Failed: ${failed}`, deleted > 0 ? 'success' : 'error');
+            await loadPaymentsData();
         }
 
         // ====== VIEW PAYMENT DETAILS ======
         function viewPaymentDetails(id) {
-            const paymentsData = window.paymentsData || [];
             const p = paymentsData.find(p => p.id === id);
             if (!p) {
                 showNotification('Payment not found', 'error');
                 return;
             }
 
-            window.currentPaymentId = p.id;
+            currentPaymentId = p.id;
             const travelerName = p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : (p.traveler_name || '-');
             const amount = parseFloat(p.amount || 0);
             const statusText = p.status === 'completed' ? 'Paid' : (p.status === 'pending' ? 'Pending' : p.status === 'reversed' ? 'Reversed' : (p.status || 'Pending'));
@@ -1603,121 +1406,124 @@
             document.getElementById('modalOverlay').style.display = 'block';
         }
 
-        // ====== LOAD PAYMENTS DATA ======
-        async function loadPaymentsData() {
-            const tableBody = document.getElementById('paymentsTableBody');
-            if (tableBody) {
-                tableBody.innerHTML = '<tr><td colspan="11" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payments...</td></tr>';
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        // ====== REVERSAL FUNCTIONS ======
+        function showReverseModal(paymentId, amount) {
+            document.getElementById('reverse_payment_id').value = paymentId;
+            document.getElementById('reverse_amount').value = amount.toLocaleString();
+            document.getElementById('reverseModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+            currentPaymentId = paymentId;
+        }
+
+        function closeReverseModal() {
+            document.getElementById('reverseModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('reverseForm')?.reset();
+        }
+
+        function reversePayment() {
+            if (!currentPaymentId) {
+                showNotification('No payment selected', 'error');
+                return;
+            }
+            const payment = paymentsData.find(p => p.id === currentPaymentId);
+            if (payment) {
+                closePaymentModal();
+                setTimeout(() => {
+                    showReverseModal(currentPaymentId, payment.amount);
+                }, 300);
+            }
+        }
+
+        async function processReversal() {
+            const paymentId = document.getElementById('reverse_payment_id').value;
+            const reason = document.getElementById('reverse_reason').value;
+            const remarks = document.getElementById('reverse_remarks').value;
+
+            if (!reason) {
+                showNotification('Please select a reason for reversal', 'error');
+                return;
             }
 
             try {
-                const response = await fetch('/api/payments', {
+                const response = await fetch(`/api/payments/${paymentId}/reverse`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
+                    body: JSON.stringify({ reason: reason, remarks: remarks || '' })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.payments) {
-                        window.paymentsData = data.payments;
-                        window.filteredPaymentsData = [...data.payments];
-                        window.paymentsCurrentPage = 1;
-                    }
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Payment reversed successfully!', 'success');
+                    closeReverseModal();
+                    await loadPaymentsData();
                 } else {
-                    // Demo data fallback
-                    window.paymentsData = getDemoPayments();
-                    window.filteredPaymentsData = [...window.paymentsData];
-                    window.paymentsCurrentPage = 1;
+                    showNotification('Error: ' + (data.message || 'Could not reverse payment'), 'error');
                 }
             } catch (error) {
-                console.error('Error loading payments:', error);
-                window.paymentsData = getDemoPayments();
-                window.filteredPaymentsData = [...window.paymentsData];
-                window.paymentsCurrentPage = 1;
-            }
-
-            displayPaymentsTable();
-            updatePaymentStatsUI();
-        }
-
-        function getDemoPayments() {
-            return [
-                {
-                    id: 1, traveler_id: 1, batch_id: 1, amount: 25000,
-                    payment_date: '2026-01-15', payment_method: 'Cash',
-                    status: 'completed', reference: 'CASH-001',
-                    notes: 'Booking amount paid', installment: 'Booking Amount',
-                    first_name: 'John', last_name: 'Doe',
-                    passport_no: 'A0000001', batch_name: 'Haj Platinum 2026',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 2, traveler_id: 2, batch_id: 2, amount: 50000,
-                    payment_date: '2026-01-20', payment_method: 'Bank Transfer',
-                    status: 'completed', reference: 'BT-2026-001',
-                    notes: '1st installment paid', installment: '1st Installment',
-                    first_name: 'Jane', last_name: 'Smith',
-                    passport_no: 'A0000002', batch_name: 'Haj Gold 2026',
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 3, traveler_id: 1, batch_id: 1, amount: 30000,
-                    payment_date: '2026-02-10', payment_method: 'UPI',
-                    status: 'pending', reference: 'UPI-001',
-                    notes: 'Pending 2nd installment', installment: '2nd Installment',
-                    first_name: 'John', last_name: 'Doe',
-                    passport_no: 'A0000001', batch_name: 'Haj Platinum 2026',
-                    created_at: new Date().toISOString()
-                }
-            ];
-        }
-
-        // ====== LOAD PAYMENT STATS ======
-        async function loadPaymentStatsData() {
-            try {
-                const response = await fetch('/api/payments/stats', {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.stats) {
-                        const s = data.stats;
-                        document.getElementById('paymentTotalCollected').innerHTML = `₹${(s.total_collected || 0).toLocaleString('en-IN')}`;
-                        document.getElementById('paymentPendingAmount').innerHTML = `₹${(s.pending_amount || 0).toLocaleString('en-IN')}`;
-                        document.getElementById('paidCount').textContent = s.completed_count || 0;
-                        document.getElementById('pendingCount').textContent = s.pending_count || 0;
-                        document.getElementById('reversedCount').textContent = s.reversed_count || 0;
-                        return;
-                    }
-                }
-
-                updatePaymentStatsUI();
-            } catch (error) {
-                console.error('Error loading stats:', error);
-                updatePaymentStatsUI();
+                console.error('Reversal error:', error);
+                showNotification('Failed to reverse payment. Please try again.', 'error');
             }
         }
 
-        function updatePaymentStatsUI() {
-            const paymentsData = window.paymentsData || [];
-            const totalCollected = paymentsData.filter(p => p.status === 'completed').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-            const pendingAmount = paymentsData.filter(p => p.status === 'pending').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-            const paidCount = paymentsData.filter(p => p.status === 'completed').length;
-            const pendingCount = paymentsData.filter(p => p.status === 'pending').length;
-            const reversedCount = paymentsData.filter(p => p.status === 'reversed').length;
-
-            document.getElementById('paymentTotalCollected').innerHTML = `₹${totalCollected.toLocaleString('en-IN')}`;
-            document.getElementById('paymentPendingAmount').innerHTML = `₹${pendingAmount.toLocaleString('en-IN')}`;
-            document.getElementById('paidCount').textContent = paidCount;
-            document.getElementById('pendingCount').textContent = pendingCount;
-            document.getElementById('reversedCount').textContent = reversedCount;
+        // ====== PRINT RECEIPT ======
+        function printPaymentReceipt() {
+            const content = document.getElementById('paymentDetails')?.innerHTML;
+            if (!content) {
+                showNotification('No payment details to print', 'warning');
+                return;
+            }
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                showNotification('Please allow popups for printing', 'warning');
+                return;
+            }
+            printWindow.document.write(`
+                <html><head><title>Payment Receipt</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 30px; }
+                    .receipt-header { text-align: center; margin-bottom: 30px; }
+                    .receipt-header h1 { color: #2c3e50; }
+                    .receipt-header h2 { color: #3498db; }
+                    .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+                    .detail-item { padding: 10px; background: #f8f9fa; border-radius: 5px; }
+                    .detail-item strong { display: block; color: #7f8c8d; margin-bottom: 5px; }
+                    .status-badge { padding: 5px 12px; border-radius: 20px; display: inline-block; }
+                    .status-active { background: #d4edda; color: #155724; }
+                    @media print { body { padding: 15px; } }
+                </style>
+                </head>
+                <body>
+                    <div class="receipt-header">
+                        <h1>Alhudha Haj Travel</h1>
+                        <h2>Payment Receipt</h2>
+                        <p>Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    ${content}
+                    <p style="text-align: center; margin-top: 40px; color: #7f8c8d;">This is a computer generated receipt</p>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         // ====== EXPORT FUNCTIONS ======
         function exportPaymentsToExcel() {
-            const data = window.filteredPaymentsData || window.paymentsData || [];
+            const data = filteredPaymentsData.length > 0 ? filteredPaymentsData : paymentsData;
             if (data.length === 0) {
                 showNotification('No payments to export', 'warning');
                 return;
@@ -1788,23 +1594,308 @@
             printWindow.print();
         }
 
-        // ====== UI HELPERS ======
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // ====== REFRESH ======
+        function refreshPayments() {
+            showNotification('Refreshing payments...', 'info');
+            loadPaymentsData();
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            try {
-                const date = new Date(dateStr);
-                if (isNaN(date.getTime())) return dateStr;
-                return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-            } catch (e) {
-                return dateStr;
+        // ====== FORM FUNCTIONS ======
+        function showAddPaymentForm() {
+            document.getElementById('addPaymentForm').style.display = 'block';
+            document.getElementById('paymentSearchSection').style.display = 'block';
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('payment_search').value = '';
+            document.getElementById('traveler_dropdown').value = '';
+            resetPaymentForm();
+            document.getElementById('addPaymentForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideAddPaymentForm() {
+            document.getElementById('addPaymentForm').style.display = 'none';
+            resetPaymentForm();
+            currentTravelerData = null;
+        }
+
+        function resetPaymentForm() {
+            document.getElementById('paymentForm')?.reset();
+            document.getElementById('payment_traveler_id').value = '';
+            document.getElementById('payment_traveler_name').value = '';
+            document.getElementById('payment_batch_id').value = '';
+            document.getElementById('display_traveler_name').textContent = '-';
+            document.getElementById('display_passport').textContent = '-';
+            document.getElementById('display_batch_name').textContent = '-';
+            document.getElementById('display_batch_price').textContent = '0';
+            document.getElementById('display_total_paid').innerHTML = '₹0';
+            document.getElementById('display_balance').innerHTML = '₹0';
+            document.getElementById('summary_price').innerHTML = '₹0';
+            document.getElementById('summary_paid').innerHTML = '₹0';
+            document.getElementById('summary_new').innerHTML = '₹0';
+            document.getElementById('summary_balance').innerHTML = '₹0';
+            setTodayDate();
+        }
+
+        function resetVerification() {
+            document.getElementById('paymentSearchSection').style.display = 'block';
+            document.getElementById('paymentForm').style.display = 'none';
+            document.getElementById('payment_search').value = '';
+            document.getElementById('traveler_dropdown').value = '';
+            resetPaymentForm();
+            currentTravelerData = null;
+        }
+
+        function updateSummary() {
+            const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
+            const amount = parseFloat(amountText) || 0;
+            const totalPaid = parseFloat(currentTravelerData?.totalPaid || 0);
+            const packagePrice = parseFloat(currentTravelerData?.packagePrice || 0);
+
+            const summaryNew = document.getElementById('summary_new');
+            const summaryBalance = document.getElementById('summary_balance');
+
+            if (summaryNew) {
+                summaryNew.innerHTML = `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
             }
+
+            if (summaryBalance) {
+                const newBalance = packagePrice - (totalPaid + amount);
+                if (newBalance < 0) {
+                    summaryBalance.style.color = '#e74c3c';
+                    summaryBalance.innerHTML = `₹${Math.abs(newBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} (Overpaid)`;
+                } else if (newBalance === 0) {
+                    summaryBalance.style.color = '#27ae60';
+                    summaryBalance.innerHTML = '₹0.00 (Paid in Full)';
+                } else {
+                    summaryBalance.style.color = '#f39c12';
+                    summaryBalance.innerHTML = `₹${newBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                }
+            }
+        }
+
+        function selectTravelerFromDropdown() {
+            const dropdown = document.getElementById('traveler_dropdown');
+            if (!dropdown) return;
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            if (!selectedOption.value) return;
+            document.getElementById('payment_search').value = selectedOption.value;
+            verifyTraveler();
+        }
+
+        async function verifyTraveler() {
+            const search = document.getElementById('payment_search')?.value?.trim() || '';
+            if (!search) {
+                showNotification('Please enter Traveler ID or Passport Number', 'error');
+                return;
+            }
+
+            try {
+                let traveler;
+                if (!isNaN(search)) {
+                    traveler = travelersData.find(t => t.id == search);
+                } else {
+                    traveler = travelersData.find(t => t.passport_no === search);
+                }
+
+                if (traveler) {
+                    await loadTravelerDetails(traveler);
+                } else {
+                    showNotification('Traveler not found. Please check the ID or Passport Number.', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying traveler:', error);
+                showNotification('Error verifying traveler', 'error');
+            }
+        }
+
+        async function loadTravelerDetails(traveler) {
+            const batch = batchesData.find(b => b.id == traveler.batch_id);
+
+            let payments = [];
+            try {
+                const response = await fetch(`/api/payments/traveler/${traveler.id}`, { 
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    payments = data.payments || [];
+                }
+            } catch (error) {
+                console.error('Error loading payments:', error);
+            }
+
+            const totalPaid = payments
+                .filter(p => p.status === 'completed')
+                .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+            const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
+            const balance = packagePrice - totalPaid;
+
+            currentTravelerData = {
+                ...traveler,
+                batch: batch,
+                payments: payments,
+                totalPaid: totalPaid,
+                packagePrice: packagePrice,
+                balance: balance
+            };
+
+            document.getElementById('payment_traveler_id').value = traveler.id;
+            document.getElementById('payment_traveler_name').value = `${traveler.first_name} ${traveler.last_name}`;
+            document.getElementById('payment_batch_id').value = traveler.batch_id || '';
+
+            document.getElementById('display_traveler_name').textContent = `${traveler.first_name} ${traveler.last_name}`;
+            document.getElementById('display_passport').textContent = traveler.passport_no || '-';
+            document.getElementById('display_batch_name').textContent = batch ? batch.batch_name : 'Not Assigned';
+            document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+            const balanceEl = document.getElementById('display_balance');
+            balanceEl.innerHTML = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            balanceEl.className = balance <= 0 ? 'value positive' : 'value negative';
+
+            document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            updateSummary();
+
+            document.getElementById('paymentSearchSection').style.display = 'none';
+            document.getElementById('paymentForm').style.display = 'block';
+        }
+
+        // ====== LOAD TRAVELERS ======
+        async function loadTravelerList() {
+            try {
+                const response = await fetch('/api/travelers', { 
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.travelers) {
+                        travelersData = data.travelers;
+                        const dropdown = document.getElementById('traveler_dropdown');
+                        if (dropdown) {
+                            dropdown.innerHTML = '<option value="">-- Select Traveler --</option>';
+                            data.travelers.forEach(t => {
+                                dropdown.innerHTML += `<option value="${t.id}" data-passport="${t.passport_no}">${t.first_name} ${t.last_name} (${t.passport_no})</option>`;
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading travelers:', error);
+            }
+        }
+
+        // ====== LOAD BATCHES ======
+        async function loadBatches() {
+            try {
+                const response = await fetch('/api/batches', { 
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.batches) {
+                        batchesData = data.batches;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading batches:', error);
+            }
+        }
+
+        // ====== RECORD PAYMENT ======
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('paymentForm');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
+                    const amount = parseFloat(amountText);
+                    
+                    if (amount <= 0) {
+                        showNotification('Please enter a valid amount greater than 0', 'error');
+                        return;
+                    }
+                    
+                    if (!currentTravelerData) {
+                        showNotification('Please verify a traveler first', 'error');
+                        return;
+                    }
+
+                    const paymentData = {
+                        traveler_id: document.getElementById('payment_traveler_id').value,
+                        batch_id: document.getElementById('payment_batch_id').value,
+                        amount: amount,
+                        payment_date: document.getElementById('payment_date').value,
+                        payment_method: document.getElementById('payment_method').value,
+                        installment: document.getElementById('installment').value,
+                        transaction_id: document.getElementById('transaction_id').value?.trim() || null,
+                        due_date: document.getElementById('due_date').value || null,
+                        remarks: document.getElementById('remarks').value?.trim() || null,
+                        status: 'completed'
+                    };
+
+                    if (!paymentData.traveler_id || !paymentData.batch_id) {
+                        showNotification('Please verify a traveler first', 'error');
+                        return;
+                    }
+                    
+                    if (!paymentData.payment_date) {
+                        showNotification('Payment date is required', 'error');
+                        return;
+                    }
+                    
+                    if (!paymentData.payment_method) {
+                        showNotification('Payment method is required', 'error');
+                        return;
+                    }
+
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recording...';
+
+                    try {
+                        const response = await fetch('/api/payments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(paymentData)
+                        });
+
+                        if (response.status === 401) {
+                            showNotification('Session expired. Please login again', 'error');
+                            setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
+                            return;
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showNotification(`Payment of ₹${amount.toLocaleString()} recorded successfully!`, 'success');
+                            hideAddPaymentForm();
+                            await loadPaymentsData();
+                        } else {
+                            showNotification('Error: ' + (data.message || 'Could not record payment'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error recording payment:', error);
+                        showNotification('Failed to record payment. Please try again.', 'error');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                });
+            }
+        });
+
+        // ====== CLOSE ALL MODALS ======
+        function closeAllModals() {
+            closePaymentModal();
+            closeReverseModal();
         }
 
         // ====== LOGOUT ======
@@ -1835,8 +1926,11 @@
             resetSessionTimer();
             initSessionTimer();
 
-            // Load travelers for dropdown
-            await loadTravelerList();
+            // Load travelers and batches first
+            await Promise.all([
+                loadTravelerList(),
+                loadBatches()
+            ]);
 
             // Load payments data
             await loadPaymentsData();
@@ -1845,28 +1939,7 @@
             console.log('✅ Payments page loaded successfully!');
         }
 
-        async function loadTravelerList() {
-            try {
-                const response = await fetch('/api/travelers', { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.travelers) {
-                        window.travelersData = data.travelers;
-                        const dropdown = document.getElementById('traveler_dropdown');
-                        if (dropdown) {
-                            dropdown.innerHTML = '<option value="">-- Select Traveler --</option>';
-                            data.travelers.forEach(t => {
-                                dropdown.innerHTML += `<option value="${t.id}" data-passport="${t.passport_no}">${t.first_name} ${t.last_name} (${t.passport_no})</option>`;
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading travelers:', error);
-            }
-        }
-
-        console.log('✅ Payments page loaded with delete functionality!');
+        console.log('✅ Payments page loaded with live database integration!');
     </script>
 
     <!-- ==================================================================
