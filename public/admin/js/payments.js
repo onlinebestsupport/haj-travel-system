@@ -14,6 +14,7 @@ let paymentsCurrentPage = 1;
 const PAYMENTS_PER_PAGE = 10;
 let travelersData = [];
 let batchesData = [];
+let currentPaymentId = null;
 
 // ====== LOAD PAYMENTS ======
 /**
@@ -29,7 +30,10 @@ async function loadPayments() {
         console.log('🔄 Loading payments...');
         const response = await fetch('/api/payments', {
             credentials: 'include',
-            headers: { 'Accept': 'application/json' }
+            headers: { 
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
         });
 
         if (!response.ok) {
@@ -49,75 +53,22 @@ async function loadPayments() {
         if (data.success && Array.isArray(data.payments)) {
             paymentsData = data.payments;
             filteredPaymentsData = [...paymentsData];
-            console.log(`✅ Loaded ${paymentsData.length} payments`);
+            console.log(`✅ Loaded ${paymentsData.length} payments from database`);
         } else {
-            console.warn('⚠️ No payments found, using demo data');
-            useDemoPayments();
+            console.warn('⚠️ No payments found in database');
+            paymentsData = [];
+            filteredPaymentsData = [];
+            // Don't use demo data - show empty state instead
         }
     } catch (error) {
         console.error('❌ Error loading payments:', error);
-        useDemoPayments();
+        paymentsData = [];
+        filteredPaymentsData = [];
+        showNotification('Failed to load payments from server. Please check your connection.', 'error');
     }
 
     displayPayments();
     updatePaymentStats();
-}
-
-/**
- * Use demo payment data when API is unavailable
- */
-function useDemoPayments() {
-    paymentsData = [
-        {
-            id: 1,
-            traveler_id: 1,
-            batch_id: 1,
-            amount: 25000,
-            payment_date: '2026-01-15',
-            payment_method: 'Cash',
-            status: 'completed',
-            reference: 'CASH-001',
-            notes: 'Booking amount paid',
-            installment: 'Booking Amount',
-            first_name: 'John',
-            last_name: 'Doe',
-            passport_no: 'A0000001',
-            batch_name: 'Haj Platinum 2026'
-        },
-        {
-            id: 2,
-            traveler_id: 2,
-            batch_id: 2,
-            amount: 50000,
-            payment_date: '2026-01-20',
-            payment_method: 'Bank Transfer',
-            status: 'completed',
-            reference: 'BT-2026-001',
-            notes: '1st installment paid',
-            installment: '1st Installment',
-            first_name: 'Jane',
-            last_name: 'Smith',
-            passport_no: 'A0000002',
-            batch_name: 'Haj Gold 2026'
-        },
-        {
-            id: 3,
-            traveler_id: 1,
-            batch_id: 1,
-            amount: 30000,
-            payment_date: '2026-02-10',
-            payment_method: 'UPI',
-            status: 'pending',
-            reference: 'UPI-001',
-            notes: 'Pending 2nd installment',
-            installment: '2nd Installment',
-            first_name: 'John',
-            last_name: 'Doe',
-            passport_no: 'A0000001',
-            batch_name: 'Haj Platinum 2026'
-        }
-    ];
-    filteredPaymentsData = [...paymentsData];
 }
 
 // ====== DISPLAY PAYMENTS ======
@@ -129,7 +80,13 @@ function displayPayments() {
     if (!tableBody) return;
 
     if (!filteredPaymentsData || filteredPaymentsData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;">No payments found</td></tr>';
+        tableBody.innerHTML = `<tr>
+            <td colspan="11" style="text-align:center;padding:40px;">
+                <i class="fas fa-inbox" style="font-size:2rem;color:#bdc3c7;display:block;margin-bottom:10px;"></i>
+                <p style="color:#7f8c8d;">No payments found</p>
+                <p style="color:#95a5a6;font-size:0.9rem;">Click "Add Payment" to record a new payment</p>
+            </td>
+        </tr>`;
         updatePaginationDisplay(0);
         return;
     }
@@ -159,7 +116,7 @@ function displayPayments() {
         const statusClassDisplay = isOverdue ? 'status-inactive' : statusClass;
 
         html += `<tr>
-            <td>${p.id}</td>
+            <td><strong>#${p.id}</strong></td>
             <td><strong>${escapeHtml(travelerName)}</strong></td>
             <td>${escapeHtml(p.passport_no || '-')}</td>
             <td>${escapeHtml(p.batch_name || '-')}</td>
@@ -170,8 +127,21 @@ function displayPayments() {
             <td>${escapeHtml(p.reference || p.transaction_id || '-')}</td>
             <td><span class="status-badge ${statusClassDisplay}">${escapeHtml(statusDisplay)}</span></td>
             <td>
-                <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View"><i class="fas fa-eye"></i></button>
-                ${p.status === 'completed' ? `<button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse"><i class="fas fa-undo-alt"></i></button>` : ''}
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button class="icon-btn" onclick="viewPaymentDetails(${p.id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${p.status === 'completed' ? `
+                        <button class="icon-btn" onclick="showReverseModal(${p.id}, ${p.amount})" title="Reverse Payment" style="color:#e67e22;">
+                            <i class="fas fa-undo-alt"></i>
+                        </button>
+                    ` : ''}
+                    ${p.status !== 'reversed' ? `
+                        <button class="icon-btn" onclick="deletePayment(${p.id})" title="Delete" style="color:#e74c3c;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
             </td>
         </tr>`;
     });
@@ -270,7 +240,8 @@ function filterPayments() {
 
     paymentsCurrentPage = 1;
     displayPayments();
-    showNotification(`Found ${filteredPaymentsData.length} payment(s)`, 'info');
+    const count = filteredPaymentsData.length;
+    showNotification(`Found ${count} payment${count !== 1 ? 's' : ''}`, 'info');
 }
 
 /**
@@ -344,6 +315,48 @@ async function updatePaymentStats() {
         document.getElementById('reversedCount').textContent = reversedCount;
     } catch (error) {
         console.error('Error loading payment stats:', error);
+    }
+}
+
+// ====== DELETE PAYMENT ======
+/**
+ * Delete a payment
+ */
+async function deletePayment(id) {
+    if (!confirm('Are you sure you want to delete this payment? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/payments/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.status === 401) {
+            showNotification('Session expired. Please login again', 'error');
+            setTimeout(() => {
+                window.location.href = '/admin/login.html';
+            }, 2000);
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('Payment deleted successfully!', 'success');
+            await loadPayments();
+            await updatePaymentStats();
+        } else {
+            showNotification('Error: ' + (data.message || 'Could not delete payment'), 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting payment:', error);
+        showNotification('Failed to delete payment. Please try again.', 'error');
     }
 }
 
@@ -429,7 +442,7 @@ function viewPaymentDetails(id) {
     `;
 
     // Store current payment ID for reversal
-    window.currentPaymentId = p.id;
+    currentPaymentId = p.id;
 
     const modal = document.getElementById('paymentModal');
     const details = document.getElementById('paymentDetails');
@@ -463,7 +476,7 @@ function showReverseModal(paymentId, amount) {
     document.getElementById('reverse_amount').value = amount.toLocaleString();
     document.getElementById('reverseModal').style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
-    window.currentPaymentId = paymentId;
+    currentPaymentId = paymentId;
 }
 
 /**
@@ -473,23 +486,7 @@ function closeReverseModal() {
     document.getElementById('reverseModal').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
     document.getElementById('reverseForm').reset();
-    window.currentPaymentId = null;
-}
-
-/**
- * Reverse a payment
- */
-function reversePayment() {
-    if (!window.currentPaymentId) {
-        showNotification('No payment selected', 'error');
-        return;
-    }
-    closePaymentModal();
-    // Get payment amount
-    const payment = paymentsData.find(p => p.id === window.currentPaymentId);
-    if (payment) {
-        showReverseModal(window.currentPaymentId, payment.amount);
-    }
+    currentPaymentId = null;
 }
 
 /**
@@ -508,7 +505,10 @@ async function processReversal() {
     try {
         const response = await fetch(`/api/payments/${paymentId}/reverse`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             credentials: 'include',
             body: JSON.stringify({
                 reason: reason,
@@ -532,15 +532,11 @@ async function processReversal() {
             await loadPayments();
             await updatePaymentStats();
         } else {
-            showNotification('Error: ' + (data.error || 'Could not reverse payment'), 'error');
+            showNotification('Error: ' + (data.message || 'Could not reverse payment'), 'error');
         }
     } catch (error) {
         console.error('Reversal error:', error);
-        // Demo mode fallback
-        showNotification('Payment reversed (demo mode)', 'success');
-        closeReverseModal();
-        loadPayments();
-        updatePaymentStats();
+        showNotification('Failed to reverse payment. Please try again.', 'error');
     }
 }
 
@@ -759,58 +755,329 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// ====== INITIALIZATION ======
+// ====== FORM FUNCTIONS ======
 /**
- * Initialize page with session check
+ * Show add payment form
  */
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Payments page initializing...');
+function showAddPaymentForm() {
+    const form = document.getElementById('addPaymentForm');
+    if (form) {
+        form.style.display = 'block';
+        document.getElementById('paymentSearchSection').style.display = 'block';
+        document.getElementById('paymentForm').style.display = 'none';
+        document.getElementById('payment_search').value = '';
+        document.getElementById('traveler_dropdown').value = '';
+        resetPaymentForm();
+        setTodayDate();
+        form.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+/**
+ * Hide add payment form
+ */
+function hideAddPaymentForm() {
+    const form = document.getElementById('addPaymentForm');
+    if (form) form.style.display = 'none';
+    resetPaymentForm();
+    currentPaymentId = null;
+}
+
+/**
+ * Reset payment form
+ */
+function resetPaymentForm() {
+    const form = document.getElementById('paymentForm');
+    if (form) form.reset();
+    document.getElementById('payment_traveler_id').value = '';
+    document.getElementById('payment_traveler_name').value = '';
+    document.getElementById('payment_batch_id').value = '';
+    document.getElementById('display_traveler_name').textContent = '-';
+    document.getElementById('display_passport').textContent = '-';
+    document.getElementById('display_batch_name').textContent = '-';
+    document.getElementById('display_batch_price').textContent = '0';
+    document.getElementById('display_total_paid').innerHTML = '₹0';
+    document.getElementById('display_balance').innerHTML = '₹0';
+    document.getElementById('summary_price').innerHTML = '₹0';
+    document.getElementById('summary_paid').innerHTML = '₹0';
+    document.getElementById('summary_new').innerHTML = '₹0';
+    document.getElementById('summary_balance').innerHTML = '₹0';
+    setTodayDate();
+}
+
+/**
+ * Reset verification
+ */
+function resetVerification() {
+    document.getElementById('paymentSearchSection').style.display = 'block';
+    document.getElementById('paymentForm').style.display = 'none';
+    document.getElementById('payment_search').value = '';
+    document.getElementById('traveler_dropdown').value = '';
+    resetPaymentForm();
+    currentPaymentId = null;
+}
+
+/**
+ * Select traveler from dropdown
+ */
+function selectTravelerFromDropdown() {
+    const dropdown = document.getElementById('traveler_dropdown');
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    if (!selectedOption.value) return;
+    document.getElementById('payment_search').value = selectedOption.value;
+    verifyTraveler();
+}
+
+/**
+ * Verify traveler
+ */
+async function verifyTraveler() {
+    const search = document.getElementById('payment_search')?.value?.trim() || '';
+    if (!search) {
+        showNotification('Please enter Traveler ID or Passport Number', 'error');
+        return;
+    }
+
     try {
-        if (typeof SessionManager !== 'undefined') {
-            await SessionManager.initPage(initializePage);
+        let traveler;
+        if (!isNaN(search)) {
+            traveler = travelersData.find(t => t.id == search);
         } else {
-            initializePage();
+            traveler = travelersData.find(t => t.passport_no === search);
+        }
+
+        if (traveler) {
+            await loadTravelerDetails(traveler);
+        } else {
+            // Try API
+            let response;
+            if (!isNaN(search)) {
+                response = await fetch(`/api/travelers/${search}`, { 
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+            } else {
+                response = await fetch(`/api/travelers/passport/${encodeURIComponent(search)}`, { 
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    traveler = data.traveler;
+                    await loadTravelerDetails(traveler);
+                } else {
+                    showNotification('Traveler not found', 'error');
+                }
+            } else {
+                showNotification('Traveler not found. Please check the ID or Passport Number.', 'error');
+            }
         }
     } catch (error) {
-        console.error('Failed to initialize page:', error);
-        showNotification('Failed to load page', 'error');
+        console.error('Error verifying traveler:', error);
+        showNotification('Error verifying traveler', 'error');
     }
-});
+}
 
-async function initializePage() {
-    console.log('📋 Initializing page...');
-    resetSessionTimer();
+/**
+ * Load traveler details
+ */
+async function loadTravelerDetails(traveler) {
+    const batch = batchesData.find(b => b.id == traveler.batch_id);
+    let payments = [];
 
-    // Monitor user activity
-    ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-        document.addEventListener(event, resetSessionTimer);
-    });
+    try {
+        const response = await fetch(`/api/payments/traveler/${traveler.id}`, { 
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                payments = data.payments || [];
+            }
+        }
+    } catch (error) {
+        console.error('Error loading payments:', error);
+    }
 
-    // Load data
-    await Promise.all([
-        loadTravelers(),
-        loadBatches(),
-        loadPayments(),
-        updatePaymentStats()
-    ]);
+    const totalPaid = payments
+        .filter(p => p.status === 'completed')
+        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-    // Set today's date for payment form
-    setTodayDate();
+    const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
+    const balance = packagePrice - totalPaid;
 
-    // Set up search listeners
-    const searchEl = document.getElementById('searchPayments');
-    if (searchEl) {
-        searchEl.addEventListener('input', function() {
-            filterPayments();
+    currentPaymentId = traveler.id;
+
+    document.getElementById('payment_traveler_id').value = traveler.id;
+    document.getElementById('payment_traveler_name').value = `${traveler.first_name} ${traveler.last_name}`;
+    document.getElementById('payment_batch_id').value = traveler.batch_id || '';
+
+    document.getElementById('display_traveler_name').textContent = `${traveler.first_name} ${traveler.last_name}`;
+    document.getElementById('display_passport').textContent = traveler.passport_no || '-';
+    document.getElementById('display_batch_name').textContent = batch ? batch.batch_name : 'Not Assigned';
+    document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+    const balanceEl = document.getElementById('display_balance');
+    balanceEl.innerHTML = `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    balanceEl.className = balance <= 0 ? 'value positive' : 'value negative';
+
+    document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    updateSummary();
+
+    document.getElementById('paymentSearchSection').style.display = 'none';
+    document.getElementById('paymentForm').style.display = 'block';
+}
+
+/**
+ * Update payment summary
+ */
+function updateSummary() {
+    const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
+    const amount = parseFloat(amountText) || 0;
+    const totalPaid = parseFloat(document.getElementById('display_total_paid')?.textContent?.replace(/[₹,]/g, '') || 0);
+    const packagePrice = parseFloat(document.getElementById('display_batch_price')?.textContent?.replace(/[₹,]/g, '') || 0);
+
+    const summaryNew = document.getElementById('summary_new');
+    const summaryBalance = document.getElementById('summary_balance');
+
+    if (summaryNew) {
+        summaryNew.innerHTML = `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    }
+
+    if (summaryBalance) {
+        const newBalance = packagePrice - (totalPaid + amount);
+        if (newBalance < 0) {
+            summaryBalance.style.color = '#e74c3c';
+            summaryBalance.innerHTML = `₹${Math.abs(newBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })} (Overpaid)`;
+        } else if (newBalance === 0) {
+            summaryBalance.style.color = '#27ae60';
+            summaryBalance.innerHTML = '₹0.00 (Paid in Full)';
+        } else {
+            summaryBalance.style.color = '#f39c12';
+            summaryBalance.innerHTML = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        }
+    }
+}
+
+// ====== RECORD PAYMENT ======
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paymentForm');
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
+            const amount = parseFloat(amountText);
+            if (amount <= 0) {
+                showNotification('Please enter a valid amount greater than 0', 'error');
+                return;
+            }
+            if (!currentPaymentId) {
+                showNotification('Please verify a traveler first', 'error');
+                return;
+            }
+
+            const paymentData = {
+                traveler_id: document.getElementById('payment_traveler_id').value,
+                batch_id: document.getElementById('payment_batch_id').value,
+                amount: amount,
+                payment_date: document.getElementById('payment_date').value,
+                payment_method: document.getElementById('payment_method').value,
+                installment: document.getElementById('installment').value,
+                transaction_id: document.getElementById('transaction_id').value?.trim() || null,
+                due_date: document.getElementById('due_date').value || null,
+                remarks: document.getElementById('remarks').value?.trim() || null,
+                status: 'completed'
+            };
+
+            if (!paymentData.traveler_id || !paymentData.batch_id) {
+                showNotification('Please verify a traveler first', 'error');
+                return;
+            }
+            if (!paymentData.payment_date) {
+                showNotification('Payment date is required', 'error');
+                return;
+            }
+            if (!paymentData.payment_method) {
+                showNotification('Payment method is required', 'error');
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            showLoading(submitBtn, 'Recording...');
+
+            try {
+                const response = await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (response.status === 401) {
+                    showNotification('Session expired. Please login again', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/admin/login.html';
+                    }, 2000);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(`Payment of ₹${amount.toLocaleString()} recorded successfully!`, 'success');
+                    hideAddPaymentForm();
+                    await loadPayments();
+                    await updatePaymentStats();
+                } else {
+                    showNotification('Error: ' + (data.message || 'Could not record payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Error recording payment:', error);
+                showNotification('Failed to record payment. Please try again.', 'error');
+            } finally {
+                hideLoading(submitBtn);
+            }
         });
     }
 
-    const statusEl = document.getElementById('paymentStatusFilter');
-    const methodEl = document.getElementById('paymentMethodFilter');
-    if (statusEl) statusEl.addEventListener('change', filterPayments);
-    if (methodEl) methodEl.addEventListener('change', filterPayments);
+    // Amount input event listener
+    const amountEl = document.getElementById('amount');
+    if (amountEl) {
+        amountEl.addEventListener('input', updateSummary);
+    }
 
-    console.log('✅ Payments page loaded successfully!');
+    // Number validation for amount
+    const amountInput = document.getElementById('amount');
+    if (amountInput) {
+        amountInput.addEventListener('keypress', function(e) {
+            const key = e.keyCode || e.which;
+            if (key == 8 || key == 9 || key == 13 || key == 27 || key == 46 ||
+                (key >= 35 && key <= 40) || (key >= 48 && key <= 57) ||
+                (key >= 96 && key <= 105)) {
+                return true;
+            }
+            return false;
+        });
+    }
+});
+
+/**
+ * Set today's date
+ */
+function setTodayDate() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateEl = document.getElementById('payment_date');
+    if (dateEl) dateEl.value = today;
 }
 
 /**
@@ -867,333 +1134,6 @@ async function loadBatches() {
     }
 }
 
-/**
- * Set today's date
- */
-function setTodayDate() {
-    const today = new Date().toISOString().split('T')[0];
-    const dateEl = document.getElementById('payment_date');
-    if (dateEl) dateEl.value = today;
-}
-
-// ====== FORM FUNCTIONS ======
-/**
- * Show add payment form
- */
-function showAddPaymentForm() {
-    const form = document.getElementById('addPaymentForm');
-    if (form) {
-        form.style.display = 'block';
-        document.getElementById('paymentSearchSection').style.display = 'block';
-        document.getElementById('paymentForm').style.display = 'none';
-        document.getElementById('payment_search').value = '';
-        document.getElementById('traveler_dropdown').value = '';
-        resetPaymentForm();
-        setTodayDate();
-        form.scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
-/**
- * Hide add payment form
- */
-function hideAddPaymentForm() {
-    const form = document.getElementById('addPaymentForm');
-    if (form) form.style.display = 'none';
-    resetPaymentForm();
-    window.currentTravelerData = null;
-}
-
-/**
- * Reset payment form
- */
-function resetPaymentForm() {
-    const form = document.getElementById('paymentForm');
-    if (form) form.reset();
-    document.getElementById('payment_traveler_id').value = '';
-    document.getElementById('payment_traveler_name').value = '';
-    document.getElementById('payment_batch_id').value = '';
-    document.getElementById('display_traveler_name').textContent = '-';
-    document.getElementById('display_passport').textContent = '-';
-    document.getElementById('display_batch_name').textContent = '-';
-    document.getElementById('display_batch_price').textContent = '0';
-    document.getElementById('display_total_paid').innerHTML = '₹0';
-    document.getElementById('display_balance').innerHTML = '₹0';
-    document.getElementById('summary_price').innerHTML = '₹0';
-    document.getElementById('summary_paid').innerHTML = '₹0';
-    document.getElementById('summary_new').innerHTML = '₹0';
-    document.getElementById('summary_balance').innerHTML = '₹0';
-    setTodayDate();
-}
-
-/**
- * Reset verification
- */
-function resetVerification() {
-    document.getElementById('paymentSearchSection').style.display = 'block';
-    document.getElementById('paymentForm').style.display = 'none';
-    document.getElementById('payment_search').value = '';
-    document.getElementById('traveler_dropdown').value = '';
-    resetPaymentForm();
-    window.currentTravelerData = null;
-}
-
-/**
- * Select traveler from dropdown
- */
-function selectTravelerFromDropdown() {
-    const dropdown = document.getElementById('traveler_dropdown');
-    const selectedOption = dropdown.options[dropdown.selectedIndex];
-    if (!selectedOption.value) return;
-    document.getElementById('payment_search').value = selectedOption.value;
-    verifyTraveler();
-}
-
-/**
- * Verify traveler
- */
-async function verifyTraveler() {
-    const search = document.getElementById('payment_search')?.value?.trim() || '';
-    if (!search) {
-        showNotification('Please enter Traveler ID or Passport Number', 'error');
-        return;
-    }
-
-    try {
-        let traveler;
-        if (!isNaN(search)) {
-            traveler = travelersData.find(t => t.id == search);
-        } else {
-            traveler = travelersData.find(t => t.passport_no === search);
-        }
-
-        if (traveler) {
-            await loadTravelerDetails(traveler);
-        } else {
-            // Try API
-            let response;
-            if (!isNaN(search)) {
-                response = await fetch(`/api/travelers/${search}`, { credentials: 'include' });
-            } else {
-                response = await fetch(`/api/travelers/passport/${encodeURIComponent(search)}`, { credentials: 'include' });
-            }
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    traveler = data.traveler;
-                    await loadTravelerDetails(traveler);
-                } else {
-                    showNotification('Traveler not found', 'error');
-                }
-            } else {
-                showNotification('Traveler not found. Please check the ID or Passport Number.', 'error');
-            }
-        }
-    } catch (error) {
-        console.error('Error verifying traveler:', error);
-        showNotification('Error verifying traveler', 'error');
-    }
-}
-
-/**
- * Load traveler details
- */
-async function loadTravelerDetails(traveler) {
-    const batch = batchesData.find(b => b.id == traveler.batch_id);
-    let payments = [];
-
-    try {
-        const response = await fetch(`/api/payments/traveler/${traveler.id}`, { credentials: 'include' });
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                payments = data.payments || [];
-            }
-        }
-    } catch (error) {
-        console.error('Error loading payments:', error);
-    }
-
-    const totalPaid = payments
-        .filter(p => p.status === 'completed')
-        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-
-    const packagePrice = batch ? parseFloat(batch.price || 0) : 0;
-    const balance = packagePrice - totalPaid;
-
-    window.currentTravelerData = {
-        ...traveler,
-        batch: batch,
-        payments: payments,
-        totalPaid: totalPaid,
-        packagePrice: packagePrice,
-        balance: balance
-    };
-
-    document.getElementById('payment_traveler_id').value = traveler.id;
-    document.getElementById('payment_traveler_name').value = `${traveler.first_name} ${traveler.last_name}`;
-    document.getElementById('payment_batch_id').value = traveler.batch_id || '';
-
-    document.getElementById('display_traveler_name').textContent = `${traveler.first_name} ${traveler.last_name}`;
-    document.getElementById('display_passport').textContent = traveler.passport_no || '-';
-    document.getElementById('display_batch_name').textContent = batch ? batch.batch_name : 'Not Assigned';
-    document.getElementById('display_batch_price').textContent = packagePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 });
-    document.getElementById('display_total_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-
-    const balanceEl = document.getElementById('display_balance');
-    balanceEl.innerHTML = `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-    balanceEl.className = balance <= 0 ? 'value positive' : 'value negative';
-
-    document.getElementById('summary_price').innerHTML = `₹${packagePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-    document.getElementById('summary_paid').innerHTML = `₹${totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-    updateSummary();
-
-    document.getElementById('paymentSearchSection').style.display = 'none';
-    document.getElementById('paymentForm').style.display = 'block';
-}
-
-/**
- * Update payment summary
- */
-function updateSummary() {
-    const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
-    const amount = parseFloat(amountText) || 0;
-    const totalPaid = parseFloat(window.currentTravelerData?.totalPaid || 0);
-    const packagePrice = parseFloat(window.currentTravelerData?.packagePrice || 0);
-
-    const summaryNew = document.getElementById('summary_new');
-    const summaryBalance = document.getElementById('summary_balance');
-
-    if (summaryNew) {
-        summaryNew.innerHTML = `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-    }
-
-    if (summaryBalance) {
-        const newBalance = packagePrice - (totalPaid + amount);
-        if (newBalance < 0) {
-            summaryBalance.style.color = '#e74c3c';
-            summaryBalance.innerHTML = `₹${Math.abs(newBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })} (Overpaid)`;
-        } else if (newBalance === 0) {
-            summaryBalance.style.color = '#27ae60';
-            summaryBalance.innerHTML = '₹0.00 (Paid in Full)';
-        } else {
-            summaryBalance.style.color = '#f39c12';
-            summaryBalance.innerHTML = `₹${newBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-        }
-    }
-}
-
-// ====== RECORD PAYMENT ======
-/**
- * Record a new payment
- */
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('paymentForm');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const amountText = document.getElementById('amount')?.value?.replace(/,/g, '') || '';
-            const amount = parseFloat(amountText);
-            if (amount <= 0) {
-                showNotification('Please enter a valid amount greater than 0', 'error');
-                return;
-            }
-            if (!window.currentTravelerData) {
-                showNotification('Please verify a traveler first', 'error');
-                return;
-            }
-
-            const paymentData = {
-                traveler_id: document.getElementById('payment_traveler_id').value,
-                batch_id: document.getElementById('payment_batch_id').value,
-                amount: amount,
-                payment_date: document.getElementById('payment_date').value,
-                payment_method: document.getElementById('payment_method').value,
-                installment: document.getElementById('installment').value,
-                transaction_id: document.getElementById('transaction_id').value?.trim() || null,
-                due_date: document.getElementById('due_date').value || null,
-                remarks: document.getElementById('remarks').value?.trim() || null,
-                status: 'completed'
-            };
-
-            if (!paymentData.traveler_id || !paymentData.batch_id) {
-                showNotification('Please verify a traveler first', 'error');
-                return;
-            }
-            if (!paymentData.payment_date) {
-                showNotification('Payment date is required', 'error');
-                return;
-            }
-            if (!paymentData.payment_method) {
-                showNotification('Payment method is required', 'error');
-                return;
-            }
-
-            const submitBtn = this.querySelector('button[type="submit"]');
-            showLoading(submitBtn, 'Recording...');
-
-            try {
-                const response = await fetch('/api/payments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(paymentData)
-                });
-
-                if (response.status === 401) {
-                    showNotification('Session expired. Please login again', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/admin/login.html';
-                    }, 2000);
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showNotification(`Payment of ₹${amount.toLocaleString()} recorded successfully!`, 'success');
-                    hideAddPaymentForm();
-                    await loadPayments();
-                    await updatePaymentStats();
-                } else {
-                    showNotification('Error: ' + (data.error || 'Could not record payment'), 'error');
-                }
-            } catch (error) {
-                console.error('Error recording payment:', error);
-                // Demo mode fallback
-                showNotification('Payment recorded (demo mode)', 'success');
-                hideAddPaymentForm();
-                loadPayments();
-                updatePaymentStats();
-            } finally {
-                hideLoading(submitBtn);
-            }
-        });
-    }
-
-    // Amount input event listener
-    const amountEl = document.getElementById('amount');
-    if (amountEl) {
-        amountEl.addEventListener('input', updateSummary);
-    }
-
-    // Number validation for amount
-    const amountInput = document.getElementById('amount');
-    if (amountInput) {
-        amountInput.addEventListener('keypress', function(e) {
-            const key = e.keyCode || e.which;
-            if (key == 8 || key == 9 || key == 13 || key == 27 || key == 46 ||
-                (key >= 35 && key <= 40) || (key >= 48 && key <= 57) ||
-                (key >= 96 && key <= 105)) {
-                return true;
-            }
-            return false;
-        });
-    }
-});
-
 // ====== CLOSE ALL MODALS ======
 function closeAllModals() {
     closePaymentModal();
@@ -1218,6 +1158,60 @@ async function logout() {
     }
 }
 
+// ====== INITIALIZATION ======
+/**
+ * Initialize page with session check
+ */
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Payments page initializing...');
+    try {
+        if (typeof SessionManager !== 'undefined') {
+            await SessionManager.initPage(initializePage);
+        } else {
+            initializePage();
+        }
+    } catch (error) {
+        console.error('Failed to initialize page:', error);
+        showNotification('Failed to load page', 'error');
+    }
+});
+
+async function initializePage() {
+    console.log('📋 Initializing page...');
+    resetSessionTimer();
+
+    // Monitor user activity
+    ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetSessionTimer);
+    });
+
+    // Load data
+    await Promise.all([
+        loadTravelers(),
+        loadBatches(),
+        loadPayments(),
+        updatePaymentStats()
+    ]);
+
+    // Set today's date for payment form
+    setTodayDate();
+
+    // Set up search listeners
+    const searchEl = document.getElementById('searchPayments');
+    if (searchEl) {
+        searchEl.addEventListener('input', function() {
+            filterPayments();
+        });
+    }
+
+    const statusEl = document.getElementById('paymentStatusFilter');
+    const methodEl = document.getElementById('paymentMethodFilter');
+    if (statusEl) statusEl.addEventListener('change', filterPayments);
+    if (methodEl) methodEl.addEventListener('change', filterPayments);
+
+    console.log('✅ Payments page loaded successfully!');
+}
+
 // ====== EXPOSE GLOBALS ======
 window.loadPayments = loadPayments;
 window.filterPayments = filterPayments;
@@ -1233,12 +1227,12 @@ window.viewPaymentDetails = viewPaymentDetails;
 window.closePaymentModal = closePaymentModal;
 window.showReverseModal = showReverseModal;
 window.closeReverseModal = closeReverseModal;
-window.reversePayment = reversePayment;
 window.processReversal = processReversal;
 window.printPaymentReceipt = printPaymentReceipt;
 window.exportPaymentsToExcel = exportPaymentsToExcel;
 window.printPaymentsTable = printPaymentsTable;
 window.closeAllModals = closeAllModals;
+window.deletePayment = deletePayment;
 window.showNotification = showNotification;
 window.logout = logout;
 
