@@ -77,6 +77,7 @@ def get_travelers():
                 b.price as batch_price,
                 b.departure_date,
                 b.return_date,
+                b.status as batch_status,
                 (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'completed') as payment_count,
                 (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE traveler_id = t.id AND status = 'completed') as total_paid,
                 (SELECT COUNT(*) FROM payments WHERE traveler_id = t.id AND status = 'pending') as pending_count,
@@ -276,8 +277,7 @@ def create_traveler():
     except ValueError:
         return jsonify({'success': False, 'error': 'Invalid batch_id'}), 400
     
-    # Validate passport expiry vs expected return date (client-side validation should catch this)
-    # Server-side validation for extra safety
+    # Validate passport expiry vs expected return date
     passport_expiry = data.get('passport_expiry_date')
     expected_return = data.get('expected_return_date')
     if passport_expiry and expected_return:
@@ -312,7 +312,7 @@ def create_traveler():
         if cursor.fetchone():
             return jsonify({'success': False, 'error': 'Passport number already exists'}), 400
         
-        # Insert traveler first to get ID - NOW WITH 36 FIELDS
+        # Insert traveler with 36 fields
         cursor.execute('''
             INSERT INTO travelers (
                 first_name, last_name, passport_name, batch_id,
@@ -323,7 +323,6 @@ def create_traveler():
                 place_of_birth, place_of_issue, passport_address,
                 father_name, mother_name, spouse_name,
                 pin, emergency_contact, emergency_phone, medical_notes,
-                -- NEW FIELDS (3)
                 mailing_address, file_reference, expected_return_date,
                 extra_fields, created_at, updated_at
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -356,7 +355,6 @@ def create_traveler():
             data.get('emergency_contact'),
             data.get('emergency_phone'),
             data.get('medical_notes'),
-            # NEW FIELDS (3)
             data.get('mailing_address'),
             data.get('file_reference'),
             data.get('expected_return_date'),
@@ -458,7 +456,6 @@ def update_traveler(traveler_id):
             'place_of_birth', 'place_of_issue', 'passport_address',
             'father_name', 'mother_name', 'spouse_name', 'pin',
             'emergency_contact', 'emergency_phone', 'medical_notes',
-            # NEW FIELDS (3)
             'mailing_address', 'file_reference', 'expected_return_date'
         ]
         
