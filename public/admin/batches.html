@@ -858,6 +858,48 @@
         let currentPage = 1;
         let itemsPerPage = 10;
         let currentEditBatchId = null;
+        let sessionListenersAdded = false;
+        let warningShown = false;
+        let sessionWarningTimeout = null;
+        let sessionLogoutTimeout = null;
+
+        // ====== SESSION TIMER - FIXED (Only logs once) ======
+        function resetSessionTimer() {
+            if (sessionWarningTimeout) clearTimeout(sessionWarningTimeout);
+            if (sessionLogoutTimeout) clearTimeout(sessionLogoutTimeout);
+            hideSessionWarning();
+            sessionWarningTimeout = setTimeout(showSessionWarning, 120000);
+            sessionLogoutTimeout = setTimeout(showSessionExpiredWarning, 150000);
+        }
+
+        function showSessionWarning() {
+            if (warningShown) return;
+            const warning = document.getElementById('sessionWarning');
+            if (!warning) return;
+            warning.style.display = 'block';
+            warningShown = true;
+        }
+
+        function hideSessionWarning() {
+            const warning = document.getElementById('sessionWarning');
+            if (warning) warning.style.display = 'none';
+            warningShown = false;
+        }
+
+        function showSessionExpiredWarning() {
+            hideSessionWarning();
+            showNotification('Session expired. Redirecting...', 'warning');
+            setTimeout(() => {
+                sessionStorage.clear();
+                window.location.href = '/admin/login.html';
+            }, 2000);
+        }
+
+        function extendSession() {
+            hideSessionWarning();
+            resetSessionTimer();
+            showNotification('Session extended', 'success');
+        }
 
         // ====== NOTIFICATION ======
         function showNotification(message, type = 'success') {
@@ -1589,10 +1631,34 @@
                 document.getElementById('modalOverlay').style.display = 'none';
             }
         };
+
+        // ====== SESSION TIMER - FIXED (Only adds listeners once) ======
+        function initSessionTimer() {
+            // Only add event listeners once
+            if (!sessionListenersAdded) {
+                const events = ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+                events.forEach(event => {
+                    document.addEventListener(event, function() {
+                        if (!warningShown) {
+                            resetSessionTimer();
+                        }
+                    });
+                });
+                sessionListenersAdded = true;
+                console.log('✅ Session event listeners added once');
+            }
+        }
+
+        // ====== LOGOUT ======
+        async function logout() {
+            if (!confirm('Are you sure you want to logout?')) return;
+            sessionStorage.clear();
+            window.location.href = '/admin/login.html';
+        }
     </script>
 
     <script>
-        // Initialize page with session check
+        // Initialize page with session check - FIXED
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await SessionManager.initPage(initializePage);
@@ -1604,22 +1670,25 @@
 
         async function initializePage() {
             console.log('✅ User authenticated, loading page...');
-            resetSessionTimer();
             
-            // Monitor user activity
-            ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.addEventListener(event, resetSessionTimer);
-            });
+            // Initialize session timer (only once)
+            resetSessionTimer();
+            initSessionTimer();
             
             // Load page data
             await loadBatches();
         }
 
-        // Session timer functions (if not already defined)
-        function resetSessionTimer() {
-            // This will be overridden by session-manager.js
-            console.log('Session timer reset');
-        }
+        // Override the old resetSessionTimer from session-manager.js
+        // This prevents the spam
+        const originalResetSessionTimer = resetSessionTimer;
+        resetSessionTimer = function() {
+            // Only log once
+            if (!sessionListenersAdded) {
+                console.log('Session timer reset');
+            }
+            originalResetSessionTimer();
+        };
     </script>
 
     <script>
