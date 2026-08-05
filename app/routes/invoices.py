@@ -1,108 +1,318 @@
-"""
-invoices.py - Invoice Management API Routes
-Handles CRUD operations for invoices with GST/TCS calculations
-For Python/Flask backend
-"""
+from flask import Blueprint, request, jsonify, session, current_app, send_file
+from app.database import get_db, release_db
+from datetime import datetime, timedelta
+import json
+import traceback
+import io
+import csv
 
-from flask import Blueprint, request, jsonify
-from datetime import datetime
-import mysql.connector
-from mysql.connector import Error
+bp = Blueprint('invoices', __name__, url_prefix='/api/invoices')
 
-# Create blueprint
-invoices_bp = Blueprint('invoices', __name__)
-
-# Database connection function
-def get_db_connection():
+# ============================================================
+# DATABASE MIGRATION - Create invoices table if not exists
+# ============================================================
+def migrate_invoices_table():
+    """Create invoices table if it doesn't exist"""
+    conn = None
+    cursor = None
     try:
-        connection = mysql.connector.connect(
-            host='localhost',
-            database='alhudha_haj',
-            user='root',
-            password=''
-        )
-        return connection
-    except Error as e:
-        print(f"Error connecting to database: {e}")
-        return None
-
-# ====== HELPER FUNCTIONS ======
-def generate_invoice_number(cursor):
-    """Generate unique invoice number"""
-    cursor.execute("SELECT COUNT(*) as count FROM invoices")
-    result = cursor.fetchone()
-    count = result['count'] if result else 0
-    return f"INV-{str(count + 1).zfill(6)}"
-
-def update_traveler_total_paid(cursor, traveler_id, amount):
-    """Update traveler's total paid amount"""
-    cursor.execute("""
-        UPDATE travelers 
-        SET total_paid = COALESCE(total_paid, 0) + %s 
-        WHERE id = %s
-    """, (amount, traveler_id))
-
-# ====== GET ALL INVOICES ======
-@invoices_bp.route('/api/invoices', methods=['GET'])
-def get_invoices():
-    try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+        conn, cursor = get_db()
         
-        cursor = connection.cursor(dictionary=True)
+        # Check if invoices table exists
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'invoices'
+            )
+        """)
+        table_exists = cursor.fetchone()[0]
+        
+        if not table_exists:
+            print("🔄 Creating invoices table...")
+            cursor.execute("""
+                CREATE TABLE invoices (
+                    id SERIAL PRIMARY KEY,
+                    invoice_number VARCHAR(50) UNIQUE NOT NULL,
+                    traveler_id INTEGER REFERENCES travelers(id) ON DELETE CASCADE,
+                    batch_id INTEGER REFERENCES batches(id) ON DELETE SET NULL,
+                    amount DECIMAL(10,2) NOT NULL,
+                    base_amount DECIMAL(10,2) DEFAULT 0,
+                    gst_percent DECIMAL(5,2) DEFAULT 5,
+                    gst_amount DECIMAL(10,2) DEFAULT 0,
+                    tcs_percent DECIMAL(5,2) DEFAULT 1,
+                    tcs_amount DECIMAL(10,2) DEFAULT 0,
+                    status VARCHAR(20) DEFAULT 'pending',
+                    due_date DATE,
+                    invoice_date DATE DEFAULT CURRENT_DATE,
+                    description TEXT,
+                    notes TEXT,
+                    items JSONB,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            print("✅ invoices table created successfully!")
+        else:
+            # Check for missing columns and add them
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'invoices'
+            """)
+            existing_columns = [row[0] for row in cursor.fetchall()]
+            
+            columns_to_add = {
+                'base_amount': 'DECIMAL(10,2) DEFAULT 0',
+                'gst_percent': 'DECIMAL(5,2) DEFAULT 5',
+                'gst_amount': 'DECIMAL(10,2) DEFAULT 0',
+                'tcs_percent': 'DECIMAL(5,2) DEFAULT 1',
+                'tcs_amount': 'DECIMAL(10,2) DEFAULT 0',
+                'items': 'JSONB',
+                'description': 'TEXT',
+                'invoice_date': 'DATE DEFAULT CURRENT_DATE'
+            }
+            
+            for col_name, col_type in columns_to_add.items():
+                if col_name not in existing_columns:
+                    print(f"🔄 Adding column: {col_name}")
+                    cursor.execute(f"ALTER TABLE invoices ADD COLUMN {col_name} {col_type}")
+                    conn.commit()
+                    print(f"✅ Column {col_name} added!")
+            
+            print("✅ invoices table verified!")
+            
+    except Exception as e:
+        print(f"⚠️ Migration error: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+# Run migration on import
+try:
+    migrate_invoices_table()
+except Exception as e:
+    print(f"⚠️ Migration failed: {e}")
+
+# ============================================================
+# ROUTES
+# ============================================================
+
+@bp.route('', methods=['GET'])
+def get_invoices():
+    """Get all invoices with traveler and batch details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
         cursor.execute("""
             SELECT 
                 i.*,
-                CONCAT(t.first_name, ' ', t.last_name) AS traveler_name,
                 t.first_name,
                 t.last_name,
                 t.passport_no,
-                t.phone,
+                t.email,
+                t.mobile,
                 b.batch_name,
-                b.price AS batch_price
+                b.price as batch_price
             FROM invoices i
             LEFT JOIN travelers t ON i.traveler_id = t.id
             LEFT JOIN batches b ON i.batch_id = b.id
             ORDER BY i.created_at DESC
         """)
-        
         invoices = cursor.fetchall()
-        cursor.close()
-        connection.close()
+        
+        result = []
+        for inv in invoices:
+            inv_dict = dict(inv)
+            # Convert Decimal to float for JSON
+            if inv_dict.get('amount'):
+                inv_dict['amount'] = float(inv_dict['amount'])
+            if inv_dict.get('base_amount'):
+                inv_dict['base_amount'] = float(inv_dict['base_amount'])
+            if inv_dict.get('gst_amount'):
+                inv_dict['gst_amount'] = float(inv_dict['gst_amount'])
+            if inv_dict.get('tcs_amount'):
+                inv_dict['tcs_amount'] = float(inv_dict['tcs_amount'])
+            
+            # Parse items JSON
+            if inv_dict.get('items'):
+                try:
+                    if isinstance(inv_dict['items'], str):
+                        inv_dict['items'] = json.loads(inv_dict['items'])
+                except:
+                    inv_dict['items'] = {}
+            
+            inv_dict['traveler_name'] = f"{inv_dict.get('first_name', '')} {inv_dict.get('last_name', '')}".strip()
+            result.append(inv_dict)
+        
+        return jsonify({'success': True, 'invoices': result})
+    except Exception as e:
+        print(f"❌ Error in get_invoices: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/stats', methods=['GET'])
+def get_invoice_stats():
+    """Get invoice statistics"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_invoices,
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+                COALESCE(SUM(amount), 0) as total_amount
+            FROM invoices
+        """)
+        stats = cursor.fetchone()
+        
+        stats_dict = {
+            'total_invoices': stats['total_invoices'] or 0,
+            'paid_count': stats['paid_count'] or 0,
+            'pending_count': stats['pending_count'] or 0,
+            'total_amount': float(stats['total_amount'] or 0)
+        }
+        
+        return jsonify({'success': True, 'stats': stats_dict})
+    except Exception as e:
+        print(f"❌ Error in get_invoice_stats: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('', methods=['POST'])
+def create_invoice():
+    """Create new invoice with GST/TCS calculation"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.json
+    print(f"📝 Creating invoice with data: {data}")
+
+    # Validate required fields
+    if not data.get('traveler_id'):
+        return jsonify({'success': False, 'error': 'traveler_id is required'}), 400
+    
+    # Get amount (this could be base amount or total)
+    amount = float(data.get('amount', 0))
+    if amount <= 0:
+        return jsonify({'success': False, 'error': 'Valid amount is required'}), 400
+
+    # Get or calculate GST and TCS
+    gst_percent = float(data.get('gst_percent', 5))
+    tcs_percent = float(data.get('tcs_percent', 1))
+    
+    # Calculate taxes
+    gst_amount = amount * (gst_percent / 100)
+    subtotal = amount + gst_amount
+    tcs_amount = subtotal * (tcs_percent / 100)
+    total_amount = subtotal + tcs_amount
+    
+    # Store all tax details in items JSON
+    items_data = {
+        'base_amount': amount,
+        'gst_percent': gst_percent,
+        'gst_amount': gst_amount,
+        'tcs_percent': tcs_percent,
+        'tcs_amount': tcs_amount,
+        'total_amount': total_amount,
+        'description': data.get('description', 'Travel Package'),
+        'notes': data.get('notes', '')
+    }
+    
+    # Generate invoice number
+    timestamp = int(datetime.now().timestamp()) % 10000
+    invoice_number = f"INV-{datetime.now().strftime('%Y%m%d')}-{data['traveler_id']}-{timestamp}"
+    
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        
+        cursor.execute("""
+            INSERT INTO invoices (
+                invoice_number, traveler_id, batch_id, amount, 
+                base_amount, gst_percent, gst_amount, tcs_percent, tcs_amount,
+                due_date, status, items, invoice_date, description, notes,
+                created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            invoice_number,
+            data['traveler_id'],
+            data.get('batch_id'),
+            total_amount,  # Store total amount with taxes
+            amount,        # Store base amount
+            gst_percent,
+            gst_amount,
+            tcs_percent,
+            tcs_amount,
+            data.get('due_date'),
+            data.get('status', 'pending'),
+            json.dumps(items_data),
+            data.get('invoice_date', datetime.now().date()),
+            data.get('description', 'Travel Package'),
+            data.get('notes', ''),
+            datetime.now(),
+            datetime.now()
+        ))
+        
+        result = cursor.fetchone()
+        invoice_id = result['id'] if result else None
+        conn.commit()
         
         return jsonify({
             'success': True,
-            'invoices': invoices,
-            'count': len(invoices)
+            'invoice_id': invoice_id,
+            'invoice_number': invoice_number,
+            'total_amount': total_amount,
+            'message': 'Invoice created successfully'
         })
-        
-    except Error as e:
-        print(f"Error fetching invoices: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Error creating invoice: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
-# ====== GET SINGLE INVOICE ======
-@invoices_bp.route('/api/invoices/<int:invoice_id>', methods=['GET'])
+@bp.route('/<int:invoice_id>', methods=['GET'])
 def get_invoice(invoice_id):
+    """Get single invoice details"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
     try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
+        conn, cursor = get_db()
         cursor.execute("""
             SELECT 
                 i.*,
-                CONCAT(t.first_name, ' ', t.last_name) AS traveler_name,
                 t.first_name,
                 t.last_name,
                 t.passport_no,
-                t.phone,
                 t.email,
+                t.mobile,
                 b.batch_name,
-                b.price AS batch_price,
-                b.departure_date,
-                b.return_date
+                b.price as batch_price
             FROM invoices i
             LEFT JOIN travelers t ON i.traveler_id = t.id
             LEFT JOIN batches b ON i.batch_id = b.id
@@ -110,27 +320,122 @@ def get_invoice(invoice_id):
         """, (invoice_id,))
         
         invoice = cursor.fetchone()
-        cursor.close()
-        connection.close()
-        
         if not invoice:
-            return jsonify({'success': False, 'message': 'Invoice not found'}), 404
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
         
-        return jsonify({'success': True, 'invoice': invoice})
+        inv_dict = dict(invoice)
+        # Convert Decimal to float
+        for key in ['amount', 'base_amount', 'gst_amount', 'tcs_amount']:
+            if inv_dict.get(key):
+                inv_dict[key] = float(inv_dict[key])
         
-    except Error as e:
-        print(f"Error fetching invoice: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        if inv_dict.get('items'):
+            try:
+                if isinstance(inv_dict['items'], str):
+                    inv_dict['items'] = json.loads(inv_dict['items'])
+            except:
+                inv_dict['items'] = {}
+        
+        inv_dict['traveler_name'] = f"{inv_dict.get('first_name', '')} {inv_dict.get('last_name', '')}".strip()
+        
+        return jsonify({'success': True, 'invoice': inv_dict})
+    except Exception as e:
+        print(f"❌ Error getting invoice: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
-# ====== GET INVOICES BY TRAVELER ======
-@invoices_bp.route('/api/invoices/traveler/<int:traveler_id>', methods=['GET'])
-def get_traveler_invoices(traveler_id):
+@bp.route('/<int:invoice_id>', methods=['PUT'])
+def update_invoice(invoice_id):
+    """Update invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.json
+    conn = None
+    cursor = None
     try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+        conn, cursor = get_db()
         
-        cursor = connection.cursor(dictionary=True)
+        cursor.execute('SELECT id FROM invoices WHERE id = %s', (invoice_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+        
+        update_fields = []
+        params = []
+        
+        field_mapping = {
+            'amount': data.get('amount'),
+            'due_date': data.get('due_date'),
+            'status': data.get('status'),
+            'notes': data.get('notes'),
+            'description': data.get('description')
+        }
+        
+        for field, value in field_mapping.items():
+            if value is not None:
+                update_fields.append(f"{field} = %s")
+                params.append(value)
+        
+        if not update_fields:
+            return jsonify({'success': False, 'error': 'No fields to update'}), 400
+        
+        update_fields.append("updated_at = %s")
+        params.append(datetime.now())
+        params.append(invoice_id)
+        
+        query = f"UPDATE invoices SET {', '.join(update_fields)} WHERE id = %s"
+        cursor.execute(query, params)
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Invoice updated successfully'})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Error updating invoice: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice(invoice_id):
+    """Delete invoice"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute('DELETE FROM invoices WHERE id = %s RETURNING id', (invoice_id,))
+        result = cursor.fetchone()
+        conn.commit()
+        
+        if result:
+            return jsonify({'success': True, 'message': 'Invoice deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Invoice not found'}), 404
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"❌ Error deleting invoice: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+@bp.route('/traveler/<int:traveler_id>', methods=['GET'])
+def get_traveler_invoices(traveler_id):
+    """Get all invoices for a specific traveler"""
+    if 'user_id' not in session and 'traveler_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
         cursor.execute("""
             SELECT 
                 i.*,
@@ -142,358 +447,134 @@ def get_traveler_invoices(traveler_id):
         """, (traveler_id,))
         
         invoices = cursor.fetchall()
-        cursor.close()
-        connection.close()
+        result = []
+        for inv in invoices:
+            inv_dict = dict(inv)
+            if inv_dict.get('amount'):
+                inv_dict['amount'] = float(inv_dict['amount'])
+            result.append(inv_dict)
         
-        return jsonify({'success': True, 'invoices': invoices})
-        
-    except Error as e:
-        print(f"Error fetching traveler invoices: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-# ====== CREATE INVOICE ======
-@invoices_bp.route('/api/invoices', methods=['POST'])
-def create_invoice():
-    try:
-        data = request.get_json()
-        
-        # Validate required fields
-        if not data.get('traveler_id'):
-            return jsonify({'success': False, 'message': 'Traveler ID is required'}), 400
-        
-        traveler_id = data['traveler_id']
-        base_amount = float(data.get('base_amount', 0))
-        
-        if base_amount <= 0:
-            return jsonify({'success': False, 'message': 'Base amount must be greater than 0'}), 400
-        
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        # Check if traveler exists
-        cursor.execute("SELECT id FROM travelers WHERE id = %s", (traveler_id,))
-        traveler = cursor.fetchone()
-        
-        if not traveler:
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'message': 'Traveler not found'}), 404
-        
-        # Generate invoice number
-        invoice_number = generate_invoice_number(cursor)
-        
-        # Calculate amounts
-        gst_percent = float(data.get('gst_percent', 5))
-        gst_amount = data.get('gst_amount', (base_amount * gst_percent / 100))
-        subtotal = base_amount + gst_amount
-        tcs_percent = float(data.get('tcs_percent', 1))
-        tcs_amount = data.get('tcs_amount', (subtotal * tcs_percent / 100))
-        total_amount = data.get('total_amount', (subtotal + tcs_amount))
-        
-        status = data.get('status', 'pending')
-        due_date = data.get('due_date')
-        notes = data.get('notes')
-        invoice_date = data.get('invoice_date', datetime.now().strftime('%Y-%m-%d'))
-        
-        # Insert invoice
-        cursor.execute("""
-            INSERT INTO invoices (
-                invoice_number,
-                traveler_id,
-                batch_id,
-                base_amount,
-                gst_percent,
-                gst_amount,
-                tcs_percent,
-                tcs_amount,
-                total_amount,
-                status,
-                due_date,
-                notes,
-                invoice_date,
-                created_at,
-                updated_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-        """, (
-            invoice_number,
-            traveler_id,
-            data.get('batch_id') or None,
-            base_amount,
-            gst_percent,
-            gst_amount,
-            tcs_percent,
-            tcs_amount,
-            total_amount,
-            status,
-            due_date,
-            notes,
-            invoice_date
-        ))
-        
-        invoice_id = cursor.lastrowid
-        
-        # Update traveler's total_paid if status is 'paid'
-        if status == 'paid':
-            update_traveler_total_paid(cursor, traveler_id, total_amount)
-        
-        connection.commit()
-        
-        # Get the created invoice
-        cursor.execute("""
-            SELECT 
-                i.*,
-                CONCAT(t.first_name, ' ', t.last_name) AS traveler_name
-            FROM invoices i
-            LEFT JOIN travelers t ON i.traveler_id = t.id
-            WHERE i.id = %s
-        """, (invoice_id,))
-        
-        new_invoice = cursor.fetchone()
-        cursor.close()
-        connection.close()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Invoice created successfully',
-            'invoice': new_invoice
-        }), 201
-        
-    except Error as e:
-        print(f"Error creating invoice: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': True, 'invoices': result})
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        print(f"❌ Error getting traveler invoices: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
-# ====== UPDATE INVOICE ======
-@invoices_bp.route('/api/invoices/<int:invoice_id>', methods=['PUT'])
-def update_invoice(invoice_id):
+@bp.route('/batch/<int:batch_id>', methods=['GET'])
+def get_batch_invoices(batch_id):
+    """Get all invoices for a specific batch"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    conn = None
+    cursor = None
     try:
-        data = request.get_json()
-        
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        # Get current invoice data
-        cursor.execute("""
-            SELECT traveler_id, total_amount, status 
-            FROM invoices WHERE id = %s
-        """, (invoice_id,))
-        
-        current = cursor.fetchone()
-        
-        if not current:
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'message': 'Invoice not found'}), 404
-        
-        old_status = current['status']
-        old_amount = float(current['total_amount'] or 0)
-        traveler_id = current['traveler_id']
-        
-        # Build update query dynamically
-        update_fields = []
-        update_values = []
-        
-        if 'total_amount' in data:
-            update_fields.append("total_amount = %s")
-            update_values.append(data['total_amount'])
-        if 'status' in data:
-            update_fields.append("status = %s")
-            update_values.append(data['status'])
-        if 'due_date' in data:
-            update_fields.append("due_date = %s")
-            update_values.append(data['due_date'])
-        if 'notes' in data:
-            update_fields.append("notes = %s")
-            update_values.append(data['notes'])
-        if 'gst_percent' in data:
-            update_fields.append("gst_percent = %s")
-            update_values.append(data['gst_percent'])
-        if 'gst_amount' in data:
-            update_fields.append("gst_amount = %s")
-            update_values.append(data['gst_amount'])
-        if 'tcs_percent' in data:
-            update_fields.append("tcs_percent = %s")
-            update_values.append(data['tcs_percent'])
-        if 'tcs_amount' in data:
-            update_fields.append("tcs_amount = %s")
-            update_values.append(data['tcs_amount'])
-        if 'base_amount' in data:
-            update_fields.append("base_amount = %s")
-            update_values.append(data['base_amount'])
-        
-        if not update_fields:
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'message': 'No fields to update'}), 400
-        
-        update_fields.append("updated_at = NOW()")
-        update_values.append(invoice_id)
-        
-        query = f"UPDATE invoices SET {', '.join(update_fields)} WHERE id = %s"
-        cursor.execute(query, update_values)
-        
-        # Update traveler's total_paid based on status change
-        new_status = data.get('status')
-        new_amount = float(data.get('total_amount', current['total_amount'] or 0))
-        
-        if old_status != new_status:
-            if new_status == 'paid':
-                update_traveler_total_paid(cursor, traveler_id, new_amount)
-            elif old_status == 'paid':
-                cursor.execute("""
-                    UPDATE travelers 
-                    SET total_paid = COALESCE(total_paid, 0) - %s 
-                    WHERE id = %s
-                """, (old_amount, traveler_id))
-        elif new_status == 'paid' and 'total_amount' in data and float(data['total_amount']) != old_amount:
-            diff = float(data['total_amount']) - old_amount
-            cursor.execute("""
-                UPDATE travelers 
-                SET total_paid = COALESCE(total_paid, 0) + %s 
-                WHERE id = %s
-            """, (diff, traveler_id))
-        
-        connection.commit()
-        
-        # Get updated invoice
+        conn, cursor = get_db()
         cursor.execute("""
             SELECT 
                 i.*,
-                CONCAT(t.first_name, ' ', t.last_name) AS traveler_name
+                t.first_name,
+                t.last_name,
+                t.passport_no
             FROM invoices i
             LEFT JOIN travelers t ON i.traveler_id = t.id
-            WHERE i.id = %s
-        """, (invoice_id,))
+            WHERE i.batch_id = %s
+            ORDER BY i.created_at DESC
+        """, (batch_id,))
         
-        updated = cursor.fetchone()
-        cursor.close()
-        connection.close()
+        invoices = cursor.fetchall()
+        result = []
+        for inv in invoices:
+            inv_dict = dict(inv)
+            if inv_dict.get('amount'):
+                inv_dict['amount'] = float(inv_dict['amount'])
+            result.append(inv_dict)
         
-        return jsonify({
-            'success': True,
-            'message': 'Invoice updated successfully',
-            'invoice': updated
-        })
-        
-    except Error as e:
-        print(f"Error updating invoice: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': True, 'invoices': result})
+    except Exception as e:
+        print(f"❌ Error getting batch invoices: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
 
-# ====== DELETE INVOICE ======
-@invoices_bp.route('/api/invoices/<int:invoice_id>', methods=['DELETE'])
-def delete_invoice(invoice_id):
-    try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
-        
-        # Get invoice data before deleting
-        cursor.execute("""
-            SELECT traveler_id, total_amount, status 
-            FROM invoices WHERE id = %s
-        """, (invoice_id,))
-        
-        invoice = cursor.fetchone()
-        
-        if not invoice:
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'message': 'Invoice not found'}), 404
-        
-        # If invoice was paid, subtract from traveler's total_paid
-        if invoice['status'] == 'paid':
-            cursor.execute("""
-                UPDATE travelers 
-                SET total_paid = COALESCE(total_paid, 0) - %s 
-                WHERE id = %s
-            """, (float(invoice['total_amount'] or 0), invoice['traveler_id']))
-        
-        # Delete the invoice
-        cursor.execute("DELETE FROM invoices WHERE id = %s", (invoice_id,))
-        connection.commit()
-        
-        cursor.close()
-        connection.close()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Invoice deleted successfully'
-        })
-        
-    except Error as e:
-        print(f"Error deleting invoice: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+@bp.route('/export', methods=['GET'])
+def export_invoices():
+    """Export invoices to CSV"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-# ====== GET INVOICE STATISTICS ======
-@invoices_bp.route('/api/invoices/stats', methods=['GET'])
-def get_invoice_stats():
+    conn = None
+    cursor = None
     try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
+        conn, cursor = get_db()
         cursor.execute("""
             SELECT 
-                COUNT(*) as total_invoices,
-                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_count,
-                COALESCE(SUM(CASE WHEN status = 'paid' THEN total_amount ELSE 0 END), 0) as total_revenue,
-                COALESCE(SUM(CASE WHEN status = 'pending' THEN total_amount ELSE 0 END), 0) as pending_revenue
-            FROM invoices
-        """)
-        
-        stats = cursor.fetchone()
-        cursor.close()
-        connection.close()
-        
-        return jsonify({'success': True, 'stats': stats})
-        
-    except Error as e:
-        print(f"Error fetching invoice stats: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-# ====== GET INVOICE BY NUMBER ======
-@invoices_bp.route('/api/invoices/number/<string:invoice_number>', methods=['GET'])
-def get_invoice_by_number(invoice_number):
-    try:
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
-        
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT 
-                i.*,
-                CONCAT(t.first_name, ' ', t.last_name) AS traveler_name,
+                i.invoice_number,
+                i.invoice_date,
+                i.amount,
+                i.base_amount,
+                i.gst_percent,
+                i.gst_amount,
+                i.tcs_percent,
+                i.tcs_amount,
+                i.status,
+                i.due_date,
+                i.description,
+                t.first_name,
+                t.last_name,
                 t.passport_no,
                 b.batch_name
             FROM invoices i
             LEFT JOIN travelers t ON i.traveler_id = t.id
             LEFT JOIN batches b ON i.batch_id = b.id
-            WHERE i.invoice_number = %s
-        """, (invoice_number,))
+            ORDER BY i.created_at DESC
+        """)
         
-        invoice = cursor.fetchone()
-        cursor.close()
-        connection.close()
+        invoices = cursor.fetchall()
         
-        if not invoice:
-            return jsonify({'success': False, 'message': 'Invoice not found'}), 404
+        output = io.StringIO()
+        writer = csv.writer(output)
         
-        return jsonify({'success': True, 'invoice': invoice})
+        writer.writerow([
+            'Invoice Number', 'Date', 'Traveler', 'Passport', 'Batch',
+            'Base Amount', 'GST %', 'GST Amount', 'TCS %', 'TCS Amount',
+            'Total Amount', 'Status', 'Due Date', 'Description'
+        ])
         
-    except Error as e:
-        print(f"Error fetching invoice: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        for inv in invoices:
+            writer.writerow([
+                inv['invoice_number'],
+                inv['invoice_date'].isoformat() if inv['invoice_date'] else '',
+                f"{inv['first_name'] or ''} {inv['last_name'] or ''}".strip(),
+                inv['passport_no'] or '',
+                inv['batch_name'] or '',
+                float(inv['base_amount'] or 0),
+                float(inv['gst_percent'] or 5),
+                float(inv['gst_amount'] or 0),
+                float(inv['tcs_percent'] or 1),
+                float(inv['tcs_amount'] or 0),
+                float(inv['amount'] or 0),
+                inv['status'] or '',
+                inv['due_date'].isoformat() if inv['due_date'] else '',
+                inv['description'] or ''
+            ])
+        
+        output.seek(0)
+        
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8-sig')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'invoices_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        )
+    except Exception as e:
+        print(f"❌ Error exporting invoices: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
+print("✅ invoices.py loaded successfully with GST/TCS support!")
