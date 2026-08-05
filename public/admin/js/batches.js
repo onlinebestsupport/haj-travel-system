@@ -25,6 +25,7 @@ async function loadBatches() {
     }
 
     try {
+        console.log('🔄 Loading batches...');
         const response = await fetch('/api/batches', {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
@@ -42,6 +43,7 @@ async function loadBatches() {
         }
 
         const data = await response.json();
+        console.log('📦 Batches API response:', data);
         
         if (data.success && Array.isArray(data.batches)) {
             batchesData = data.batches;
@@ -52,7 +54,7 @@ async function loadBatches() {
             useDemoBatches();
         }
     } catch (error) {
-        console.error('Error loading batches:', error);
+        console.error('❌ Error loading batches:', error);
         useDemoBatches();
     }
 
