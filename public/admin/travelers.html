@@ -785,7 +785,7 @@
     <script>
         /**
          * ============================================================
-         * COMPLETE TRAVELERS MODULE - FIXED VERSION
+         * COMPLETE TRAVELERS MODULE - WITH DATE FORMAT FIX
          * ============================================================
          */
 
@@ -890,7 +890,7 @@
         }
 
         // ============================================================
-        // LOAD TRAVELERS - FIXED
+        // LOAD TRAVELERS
         // ============================================================
         async function loadTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
@@ -916,7 +916,6 @@
                     travelersData = data.travelers;
                     console.log(`✅ Loaded ${travelersData.length} travelers`);
                     
-                    // Update the count display
                     const countEl = document.getElementById('travelerCountDisplay');
                     if (countEl) countEl.textContent = travelersData.length;
                 } else {
@@ -928,7 +927,6 @@
                 travelersData = getFallbackTravelers();
             }
             
-            // Always call display after data is loaded
             displayTravelers();
             updateDashboardStats();
         }
@@ -959,7 +957,7 @@
         }
 
         // ============================================================
-        // DISPLAY TRAVELERS - FIXED
+        // DISPLAY TRAVELERS
         // ============================================================
         function displayTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
@@ -989,7 +987,6 @@
                                    t.passport_status === 'Submitted' ? 'status-pending' :
                                    t.passport_status === 'Processing' ? 'status-warning' : 'status-inactive';
                 
-                // Document icons
                 const docIcons = `
                     <div class="doc-icons">
                         <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}"
@@ -1237,7 +1234,6 @@
             
             currentEditId = id;
             
-            // Populate form fields
             const fields = {
                 edit_traveler_id: traveler.id,
                 edit_first_name: traveler.first_name || '',
@@ -1624,7 +1620,7 @@
         }
 
         // ============================================================
-        // BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE
+        // BATCH SELECT - AUTO POPULATE EXPECTED RETURN DATE (FIXED)
         // ============================================================
         function onBatchSelect(prefix) {
             console.log(`🔄 onBatchSelect called for prefix: ${prefix}`);
@@ -1660,13 +1656,47 @@
             console.log('🔍 Found batch:', batch);
             
             if (batch) {
-                const returnDate = batch.return_date || batch.returnDate || batch.expected_return_date;
-                console.log('📅 Return date found:', returnDate);
+                let returnDate = batch.return_date || batch.returnDate || batch.expected_return_date;
+                console.log('📅 Raw return date:', returnDate);
+                
+                // ===== DATE FORMAT CONVERSION FIX =====
+                let formattedDate = '';
+                if (returnDate) {
+                    try {
+                        // Already in YYYY-MM-DD format
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+                            formattedDate = returnDate;
+                        }
+                        // MM/DD/YYYY format
+                        else if (returnDate.includes('/')) {
+                            const parts = returnDate.split('/');
+                            if (parts.length === 3) {
+                                formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
+                            }
+                        }
+                        // Date object or GMT string (e.g., "Fri, 21 May 2027 00:00:00 GMT")
+                        else {
+                            const dateObj = new Date(returnDate);
+                            if (!isNaN(dateObj.getTime())) {
+                                const year = dateObj.getFullYear();
+                                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                const day = String(dateObj.getDate()).padStart(2, '0');
+                                formattedDate = `${year}-${month}-${day}`;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Date parsing error:', e);
+                        formattedDate = returnDate;
+                    }
+                }
+                
+                console.log('📅 Formatted date (YYYY-MM-DD):', formattedDate);
+                // ===== END DATE FORMAT CONVERSION FIX =====
                 
                 if (returnInfoDiv && returnTextSpan) {
                     returnInfoDiv.classList.add('show');
-                    if (returnDate) {
-                        returnTextSpan.textContent = `Return Date: ${returnDate}`;
+                    if (formattedDate) {
+                        returnTextSpan.textContent = `Return Date: ${formattedDate}`;
                         returnInfoDiv.style.borderLeftColor = '#27ae60';
                     } else {
                         returnTextSpan.textContent = '⚠️ No return date set for this batch';
@@ -1674,15 +1704,8 @@
                     }
                 }
                 
-                if (returnDate) {
-                    let formattedDate = returnDate;
-                    if (returnDate.includes('/')) {
-                        const parts = returnDate.split('/');
-                        if (parts.length === 3) {
-                            formattedDate = `${parts[2]}-${String(parts[0]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
-                        }
-                    }
-                    
+                if (formattedDate) {
+                    // Set the date input value with the formatted date
                     returnDateInput.value = formattedDate;
                     returnDateInput.style.borderColor = '#27ae60';
                     returnDateInput.style.background = '#f0fff4';
