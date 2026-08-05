@@ -9,10 +9,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
+        /* ==================================================================
+           MAIN SECTION 1: RESET AND BASE STYLES
+           ================================================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f5f7fa; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
 
+        /* ==================================================================
+           MAIN SECTION 2: ADMIN HEADER STYLES
+           ================================================================== */
         .admin-header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
@@ -30,10 +36,16 @@
         .logout-btn { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
         .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
 
+        /* ==================================================================
+           MAIN SECTION 3: PAGE HEADER STYLES
+           ================================================================== */
         .page-header { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 20px; flex-wrap: wrap; gap: 10px; }
         .page-header h2 { color: #2c3e50; font-size: 1.8rem; }
         .page-header h2 i { color: #f1c40f; margin-right: 10px; }
 
+        /* ==================================================================
+           MAIN SECTION 4: ACTION BUTTON STYLES
+           ================================================================== */
         .action-btn { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s; text-decoration: none; }
         .btn-primary { background: #3498db; color: white; }
         .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
@@ -48,6 +60,9 @@
         .btn-danger { background: #e74c3c; color: white; }
         .btn-danger:hover { background: #c0392b; transform: translateY(-2px); }
 
+        /* ==================================================================
+           MAIN SECTION 5: STATS CARD STYLES
+           ================================================================== */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
         .stat-card { padding: 15px; border-radius: 8px; text-align: center; color: white; }
         .stat-card i { font-size: 2rem; margin-bottom: 5px; }
@@ -58,6 +73,9 @@
         .stat-orange { background: linear-gradient(135deg, #f39c12, #e67e22); }
         .stat-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
 
+        /* ==================================================================
+           MAIN SECTION 6: FORM CONTAINER STYLES
+           ================================================================== */
         .form-container {
             background: white;
             padding: 30px;
@@ -87,12 +105,18 @@
         .form-actions { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
         .full-width { grid-column: 1 / -1; }
 
+        /* ==================================================================
+           MAIN SECTION 7: SECTION HEADER STYLES
+           ================================================================== */
         .section-header {
             background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0 15px; border-left: 4px solid #3498db;
         }
         .section-header h4 { color: #2c3e50; margin: 0; display: flex; align-items: center; gap: 10px; }
         .section-header h4 i { color: #f1c40f; }
 
+        /* ==================================================================
+           MAIN SECTION 8: DOCUMENT UPLOAD STYLES
+           ================================================================== */
         .document-upload {
             border: 2px dashed #3498db; padding: 20px; text-align: center; border-radius: 8px;
             background: #f8f9fa; cursor: pointer; transition: all 0.3s;
@@ -116,11 +140,17 @@
         .document-preview .file-actions button.delete { color: #e74c3c; }
         .document-preview .file-actions button.delete:hover { color: #c0392b; }
 
+        /* ==================================================================
+           MAIN SECTION 9: SEARCH BOX STYLES
+           ================================================================== */
         .search-box { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
         .search-box input { flex: 1; min-width: 200px; padding: 12px 15px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 1rem; }
         .search-box input:focus { border-color: #3498db; outline: none; }
         .search-box button { padding: 12px 25px; }
 
+        /* ==================================================================
+           MAIN SECTION 10: TABLE STYLES
+           ================================================================== */
         .table-container {
             background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             overflow-x: auto; margin-top: 20px;
@@ -133,6 +163,9 @@
         td { padding: 15px; border-bottom: 1px solid #ecf0f1; white-space: nowrap; }
         tr:hover { background: #f8f9fa; }
 
+        /* ==================================================================
+           MAIN SECTION 11: STATUS BADGE STYLES
+           ================================================================== */
         .status-badge {
             padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;
             font-weight: 600; display: inline-block; white-space: nowrap;
@@ -142,6 +175,9 @@
         .status-warning { background: #fff3cd; color: #856404; }
         .status-inactive { background: #f8d7da; color: #721c24; }
 
+        /* ==================================================================
+           MAIN SECTION 12: DOCUMENT ICON STYLES
+           ================================================================== */
         .doc-icons { display: flex; gap: 5px; font-size: 1.2rem; }
         .doc-icon { cursor: pointer; transition: transform 0.2s; }
         .doc-icon:hover { transform: scale(1.2); }
@@ -149,6 +185,9 @@
         .doc-icon.missing { color: #e74c3c; opacity: 0.5; cursor: default; }
         .doc-icon.missing:hover { transform: none; }
 
+        /* ==================================================================
+           MAIN SECTION 13: ICON BUTTON STYLES
+           ================================================================== */
         .icon-btn {
             background: none; border: none; color: #3498db; cursor: pointer; font-size: 1.2rem;
             margin: 0 5px; padding: 8px; border-radius: 5px; transition: all 0.3s; min-width: 40px;
@@ -158,6 +197,9 @@
         .icon-btn .fa-eye:hover { color: #27ae60; }
         .icon-btn .fa-edit:hover { color: #f39c12; }
 
+        /* ==================================================================
+           MAIN SECTION 14: MODAL STYLES
+           ================================================================== */
         .modal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%); background: white; padding: 30px;
@@ -184,6 +226,9 @@
             padding-top: 10px; border-top: 1px solid #ecf0f1;
         }
 
+        /* ==================================================================
+           MAIN SECTION 15: DETAIL GRID STYLES
+           ================================================================== */
         .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .detail-item {
             padding: 12px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #3498db;
@@ -192,6 +237,9 @@
         .detail-item span { color: #34495e; font-size: 1rem; font-weight: 500; }
         .detail-item.full-width { grid-column: 1 / -1; }
 
+        /* ==================================================================
+           MAIN SECTION 16: DOCUMENT GRID STYLES
+           ================================================================== */
         .document-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px; margin: 20px 0;
@@ -206,6 +254,9 @@
         .document-card p { margin: 5px 0; font-size: 0.9rem; }
         .document-card small { color: #7f8c8d; font-size: 0.8rem; }
 
+        /* ==================================================================
+           MAIN SECTION 17: CSV UPLOAD STYLES
+           ================================================================== */
         .csv-upload-section {
             background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin-bottom: 30px; border: 2px dashed #3498db;
@@ -218,6 +269,9 @@
         }
         .csv-format-box pre { margin: 0; color: #2c3e50; }
 
+        /* ==================================================================
+           MAIN SECTION 18: NOTIFICATION STYLES
+           ================================================================== */
         .notification {
             position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px;
             color: white; z-index: 9999; display: none; animation: slideIn 0.3s ease;
@@ -229,6 +283,9 @@
         .notification-info { background: #3498db; }
         .notification-warning { background: #f39c12; }
 
+        /* ==================================================================
+           MAIN SECTION 19: SESSION WARNING STYLES
+           ================================================================== */
         #sessionWarning {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: #f39c12; color: white; padding: 15px 30px; border-radius: 50px;
@@ -237,6 +294,49 @@
             cursor: pointer; border: 2px solid white;
         }
         #sessionWarning:hover { background: #e67e22; }
+
+        /* ==================================================================
+           MAIN SECTION 20: RESPONSIVE DESIGN STYLES
+           ================================================================== */
+        @media (max-width: 1200px) {
+            table { min-width: 1000px; }
+            .detail-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .action-buttons { flex-direction: column; }
+            .form-grid { grid-template-columns: 1fr; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .document-grid { grid-template-columns: repeat(2, 1fr); }
+            .search-box { flex-direction: column; }
+            .search-box input { width: 100%; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ==================================================================
+           MAIN SECTION 21: VALIDATION AND AUTO-POPULATE STYLES
+           ================================================================== */
+        .validation-valid {
+            border-color: #27ae60 !important;
+            background: #f0fff4 !important;
+        }
+        .validation-invalid {
+            border-color: #e74c3c !important;
+            background: #fff5f5 !important;
+        }
+        .validation-warning {
+            border-color: #f39c12 !important;
+            background: #fffbf0 !important;
+        }
+        .validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .validation-message.valid { color: #27ae60; background: #f0fff4; }
+        .validation-message.invalid { color: #e74c3c; background: #fff5f5; }
+        .validation-message.warning { color: #f39c12; background: #fffbf0; }
+        .auto-filled { background: #e8f4f8 !important; border-color: #3498db !important; }
 
         .batch-return-info {
             background: #e8f4f8;
@@ -261,37 +361,8 @@
         .expected-return-info.warning { color: #f39c12; background: #fffbf0; }
         .expected-return-info.error { color: #e74c3c; background: #fff5f5; }
 
-        .validation-message {
-            font-size: 0.85rem;
-            margin-top: 5px;
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-        .validation-message.valid { color: #27ae60; background: #f0fff4; }
-        .validation-message.invalid { color: #e74c3c; background: #fff5f5; }
-        .validation-message.warning { color: #f39c12; background: #fffbf0; }
-        .validation-valid { border-color: #27ae60 !important; background: #f0fff4 !important; }
-        .validation-invalid { border-color: #e74c3c !important; background: #fff5f5 !important; }
-        .validation-warning { border-color: #f39c12 !important; background: #fffbf0 !important; }
-        .auto-filled { background: #e8f4f8 !important; border-color: #3498db !important; }
-
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
         .pagination-info { color: #7f8c8d; }
-
-        @media (max-width: 1200px) {
-            table { min-width: 1000px; }
-            .detail-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .action-buttons { flex-direction: column; }
-            .form-grid { grid-template-columns: 1fr; }
-            .detail-grid { grid-template-columns: 1fr; }
-            .document-grid { grid-template-columns: repeat(2, 1fr); }
-            .search-box { flex-direction: column; }
-            .search-box input { width: 100%; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .pagination { flex-direction: column; text-align: center; }
-        }
     </style>
 </head>
 <body>
@@ -327,6 +398,9 @@
         <!-- ===== PAGE HEADER ===== -->
         <div class="page-header">
             <h2><i class="fas fa-users"></i> Traveler Management (36 Fields)</h2>
+            <span style="color: #27ae60; font-size: 0.9rem;">
+                <i class="fas fa-check-circle"></i> <span id="travelerCountDisplay">0</span> travelers loaded
+            </span>
         </div>
 
         <!-- ===== STATS ===== -->
@@ -403,9 +477,7 @@
         <div class="form-container" id="addTravelerForm">
             <h3><i class="fas fa-user-plus"></i> Add New Traveler - 36 Fields</h3>
             <form id="travelerAddForm" onsubmit="event.preventDefault(); createTraveler();" enctype="multipart/form-data">
-                <div class="section-header">
-                    <h4><i class="fas fa-user"></i> 1. Personal Information</h4>
-                </div>
+                <div class="section-header"><h4><i class="fas fa-user"></i> 1. Personal Information</h4></div>
                 <div class="form-grid">
                     <div class="form-group"><label><i class="fas fa-user"></i> First Name *</label><input type="text" id="add_first_name" required></div>
                     <div class="form-group"><label><i class="fas fa-user"></i> Last Name *</label><input type="text" id="add_last_name" required></div>
@@ -713,8 +785,7 @@
     <script>
         /**
          * ============================================================
-         * COMPLETE TRAVELERS MODULE - SELF CONTAINED
-         * All JavaScript is here - no external dependencies
+         * COMPLETE TRAVELERS MODULE - FIXED VERSION
          * ============================================================
          */
 
@@ -774,7 +845,6 @@
                 if (data.success && data.batches) {
                     batchesData = data.batches;
                 } else {
-                    // Use fallback batches
                     batchesData = [
                         { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
                         { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
@@ -786,7 +856,6 @@
                 console.log(`✅ Loaded ${batchesData.length} batches`);
             } catch (error) {
                 console.error('❌ Error loading batches:', error);
-                // Use fallback batches
                 batchesData = [
                     { id: 1, batch_name: 'Haj Platinum 2026', return_date: '2026-07-15' },
                     { id: 2, batch_name: 'Haj Gold 2026', return_date: '2026-07-20' },
@@ -846,6 +915,10 @@
                 if (data.success && data.travelers) {
                     travelersData = data.travelers;
                     console.log(`✅ Loaded ${travelersData.length} travelers`);
+                    
+                    // Update the count display
+                    const countEl = document.getElementById('travelerCountDisplay');
+                    if (countEl) countEl.textContent = travelersData.length;
                 } else {
                     console.warn('⚠️ No travelers found, using fallback data');
                     travelersData = getFallbackTravelers();
@@ -855,6 +928,7 @@
                 travelersData = getFallbackTravelers();
             }
             
+            // Always call display after data is loaded
             displayTravelers();
             updateDashboardStats();
         }
@@ -889,10 +963,15 @@
         // ============================================================
         function displayTravelers() {
             const tableBody = document.getElementById('travelersTableBody');
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.error('❌ Table body not found!');
+                return;
+            }
+            
+            console.log(`📊 Displaying ${travelersData.length} travelers`);
             
             if (!travelersData || travelersData.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px;">No travelers found</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: #7f8c8d;">No travelers found</td></tr>';
                 updatePaginationInfo(0);
                 return;
             }
@@ -901,6 +980,8 @@
             const end = Math.min(start + itemsPerPage, travelersData.length);
             const pageItems = travelersData.slice(start, end);
             
+            console.log(`📄 Showing page ${currentPage}, items ${start+1} to ${end}`);
+            
             let html = '';
             pageItems.forEach(t => {
                 const fullName = `${t.first_name || ''} ${t.last_name || ''}`.trim() || 'N/A';
@@ -908,6 +989,7 @@
                                    t.passport_status === 'Submitted' ? 'status-pending' :
                                    t.passport_status === 'Processing' ? 'status-warning' : 'status-inactive';
                 
+                // Document icons
                 const docIcons = `
                     <div class="doc-icons">
                         <i class="fas fa-passport doc-icon ${t.passport_scan ? 'available' : 'missing'}"
@@ -1047,7 +1129,6 @@
             document.getElementById('addTravelerForm').style.display = 'none';
             document.getElementById('travelerAddForm').reset();
             resetDocumentPreviews('add');
-            
             document.getElementById('add_passport_validation').textContent = '';
             document.getElementById('add_passport_validation').className = 'validation-message';
             document.getElementById('add_expected_return_date').value = '';
@@ -1059,7 +1140,6 @@
             document.getElementById('editTravelerForm').style.display = 'none';
             currentEditId = null;
             resetDocumentPreviews('edit');
-            
             document.getElementById('edit_passport_validation').textContent = '';
             document.getElementById('edit_passport_validation').className = 'validation-message';
             document.getElementById('edit_expected_return_info').innerHTML = '';
@@ -1110,8 +1190,6 @@
             const passportNo = document.getElementById('add_passport_no')?.value?.trim();
             const mobile = document.getElementById('add_mobile')?.value?.trim();
             const batchId = document.getElementById('add_batch_id')?.value;
-            const passportExpiry = document.getElementById('add_passport_expiry_date')?.value;
-            const expectedReturn = document.getElementById('add_expected_return_date')?.value;
             
             if (!firstName || !lastName || !passportNo || !mobile) {
                 showNotification('First name, last name, passport number, and mobile are required', 'error');
@@ -1159,37 +1237,45 @@
             
             currentEditId = id;
             
-            document.getElementById('edit_traveler_id').value = traveler.id;
-            document.getElementById('edit_first_name').value = traveler.first_name || '';
-            document.getElementById('edit_last_name').value = traveler.last_name || '';
-            document.getElementById('edit_passport_name').value = traveler.passport_name || '';
-            document.getElementById('edit_gender').value = traveler.gender || '';
-            document.getElementById('edit_dob').value = traveler.dob || '';
-            document.getElementById('edit_batch_id').value = traveler.batch_id || '';
-            document.getElementById('edit_passport_no').value = traveler.passport_no || '';
-            document.getElementById('edit_passport_issue_date').value = traveler.passport_issue_date || '';
-            document.getElementById('edit_passport_expiry_date').value = traveler.passport_expiry_date || '';
-            document.getElementById('edit_passport_status').value = traveler.passport_status || 'Active';
-            document.getElementById('edit_mobile').value = traveler.mobile || '';
-            document.getElementById('edit_email').value = traveler.email || '';
-            document.getElementById('edit_aadhaar').value = traveler.aadhaar || '';
-            document.getElementById('edit_pan').value = traveler.pan || '';
-            document.getElementById('edit_aadhaar_pan_linked').value = traveler.aadhaar_pan_linked || 'No';
-            document.getElementById('edit_vaccine_status').value = traveler.vaccine_status || 'Not Vaccinated';
-            document.getElementById('edit_wheelchair').value = traveler.wheelchair || 'No';
-            document.getElementById('edit_place_of_birth').value = traveler.place_of_birth || '';
-            document.getElementById('edit_place_of_issue').value = traveler.place_of_issue || '';
-            document.getElementById('edit_passport_address').value = traveler.passport_address || '';
-            document.getElementById('edit_mailing_address').value = traveler.mailing_address || '';
-            document.getElementById('edit_father_name').value = traveler.father_name || '';
-            document.getElementById('edit_mother_name').value = traveler.mother_name || '';
-            document.getElementById('edit_spouse_name').value = traveler.spouse_name || '';
-            document.getElementById('edit_expected_return_date').value = traveler.expected_return_date || '';
-            document.getElementById('edit_file_reference').value = traveler.file_reference || '';
-            document.getElementById('edit_pin').value = traveler.pin || '0000';
-            document.getElementById('edit_emergency_contact').value = traveler.emergency_contact || '';
-            document.getElementById('edit_emergency_phone').value = traveler.emergency_phone || '';
-            document.getElementById('edit_medical_notes').value = traveler.medical_notes || '';
+            // Populate form fields
+            const fields = {
+                edit_traveler_id: traveler.id,
+                edit_first_name: traveler.first_name || '',
+                edit_last_name: traveler.last_name || '',
+                edit_passport_name: traveler.passport_name || '',
+                edit_gender: traveler.gender || '',
+                edit_dob: traveler.dob || '',
+                edit_batch_id: traveler.batch_id || '',
+                edit_passport_no: traveler.passport_no || '',
+                edit_passport_issue_date: traveler.passport_issue_date || '',
+                edit_passport_expiry_date: traveler.passport_expiry_date || '',
+                edit_passport_status: traveler.passport_status || 'Active',
+                edit_mobile: traveler.mobile || '',
+                edit_email: traveler.email || '',
+                edit_aadhaar: traveler.aadhaar || '',
+                edit_pan: traveler.pan || '',
+                edit_aadhaar_pan_linked: traveler.aadhaar_pan_linked || 'No',
+                edit_vaccine_status: traveler.vaccine_status || 'Not Vaccinated',
+                edit_wheelchair: traveler.wheelchair || 'No',
+                edit_place_of_birth: traveler.place_of_birth || '',
+                edit_place_of_issue: traveler.place_of_issue || '',
+                edit_passport_address: traveler.passport_address || '',
+                edit_mailing_address: traveler.mailing_address || '',
+                edit_father_name: traveler.father_name || '',
+                edit_mother_name: traveler.mother_name || '',
+                edit_spouse_name: traveler.spouse_name || '',
+                edit_expected_return_date: traveler.expected_return_date || '',
+                edit_file_reference: traveler.file_reference || '',
+                edit_pin: traveler.pin || '0000',
+                edit_emergency_contact: traveler.emergency_contact || '',
+                edit_emergency_phone: traveler.emergency_phone || '',
+                edit_medical_notes: traveler.medical_notes || ''
+            };
+            
+            Object.entries(fields).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el) el.value = value;
+            });
             
             document.getElementById('editTravelerForm').style.display = 'block';
             document.getElementById('editTravelerForm').scrollIntoView({ behavior: 'smooth' });
@@ -1764,6 +1850,7 @@
             link.href = URL.createObjectURL(blob);
             link.download = `travelers_export_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
+            URL.revokeObjectURL(link.href);
             showNotification('Travelers data exported successfully!', 'success');
         }
 
