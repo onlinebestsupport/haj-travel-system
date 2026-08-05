@@ -759,6 +759,7 @@ async function loadTravelers() {
         travelersData = getFallbackTravelers();
     }
     
+    filteredTravelers = [...travelersData];
     displayTravelers();
     updateStats();
 }
@@ -1053,7 +1054,7 @@ function resetDocumentPreviews(prefix) {
 }
 
 // ============================================================
-// CREATE TRAVELER
+// CREATE TRAVELER - FIXED with better error handling
 // ============================================================
 async function createTraveler() {
     const form = document.getElementById('travelerAddForm');
@@ -1087,6 +1088,16 @@ async function createTraveler() {
         return;
     }
     
+    // Log all form data for debugging
+    console.log('📝 Creating traveler with data:');
+    for (let [key, value] of formData.entries()) {
+        if (key.includes('scan') || key === 'photo') {
+            console.log(`  ${key}: [File: ${value.name || 'empty'}]`);
+        } else {
+            console.log(`  ${key}: ${value || '(empty)'}`);
+        }
+    }
+    
     const submitBtn = form.querySelector('button[type="submit"]');
     showLoading(submitBtn, 'Saving...');
     
@@ -1098,8 +1109,9 @@ async function createTraveler() {
         });
         
         const data = await response.json();
+        console.log('📥 Server response:', data);
         
-        if (data.success) {
+        if (response.ok && data.success) {
             const days = daysUntil(passportExpiry);
             if (days !== null) {
                 showNotification(`Traveler created. Passport expires in ${days} day(s).`, 'success');
@@ -1109,10 +1121,17 @@ async function createTraveler() {
             hideAddTravelerForm();
             await loadTravelers();
         } else {
-            showNotification('Error: ' + (data.error || 'Could not create traveler'), 'error');
+            // Check if the error is about missing columns
+            const errorMsg = data.error || data.message || 'Could not create traveler';
+            if (errorMsg.includes('column') && errorMsg.includes('does not exist')) {
+                showNotification('Database error: Missing column. Please contact administrator.', 'error');
+                console.error('❌ Database column error:', errorMsg);
+            } else {
+                showNotification('Error: ' + errorMsg, 'error');
+            }
         }
     } catch (error) {
-        console.error('Create error:', error);
+        console.error('❌ Create error:', error);
         showNotification('Network error. Please try again.', 'error');
     } finally {
         hideLoading(submitBtn);
@@ -1192,7 +1211,7 @@ function editTraveler(id) {
 }
 
 // ============================================================
-// UPDATE TRAVELER
+// UPDATE TRAVELER - FIXED with better error handling
 // ============================================================
 async function updateTraveler() {
     if (!currentEditId) {
@@ -1241,8 +1260,9 @@ async function updateTraveler() {
         });
         
         const data = await response.json();
+        console.log('📥 Update response:', data);
         
-        if (data.success) {
+        if (response.ok && data.success) {
             const days = daysUntil(passportExpiry);
             if (days !== null) {
                 showNotification(`Traveler updated. Passport expires in ${days} day(s).`, 'success');
@@ -1252,10 +1272,16 @@ async function updateTraveler() {
             hideEditTravelerForm();
             await loadTravelers();
         } else {
-            showNotification('Error: ' + (data.error || 'Update failed'), 'error');
+            const errorMsg = data.error || data.message || 'Update failed';
+            if (errorMsg.includes('column') && errorMsg.includes('does not exist')) {
+                showNotification('Database error: Missing column. Please contact administrator.', 'error');
+                console.error('❌ Database column error:', errorMsg);
+            } else {
+                showNotification('Error: ' + errorMsg, 'error');
+            }
         }
     } catch (error) {
-        console.error('Update error:', error);
+        console.error('❌ Update error:', error);
         showNotification('Network error. Please try again.', 'error');
     } finally {
         hideLoading(submitBtn);
