@@ -1,32 +1,27 @@
 /**
  * invoices.js - Invoice Management for Alhudha Haj Travel Admin
- * Handles CRUD operations for invoices with GST/TCS calculation
- * Depends on: common.js, session-manager.js
+ * Handles CRUD operations for invoices with GST/TCS calculations
  * API base: /api/invoices
  */
 
 'use strict';
 
-// ====== STATE ======
+// ====== GLOBALS ======
 let invoicesData = [];
 let filteredInvoicesData = [];
-let invoicesCurrentPage = 1;
-const INVOICES_PER_PAGE = 10;
+let currentPage = 1;
+const PER_PAGE = 10;
 let travelersData = [];
 let batchesData = [];
 
-// ====== LOAD INVOICES ======
-/**
- * Fetch all invoices from /api/invoices
- */
+// ====== LOAD INVOICES FROM API ======
 async function loadInvoices() {
-    const tableBody = document.getElementById('invoicesTableBody');
-    if (tableBody) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...</td></tr>';
+    const tbody = document.getElementById('invoicesTableBody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading invoices...</i></td></tr>';
     }
 
     try {
-        console.log('🔄 Loading invoices...');
         const response = await fetch('/api/invoices', {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
@@ -35,251 +30,183 @@ async function loadInvoices() {
         if (!response.ok) {
             if (response.status === 401) {
                 showNotification('Session expired. Please login again', 'error');
-                setTimeout(() => {
-                    window.location.href = '/admin/login.html';
-                }, 2000);
+                setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
                 return;
             }
             throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📦 Invoices API response:', data);
         
         if (data.success && Array.isArray(data.invoices)) {
             invoicesData = data.invoices;
-            filteredInvoicesData = [...invoicesData];
-            console.log(`✅ Loaded ${invoicesData.length} invoices`);
+            filteredInvoicesData = [...data.invoices];
+            currentPage = 1;
+            console.log(`✅ Loaded ${invoicesData.length} invoices from database`);
+            showNotification(`Loaded ${invoicesData.length} invoices`, 'success');
         } else {
-            console.warn('⚠️ No invoices found, using demo data');
-            useDemoInvoices();
+            invoicesData = [];
+            filteredInvoicesData = [];
+            console.warn('⚠️ No invoices found');
         }
     } catch (error) {
         console.error('❌ Error loading invoices:', error);
-        useDemoInvoices();
+        invoicesData = [];
+        filteredInvoicesData = [];
+        showNotification('Failed to load invoices', 'error');
     }
 
     displayInvoices();
-    updateInvoiceStats();
+    updateStats();
 }
 
-/**
- * Use demo invoice data when API is unavailable
- */
-function useDemoInvoices() {
-    const today = new Date().toISOString().split('T')[0];
-    invoicesData = [
-        {
-            id: 1,
-            invoice_number: 'INV-20260101-1-1234',
-            traveler_id: 1,
-            batch_id: 1,
-            amount: 26750,
-            base_amount: 25000,
-            gst_percent: 5,
-            gst_amount: 1250,
-            tcs_percent: 1,
-            tcs_amount: 262.50,
-            status: 'paid',
-            due_date: '2026-02-15',
-            invoice_date: '2026-01-15',
-            created_at: '2026-01-15T10:00:00',
-            first_name: 'John',
-            last_name: 'Doe',
-            passport_no: 'A0000001',
-            batch_name: 'Haj Platinum 2026',
-            batch_price: 850000,
-            traveler_name: 'John Doe',
-            description: 'Haj Package - Platinum',
-            notes: 'Full payment received'
-        },
-        {
-            id: 2,
-            invoice_number: 'INV-20260120-2-5678',
-            traveler_id: 2,
-            batch_id: 2,
-            amount: 58850,
-            base_amount: 55000,
-            gst_percent: 5,
-            gst_amount: 2750,
-            tcs_percent: 1,
-            tcs_amount: 577.50,
-            status: 'pending',
-            due_date: '2026-02-20',
-            invoice_date: '2026-01-20',
-            created_at: '2026-01-20T10:00:00',
-            first_name: 'Jane',
-            last_name: 'Smith',
-            passport_no: 'A0000002',
-            batch_name: 'Haj Gold 2026',
-            batch_price: 550000,
-            traveler_name: 'Jane Smith',
-            description: 'Haj Package - Gold',
-            notes: 'First installment'
-        },
-        {
-            id: 3,
-            invoice_number: 'INV-20260201-3-9012',
-            traveler_id: 3,
-            batch_id: 3,
-            amount: 131250,
-            base_amount: 125000,
-            gst_percent: 5,
-            gst_amount: 6250,
-            tcs_percent: 1,
-            tcs_amount: 1312.50,
-            status: 'pending',
-            due_date: '2026-03-01',
-            invoice_date: '2026-02-01',
-            created_at: '2026-02-01T10:00:00',
-            first_name: 'Ahmed',
-            last_name: 'Khan',
-            passport_no: 'A0000003',
-            batch_name: 'Umrah Ramadhan Special',
-            batch_price: 125000,
-            traveler_name: 'Ahmed Khan',
-            description: 'Umrah Package - Ramadhan',
-            notes: 'Booking confirmed'
-        }
-    ];
-    filteredInvoicesData = [...invoicesData];
-}
-
-// ====== DISPLAY INVOICES ======
-/**
- * Render the invoices table with status badges
- */
+// ====== DISPLAY INVOICES TABLE ======
 function displayInvoices() {
-    const tableBody = document.getElementById('invoicesTableBody');
-    if (!tableBody) return;
+    const tbody = document.getElementById('invoicesTableBody');
+    if (!tbody) return;
 
-    if (!filteredInvoicesData || filteredInvoicesData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#7f8c8d;">No invoices found. Create your first invoice!</td></tr>';
-        updatePaginationDisplay(0);
+    const data = filteredInvoicesData || [];
+    
+    if (data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center;padding:40px;">
+                    <i class="fas fa-file-invoice" style="font-size:3rem;color:#bdc3c7;display:block;margin-bottom:10px;"></i>
+                    <p style="color:#7f8c8d;">No invoices found</p>
+                    <p style="color:#95a5a6;font-size:0.9rem;">Click "Create Invoice" to generate a new invoice</p>
+                </td>
+            </tr>
+        `;
+        updatePagination(0);
         return;
     }
 
-    const start = (invoicesCurrentPage - 1) * INVOICES_PER_PAGE;
-    const end = Math.min(start + INVOICES_PER_PAGE, filteredInvoicesData.length);
-    const pageData = filteredInvoicesData.slice(start, end);
+    const start = (currentPage - 1) * PER_PAGE;
+    const end = Math.min(start + PER_PAGE, data.length);
+    const pageData = data.slice(start, end);
 
     let html = '';
     pageData.forEach(inv => {
-        const travelerName = inv.traveler_name || `${inv.first_name || ''} ${inv.last_name || ''}`.trim() || '-';
-        const statusText = inv.status === 'paid' ? 'Paid' : 'Pending';
         const statusClass = inv.status === 'paid' ? 'status-paid' : 'status-pending';
-        const amount = parseFloat(inv.amount || 0);
+        const statusText = inv.status === 'paid' ? 'Paid' : 'Pending';
+        const travelerName = inv.traveler_name || inv.traveler_first_name ? `${inv.traveler_first_name || ''} ${inv.traveler_last_name || ''}`.trim() : '-';
+        const amount = parseFloat(inv.total_amount || inv.amount || 0);
 
-        html += `<tr>
-            <td><strong>${escapeHtml(inv.invoice_number || 'N/A')}</strong></td>
-            <td>${inv.invoice_date ? formatDate(inv.invoice_date) : (inv.created_at ? formatDate(inv.created_at) : '-')}</td>
-            <td>${escapeHtml(travelerName)}</td>
-            <td>${escapeHtml(inv.batch_name || '-')}</td>
-            <td><strong>₹${amount.toLocaleString('en-IN')}</strong></td>
-            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            <td class="invoice-actions">
-                <button class="icon-btn btn-view" onclick="viewInvoiceDetails(${inv.id})" title="View"><i class="fas fa-eye"></i></button>
-                <button class="icon-btn btn-edit" onclick="openEditModal(${inv.id})" title="Edit"><i class="fas fa-edit"></i></button>
-                <button class="icon-btn btn-delete" onclick="deleteInvoice(${inv.id})" title="Delete"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`;
+        html += `
+            <tr>
+                <td><strong>${escapeHtml(inv.invoice_number || '#')}</strong></td>
+                <td>${inv.created_at ? formatDate(inv.created_at) : '-'}</td>
+                <td>${escapeHtml(travelerName)}</td>
+                <td>${escapeHtml(inv.batch_name || '-')}</td>
+                <td><strong>₹${amount.toLocaleString('en-IN')}</strong></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <div class="invoice-actions">
+                        <button class="icon-btn btn-view" onclick="viewInvoice(${inv.id})" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn btn-edit" onclick="openEditModal(${inv.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn btn-delete" onclick="deleteInvoice(${inv.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `;
     });
 
-    tableBody.innerHTML = html;
-    updatePaginationDisplay(filteredInvoicesData.length);
+    tbody.innerHTML = html;
+    updatePagination(data.length);
 }
 
-/**
- * Update pagination display
- */
-function updatePaginationDisplay(total) {
-    const totalEl = document.getElementById('totalCount');
-    const fromEl = document.getElementById('showingFrom');
-    const toEl = document.getElementById('showingTo');
-    const prevBtn = document.getElementById('prevPageBtn');
-    const nextBtn = document.getElementById('nextPageBtn');
+// ====== UPDATE STATS ======
+function updateStats() {
+    const total = invoicesData.length;
+    const paid = invoicesData.filter(i => i.status === 'paid').length;
+    const pending = invoicesData.filter(i => i.status === 'pending').length;
+    const totalAmount = invoicesData.reduce((sum, i) => sum + parseFloat(i.total_amount || i.amount || 0), 0);
 
-    if (totalEl) totalEl.textContent = total;
-    const start = total > 0 ? (invoicesCurrentPage - 1) * INVOICES_PER_PAGE + 1 : 0;
-    const end = Math.min(invoicesCurrentPage * INVOICES_PER_PAGE, total);
-    if (fromEl) fromEl.textContent = start;
-    if (toEl) toEl.textContent = end;
-
-    if (prevBtn) prevBtn.disabled = invoicesCurrentPage === 1;
-    if (nextBtn) nextBtn.disabled = end >= total;
-}
-
-// ====== FILTER INVOICES ======
-/**
- * Filter invoices by search text and status
- */
-function filterInvoices() {
-    const searchEl = document.getElementById('searchInput');
-    const statusEl = document.getElementById('statusFilter');
-    
-    const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
-    const status = statusEl ? statusEl.value : 'all';
-
-    if (!search && status === 'all') {
-        filteredInvoicesData = [...invoicesData];
-    } else {
-        filteredInvoicesData = invoicesData.filter(inv => {
-            const travelerName = `${inv.first_name || ''} ${inv.last_name || ''}`.toLowerCase();
-            const invNum = (inv.invoice_number || '').toLowerCase();
-            const matchesSearch = !search || travelerName.includes(search) || invNum.includes(search);
-            const matchesStatus = status === 'all' || (inv.status || '').toLowerCase() === status.toLowerCase();
-            return matchesSearch && matchesStatus;
-        });
-    }
-
-    invoicesCurrentPage = 1;
-    displayInvoices();
-    showNotification(`Found ${filteredInvoicesData.length} invoice(s)`, 'info');
-}
-
-/**
- * Reset filters
- */
-function resetFilters() {
-    const searchEl = document.getElementById('searchInput');
-    const statusEl = document.getElementById('statusFilter');
-    
-    if (searchEl) searchEl.value = '';
-    if (statusEl) statusEl.value = 'all';
-    
-    filteredInvoicesData = [...invoicesData];
-    invoicesCurrentPage = 1;
-    displayInvoices();
-    showNotification('Filters reset', 'info');
+    document.getElementById('totalInvoices').textContent = total;
+    document.getElementById('paidInvoices').textContent = paid;
+    document.getElementById('pendingInvoices').textContent = pending;
+    document.getElementById('totalAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
 }
 
 // ====== PAGINATION ======
+function updatePagination(total) {
+    document.getElementById('totalCount').textContent = total;
+    const start = total > 0 ? (currentPage - 1) * PER_PAGE + 1 : 0;
+    const end = Math.min(currentPage * PER_PAGE, total);
+    document.getElementById('showingFrom').textContent = start;
+    document.getElementById('showingTo').textContent = end;
+}
+
 function previousPage() {
-    if (invoicesCurrentPage > 1) {
-        invoicesCurrentPage--;
+    if (currentPage > 1) {
+        currentPage--;
         displayInvoices();
     }
 }
 
 function nextPage() {
-    if (invoicesCurrentPage * INVOICES_PER_PAGE < filteredInvoicesData.length) {
-        invoicesCurrentPage++;
+    const total = filteredInvoicesData.length;
+    if (currentPage * PER_PAGE < total) {
+        currentPage++;
         displayInvoices();
     }
 }
 
-// ====== LOAD TRAVELERS ======
+// ====== FILTER FUNCTIONS ======
+function filterInvoices() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const status = document.getElementById('statusFilter').value;
+
+    filteredInvoicesData = invoicesData.filter(inv => {
+        const travelerName = inv.traveler_name || inv.traveler_first_name ? `${inv.traveler_first_name || ''} ${inv.traveler_last_name || ''}`.toLowerCase() : '';
+        const invNum = (inv.invoice_number || '').toLowerCase();
+        const batch = (inv.batch_name || '').toLowerCase();
+        
+        const matchesSearch = !search || 
+            travelerName.includes(search) || 
+            invNum.includes(search) || 
+            batch.includes(search);
+        
+        const matchesStatus = status === 'all' || inv.status === status;
+        
+        return matchesSearch && matchesStatus;
+    });
+
+    currentPage = 1;
+    displayInvoices();
+    showNotification(`Found ${filteredInvoicesData.length} invoices`, 'info');
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    filteredInvoicesData = [...invoicesData];
+    currentPage = 1;
+    displayInvoices();
+    showNotification('Filters reset', 'info');
+}
+
+// ====== LOAD TRAVELERS FOR DROPDOWN ======
 async function loadTravelers() {
     try {
         const response = await fetch('/api/travelers', {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
+        
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.travelers) {
                 travelersData = data.travelers;
-                updateTravelerSelect();
+                const dropdown = document.getElementById('travelerId');
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="">Select Traveler</option>';
+                    data.travelers.forEach(t => {
+                        dropdown.innerHTML += `<option value="${t.id}" data-batch-id="${t.batch_id || ''}" data-batch-name="${t.batch_name || ''}" data-price="${t.price || 0}">
+                            ${t.first_name} ${t.last_name} (${t.passport_no || ''})
+                        </option>`;
+                    });
+                }
             }
         }
     } catch (error) {
@@ -287,504 +214,352 @@ async function loadTravelers() {
     }
 }
 
-/**
- * Update traveler dropdown
- */
-function updateTravelerSelect() {
-    const select = document.getElementById('travelerId');
-    if (!select) return;
-
-    select.innerHTML = '<option value="">Select Traveler</option>';
-    travelersData.forEach(t => {
-        const name = `${t.first_name || ''} ${t.last_name || ''}`.trim();
-        const batch = batchesData.find(b => b.id === t.batch_id);
-        const batchInfo = batch ? ` - ${batch.batch_name}` : '';
-        select.innerHTML += `<option value="${t.id}" data-batch-id="${t.batch_id || ''}">${name} (${t.passport_no || 'N/A'})${batchInfo}</option>`;
-    });
-}
-
-// ====== LOAD BATCHES ======
-async function loadBatches() {
-    try {
-        const response = await fetch('/api/batches', {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' }
-        });
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.batches) {
-                batchesData = data.batches;
-            }
-        }
-    } catch (error) {
-        console.error('Error loading batches:', error);
-    }
-}
-
-// ====== LOAD TRAVELER BATCH ======
-async function loadTravelerBatch() {
-    const travelerId = document.getElementById('travelerId').value;
-    const batchNameField = document.getElementById('batchName');
-    const baseAmountField = document.getElementById('baseAmount');
-
-    if (!travelerId) {
-        batchNameField.value = '';
-        baseAmountField.value = '';
+// ====== LOAD TRAVELER BATCH DETAILS ======
+function loadTravelerBatch() {
+    const dropdown = document.getElementById('travelerId');
+    const selected = dropdown.options[dropdown.selectedIndex];
+    
+    if (!selected || !selected.value) {
+        document.getElementById('batchName').value = '';
+        document.getElementById('baseAmount').value = '';
         calculateTotal();
         return;
     }
 
-    const traveler = travelersData.find(t => t.id == travelerId);
-    if (traveler && traveler.batch_id) {
-        const batch = batchesData.find(b => b.id == traveler.batch_id);
-        if (batch) {
-            batchNameField.value = batch.batch_name || '';
-            baseAmountField.value = batch.price || 0;
-        } else {
-            // Try fetching batch details
-            try {
-                const response = await fetch(`/api/batches/${traveler.batch_id}`, {
-                    credentials: 'include'
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.batch) {
-                        batchNameField.value = data.batch.batch_name || '';
-                        baseAmountField.value = data.batch.price || 0;
-                    }
-                }
-            } catch (e) {
-                console.error('Error fetching batch:', e);
-            }
-        }
-    } else {
-        batchNameField.value = 'No batch assigned';
-        baseAmountField.value = 0;
-    }
+    const batchName = selected.dataset.batchName || '';
+    const price = parseFloat(selected.dataset.price) || 0;
+
+    document.getElementById('batchName').value = batchName;
+    document.getElementById('baseAmount').value = price;
     calculateTotal();
 }
 
-// ====== CALCULATE TOTAL ======
+// ====== CALCULATE TOTAL WITH GST/TCS ======
 function calculateTotal() {
     const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
-    const gstPercent = parseFloat(document.getElementById('gstPercent').value) || 5;
-    const tcsPercent = parseFloat(document.getElementById('tcsPercent').value) || 1;
+    const gstPercent = parseFloat(document.getElementById('gstPercent').value) || 0;
+    const tcsPercent = parseFloat(document.getElementById('tcsPercent').value) || 0;
 
-    const gstAmount = baseAmount * (gstPercent / 100);
+    // Update display labels
+    document.getElementById('gstPercentDisplay').textContent = gstPercent;
+    document.getElementById('tcsPercentDisplay').textContent = tcsPercent;
+
+    // Calculate amounts
+    const gstAmount = (baseAmount * gstPercent) / 100;
     const subtotal = baseAmount + gstAmount;
-    const tcsAmount = subtotal * (tcsPercent / 100);
+    const tcsAmount = (subtotal * tcsPercent) / 100;
     const totalAmount = subtotal + tcsAmount;
 
-    document.getElementById('displayBase').innerHTML = '₹' + baseAmount.toLocaleString('en-IN');
-    document.getElementById('gstPercentDisplay').textContent = gstPercent;
-    document.getElementById('displayGST').innerHTML = '₹' + gstAmount.toLocaleString('en-IN');
-    document.getElementById('displaySubtotal').innerHTML = '₹' + subtotal.toLocaleString('en-IN');
-    document.getElementById('tcsPercentDisplay').textContent = tcsPercent;
-    document.getElementById('displayTCS').innerHTML = '₹' + tcsAmount.toLocaleString('en-IN');
-    document.getElementById('displayTotal').innerHTML = '₹' + totalAmount.toLocaleString('en-IN');
-}
-
-// ====== INVOICE STATS ======
-function updateInvoiceStats() {
-    const total = invoicesData.length;
-    const paid = invoicesData.filter(i => i.status === 'paid').length;
-    const pending = invoicesData.filter(i => i.status === 'pending').length;
-    const totalAmount = invoicesData.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
-
-    document.getElementById('totalInvoices').textContent = total;
-    document.getElementById('paidInvoices').textContent = paid;
-    document.getElementById('pendingInvoices').textContent = pending;
-    document.getElementById('totalAmount').innerHTML = '₹' + totalAmount.toLocaleString('en-IN');
-}
-
-// ====== SHOW/HIDE MODALS ======
-function openCreateModal() {
-    document.getElementById('createModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    // Set default due date (30 days from now)
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 30);
-    document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
-    
-    // Set default status
-    document.getElementById('status').value = 'pending';
-    
-    // Reset form
-    document.getElementById('createForm').reset();
-    document.getElementById('batchName').value = '';
-    document.getElementById('baseAmount').value = '';
-    document.getElementById('gstPercent').value = 5;
-    document.getElementById('tcsPercent').value = 1;
-    calculateTotal();
-    
-    // Load travelers and batches
-    loadTravelers();
-    loadBatches();
-}
-
-function closeCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-function openEditModal(invoiceId) {
-    const invoice = invoicesData.find(i => i.id === invoiceId);
-    if (!invoice) {
-        showNotification('Invoice not found', 'error');
-        return;
-    }
-
-    document.getElementById('editId').value = invoice.id;
-    document.getElementById('editInvoiceNumber').value = invoice.invoice_number || '';
-    document.getElementById('editDate').value = invoice.invoice_date ? formatDate(invoice.invoice_date) : (invoice.created_at ? formatDate(invoice.created_at) : '');
-    document.getElementById('editTraveler').value = invoice.traveler_name || `${invoice.first_name || ''} ${invoice.last_name || ''}`.trim() || 'N/A';
-    document.getElementById('editBatch').value = invoice.batch_name || 'N/A';
-    document.getElementById('editAmount').value = invoice.amount || 0;
-    document.getElementById('editDueDate').value = invoice.due_date || '';
-    document.getElementById('editStatus').value = invoice.status || 'pending';
-
-    document.getElementById('editModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
-function closeViewModal() {
-    document.getElementById('viewModal').style.display = 'none';
-    document.body.style.overflow = '';
+    // Display calculations
+    document.getElementById('displayBase').textContent = `₹${baseAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('displayGST').textContent = `₹${gstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('displaySubtotal').textContent = `₹${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('displayTCS').textContent = `₹${tcsAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('displayTotal').textContent = `₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
 }
 
 // ====== CREATE INVOICE ======
 async function createInvoice() {
     const travelerId = document.getElementById('travelerId').value;
-    const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
-    const gstPercent = parseFloat(document.getElementById('gstPercent').value) || 5;
-    const tcsPercent = parseFloat(document.getElementById('tcsPercent').value) || 1;
-
     if (!travelerId) {
         showNotification('Please select a traveler', 'error');
         return;
     }
 
+    const selected = document.getElementById('travelerId').options[document.getElementById('travelerId').selectedIndex];
+    const batchId = selected.dataset.batchId || null;
+    const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
+    
     if (baseAmount <= 0) {
-        showNotification('Please ensure the traveler has a valid batch amount', 'error');
+        showNotification('Invalid base amount', 'error');
         return;
     }
 
-    const traveler = travelersData.find(t => t.id == travelerId);
-    const invoiceData = {
-        traveler_id: parseInt(travelerId),
-        batch_id: traveler?.batch_id || null,
-        amount: baseAmount,
-        gst_percent: gstPercent,
-        tcs_percent: tcsPercent,
-        due_date: document.getElementById('dueDate').value || null,
-        status: document.getElementById('status').value,
-        description: document.getElementById('batchName').value || 'Travel Package',
-        notes: '',
-        invoice_date: new Date().toISOString().split('T')[0]
-    };
+    const gstPercent = parseFloat(document.getElementById('gstPercent').value) || 0;
+    const tcsPercent = parseFloat(document.getElementById('tcsPercent').value) || 0;
+    const dueDate = document.getElementById('dueDate').value || null;
+    const status = document.getElementById('status').value || 'pending';
 
-    const submitBtn = document.querySelector('#createForm button[type="submit"]');
-    showLoading(submitBtn, 'Creating...');
+    // Calculate amounts
+    const gstAmount = (baseAmount * gstPercent) / 100;
+    const subtotal = baseAmount + gstAmount;
+    const tcsAmount = (subtotal * tcsPercent) / 100;
+    const totalAmount = subtotal + tcsAmount;
+
+    const data = {
+        traveler_id: parseInt(travelerId),
+        batch_id: batchId ? parseInt(batchId) : null,
+        base_amount: baseAmount,
+        gst_percent: gstPercent,
+        gst_amount: gstAmount,
+        tcs_percent: tcsPercent,
+        tcs_amount: tcsAmount,
+        total_amount: totalAmount,
+        status: status,
+        due_date: dueDate
+    };
 
     try {
         const response = await fetch('/api/invoices', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(invoiceData)
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
         });
 
         if (response.status === 401) {
             showNotification('Session expired. Please login again', 'error');
-            setTimeout(() => {
-                window.location.href = '/admin/login.html';
-            }, 2000);
+            setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
             return;
         }
 
-        const data = await response.json();
+        const result = await response.json();
 
-        if (data.success) {
-            showNotification(`Invoice ${data.invoice_number} created successfully!`, 'success');
+        if (result.success) {
+            showNotification('Invoice created successfully!', 'success');
             closeCreateModal();
             await loadInvoices();
         } else {
-            showNotification('Error: ' + (data.error || 'Could not create invoice'), 'error');
+            showNotification('Error: ' + (result.message || 'Failed to create invoice'), 'error');
         }
     } catch (error) {
-        console.error('Create error:', error);
-        // Demo mode fallback
-        const demoInvoice = {
-            id: invoicesData.length + 1,
-            invoice_number: `INV-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${travelerId}-${Math.floor(Math.random() * 10000)}`,
-            traveler_id: parseInt(travelerId),
-            batch_id: traveler?.batch_id || null,
-            amount: baseAmount + (baseAmount * gstPercent / 100) + ((baseAmount + (baseAmount * gstPercent / 100)) * tcsPercent / 100),
-            base_amount: baseAmount,
-            gst_percent: gstPercent,
-            gst_amount: baseAmount * gstPercent / 100,
-            tcs_percent: tcsPercent,
-            tcs_amount: (baseAmount + (baseAmount * gstPercent / 100)) * tcsPercent / 100,
-            status: document.getElementById('status').value || 'pending',
-            due_date: document.getElementById('dueDate').value || null,
-            invoice_date: new Date().toISOString().split('T')[0],
-            created_at: new Date().toISOString(),
-            first_name: traveler?.first_name || 'Demo',
-            last_name: traveler?.last_name || 'Traveler',
-            passport_no: traveler?.passport_no || 'N/A',
-            batch_name: document.getElementById('batchName').value || 'Demo Batch',
-            traveler_name: `${traveler?.first_name || 'Demo'} ${traveler?.last_name || 'Traveler'}`.trim(),
-            description: document.getElementById('batchName').value || 'Travel Package',
-            notes: 'Created in demo mode'
-        };
-        invoicesData.push(demoInvoice);
-        filteredInvoicesData = [...invoicesData];
-        showNotification('Invoice created (demo mode)', 'success');
-        closeCreateModal();
-        displayInvoices();
-        updateInvoiceStats();
-    } finally {
-        hideLoading(submitBtn);
+        console.error('Error creating invoice:', error);
+        showNotification('Failed to create invoice', 'error');
     }
+}
+
+// ====== OPEN CREATE MODAL ======
+function openCreateModal() {
+    document.getElementById('createModal').style.display = 'flex';
+    document.getElementById('createForm').reset();
+    document.getElementById('batchName').value = '';
+    document.getElementById('baseAmount').value = '';
+    document.getElementById('gstPercent').value = '5';
+    document.getElementById('tcsPercent').value = '1';
+    document.getElementById('dueDate').value = '';
+    document.getElementById('status').value = 'pending';
+    calculateTotal();
+    
+    // Load travelers if not loaded
+    if (travelersData.length === 0) {
+        loadTravelers();
+    }
+}
+
+// ====== CLOSE CREATE MODAL ======
+function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+}
+
+// ====== VIEW INVOICE ======
+function viewInvoice(id) {
+    const inv = invoicesData.find(i => i.id === id);
+    if (!inv) {
+        showNotification('Invoice not found', 'error');
+        return;
+    }
+
+    const travelerName = inv.traveler_name || inv.traveler_first_name ? `${inv.traveler_first_name || ''} ${inv.traveler_last_name || ''}`.trim() : '-';
+    const amount = parseFloat(inv.total_amount || inv.amount || 0);
+    const baseAmount = parseFloat(inv.base_amount || 0);
+    const gstAmount = parseFloat(inv.gst_amount || 0);
+    const tcsAmount = parseFloat(inv.tcs_amount || 0);
+    const gstPercent = parseFloat(inv.gst_percent || 0);
+    const tcsPercent = parseFloat(inv.tcs_percent || 0);
+    const statusText = inv.status === 'paid' ? 'Paid' : 'Pending';
+    const statusClass = inv.status === 'paid' ? 'status-paid' : 'status-pending';
+
+    const html = `
+        <div style="padding: 10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Invoice Number</div>
+                    <div style="font-weight:bold;font-size:1.1rem;">${escapeHtml(inv.invoice_number || '#')}</div>
+                </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Date</div>
+                    <div style="font-weight:bold;">${inv.created_at ? formatDate(inv.created_at) : '-'}</div>
+                </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Traveler</div>
+                    <div style="font-weight:bold;">${escapeHtml(travelerName)}</div>
+                </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Batch</div>
+                    <div style="font-weight:bold;">${escapeHtml(inv.batch_name || '-')}</div>
+                </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Status</div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <div style="color:#7f8c8d;font-size:0.85rem;">Due Date</div>
+                    <div style="font-weight:bold;">${inv.due_date ? formatDate(inv.due_date) : '-'}</div>
+                </div>
+            </div>
+            <div style="background:#f8f9fa;padding:20px;border-radius:8px;border:2px solid #d4af37;">
+                <h4 style="color:#1a472a;margin-bottom:15px;">Payment Breakdown</h4>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div><strong>Base Amount:</strong> ₹${baseAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                    <div><strong>GST (${gstPercent}%):</strong> ₹${gstAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                    <div><strong>Subtotal:</strong> ₹${(baseAmount + gstAmount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                    <div><strong>TCS (${tcsPercent}%):</strong> ₹${tcsAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+                    <div style="grid-column:1/-1;border-top:2px solid #d4af37;padding-top:10px;font-size:1.2rem;">
+                        <strong>Total Amount:</strong> ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                    </div>
+                </div>
+            </div>
+            ${inv.notes ? `<div style="margin-top:15px;padding:15px;background:#fff3cd;border-radius:8px;"><strong>Notes:</strong> ${escapeHtml(inv.notes)}</div>` : ''}
+            <div style="margin-top:15px;padding:15px;background:#e8f4f8;border-radius:8px;border-left:4px solid #3498db;">
+                <div style="font-size:0.85rem;color:#7f8c8d;">Created: ${inv.created_at ? formatDate(inv.created_at) : '-'}</div>
+                <div style="font-size:0.85rem;color:#7f8c8d;">Updated: ${inv.updated_at ? formatDate(inv.updated_at) : '-'}</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('viewDetails').innerHTML = html;
+    document.getElementById('viewModal').style.display = 'flex';
+}
+
+// ====== CLOSE VIEW MODAL ======
+function closeViewModal() {
+    document.getElementById('viewModal').style.display = 'none';
+}
+
+// ====== OPEN EDIT MODAL ======
+async function openEditModal(id) {
+    const inv = invoicesData.find(i => i.id === id);
+    if (!inv) {
+        showNotification('Invoice not found', 'error');
+        return;
+    }
+
+    document.getElementById('editId').value = inv.id;
+    document.getElementById('editInvoiceNumber').value = inv.invoice_number || '';
+    document.getElementById('editDate').value = inv.created_at ? formatDate(inv.created_at) : '-';
+    document.getElementById('editTraveler').value = inv.traveler_name || '-';
+    document.getElementById('editBatch').value = inv.batch_name || '-';
+    document.getElementById('editAmount').value = inv.total_amount || inv.amount || 0;
+    document.getElementById('editStatus').value = inv.status || 'pending';
+    document.getElementById('editDueDate').value = inv.due_date || '';
+
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+// ====== CLOSE EDIT MODAL ======
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
 }
 
 // ====== UPDATE INVOICE ======
 async function updateInvoice() {
     const id = document.getElementById('editId').value;
     const amount = parseFloat(document.getElementById('editAmount').value);
-    const dueDate = document.getElementById('editDueDate').value;
     const status = document.getElementById('editStatus').value;
+    const dueDate = document.getElementById('editDueDate').value || null;
 
-    if (!id) {
-        showNotification('No invoice selected', 'error');
+    if (amount <= 0) {
+        showNotification('Amount must be greater than 0', 'error');
         return;
     }
-
-    if (!amount || amount <= 0) {
-        showNotification('Please enter a valid amount', 'error');
-        return;
-    }
-
-    const updateData = {
-        amount: amount,
-        due_date: dueDate || null,
-        status: status
-    };
-
-    const submitBtn = document.querySelector('#editForm button[type="submit"]');
-    showLoading(submitBtn, 'Updating...');
 
     try {
         const response = await fetch(`/api/invoices/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(updateData)
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                total_amount: amount, 
+                status: status,
+                due_date: dueDate
+            })
         });
 
         if (response.status === 401) {
             showNotification('Session expired. Please login again', 'error');
-            setTimeout(() => {
-                window.location.href = '/admin/login.html';
-            }, 2000);
+            setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
             return;
         }
 
-        const data = await response.json();
+        const result = await response.json();
 
-        if (data.success) {
+        if (result.success) {
             showNotification('Invoice updated successfully!', 'success');
             closeEditModal();
             await loadInvoices();
         } else {
-            showNotification('Error: ' + (data.error || 'Could not update invoice'), 'error');
+            showNotification('Error: ' + (result.message || 'Failed to update invoice'), 'error');
         }
     } catch (error) {
-        console.error('Update error:', error);
-        // Demo mode fallback
-        const invoice = invoicesData.find(i => i.id == id);
-        if (invoice) {
-            invoice.amount = amount;
-            invoice.due_date = dueDate;
-            invoice.status = status;
-            filteredInvoicesData = [...invoicesData];
-            showNotification('Invoice updated (demo mode)', 'success');
-            closeEditModal();
-            displayInvoices();
-            updateInvoiceStats();
-        } else {
-            showNotification('Error updating invoice', 'error');
-        }
-    } finally {
-        hideLoading(submitBtn);
+        console.error('Error updating invoice:', error);
+        showNotification('Failed to update invoice', 'error');
     }
 }
 
 // ====== DELETE INVOICE ======
 async function deleteInvoice(id) {
-    if (!confirm('⚠️ Are you sure you want to delete this invoice? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
         return;
     }
 
     try {
         const response = await fetch(`/api/invoices/${id}`, {
             method: 'DELETE',
-            credentials: 'include'
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
         });
 
         if (response.status === 401) {
             showNotification('Session expired. Please login again', 'error');
-            setTimeout(() => {
-                window.location.href = '/admin/login.html';
-            }, 2000);
+            setTimeout(() => { window.location.href = '/admin/login.html'; }, 2000);
             return;
         }
 
-        const data = await response.json();
+        const result = await response.json();
 
-        if (data.success) {
+        if (result.success) {
             showNotification('Invoice deleted successfully!', 'success');
             await loadInvoices();
         } else {
-            showNotification('Error: ' + (data.error || 'Could not delete invoice'), 'error');
+            showNotification('Error: ' + (result.message || 'Failed to delete invoice'), 'error');
         }
     } catch (error) {
-        console.error('Delete error:', error);
-        // Demo mode fallback
-        const index = invoicesData.findIndex(i => i.id === id);
-        if (index !== -1) {
-            invoicesData.splice(index, 1);
-            filteredInvoicesData = [...invoicesData];
-            showNotification('Invoice deleted (demo mode)', 'success');
-            displayInvoices();
-            updateInvoiceStats();
-        } else {
-            showNotification('Error deleting invoice', 'error');
-        }
+        console.error('Error deleting invoice:', error);
+        showNotification('Failed to delete invoice', 'error');
     }
-}
-
-// ====== VIEW INVOICE ======
-function viewInvoiceDetails(id) {
-    const invoice = invoicesData.find(i => i.id === id);
-    if (!invoice) {
-        showNotification('Invoice not found', 'error');
-        return;
-    }
-
-    const travelerName = invoice.traveler_name || `${invoice.first_name || ''} ${invoice.last_name || ''}`.trim() || 'N/A';
-    const statusText = invoice.status === 'paid' ? 'Paid' : 'Pending';
-    const statusClass = invoice.status === 'paid' ? 'status-paid' : 'status-pending';
-    const amount = parseFloat(invoice.amount || 0);
-    const baseAmount = parseFloat(invoice.base_amount || 0);
-    const gstAmount = parseFloat(invoice.gst_amount || 0);
-    const tcsAmount = parseFloat(invoice.tcs_amount || 0);
-
-    const detailsHtml = `
-        <div style="padding: 10px;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Invoice Number:</strong><br>
-                    <span style="font-weight: 500;">${escapeHtml(invoice.invoice_number || 'N/A')}</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Status:</strong><br>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Traveler:</strong><br>
-                    <span style="font-weight: 500;">${escapeHtml(travelerName)}</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Batch:</strong><br>
-                    <span style="font-weight: 500;">${escapeHtml(invoice.batch_name || 'N/A')}</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Invoice Date:</strong><br>
-                    <span style="font-weight: 500;">${invoice.invoice_date ? formatDate(invoice.invoice_date) : (invoice.created_at ? formatDate(invoice.created_at) : 'N/A')}</span>
-                </div>
-                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
-                    <strong>Due Date:</strong><br>
-                    <span style="font-weight: 500;">${invoice.due_date ? formatDate(invoice.due_date) : 'N/A'}</span>
-                </div>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 2px solid #d4af37;">
-                <h4 style="color: #1a472a; margin-bottom: 15px;">Tax Breakdown</h4>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
-                    <span>Base Amount:</span>
-                    <strong>₹${baseAmount.toLocaleString('en-IN')}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
-                    <span>GST (${invoice.gst_percent || 5}%):</span>
-                    <strong>₹${gstAmount.toLocaleString('en-IN')}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
-                    <span>Subtotal:</span>
-                    <strong>₹${(baseAmount + gstAmount).toLocaleString('en-IN')}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
-                    <span>TCS (${invoice.tcs_percent || 1}%):</span>
-                    <strong>₹${tcsAmount.toLocaleString('en-IN')}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 1.2rem; font-weight: bold; color: #27ae60; border-top: 2px solid #d4af37; margin-top: 8px;">
-                    <span>TOTAL AMOUNT:</span>
-                    <strong>₹${amount.toLocaleString('en-IN')}</strong>
-                </div>
-            </div>
-
-            ${invoice.description ? `
-                <div style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 8px;">
-                    <strong>Description:</strong>
-                    <p style="margin-top: 5px;">${escapeHtml(invoice.description)}</p>
-                </div>
-            ` : ''}
-            ${invoice.notes ? `
-                <div style="margin-top: 10px; padding: 15px; background: #fff3cd; border-radius: 8px;">
-                    <strong>Notes:</strong>
-                    <p style="margin-top: 5px;">${escapeHtml(invoice.notes)}</p>
-                </div>
-            ` : ''}
-        </div>
-    `;
-
-    document.getElementById('viewDetails').innerHTML = detailsHtml;
-    document.getElementById('viewModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
 }
 
 // ====== EXPORT INVOICES ======
 function exportInvoices() {
     const data = filteredInvoicesData.length > 0 ? filteredInvoicesData : invoicesData;
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
         showNotification('No invoices to export', 'warning');
         return;
     }
 
-    const headers = ['Invoice #', 'Date', 'Traveler', 'Batch', 'Base Amount', 'GST %', 'GST Amount', 'TCS %', 'TCS Amount', 'Total Amount', 'Status', 'Due Date', 'Description'];
+    const headers = ['Invoice #', 'Date', 'Traveler', 'Batch', 'Base Amount', 'GST %', 'GST Amount', 'TCS %', 'TCS Amount', 'Total Amount', 'Status', 'Due Date'];
     
     const rows = data.map(inv => {
-        const travelerName = inv.traveler_name || `${inv.first_name || ''} ${inv.last_name || ''}`.trim() || 'N/A';
+        const travelerName = inv.traveler_name || inv.traveler_first_name ? `${inv.traveler_first_name || ''} ${inv.traveler_last_name || ''}`.trim() : '-';
         return [
             inv.invoice_number || '',
-            inv.invoice_date || inv.created_at || '',
+            inv.created_at || '',
             travelerName,
             inv.batch_name || '',
             inv.base_amount || 0,
-            inv.gst_percent || 5,
+            inv.gst_percent || 0,
             inv.gst_amount || 0,
-            inv.tcs_percent || 1,
+            inv.tcs_percent || 0,
             inv.tcs_amount || 0,
-            inv.amount || 0,
+            inv.total_amount || inv.amount || 0,
             inv.status || '',
-            inv.due_date || '',
-            inv.description || ''
+            inv.due_date || ''
         ];
     });
 
@@ -795,36 +570,14 @@ function exportInvoices() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `invoices_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `invoices_export_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
 
-    showNotification(`Exported ${data.length} invoices to CSV`, 'success');
+    showNotification(`Exported ${data.length} invoices`, 'success');
 }
 
-// ====== UI HELPERS ======
-function showLoading(btn, text) {
-    if (!btn) return;
-    btn.disabled = true;
-    const icon = btn.querySelector('i');
-    if (icon) {
-        icon.className = 'fas fa-spinner fa-spin';
-    }
-    btn.textContent = text || 'Loading...';
-}
-
-function hideLoading(btn) {
-    if (!btn) return;
-    btn.disabled = false;
-    const icon = btn.querySelector('i');
-    if (icon) {
-        icon.className = 'fas fa-save';
-    }
-    btn.textContent = btn.textContent.replace('Loading...', 'Create Invoice');
-    btn.textContent = btn.textContent.replace('Updating...', 'Save Changes');
-    btn.textContent = btn.textContent.replace('Creating...', 'Create Invoice');
-}
-
+// ====== UTILITY FUNCTIONS ======
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -849,25 +602,18 @@ function showNotification(message, type = 'success') {
         console.log(`${type.toUpperCase()}: ${message}`);
         return;
     }
-
-    const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
-
     notification.className = `notification notification-${type}`;
-    notification.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i> ${message}`;
+    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
     notification.style.display = 'block';
+    if (window.notificationTimeout) clearTimeout(window.notificationTimeout);
+    window.notificationTimeout = setTimeout(() => { notification.style.display = 'none'; }, 3000);
+}
 
-    if (window.notificationTimeout) {
-        clearTimeout(window.notificationTimeout);
-    }
-
-    window.notificationTimeout = setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
+// ====== LOGOUT ======
+async function logout() {
+    if (!confirm('Are you sure you want to logout?')) return;
+    sessionStorage.clear();
+    window.location.href = '/admin/login.html';
 }
 
 // ====== INITIALIZATION ======
@@ -886,43 +632,25 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 async function initializePage() {
-    console.log('📋 Initializing invoices page...');
-    resetSessionTimer();
-
-    // Monitor user activity
-    ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-        document.addEventListener(event, resetSessionTimer);
+    console.log('✅ User authenticated, loading invoices page...');
+    
+    // Load travelers for dropdown
+    await loadTravelers();
+    
+    // Load invoices
+    await loadInvoices();
+    
+    // Set up search listeners
+    document.getElementById('searchInput')?.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') filterInvoices();
     });
-
-    // Load data
-    await Promise.all([
-        loadTravelers(),
-        loadBatches(),
-        loadInvoices()
-    ]);
-
+    
     console.log('✅ Invoices page loaded successfully!');
-}
-
-// Session timer
-function resetSessionTimer() {
-    console.log('Session timer reset');
-}
-
-// Logout
-async function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
-            await SessionManager.logout();
-        } else {
-            sessionStorage.clear();
-            window.location.href = '/admin/login.html';
-        }
-    }
 }
 
 // ====== EXPOSE GLOBALS ======
 window.loadInvoices = loadInvoices;
+window.displayInvoices = displayInvoices;
 window.filterInvoices = filterInvoices;
 window.resetFilters = resetFilters;
 window.previousPage = previousPage;
@@ -930,16 +658,15 @@ window.nextPage = nextPage;
 window.openCreateModal = openCreateModal;
 window.closeCreateModal = closeCreateModal;
 window.createInvoice = createInvoice;
+window.loadTravelerBatch = loadTravelerBatch;
+window.calculateTotal = calculateTotal;
+window.viewInvoice = viewInvoice;
+window.closeViewModal = closeViewModal;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
 window.updateInvoice = updateInvoice;
 window.deleteInvoice = deleteInvoice;
-window.viewInvoiceDetails = viewInvoiceDetails;
-window.closeViewModal = closeViewModal;
 window.exportInvoices = exportInvoices;
-window.loadTravelerBatch = loadTravelerBatch;
-window.calculateTotal = calculateTotal;
 window.logout = logout;
-window.showNotification = showNotification;
 
-console.log('✅ invoices.js loaded successfully with GST/TCS support!');
+console.log('✅ invoices.js loaded successfully!');
