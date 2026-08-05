@@ -1145,87 +1145,70 @@
     <div id="notification" class="notification"></div>
 
     <!-- ==================================================================
-    MAIN SECTION 36: JAVASCRIPT - SIMPLIFIED AND FIXED
+    MAIN SECTION 36: JAVASCRIPT - LOAD travelers.js ONLY
     ================================================================== -->
     <script src="/admin/js/session-manager.js"></script>
     <script src="/admin/js/mobile-fix.js"></script>
     <script src="/admin/js/common.js"></script>
+    <script src="/admin/js/travelers.js"></script>
     
     <script>
         /**
          * ==================================================================
-         * FIXED: Travelers Module - Uses only travelers.js for all functionality
-         * The inline JavaScript below is minimal and only handles page initialization
+         * FIXED: Minimal inline script - Only handles logout and session
+         * All traveler logic is in travelers.js
          * ================================================================== */
         
-        // Load the main travelers.js file dynamically if not already loaded
-        function loadTravelersJS() {
-            return new Promise((resolve, reject) => {
-                // Check if travelers.js is already loaded
-                if (typeof window.loadTravelers === 'function' && typeof window.loadBatches === 'function') {
-                    console.log('✅ travelers.js already loaded');
-                    resolve();
-                    return;
+        // ====== LOGOUT ======
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+                    await SessionManager.logout();
+                } else {
+                    window.location.href = '/admin/login.html';
                 }
-                
-                // Load travelers.js
-                const script = document.createElement('script');
-                script.src = '/admin/js/travelers.js';
-                script.onload = function() {
-                    console.log('✅ travelers.js loaded successfully');
-                    resolve();
-                };
-                script.onerror = function() {
-                    console.error('❌ Failed to load travelers.js');
-                    reject(new Error('Failed to load travelers.js'));
-                };
-                document.head.appendChild(script);
-            });
+            }
         }
 
-        // Page initialization
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Travelers page initializing...');
-            
-            try {
-                // Load travelers.js first
-                await loadTravelersJS();
-                
-                // Initialize using SessionManager if available
-                if (typeof SessionManager !== 'undefined' && SessionManager.initPage) {
-                    await SessionManager.initPage(function() {
-                        console.log('✅ SessionManager initialized');
-                        // Call initializePage from travelers.js
-                        if (typeof initializePage === 'function') {
-                            initializePage();
-                        } else if (typeof window.initializePage === 'function') {
-                            window.initializePage();
-                        } else {
-                            // Fallback: manually load data
-                            console.log('⚠️ initializePage not found, manually loading data');
-                            if (typeof loadBatches === 'function') {
-                                loadBatches();
-                            }
-                            if (typeof loadTravelers === 'function') {
-                                loadTravelers();
-                            }
-                        }
-                    });
-                } else {
-                    console.warn('⚠️ SessionManager not available, loading data directly');
-                    if (typeof initializePage === 'function') {
-                        initializePage();
-                    } else if (typeof window.initializePage === 'function') {
-                        window.initializePage();
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Failed to initialize page:', error);
-                showNotification('Failed to load page. Please refresh.', 'error');
+        // ====== SESSION MANAGEMENT ======
+        function resetSessionTimer() {
+            // Handled by session-manager.js
+        }
+        
+        function showSessionWarning() {
+            const warning = document.getElementById('sessionWarning');
+            if (warning) warning.style.display = 'block';
+        }
+        
+        function hideSessionWarning() {
+            const warning = document.getElementById('sessionWarning');
+            if (warning) warning.style.display = 'none';
+        }
+        
+        function showSessionExpiredWarning() {
+            hideSessionWarning();
+            const notification = document.getElementById('notification');
+            if (notification) {
+                notification.className = 'notification notification-warning';
+                notification.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Your session has expired. Redirecting to login...';
+                notification.style.display = 'block';
             }
-        });
+            setTimeout(() => {
+                if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
+                    SessionManager.logout();
+                } else {
+                    window.location.href = '/admin/login.html';
+                }
+            }, 3000);
+        }
+        
+        function extendSession() {
+            hideSessionWarning();
+            resetSessionTimer();
+            showNotification('Session extended', 'success');
+        }
 
-        // ====== NOTIFICATION FUNCTION (Fallback) ======
+        // ====== NOTIFICATION (Fallback) ======
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             if (!notification) {
@@ -1253,53 +1236,8 @@
             }, 3000);
         }
 
-        // ====== LOGOUT FUNCTION (Fallback) ======
-        async function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
-                    await SessionManager.logout();
-                } else {
-                    window.location.href = '/admin/login.html';
-                }
-            }
-        }
-
-        // ====== SESSION MANAGEMENT (Fallback) ======
-        function resetSessionTimer() {
-            // Will be overridden by session-manager.js
-            console.log('Session timer reset');
-        }
-        
-        function showSessionWarning() {
-            const warning = document.getElementById('sessionWarning');
-            if (warning) warning.style.display = 'block';
-        }
-        
-        function hideSessionWarning() {
-            const warning = document.getElementById('sessionWarning');
-            if (warning) warning.style.display = 'none';
-        }
-        
-        function showSessionExpiredWarning() {
-            hideSessionWarning();
-            showNotification('Your session has expired. Redirecting to login...', 'warning');
-            setTimeout(() => {
-                if (typeof SessionManager !== 'undefined' && SessionManager.logout) {
-                    SessionManager.logout();
-                } else {
-                    window.location.href = '/admin/login.html';
-                }
-            }, 3000);
-        }
-        
-        function extendSession() {
-            hideSessionWarning();
-            resetSessionTimer();
-            showNotification('Session extended', 'success');
-        }
-
         console.log('✅ Travelers page loaded successfully!');
-        console.log('ℹ️ Traveler data will be loaded from the API via travelers.js');
+        console.log('ℹ️ Traveler data is loaded from travelers.js');
     </script>
 </body>
 </html>
