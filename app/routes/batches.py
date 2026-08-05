@@ -122,6 +122,44 @@ def get_batch(batch_id):
         if conn:
             release_db(conn, cursor)
 
+@bp.route('/for-traveler/<int:batch_id>', methods=['GET'])
+def get_batch_for_traveler(batch_id):
+    """
+    Get batch details specifically for traveler form
+    Includes return_date for auto-population
+    """
+    conn = None
+    cursor = None
+    try:
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT 
+                id, batch_name, return_date, departure_date,
+                price, total_seats, booked_seats, status
+            FROM batches 
+            WHERE id = %s
+        """, (batch_id,))
+        batch = cursor.fetchone()
+        
+        if not batch:
+            return jsonify({'success': False, 'error': 'Batch not found'}), 404
+        
+        batch_dict = dict(batch)
+        # Ensure return_date is included even if None
+        if 'return_date' not in batch_dict:
+            batch_dict['return_date'] = None
+            
+        return jsonify({
+            'success': True,
+            'batch': batch_dict,
+            'has_return_date': batch_dict.get('return_date') is not None
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if conn:
+            release_db(conn, cursor)
+
 @bp.route('', methods=['POST'])
 def create_batch():
     """Create new batch with return_date"""
@@ -169,11 +207,13 @@ def create_batch():
         ))
         
         result = cursor.fetchone()
+        batch_id = result['id'] if result else None
+        
         conn.commit()
         
         return jsonify({
             'success': True,
-            'batch_id': result['id'],
+            'batch_id': batch_id,
             'message': 'Batch created successfully',
             'return_date': data.get('return_date')  # Return it back for confirmation
         })
@@ -248,9 +288,10 @@ def update_batch(batch_id):
         
         # Get updated batch to return
         cursor.execute("""
-            SELECT id, batch_name, total_seats, booked_seats, price, 
-                   departure_date, return_date, status, description, 
-                   created_at, updated_at
+            SELECT 
+                id, batch_name, total_seats, booked_seats, price, 
+                departure_date, return_date, status, description, 
+                created_at, updated_at
             FROM batches WHERE id = %s
         """, (batch_id,))
         updated_batch = cursor.fetchone()
@@ -258,7 +299,8 @@ def update_batch(batch_id):
         return jsonify({
             'success': True, 
             'message': 'Batch updated successfully',
-            'batch': dict(updated_batch) if updated_batch else None
+            'batch': dict(updated_batch) if updated_batch else None,
+            'return_date': return_date
         })
         
     except Exception as e:
@@ -316,10 +358,13 @@ def get_batch_travelers(batch_id):
     try:
         conn, cursor = get_db()
         cursor.execute('''
-            SELECT id, first_name, last_name, passport_no, mobile, email, passport_status
-            FROM travelers
-            WHERE batch_id = %s
-            ORDER BY created_at DESC
+            SELECT 
+                t.id, t.first_name, t.last_name, t.passport_no, 
+                t.mobile, t.email, t.passport_status,
+                t.expected_return_date
+            FROM travelers t
+            WHERE t.batch_id = %s
+            ORDER BY t.created_at DESC
         ''', (batch_id,))
         
         travelers = cursor.fetchall()
@@ -457,47 +502,6 @@ def update_batch_return_date(batch_id):
     except Exception as e:
         if conn:
             conn.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        if conn:
-            release_db(conn, cursor)
-
-# ============================================================
-# UTILITY: Get batch with return date for traveler
-# ============================================================
-@bp.route('/for-traveler/<int:batch_id>', methods=['GET'])
-def get_batch_for_traveler(batch_id):
-    """
-    Get batch details specifically for traveler form
-    Includes return_date for auto-population
-    """
-    conn = None
-    cursor = None
-    try:
-        conn, cursor = get_db()
-        cursor.execute("""
-            SELECT 
-                id, batch_name, return_date, departure_date,
-                price, total_seats, booked_seats, status
-            FROM batches 
-            WHERE id = %s
-        """, (batch_id,))
-        batch = cursor.fetchone()
-        
-        if not batch:
-            return jsonify({'success': False, 'error': 'Batch not found'}), 404
-        
-        batch_dict = dict(batch)
-        # Ensure return_date is included even if None
-        if 'return_date' not in batch_dict:
-            batch_dict['return_date'] = None
-            
-        return jsonify({
-            'success': True,
-            'batch': batch_dict,
-            'has_return_date': batch_dict.get('return_date') is not None
-        })
-    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         if conn:
