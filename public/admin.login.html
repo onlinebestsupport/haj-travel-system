@@ -400,7 +400,7 @@
             border-radius: 10px;
             padding: 15px;
             margin: 20px 0;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 10px;
             border-left: 4px solid #3498db;
@@ -626,6 +626,39 @@
         .input-wrapper.focused i {
             color: #3498db;
         }
+
+        /* Add system status indicator */
+        .system-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .system-status .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .system-status .status-dot.online {
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        .system-status .status-dot.offline {
+            background: #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -667,7 +700,7 @@
             </div>
 
             <!-- ====== ℹ️ SESSION INFO (Shows if already logged in) ====== -->
-            <div id="sessionInfo" class="session-info" style="display: none;">
+            <div id="sessionInfo" class="session-info">
                 <i class="fas fa-info-circle"></i>
                 <div class="info-text">
                     <strong>Already logged in as <span id="sessionUserName"></span></strong>
@@ -722,6 +755,14 @@
                 </button>
             </form>
 
+            <!-- ====== 📌 SYSTEM STATUS ====== -->
+            <div class="system-status">
+                <span class="status-dot online" id="statusDot"></span>
+                <span id="systemStatusText">System Online</span>
+                <span style="margin: 0 5px;">•</span>
+                <span id="serverTime"></span>
+            </div>
+
             <!-- ====== 📌 FOOTER ====== -->
             <div class="footer">
                 <p><a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
@@ -729,72 +770,226 @@
         </div>
     </div>
 
-    <script src="/js/login.js"></script>
-    <script src="/admin/js/session-manager.js"></script>
-
     <script>
-        // ====== 🔑 GLOBAL FUNCTIONS ======
+        // ================================================================
+        // 🔐 ADMIN LOGIN - DATABASE AUTHENTICATION
+        // ================================================================
 
-        // Fill credentials from demo cards
-        function fillCredentials(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
+        (function() {
+            'use strict';
 
-            document.getElementById('username').style.backgroundColor = '#e8f4f8';
-            document.getElementById('password').style.backgroundColor = '#e8f4f8';
-
-            setTimeout(() => {
-                document.getElementById('username').style.backgroundColor = '';
-                document.getElementById('password').style.backgroundColor = '';
-            }, 500);
-
-            document.getElementById('password').focus();
-        }
-
-        // Toggle password visibility
-        function togglePasswordVisibility() {
+            // ====== DOM REFERENCES ======
+            const form = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('togglePassword');
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const successMessage = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+            const sessionInfo = document.getElementById('sessionInfo');
+            const sessionUserName = document.getElementById('sessionUserName');
+            const statusDot = document.getElementById('statusDot');
+            const systemStatusText = document.getElementById('systemStatusText');
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
+            // ====== CHECK EXISTING SESSION ======
+            async function checkExistingSession() {
+                try {
+                    const response = await fetch('/api/auth/status', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.logged_in && data.user) {
+                            // User is already logged in
+                            sessionUserName.textContent = data.user.display_name || data.user.username;
+                            sessionInfo.style.display = 'flex';
+                            form.style.display = 'none';
+                            document.querySelector('.demo-credentials').style.display = 'none';
+                            updateSystemStatus('online');
+                            return true;
+                        }
+                    }
+                } catch (e) {
+                    console.log('Session check skipped (API may not be ready)');
+                }
+
+                sessionInfo.style.display = 'none';
+                form.style.display = 'block';
+                updateSystemStatus('online');
+                return false;
             }
-        }
 
-        // Forgot password handler
-        function showForgotPassword(event) {
-            event.preventDefault();
-            console.warn('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com\nPhone: +91 9876543210');
-        }
+            // ====== UPDATE SYSTEM STATUS ======
+            function updateSystemStatus(status) {
+                if (status === 'online') {
+                    statusDot.className = 'status-dot online';
+                    systemStatusText.textContent = 'System Online';
+                } else {
+                    statusDot.className = 'status-dot offline';
+                    systemStatusText.textContent = 'Connecting...';
+                }
+            }
 
-        // console.log('✅ Admin login page loaded');
+            // ====== UPDATE SERVER TIME ======
+            function updateServerTime() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                document.getElementById('serverTime').textContent = timeStr;
+            }
+            updateServerTime();
+            setInterval(updateServerTime, 30000);
+
+            // ====== SHOW/HIDE MESSAGES ======
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+
+            function showSuccess(message) {
+                successText.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+            }
+
+            function hideMessages() {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+            }
+
+            // ====== TOGGLE PASSWORD VISIBILITY ======
+            window.togglePasswordVisibility = function() {
+                const toggleIcon = document.getElementById('togglePassword');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            };
+
+            // ====== FILL CREDENTIALS FROM DEMO ======
+            window.fillCredentials = function(username, password) {
+                usernameInput.value = username;
+                passwordInput.value = password;
+                usernameInput.style.backgroundColor = '#e8f4f8';
+                passwordInput.style.backgroundColor = '#e8f4f8';
+                setTimeout(() => {
+                    usernameInput.style.backgroundColor = '';
+                    passwordInput.style.backgroundColor = '';
+                }, 500);
+                passwordInput.focus();
+                hideMessages();
+            };
+
+            // ====== FORGOT PASSWORD ======
+            window.showForgotPassword = function(event) {
+                event.preventDefault();
+                showError('Please contact your system administrator to reset your password.\n\nEmail: admin@alhudha.com');
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            };
+
+            // ====== SET LOADING STATE ======
+            function setLoading(isLoading) {
+                if (isLoading) {
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+                } else {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login</span>';
+                }
+            }
+
+            // ====== HANDLE LOGIN ======
+            async function handleLogin(event) {
+                event.preventDefault();
+                hideMessages();
+
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+
+                if (!username || !password) {
+                    showError('Please enter both username and password.');
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Login successful
+                        showSuccess('Login successful! Redirecting to dashboard...');
+
+                        // Store user info in sessionStorage for frontend use
+                        sessionStorage.setItem('adminLoggedIn', 'true');
+                        sessionStorage.setItem('username', data.user.username);
+                        sessionStorage.setItem('userRole', data.user.role);
+                        sessionStorage.setItem('userDisplayName', data.user.display_name || data.user.username);
+
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = '/admin/dashboard.html';
+                        }, 800);
+                    } else {
+                        // Login failed
+                        showError(data.error || 'Invalid username or password.');
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError('Network error. Please check your connection and try again.');
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            // ====== CHECK SESSION ON PAGE LOAD ======
+            checkExistingSession();
+
+            // ====== EVENT LISTENERS ======
+            form.addEventListener('submit', handleLogin);
+
+            // Enter key support
+            passwordInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            });
+
+            usernameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    passwordInput.focus();
+                }
+            });
+
+            // ====== CONSOLE LOG (for debugging) ======
+            console.log('✅ Admin Login Page loaded with database authentication');
+
+        })();
     </script>
-<script>
-// Debug session after login
-setTimeout(async () => {
-    try {
-        const response = await fetch('/api/check-session', {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        // console.log('Session check after login:', data);
-        
-        if (data.authenticated) {
-            // console.log('✅ Session is valid! Redirecting to dashboard...');
-            window.location.href = '/admin/dashboard.html';
-        } else {
-            // console.log('❌ Session invalid - staying on login page');
-        }
-    } catch(e) {
-        console.error('Session check error:', e);
-    }
-}, 1000);
-</script>
 </body>
 </html>
