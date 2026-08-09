@@ -171,7 +171,7 @@ def log_session_after_request(response):
     return response
 
 # ================================================================
-# 🔐 AUTHENTICATION ENDPOINTS (ADDED)
+# 🔐 AUTHENTICATION ENDPOINTS (FIXED - DIRECT ROUTES)
 # ================================================================
 
 @app.route('/api/auth/login', methods=['POST'])
@@ -188,154 +188,148 @@ def auth_login():
         if not username or not password:
             return jsonify({'error': 'Username and password required'}), 400
 
-        conn = None
-        cursor = None
-        try:
-            conn, cursor = get_db()
-            
-            # Check if admin_users table exists, if not create it
+        # Get database connection
+        conn, cursor = get_db()
+        
+        # Check if admin_users table exists
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'admin_users'
+            )
+        """)
+        table_exists = cursor.fetchone()[0]
+
+        if not table_exists:
+            # Create admin_users table
             cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_name = 'admin_users'
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    email VARCHAR(200) UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    display_name VARCHAR(200),
+                    role VARCHAR(50) DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin', 'manager', 'finance', 'operator', 'viewer', 'support')),
+                    is_active BOOLEAN DEFAULT true,
+                    is_locked BOOLEAN DEFAULT false,
+                    failed_login_attempts INTEGER DEFAULT 0,
+                    last_login_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            table_exists = cursor.fetchone()[0]
-
-            if not table_exists:
-                # Create admin_users table
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS admin_users (
-                        id SERIAL PRIMARY KEY,
-                        username VARCHAR(100) NOT NULL UNIQUE,
-                        email VARCHAR(200) UNIQUE,
-                        password_hash VARCHAR(255) NOT NULL,
-                        display_name VARCHAR(200),
-                        role VARCHAR(50) DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin', 'manager', 'finance', 'operator', 'viewer', 'support')),
-                        is_active BOOLEAN DEFAULT true,
-                        is_locked BOOLEAN DEFAULT false,
-                        failed_login_attempts INTEGER DEFAULT 0,
-                        last_login_at TIMESTAMP,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                """)
-                
-                # Create default admin user
-                default_password = generate_password_hash('admin123')
+            
+            # Create default admin user
+            default_password = generate_password_hash('admin123')
+            cursor.execute("""
+                INSERT INTO admin_users (username, email, password_hash, display_name, role)
+                VALUES ('admin', 'admin@alhudha.com', %s, 'System Administrator', 'super_admin')
+                ON CONFLICT (username) DO NOTHING
+            """, (default_password,))
+            
+            # Insert demo users
+            demo_users = [
+                ('superadmin', 'superadmin@alhudha.com', 'Super Administrator', 'super_admin'),
+                ('admin1', 'admin1@alhudha.com', 'Administrator', 'admin'),
+                ('manager1', 'manager1@alhudha.com', 'Operations Manager', 'manager'),
+                ('staff1', 'staff1@alhudha.com', 'Support Staff', 'support'),
+                ('viewer1', 'viewer1@alhudha.com', 'Read-Only Viewer', 'viewer')
+            ]
+            for demo_username, demo_email, demo_display, demo_role in demo_users:
                 cursor.execute("""
                     INSERT INTO admin_users (username, email, password_hash, display_name, role)
-                    VALUES ('admin', 'admin@alhudha.com', %s, 'System Administrator', 'super_admin')
-                    ON CONFLICT (username) DO NOTHING
-                """, (default_password,))
-                
-                # Insert demo users
-                demo_users = [
-                    ('superadmin', 'superadmin@alhudha.com', 'Super Administrator', 'super_admin'),
-                    ('admin1', 'admin1@alhudha.com', 'Administrator', 'admin'),
-                    ('manager1', 'manager1@alhudha.com', 'Operations Manager', 'manager'),
-                    ('staff1', 'staff1@alhudha.com', 'Support Staff', 'support'),
-                    ('viewer1', 'viewer1@alhudha.com', 'Read-Only Viewer', 'viewer')
-                ]
-                for demo_username, demo_email, demo_display, demo_role in demo_users:
-                    cursor.execute("""
-                        INSERT INTO admin_users (username, email, password_hash, display_name, role)
-                        SELECT %s, %s, %s, %s, %s
-                        WHERE NOT EXISTS (SELECT 1 FROM admin_users WHERE username = %s)
-                    """, (demo_username, demo_email, default_password, demo_display, demo_role, demo_username))
-                
-                conn.commit()
-                print("✅ Admin users table created with default and demo users")
+                    SELECT %s, %s, %s, %s, %s
+                    WHERE NOT EXISTS (SELECT 1 FROM admin_users WHERE username = %s)
+                """, (demo_username, demo_email, default_password, demo_display, demo_role, demo_username))
+            
+            conn.commit()
+            print("✅ Admin users table created with default and demo users")
 
-            # Get user from database
-            cursor.execute("""
-                SELECT id, username, password_hash, role, display_name, is_active, is_locked
-                FROM admin_users 
-                WHERE username = %s
-            """, (username,))
+        # Get user from database
+        cursor.execute("""
+            SELECT id, username, password_hash, role, display_name, is_active, is_locked
+            FROM admin_users 
+            WHERE username = %s
+        """, (username,))
 
-            user = cursor.fetchone()
+        user = cursor.fetchone()
 
-            if not user:
-                cursor.close()
-                conn.close()
-                return jsonify({'error': 'Invalid credentials'}), 401
+        if not user:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'Invalid credentials'}), 401
 
-            user_id, db_username, password_hash, role, display_name, is_active, is_locked = user
+        user_id, db_username, password_hash, role, display_name, is_active, is_locked = user
 
-            # Check if account is locked
-            if is_locked:
-                cursor.close()
-                conn.close()
-                return jsonify({'error': 'Account is locked. Contact administrator.'}), 403
+        # Check if account is locked
+        if is_locked:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'Account is locked. Contact administrator.'}), 403
 
-            # Check if account is active
-            if not is_active:
-                cursor.close()
-                conn.close()
-                return jsonify({'error': 'Account is disabled. Contact administrator.'}), 403
+        # Check if account is active
+        if not is_active:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'Account is disabled. Contact administrator.'}), 403
 
-            # Verify password
-            valid_password = check_password_hash(password_hash, password)
+        # Verify password
+        valid_password = check_password_hash(password_hash, password)
 
-            if not valid_password:
-                # Increment failed attempts
-                cursor.execute("""
-                    UPDATE admin_users 
-                    SET failed_login_attempts = failed_login_attempts + 1,
-                        is_locked = (failed_login_attempts + 1 >= 5)
-                    WHERE id = %s
-                """, (user_id,))
-                conn.commit()
-                cursor.close()
-                conn.close()
-                return jsonify({'error': 'Invalid credentials'}), 401
-
-            # Reset failed attempts and update last login
+        if not valid_password:
+            # Increment failed attempts
             cursor.execute("""
                 UPDATE admin_users 
-                SET failed_login_attempts = 0,
-                    is_locked = false,
-                    last_login_at = CURRENT_TIMESTAMP,
-                    updated_at = CURRENT_TIMESTAMP
+                SET failed_login_attempts = failed_login_attempts + 1,
+                    is_locked = (failed_login_attempts + 1 >= 5)
                 WHERE id = %s
             """, (user_id,))
             conn.commit()
-
             cursor.close()
             conn.close()
+            return jsonify({'error': 'Invalid credentials'}), 401
 
-            # Create session
-            session.permanent = True
-            session['user_id'] = user_id
-            session['username'] = db_username
-            session['role'] = role
-            session['display_name'] = display_name or db_username
-            session['logged_in'] = True
-            session['login_time'] = datetime.now().isoformat()
+        # Reset failed attempts and update last login
+        cursor.execute("""
+            UPDATE admin_users 
+            SET failed_login_attempts = 0,
+                is_locked = false,
+                last_login_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+        """, (user_id,))
+        conn.commit()
 
-            print(f"✅ User logged in: {db_username} ({role})")
+        cursor.close()
+        conn.close()
 
-            return jsonify({
-                'success': True,
-                'message': 'Login successful',
-                'user': {
-                    'id': user_id,
-                    'username': db_username,
-                    'role': role,
-                    'display_name': display_name or db_username
-                }
-            })
+        # Create session
+        session.permanent = True
+        session['user_id'] = user_id
+        session['username'] = db_username
+        session['role'] = role
+        session['display_name'] = display_name or db_username
+        session['logged_in'] = True
+        session['login_time'] = datetime.now().isoformat()
 
-        except Exception as db_error:
-            if conn:
-                conn.close()
-            print(f"❌ Database error in login: {db_error}")
-            return jsonify({'error': 'Database error'}), 500
+        print(f"✅ User logged in: {db_username} ({role})")
+
+        return jsonify({
+            'success': True,
+            'message': 'Login successful',
+            'user': {
+                'id': user_id,
+                'username': db_username,
+                'role': role,
+                'display_name': display_name or db_username
+            }
+        })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"❌ Login error: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 
 @app.route('/api/auth/logout', methods=['POST', 'GET'])
@@ -375,6 +369,16 @@ def auth_status():
 def auth_check():
     """Alias for auth_status"""
     return auth_status()
+
+
+@app.route('/api/auth/test', methods=['GET'])
+def auth_test():
+    """Test endpoint to verify auth routes are working"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Auth API is reachable',
+        'session': dict(session)
+    })
 
 
 @app.route('/api/auth/register', methods=['POST'])
@@ -868,8 +872,10 @@ def api_root():
             '/api/auth/logout',
             '/api/auth/status',
             '/api/auth/check',
+            '/api/auth/test',
             '/api/auth/register',
             '/api/auth/users',
+            '/api/auth/user/<id>',
             '/api/admin/*',
             '/api/travelers/*',
             '/api/batches/*',
@@ -1109,6 +1115,7 @@ if __name__ == '__main__':
     print("   POST /api/auth/logout")
     print("   GET  /api/auth/status")
     print("   GET  /api/auth/check")
+    print("   GET  /api/auth/test")
     print("   POST /api/auth/register")
     print("   GET  /api/auth/users")
     print("📁 Upload URLs: /uploads/passports/filename.jpg, /uploads/photos/filename.jpg, etc.")
