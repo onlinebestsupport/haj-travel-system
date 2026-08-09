@@ -23,8 +23,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Import database
 from app.database import get_db, init_db, release_db
 
-# Import route blueprints - USE SIMPLIFIED AUTH
-from app.routes import auth_fixed as auth
+# Import route blueprints
+# IMPORTANT: auth_fixed is DISABLED - using direct auth routes in this file instead
+# from app.routes import auth_fixed as auth
 from app.routes import admin, batches, travelers, payments, company, uploads, reports, invoices, receipts, users, backup
 
 # ====== FLASK APP INITIALIZATION ======
@@ -140,7 +141,8 @@ except Exception as e:
     print(f"❌ Error creating upload directories: {e}")
 
 # ====== 🔷 BLUEPRINT REGISTRATION ======
-app.register_blueprint(auth.bp)
+# NOTE: auth.bp is DISABLED - using direct auth routes below
+# app.register_blueprint(auth.bp)
 app.register_blueprint(admin.bp)
 app.register_blueprint(batches.bp)
 app.register_blueprint(travelers.bp)
@@ -171,7 +173,7 @@ def log_session_after_request(response):
     return response
 
 # ================================================================
-# 🔐 AUTHENTICATION ENDPOINTS (FIXED - DIRECT ROUTES)
+# 🔐 AUTHENTICATION ENDPOINTS (DIRECT ROUTES - WORKING)
 # ================================================================
 
 @app.route('/api/auth/login', methods=['POST'])
@@ -191,7 +193,7 @@ def auth_login():
         # Get database connection
         conn, cursor = get_db()
         
-        # Check if admin_users table exists
+        # Check if admin_users table exists, if not create it
         cursor.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables 
@@ -245,7 +247,7 @@ def auth_login():
             conn.commit()
             print("✅ Admin users table created with default and demo users")
 
-        # Get user from database
+        # Get user from admin_users table (NOT users table)
         cursor.execute("""
             SELECT id, username, password_hash, role, display_name, is_active, is_locked
             FROM admin_users 
@@ -377,6 +379,16 @@ def auth_test():
     return jsonify({
         'status': 'ok',
         'message': 'Auth API is reachable',
+        'session': dict(session)
+    })
+
+
+@app.route('/api/auth/ping', methods=['GET'])
+def auth_ping():
+    """Simple ping to test if auth routes work"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Auth route is working',
         'session': dict(session)
     })
 
@@ -873,6 +885,7 @@ def api_root():
             '/api/auth/status',
             '/api/auth/check',
             '/api/auth/test',
+            '/api/auth/ping',
             '/api/auth/register',
             '/api/auth/users',
             '/api/auth/user/<id>',
@@ -1116,6 +1129,7 @@ if __name__ == '__main__':
     print("   GET  /api/auth/status")
     print("   GET  /api/auth/check")
     print("   GET  /api/auth/test")
+    print("   GET  /api/auth/ping")
     print("   POST /api/auth/register")
     print("   GET  /api/auth/users")
     print("📁 Upload URLs: /uploads/passports/filename.jpg, /uploads/photos/filename.jpg, etc.")
