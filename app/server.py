@@ -10,6 +10,7 @@ import uuid
 import threading
 import time
 import logging
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # ====== LOGGING CONFIGURATION ======
 logging.basicConfig(level=logging.INFO)
@@ -168,6 +169,379 @@ def log_session_after_request(response):
     except Exception as e:
         print(f"⚠️ Error in after_request: {e}")
     return response
+
+# ================================================================
+# 🔐 AUTHENTICATION ENDPOINTS (ADDED)
+# ================================================================
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    """Admin login endpoint with database authentication"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid request data'}), 400
+
+        username = data.get('username', '').strip().lower()
+        password = data.get('password', '')
+
+        if not username or not password:
+            return jsonify({'error': 'Username and password required'}), 400
+
+        conn = None
+        cursor = None
+        try:
+            conn, cursor = get_db()
+            
+            # Check if admin_users table exists, if not create it
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'admin_users'
+                )
+            """)
+            table_exists = cursor.fetchone()[0]
+
+            if not table_exists:
+                # Create admin_users table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS admin_users (
+                        id SERIAL PRIMARY KEY,
+                        username VARCHAR(100) NOT NULL UNIQUE,
+                        email VARCHAR(200) UNIQUE,
+                        password_hash VARCHAR(255) NOT NULL,
+                        display_name VARCHAR(200),
+                        role VARCHAR(50) DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin', 'manager', 'finance', 'operator', 'viewer', 'support')),
+                        is_active BOOLEAN DEFAULT true,
+                        is_locked BOOLEAN DEFAULT false,
+                        failed_login_attempts INTEGER DEFAULT 0,
+                        last_login_at TIMESTAMP,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                
+                # Create default admin user
+                default_password = generate_password_hash('admin123')
+                cursor.execute("""
+                    INSERT INTO admin_users (username, email, password_hash, display_name, role)
+                    VALUES ('admin', 'admin@alhudha.com', %s, 'System Administrator', 'super_admin')
+                    ON CONFLICT (username) DO NOTHING
+                """, (default_password,))
+                
+                # Insert demo users
+                demo_users = [
+                    ('superadmin', 'superadmin@alhudha.com', 'Super Administrator', 'super_admin'),
+                    ('admin1', 'admin1@alhudha.com', 'Administrator', 'admin'),
+                    ('manager1', 'manager1@alhudha.com', 'Operations Manager', 'manager'),
+                    ('staff1', 'staff1@alhudha.com', 'Support Staff', 'support'),
+                    ('viewer1', 'viewer1@alhudha.com', 'Read-Only Viewer', 'viewer')
+                ]
+                for demo_username, demo_email, demo_display, demo_role in demo_users:
+                    cursor.execute("""
+                        INSERT INTO admin_users (username, email, password_hash, display_name, role)
+                        SELECT %s, %s, %s, %s, %s
+                        WHERE NOT EXISTS (SELECT 1 FROM admin_users WHERE username = %s)
+                    """, (demo_username, demo_email, default_password, demo_display, demo_role, demo_username))
+                
+                conn.commit()
+                print("✅ Admin users table created with default and demo users")
+
+            # Get user from database
+            cursor.execute("""
+                SELECT id, username, password_hash, role, display_name, is_active, is_locked
+                FROM admin_users 
+                WHERE username = %s
+            """, (username,))
+
+            user = cursor.fetchone()
+
+            if not user:
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Invalid credentials'}), 401
+
+            user_id, db_username, password_hash, role, display_name, is_active, is_locked = user
+
+            # Check if account is locked
+            if is_locked:
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Account is locked. Contact administrator.'}), 403
+
+            # Check if account is active
+            if not is_active:
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Account is disabled. Contact administrator.'}), 403
+
+            # Verify password
+            valid_password = check_password_hash(password_hash, password)
+
+            if not valid_password:
+                # Increment failed attempts
+                cursor.execute("""
+                    UPDATE admin_users 
+                    SET failed_login_attempts = failed_login_attempts + 1,
+                        is_locked = (failed_login_attempts + 1 >= 5)
+                    WHERE id = %s
+                """, (user_id,))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Invalid credentials'}), 401
+
+            # Reset failed attempts and update last login
+            cursor.execute("""
+                UPDATE admin_users 
+                SET failed_login_attempts = 0,
+                    is_locked = false,
+                    last_login_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (user_id,))
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            # Create session
+            session.permanent = True
+            session['user_id'] = user_id
+            session['username'] = db_username
+            session['role'] = role
+            session['display_name'] = display_name or db_username
+            session['logged_in'] = True
+            session['login_time'] = datetime.now().isoformat()
+
+            print(f"✅ User logged in: {db_username} ({role})")
+
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'id': user_id,
+                    'username': db_username,
+                    'role': role,
+                    'display_name': display_name or db_username
+                }
+            })
+
+        except Exception as db_error:
+            if conn:
+                conn.close()
+            print(f"❌ Database error in login: {db_error}")
+            return jsonify({'error': 'Database error'}), 500
+
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/auth/logout', methods=['POST', 'GET'])
+def auth_logout():
+    """Admin logout endpoint"""
+    try:
+        username = session.get('username', 'Unknown')
+        print(f"👋 User logging out: {username}")
+        session.clear()
+        return jsonify({'success': True, 'message': 'Logged out successfully'})
+    except Exception as e:
+        print(f"❌ Logout error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auth/status', methods=['GET'])
+def auth_status():
+    """Check if user is logged in"""
+    try:
+        if session.get('logged_in') and session.get('user_id'):
+            return jsonify({
+                'logged_in': True,
+                'user': {
+                    'id': session.get('user_id'),
+                    'username': session.get('username'),
+                    'role': session.get('role'),
+                    'display_name': session.get('display_name', session.get('username'))
+                }
+            })
+        return jsonify({'logged_in': False}), 401
+    except Exception as e:
+        print(f"❌ Auth status error: {e}")
+        return jsonify({'logged_in': False, 'error': str(e)}), 500
+
+
+@app.route('/api/auth/check', methods=['GET'])
+def auth_check():
+    """Alias for auth_status"""
+    return auth_status()
+
+
+@app.route('/api/auth/register', methods=['POST'])
+def auth_register():
+    """Register a new admin user (super_admin only)"""
+    try:
+        # Check if current user is super_admin
+        if not session.get('logged_in') or session.get('role') != 'super_admin':
+            return jsonify({'error': 'Only super administrators can create new users'}), 403
+
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid request data'}), 400
+
+        username = data.get('username', '').strip().lower()
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        display_name = data.get('display_name', '')
+        role = data.get('role', 'viewer')
+
+        if not username or not password:
+            return jsonify({'error': 'Username and password required'}), 400
+
+        if len(password) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+        valid_roles = ['super_admin', 'admin', 'manager', 'finance', 'operator', 'viewer', 'support']
+        if role not in valid_roles:
+            return jsonify({'error': f'Invalid role. Must be one of: {", ".join(valid_roles)}'}), 400
+
+        password_hash = generate_password_hash(password)
+
+        conn, cursor = get_db()
+        try:
+            cursor.execute("""
+                INSERT INTO admin_users (username, email, password_hash, display_name, role, is_active)
+                VALUES (%s, %s, %s, %s, %s, true)
+                RETURNING id
+            """, (username, email, password_hash, display_name, role))
+            user_id = cursor.fetchone()[0]
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            return jsonify({
+                'success': True,
+                'message': f'User {username} created successfully',
+                'user_id': user_id,
+                'role': role
+            })
+
+        except Exception as db_error:
+            conn.rollback()
+            cursor.close()
+            conn.close()
+            if 'unique constraint' in str(db_error).lower():
+                return jsonify({'error': 'Username or email already exists'}), 400
+            return jsonify({'error': f'Database error: {str(db_error)}'}), 500
+
+    except Exception as e:
+        print(f"❌ Register error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/auth/users', methods=['GET'])
+def auth_list_users():
+    """List all admin users (super_admin only)"""
+    try:
+        if not session.get('logged_in') or session.get('role') != 'super_admin':
+            return jsonify({'error': 'Only super administrators can view users'}), 403
+
+        conn, cursor = get_db()
+        cursor.execute("""
+            SELECT id, username, email, display_name, role, is_active, is_locked, 
+                   failed_login_attempts, last_login_at, created_at
+            FROM admin_users
+            ORDER BY id
+        """)
+        users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user[0],
+                'username': user[1],
+                'email': user[2],
+                'display_name': user[3],
+                'role': user[4],
+                'is_active': user[5],
+                'is_locked': user[6],
+                'failed_login_attempts': user[7],
+                'last_login_at': user[8],
+                'created_at': user[9]
+            })
+
+        return jsonify({'success': True, 'users': user_list})
+
+    except Exception as e:
+        print(f"❌ List users error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@app.route('/api/auth/user/<int:user_id>', methods=['PUT', 'DELETE'])
+def auth_manage_user(user_id):
+    """Update or delete a user (super_admin only)"""
+    try:
+        if not session.get('logged_in') or session.get('role') != 'super_admin':
+            return jsonify({'error': 'Only super administrators can manage users'}), 403
+
+        # Prevent self-deletion
+        if session.get('user_id') == user_id:
+            return jsonify({'error': 'Cannot modify your own account'}), 400
+
+        conn, cursor = get_db()
+
+        if request.method == 'DELETE':
+            cursor.execute("DELETE FROM admin_users WHERE id = %s RETURNING id", (user_id,))
+            deleted = cursor.fetchone()
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            if deleted:
+                return jsonify({'success': True, 'message': 'User deleted successfully'})
+            return jsonify({'error': 'User not found'}), 404
+
+        # PUT - Update user
+        data = request.get_json()
+        allowed_fields = ['display_name', 'role', 'is_active', 'email']
+        updates = []
+        values = []
+
+        for field in allowed_fields:
+            if field in data:
+                updates.append(f"{field} = %s")
+                values.append(data[field])
+
+        if not updates:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'No fields to update'}), 400
+
+        updates.append("updated_at = CURRENT_TIMESTAMP")
+        values.append(user_id)
+
+        query = f"UPDATE admin_users SET {', '.join(updates)} WHERE id = %s RETURNING id"
+        cursor.execute(query, values)
+        updated = cursor.fetchone()
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        if updated:
+            return jsonify({'success': True, 'message': 'User updated successfully'})
+        return jsonify({'error': 'User not found'}), 404
+
+    except Exception as e:
+        print(f"❌ Manage user error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+# ================================================================
+# END OF AUTHENTICATION ENDPOINTS
+# ================================================================
 
 # ====== 🏠 STATIC FILE ROUTES ======
 @app.route('/')
@@ -490,9 +864,12 @@ def api_root():
         'version': '2.0',
         'endpoints': [
             '/api/health',
-            '/api/login',
-            '/api/logout',
-            '/api/check-session',
+            '/api/auth/login',
+            '/api/auth/logout',
+            '/api/auth/status',
+            '/api/auth/check',
+            '/api/auth/register',
+            '/api/auth/users',
             '/api/admin/*',
             '/api/travelers/*',
             '/api/batches/*',
@@ -727,6 +1104,13 @@ if __name__ == '__main__':
     print("📡 Admin Login: /admin.login.html")
     print("📡 Admin Dashboard: /admin/")
     print("📡 Traveler Login: /traveler_login.html")
+    print("🔐 Auth Endpoints:")
+    print("   POST /api/auth/login")
+    print("   POST /api/auth/logout")
+    print("   GET  /api/auth/status")
+    print("   GET  /api/auth/check")
+    print("   POST /api/auth/register")
+    print("   GET  /api/auth/users")
     print("📁 Upload URLs: /uploads/passports/filename.jpg, /uploads/photos/filename.jpg, etc.")
     print("=" * 60)
 
