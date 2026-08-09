@@ -1,4 +1,5 @@
 import psycopg2
+import os
 
 DB_URL = 'postgresql://postgres:cbZOkSkTGHUBzcIKZQOLmcClIVhHqNAI@yamanote.proxy.rlwy.net:39010/railway?sslmode=require'
 
