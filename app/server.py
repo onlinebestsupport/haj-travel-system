@@ -1106,7 +1106,7 @@ if not check_required_files():
 # ====== 🚀 APPLICATION ENTRY POINT ======
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=False)
 
     print("=" * 60)
     print("🚀 Alhudha Haj Travel System v2.0")
